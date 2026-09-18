@@ -23,6 +23,7 @@ further work. This is not a release changelog.
 | ENG-012 | Resolved | Evidence | CTest truncates successful-suite output |
 | ENG-013 | Resolved | Versioning | Text normalization changes benchmark trace digests |
 | ENG-014 | Resolved | Evidence | PowerShell audit continues after an XML access error |
+| ENG-015 | Mitigated | CI | Deprecated action runtime and moving OS labels |
 
 ## ENG-001: Localized MSVC Include Output
 
@@ -267,3 +268,23 @@ further work. This is not a release changelog.
   nine suite executions and 180 case executions. Failed and truncated
   fixture reports are both rejected. These are repeated case executions,
   not 180 distinct tests.
+
+## ENG-015: GitHub Actions Runtime Compatibility
+
+- Status: Mitigated; the pinned workflow is validated by its exact-commit
+  GitHub Actions run before a version tag is published.
+- Impact: the runner warned that `actions/checkout@v4` and
+  `actions/upload-artifact@v4` target deprecated Node 20 and are being forced
+  onto Node 24. It also announced a future migration of `ubuntu-latest`.
+- Evidence: annotations on run `35354736795`. The C++ unit and sanitizer
+  checks passed, but the CI environment was not fully pinned.
+- Solution: use the official v7.0.1 releases, whose `action.yml` files
+  explicitly declare `node24`. Pin checkout to
+  `3d3c42e5aac5ba805825da76410c181273ba90b1` and upload-artifact to
+  `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`. Use `ubuntu-24.04` and
+  `windows-2025` labels, and reject missing test artifacts.
+- Verification: release tags, commit IDs and runtime declarations were
+  checked against the official `actions` repositories. The workflow's
+  exact-commit run remains the build/test acceptance gate.
+- Boundary: named hosted OS versions still receive image updates. Fully
+  bit-reproducible toolchain images are not claimed.

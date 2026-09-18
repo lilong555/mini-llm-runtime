@@ -14,6 +14,8 @@
   artifacts are excluded from source control.
 - Trace `.jsonl` files preserve exact bytes through `.gitattributes`; their
   raw digests must continue to match recorded benchmark reports.
+- CI actions are pinned to reviewed release commit IDs. Hosted runner OS
+  labels are explicit; toolchain image updates still require fresh CI.
 
 ## Working Changes
 

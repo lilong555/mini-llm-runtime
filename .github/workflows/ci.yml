@@ -17,30 +17,31 @@ jobs:
   unit:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate archived CTest evidence
         shell: pwsh
         run: ./scripts/Test-CtestEvidence.ps1
       - run: cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel 4
       - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: unit-${{ matrix.os }}
           path: build/test-results.xml
+          if-no-files-found: error
 
   cpu-product:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ggml-org/llama.cpp
           ref: 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
@@ -49,16 +50,17 @@ jobs:
       - run: cmake -S . -B build -DLLMSERVE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel 4
       - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: cpu-product-${{ matrix.os }}
           path: build/test-results.xml
+          if-no-files-found: error
 
   sanitizers:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: >-
           cmake -S . -B build -G Ninja -DLLMSERVE_WITH_LLAMA=OFF
           -DCMAKE_BUILD_TYPE=Debug
@@ -66,8 +68,9 @@ jobs:
           -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - run: cmake --build build --parallel 4
       - run: ctest --test-dir build --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: sanitizers
           path: build/test-results.xml
+          if-no-files-found: error
