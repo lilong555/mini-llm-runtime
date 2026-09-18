@@ -27,6 +27,7 @@ git switch -c feat/cpu-prefill-tiling
 
 .\scripts\Build-LLMServe.ps1
 ctest --test-dir build/cpu --output-on-failure
+.\scripts\Test-CtestEvidence.ps1
 git diff --check
 git status --short
 git diff

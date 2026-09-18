@@ -21,6 +21,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate archived CTest evidence
+        shell: pwsh
+        run: ./scripts/Test-CtestEvidence.ps1
       - run: cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel 4
       - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml

@@ -22,6 +22,7 @@ further work. This is not a release changelog.
 | ENG-011 | Open | Model | Tokenizer normalizes a control-looking vocabulary entry |
 | ENG-012 | Resolved | Evidence | CTest truncates successful-suite output |
 | ENG-013 | Resolved | Versioning | Text normalization changes benchmark trace digests |
+| ENG-014 | Resolved | Evidence | PowerShell audit continues after an XML access error |
 
 ## ENG-001: Localized MSVC Include Output
 
@@ -246,3 +247,23 @@ further work. This is not a release changelog.
 - Verification: the raw file and Git blob both have object ID
   `585b02f75cb8cc9242f57aca141099c57e7f5931`. Replay request data and the
   original benchmark reports are unchanged.
+
+## ENG-014: Fail-Closed Evidence Inspection
+
+- Status: Resolved.
+- Impact: an ad hoc archive-inspection command accessed `XmlDocument.InnerText`
+  as though it were an element body. PowerShell reported a null-method error
+  but continued to subsequent Git commands with its default error policy.
+  The remote CI jobs themselves had passed; the extra local audit was
+  incomplete.
+- Cause: incorrect XML node access combined with non-terminating script
+  errors. PowerShell's XML adapter can also shadow native property names
+  with XML attributes.
+- Solution: `scripts/Test-CtestEvidence.ps1` uses a parsed `XmlDocument`,
+  explicit element selection and native XML getters, strict mode, and
+  `$ErrorActionPreference = 'Stop'`. It checks suite totals, failure/skipped
+  states, full passed-case counts, and missing or truncated output.
+- Verification: all six archived local/remote reports pass, representing
+  nine suite executions and 180 case executions. Failed and truncated
+  fixture reports are both rejected. These are repeated case executions,
+  not 180 distinct tests.

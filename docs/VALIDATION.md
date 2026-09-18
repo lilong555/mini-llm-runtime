@@ -166,6 +166,8 @@ The remote run summary and JUnit reports are archived under
 `benchmarks/results/ci/07793dd/`. Sanitizers cover the dependency-free core;
 they do not cover the GGUF parser, HTTP transport or real-model execution.
 Remote CI downloads the pinned C++ dependency, not model weights.
+`scripts/Test-CtestEvidence.ps1` checks the archived local/remote XML reports
+and rejects failed, missing or truncated suite output.
 
 ## Unverified Areas
 
