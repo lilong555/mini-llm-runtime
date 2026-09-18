@@ -1,0 +1,27 @@
+{
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_fnv1a64": 2838063601083618312,
+  "requests_per_trial": 24,
+  "token_sequence_mismatches_against_first_trial": 0,
+  "policies": {
+    "mixed": {
+      "trials": 3,
+      "successful": 72.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 18.399605389796406,
+      "ttft_p95_ms_median": 13105.76952,
+      "mean_tpot_p95_ms_median": 398.89102399999996,
+      "goodput_requests_per_second_median": 0.0
+    },
+    "prefill_first": {
+      "trials": 3,
+      "successful": 72.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 18.589410278116894,
+      "ttft_p95_ms_median": 12290.585804999995,
+      "mean_tpot_p95_ms_median": 352.84526100000005,
+      "goodput_requests_per_second_median": 0.0
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "backend": "minillm",
+  "completion_tokens": 16,
+  "elapsed_s": 0.5645562,
+  "kernel": "avx2-fma-f16c",
+  "output_tokens_per_second": 28.340845428674776,
+  "prompt_tokens": 5,
+  "text": " Paris. The capital of France is also the capital of the Republic of France.",
+  "token_ids": [
+    12095,
+    13,
+    576,
+    6722,
+    315,
+    9625,
+    374,
+    1083,
+    279,
+    6722,
+    315,
+    279,
+    5429,
+    315,
+    9625,
+    13
+  ],
+  "ttft_ms": 104.1545,
+  "used_kv_pages_after_release": 0,
+  "used_kv_pages_before_release": 2
+}

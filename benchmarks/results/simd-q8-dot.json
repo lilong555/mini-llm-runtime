@@ -1,0 +1,30 @@
+{
+  "checksum": 1853125.7231712341,
+  "columns": 1024,
+  "kernel": "avx2-fma-f16c",
+  "max_absolute_error": 3.814697265625e-05,
+  "median_speedup": 4.292101039114641,
+  "repeats_per_round": 300,
+  "rows": 128,
+  "scalar_median_ns": 661.53125,
+  "scalar_ns_per_dot": [
+    673.4453125,
+    660.7604166666666,
+    665.7890625,
+    661.53125,
+    666.3932291666666,
+    654.03125,
+    655.734375
+  ],
+  "scope": "single-thread hot-cache Q8_0 weight x F32 vector dot; not end-to-end serving",
+  "simd_median_ns": 154.12760416666666,
+  "simd_ns_per_dot": [
+    154.12760416666666,
+    153.76302083333334,
+    154.36458333333334,
+    154.10677083333334,
+    155.53385416666666,
+    155.13541666666666,
+    153.4453125
+  ]
+}

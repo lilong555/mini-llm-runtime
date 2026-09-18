@@ -1,0 +1,8 @@
+{
+  "model": "Qwen3-0.6B-Q8_0",
+  "prompt": "The capital of France is",
+  "max_tokens": 32,
+  "temperature": 0,
+  "stream": true,
+  "priority": 0
+}

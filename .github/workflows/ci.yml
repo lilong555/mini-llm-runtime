@@ -1,0 +1,70 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'perf/**', 'test/**', 'build/**', 'docs/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpp-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release --parallel 4
+      - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-${{ matrix.os }}
+          path: build/test-results.xml
+
+  cpu-product:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ggml-org/llama.cpp
+          ref: 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+          path: third_party/llama.cpp
+          persist-credentials: false
+      - run: cmake -S . -B build -DLLMSERVE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release --parallel 4
+      - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpu-product-${{ matrix.os }}
+          path: build/test-results.xml
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: >-
+          cmake -S . -B build -G Ninja -DLLMSERVE_WITH_LLAMA=OFF
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - run: cmake --build build --parallel 4
+      - run: ctest --test-dir build --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sanitizers
+          path: build/test-results.xml

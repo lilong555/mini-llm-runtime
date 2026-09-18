@@ -1,0 +1,14 @@
+{
+  "checks": [],
+  "error": "E:\\code\\LLM Serving Engine\\tests\\model_tests.cpp:105: rmse < max_rmse",
+  "kernel": "avx2-fma-f16c",
+  "model_path": "models\\Qwen3-0.6B-Q8_0.gguf",
+  "reference_gpu_layers": 99,
+  "status": "failed",
+  "thresholds": {
+    "reference_cosine": 0.9999,
+    "reference_max_abs": 0.5,
+    "reference_rmse": 0.05,
+    "same_runtime_max_abs": 1e-05
+  }
+}
