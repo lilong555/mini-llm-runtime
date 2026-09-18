@@ -21,6 +21,7 @@ further work. This is not a release changelog.
 | ENG-010 | Open | Dependency | Pinned upstream emits MSVC warnings |
 | ENG-011 | Open | Model | Tokenizer normalizes a control-looking vocabulary entry |
 | ENG-012 | Resolved | Evidence | CTest truncates successful-suite output |
+| ENG-013 | Resolved | Versioning | Text normalization changes benchmark trace digests |
 
 ## ENG-001: Localized MSVC Include Output
 
@@ -227,3 +228,21 @@ further work. This is not a release changelog.
   CI uploads the report even on test failure.
 - Verification: `benchmarks/results/validation/windows-cpu-ctest.xml` includes
   all 28 unit-case results and all four GGUF-case results.
+
+## ENG-013: Byte-Identical Benchmark Traces
+
+- Status: Resolved.
+- Impact: automatic CRLF-to-LF normalization changes the replay file's raw
+  digest even though its parsed requests remain identical. A cloned trace
+  would no longer match the digest in the archived benchmark reports.
+- Reproduction: compare `git hash-object --no-filters` for the measured
+  `benchmarks/traces/cpu-mixed-s0.jsonl` with its staged or committed blob.
+- Cause: the generic text normalization rule also applied to `.jsonl`
+  traces; `llmserve-bench` hashes raw bytes, including newline characters.
+- Solution: declare `*.jsonl -text` in `.gitattributes` and stage the original
+  trace bytes without normalization. Apply `whitespace=cr-at-eol` to traces
+  so `git diff --check` accepts their intentional CRLF line endings. Keep
+  ordinary source files normalized.
+- Verification: the raw file and Git blob both have object ID
+  `585b02f75cb8cc9242f57aca141099c57e7f5931`. Replay request data and the
+  original benchmark reports are unchanged.

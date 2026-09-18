@@ -13,7 +13,7 @@
 | [x] ENV-003 | P0 | 第三方依赖是否固定且未修改？ | CMake 核对 llama.cpp SHA；Fetch 脚本拒绝错误提交及脏 checkout |
 | [x] ENV-004 | P0 | 模型与参照权重是否具有可验证来源？ | 两份 model manifest 含版本、转换关系、字节数与 SHA-256 |
 | [x] ENV-005 | P0 | 不支持的架构、采样和 API 参数是否显式拒绝？ | Qwen3 主范围；greedy-only；参数校验与 HTTP 422/404 |
-| [ ] ENV-006 | P1 | 跨编译器与 sanitizer 能否保持相同行为？ | Windows/MSVC、Linux/GCC 构建；ASan/UBSan；远程 CI 状态与本地结果分开 |
+| [x] ENV-006 | P1 | 跨编译器与 sanitizer 能否保持相同行为？ | GitHub Actions 的 Windows/MSVC、Linux/GCC 完整 CPU 构建与单测通过，Linux ASan/UBSan 核心测试通过；真实模型与 HTTP 仍是本地验证，见 `VALIDATION.md` |
 
 ## 2. Mini Runtime
 

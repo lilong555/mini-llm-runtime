@@ -12,6 +12,8 @@
   committed. The derived numerical reference has its own manifest.
 - Auxiliary Python experiments, credentials, local service state and compiled
   artifacts are excluded from source control.
+- Trace `.jsonl` files preserve exact bytes through `.gitattributes`; their
+  raw digests must continue to match recorded benchmark reports.
 
 ## Working Changes
 

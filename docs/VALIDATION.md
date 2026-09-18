@@ -151,13 +151,29 @@ The bottleneck is not yet established by profiling. See `ENG-008` in
 `docs/ENGINEERING_LOG.md`. Lower-rate, distinct cold/warm-prefix and
 long-context experiments are still needed.
 
+## Remote CI
+
+GitHub Actions run
+[35352370060](https://github.com/lilong555/mini-llm-runtime/actions/runs/35352370060)
+passed all five jobs for source commit
+`07793ddd93410d04188092ade1c14b471078b1ea`:
+
+- Windows and Ubuntu dependency-free core builds and unit tests.
+- Windows and Ubuntu complete CPU product builds and both CTest suites.
+- Ubuntu core tests under AddressSanitizer and UndefinedBehaviorSanitizer.
+
+The remote run summary and JUnit reports are archived under
+`benchmarks/results/ci/07793dd/`. Sanitizers cover the dependency-free core;
+they do not cover the GGUF parser, HTTP transport or real-model execution.
+Remote CI downloads the pinned C++ dependency, not model weights.
+
 ## Unverified Areas
 
 Long-context stress, sustained overload fairness, failure injection into
 real model execution, multi-tenant security, arbitrary Qwen3 variants,
 F16-only model coverage, GPU custom kernels and large-sample SLO conclusions
-require separate evidence. CI configuration is provided; a local pass is
-not a claim that a remote GitHub Actions run has completed.
+require separate evidence. CUDA HTTP serving and model/HTTP sanitizer runs
+also require separate evidence. Local GPU validation is not remote GPU CI.
 
 ## Reproduce
 

@@ -5,7 +5,8 @@
 *.ps1 text
 *.md text
 *.json text
-*.jsonl text
+# Replay digests cover raw trace bytes, including line endings.
+*.jsonl -text whitespace=cr-at-eol
 *.yml text
 *.xml text
 *.png binary
