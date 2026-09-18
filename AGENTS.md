@@ -5,6 +5,9 @@
 - Deliverables describe the current usable system. Do not add patch notes,
   editing narratives, or explanations of the editing process to the README.
 - Record encountered engineering problems in `docs/ENGINEERING_LOG.md`.
+  Write its titles, field labels, statuses, and explanations in Simplified
+  Chinese. Preserve issue IDs, code identifiers, paths, commands, and original
+  diagnostic messages.
   Each entry needs an ID, status, impact, reproduction or evidence, cause,
   solution or next action, and verification. Never mark an issue resolved
   without evidence. Keep credentials and tokens out of the log.
