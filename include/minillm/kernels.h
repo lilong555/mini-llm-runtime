@@ -20,6 +20,8 @@ float dot_f32(const float* left, const float* right, std::size_t count,
               KernelMode mode = KernelMode::automatic) noexcept;
 float dot_f16(const std::uint16_t* left, const float* right, std::size_t count,
               KernelMode mode = KernelMode::automatic) noexcept;
+void add_scaled_f16(const std::uint16_t* input, float scale, float* output, std::size_t count,
+                    KernelMode mode = KernelMode::automatic) noexcept;
 float dot_row(WeightType type, const std::byte* row, const float* vector,
               std::size_t columns, KernelMode mode = KernelMode::automatic) noexcept;
 void rms_norm(const float* input, const float* weight, float* output, std::size_t count,
@@ -29,6 +31,7 @@ namespace detail {
 #ifdef MINILLM_HAS_AVX2
 float dot_f32_avx2(const float*, const float*, std::size_t) noexcept;
 float dot_f16_avx2(const std::uint16_t*, const float*, std::size_t) noexcept;
+void add_scaled_f16_avx2(const std::uint16_t*, float, float*, std::size_t) noexcept;
 float dot_q8_avx2(const std::byte*, const float*, std::size_t) noexcept;
 #endif
 }

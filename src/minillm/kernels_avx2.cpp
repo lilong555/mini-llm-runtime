@@ -42,6 +42,21 @@ float dot_f16_avx2(const std::uint16_t* left, const float* right, std::size_t co
     return result;
 }
 
+void add_scaled_f16_avx2(const std::uint16_t* input, float scale, float* output,
+                         std::size_t count) noexcept {
+    const auto factor = _mm256_set1_ps(scale);
+    std::size_t i = 0;
+    for (; i + 8 <= count; i += 8) {
+        const auto half = _mm_loadu_si128(reinterpret_cast<const __m128i*>(input + i));
+        const auto values = _mm256_cvtph_ps(half);
+        const auto accumulated = _mm256_fmadd_ps(values, factor, _mm256_loadu_ps(output + i));
+        _mm256_storeu_ps(output + i, accumulated);
+    }
+    for (; i < count; ++i) {
+        output[i] += scale * half_to_float(input[i]);
+    }
+}
+
 float dot_q8_avx2(const std::byte* row, const float* vector, std::size_t columns) noexcept {
     auto sum = _mm256_setzero_ps();
     for (std::size_t block = 0; block < columns / 32; ++block) {

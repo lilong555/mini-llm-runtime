@@ -283,9 +283,8 @@ struct Runtime::Impl {
                     for (std::size_t position = 0; position < length; ++position) {
                         const auto probability = static_cast<float>(scores[position] / denominator);
                         const auto v = cache.value(sequence, layer_id, position);
-                        for (std::size_t j = 0; j < dims.head_dim; ++j) {
-                            out[j] += probability * half_to_float(v[kv_head * dims.head_dim + j]);
-                        }
+                        add_scaled_f16(v.data() + kv_head * dims.head_dim, probability, out,
+                                       dims.head_dim, config.kernels);
                     }
                 }
             });

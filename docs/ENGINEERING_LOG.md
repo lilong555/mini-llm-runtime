@@ -23,6 +23,8 @@
 | ENG-013 | 已解决 | 版本管理 | 文本换行规范化改变基准回放文件的摘要 |
 | ENG-014 | 已解决 | 验证证据 | PowerShell 校验脚本在 XML 访问错误后继续执行 |
 | ENG-015 | 已缓解 | 持续集成 | Action 运行时弃用及托管操作系统标签漂移 |
+| ENG-016 | 已解决 | SIMD | Attention 的 V 加权累加未使用 SIMD |
+| ENG-017 | 待解决 | 模型验证 | 混合批断言受执行时序影响 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -167,3 +169,21 @@
 - 解决方法：使用官方 v7.0.1 发布版本，其 `action.yml` 明确声明 `node24`。将 checkout 固定到 `3d3c42e5aac5ba805825da76410c181273ba90b1`，将 upload-artifact 固定到 `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a`；使用 `ubuntu-24.04` 与 `windows-2025` 标签，并将测试产物缺失视为失败。
 - 验证依据：发布标签、提交 ID 与运行时声明均已对照官方 `actions` 仓库核验；对应提交的工作流运行结果仍是构建与测试的验收条件。
 - 适用边界：指定版本名称的托管操作系统仍会收到镜像更新，不宣称工具链镜像能够逐字节完全复现。
+
+## ENG-016：Attention 的 V 加权累加未使用 SIMD
+
+- 状态：已解决。
+- 影响：CPU attention 中 K 与 query 的 FP16 点积通过 AVX2/FMA/F16C 执行，但 V 的 FP16 到 F32 加权累加逐元素运行，导致同一 attention 内的 K/V 路径没有一致使用 SIMD 分派。
+- 复现条件或证据：`src/minillm/runtime.cpp` 的 K 路径调用 `dot_f16`，原 V 路径直接循环执行 `probability * half_to_float(...)`。
+- 原因：现有 kernel 接口只提供 FP16 点积，没有提供 `output += scale * FP16 input` 的向量内核。
+- 解决方法：增加 `add_scaled_f16` 的 scalar 与 AVX2/FMA/F16C 实现，保留运行时能力检测和非 8 对齐尾部处理；attention 的 V 路径通过 `KernelMode` 调用该内核。
+- 验证依据：`simd_half_value_accumulation_matches_scalar` 覆盖长度 1、7、8、9、31、128、1024、4097，29 项 CPU 单元测试全部通过。真实 Qwen3-0.6B Q8_0 模型的 10 项检查通过，scalar/SIMD logits 的 RMSE 为 `2.2703359845177045e-05`、最大绝对误差为 `0.00013446807861328125`、cosine 为 `0.9999999999725622`，三组贪心生成 token 完全一致，物理 KV 页最终为 0。
+
+## ENG-017：模型验证的混合批断言受执行时序影响
+
+- 状态：待解决。
+- 影响：真实模型的数值、生成、KV 和前缀缓存检查均可通过，但默认 8 线程执行可能仅因没有观察到 mixed batch 而使整个验证命令失败。
+- 复现条件或证据：使用 `scripts/Validate-Model.ps1` 的默认 8 线程配置连续两次得到原始诊断 `tests\model_tests.cpp:295: stats.mixed_batches > 0`；两次运行在失败前的 scalar/SIMD、chunk boundary、paged tail copy-on-write、生成一致性和 KV 回收检查结果相同。相同二进制使用 `--threads 1` 时记录 `mixed_batches: 1` 并通过全部 10 项检查。
+- 原因：尚未确定。当前断言依赖工作线程处理请求和调用线程连续提交请求之间的相对时序，是否形成 prefill/decode 混合批并非由测试输入完全确定。
+- 下一步：用可控的 runner 屏障或确定性请求注入构造同时存在 prefill 与 decode 的调度状态，再断言 mixed batch；模型数值验证不应依赖未受控的主机时序。
+- 验证：尚未完成确定性回归，因此保持待解决。

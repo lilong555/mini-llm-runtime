@@ -185,6 +185,26 @@ TEST(simd_float_and_half_dot_match_scalar) {
     }
 }
 
+TEST(simd_half_value_accumulation_matches_scalar) {
+    std::mt19937 rng(31);
+    std::uniform_real_distribution<float> sample(-2, 2);
+    for (const auto length : {1, 7, 8, 9, 31, 128, 1024, 4097}) {
+        std::vector<std::uint16_t> input(length);
+        std::vector<float> scalar(length), simd(length);
+        for (int i = 0; i < length; ++i) {
+            input[i] = minillm::float_to_half(sample(rng));
+            scalar[i] = sample(rng);
+        }
+        simd = scalar;
+        minillm::add_scaled_f16(input.data(), -0.375f, scalar.data(), input.size(),
+                                minillm::KernelMode::scalar);
+        minillm::add_scaled_f16(input.data(), -0.375f, simd.data(), input.size());
+        for (int i = 0; i < length; ++i) {
+            CHECK(std::abs(scalar[i] - simd[i]) < 1e-6f);
+        }
+    }
+}
+
 TEST(simd_q8_dot_matches_dequantized_weights) {
     std::mt19937 rng(23);
     for (const auto length : {32, 64, 1024, 4096}) {

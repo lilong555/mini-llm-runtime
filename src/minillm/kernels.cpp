@@ -164,6 +164,21 @@ float dot_f16(const std::uint16_t* left, const float* right, std::size_t count,
     return sum;
 }
 
+void add_scaled_f16(const std::uint16_t* input, float scale, float* output, std::size_t count,
+                    KernelMode mode) noexcept {
+#ifdef MINILLM_HAS_AVX2
+    if (mode == KernelMode::automatic && avx2_available()) {
+        detail::add_scaled_f16_avx2(input, scale, output, count);
+        return;
+    }
+#else
+    (void)mode;
+#endif
+    for (std::size_t i = 0; i < count; ++i) {
+        output[i] += scale * half_to_float(input[i]);
+    }
+}
+
 float dot_row(WeightType type, const std::byte* row, const float* vector,
               std::size_t columns, KernelMode mode) noexcept {
     if (type == WeightType::f32) {
