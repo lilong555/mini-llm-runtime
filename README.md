@@ -26,7 +26,7 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | 层次 | 已实现 |
 | --- | --- |
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
-| CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot；AVX2/FMA/F16C 运行时检测及 scalar fallback |
+| CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
 | 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
 | Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
@@ -138,7 +138,7 @@ ctest --test-dir build\cpu --output-on-failure
 
 对照只改变 `mixed` / `prefill_first` 策略，每次重启服务、执行相同 warmup、交替运行顺序。报告保留逐请求 token ID、token 到达时间、失败、调度延迟和服务端配置；失败请求不会从总请求数中删除。
 
-结果与限制见 [验证记录](docs/VALIDATION.md)。SIMD dot 的微基准加速不能当作模型或 Serving 的端到端加速。
+结果与限制见 [验证记录](docs/VALIDATION.md)。SIMD 内核的微基准加速不能当作模型或 Serving 的端到端加速。
 
 ## KV 容量
 
@@ -172,7 +172,7 @@ benchmarks/          固定输入及实测报告
 
 ## 版本与问题管理
 
-GitHub 仓库默认保持私有，`main` 为主分支，功能改动使用独立分支与有意义的提交，已发布标签不覆盖。具体约定见 [VERSION_CONTROL.md](docs/VERSION_CONTROL.md)。
+本仓库可公开发布；`main` 为主分支，功能改动使用独立分支与有意义的提交，已发布标签不覆盖。具体约定见 [VERSION_CONTROL.md](docs/VERSION_CONTROL.md)。
 
 遇到的问题按编号记录在 [ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md)，包含现象、原因、解决方法、验证证据和仍未解决的事项。模型权重、第三方 checkout、构建产物、运行状态与本地 Python 辅助实验不上传。
 
