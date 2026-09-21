@@ -1,0 +1,116 @@
+{
+  "checksum": 20811.801788720746,
+  "kernel": "avx2-fma-f16c",
+  "measurements": [
+    {
+      "context_tokens": 16,
+      "contiguous_median_ns": 6885.384615384615,
+      "contiguous_ns_per_layer_token": [
+        6923.333333333333,
+        6885.384615384615,
+        6940.25641025641,
+        6854.358974358975,
+        6846.666666666667,
+        6872.5641025641025,
+        6895.641025641025
+      ],
+      "paged_median_ns": 8254.871794871795,
+      "paged_ns_per_layer_token": [
+        8157.4358974358975,
+        8263.846153846154,
+        8351.02564102564,
+        8210.76923076923,
+        8268.71794871795,
+        8241.02564102564,
+        8254.871794871795
+      ],
+      "paged_over_contiguous": 1.1988977023051428,
+      "repeats_per_round": 390
+    },
+    {
+      "context_tokens": 256,
+      "contiguous_median_ns": 90353.125,
+      "contiguous_ns_per_layer_token": [
+        92893.75,
+        89512.5,
+        92625.0,
+        90353.125,
+        89737.5,
+        92859.375,
+        88856.25
+      ],
+      "paged_median_ns": 113487.5,
+      "paged_ns_per_layer_token": [
+        118587.5,
+        113700.0,
+        112962.5,
+        116396.875,
+        113487.5,
+        113406.25,
+        111953.125
+      ],
+      "paged_over_contiguous": 1.2560439940511188,
+      "repeats_per_round": 32
+    },
+    {
+      "context_tokens": 1024,
+      "contiguous_median_ns": 424471.875,
+      "contiguous_ns_per_layer_token": [
+        421200.0,
+        424206.25,
+        424471.875,
+        441053.125,
+        466665.625,
+        422912.5,
+        452081.25
+      ],
+      "paged_median_ns": 571087.5,
+      "paged_ns_per_layer_token": [
+        568771.875,
+        569784.375,
+        589250.0,
+        571087.5,
+        572478.125,
+        593671.875,
+        564687.5
+      ],
+      "paged_over_contiguous": 1.345407160368399,
+      "repeats_per_round": 32
+    },
+    {
+      "context_tokens": 1536,
+      "contiguous_median_ns": 672781.25,
+      "contiguous_ns_per_layer_token": [
+        762862.5,
+        667746.875,
+        705462.5,
+        662465.625,
+        678743.75,
+        651809.375,
+        672781.25
+      ],
+      "paged_median_ns": 886753.125,
+      "paged_ns_per_layer_token": [
+        886753.125,
+        905971.875,
+        917153.125,
+        889937.5,
+        879712.5,
+        885659.375,
+        857440.625
+      ],
+      "paged_over_contiguous": 1.3180407822007525,
+      "repeats_per_round": 32
+    }
+  ],
+  "resident_paged_bytes": 176160768,
+  "rounds": 7,
+  "scope": "single-thread resident-memory one-layer attention; identical AVX2/F16C math; compares MiniLLM PagedKV lookup and page discontinuities with a per-layer contiguous F16 layout; not an actual llama.cpp kernel benchmark",
+  "shape": {
+    "head_dim": 128,
+    "heads": 16,
+    "kv_heads": 8,
+    "layers": 28,
+    "page_tokens": 16
+  }
+}

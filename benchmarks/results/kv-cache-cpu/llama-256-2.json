@@ -1,0 +1,269 @@
+{
+  "benchmark": "llmserve-open-loop",
+  "by_class": {
+    "long": {
+      "dispatch_lag_ms": {
+        "p50": 11.7164,
+        "p95": 11.7164,
+        "p99": 11.7164
+      },
+      "e2e_ms": {
+        "p50": 1336.9939,
+        "p95": 1336.9939,
+        "p99": 1336.9939
+      },
+      "elapsed_s": 1.3487103,
+      "failed": 0,
+      "goodput_requests_per_second": 0.7414490717539564,
+      "inter_token_ms": {
+        "p50": 25.396999999999935,
+        "p95": 26.414389999999948,
+        "p99": 26.89756800000004
+      },
+      "mean_tpot_ms": {
+        "p50": 25.484084375,
+        "p95": 25.484084375,
+        "p99": 25.484084375
+      },
+      "output_tokens_per_second": 24.46781936788056,
+      "requests": 1,
+      "slo_compliant": 1,
+      "successful": 1,
+      "successful_output_tokens": 33,
+      "ttft_ms": {
+        "p50": 521.3382,
+        "p95": 521.3382,
+        "p99": 521.3382
+      }
+    }
+  },
+  "clock": "steady_clock",
+  "percentile_method": "linear",
+  "requests": [
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 11.7164,
+      "e2e_ms": 1336.9939,
+      "error": "",
+      "http_status": 200,
+      "id": "s20260921-r0",
+      "mean_tpot_ms": 25.484084375,
+      "server_timings": {
+        "queue_ms": 0.0148,
+        "total_ms": 1336.0245,
+        "ttft_ms": 520.4483
+      },
+      "success": true,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_times_ms": [
+        521.3382,
+        547.6781,
+        573.496,
+        598.5956,
+        623.8803,
+        650.2478,
+        675.169,
+        700.231,
+        725.0727,
+        750.4042,
+        777.4931,
+        802.9155,
+        826.9978,
+        852.0645,
+        876.7875,
+        903.2592,
+        928.3256,
+        953.8391,
+        980.1892,
+        1005.3625,
+        1030.0903,
+        1056.1089,
+        1081.876,
+        1107.1965,
+        1132.5681,
+        1158.2956,
+        1183.9044,
+        1209.1577,
+        1234.7669,
+        1260.2989,
+        1285.9109,
+        1312.2387,
+        1336.8289
+      ],
+      "ttft_ms": 521.3382,
+      "usage": {
+        "completion_tokens": 33,
+        "prompt_tokens": 256,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 289
+      },
+      "within_slo": true
+    }
+  ],
+  "server_after": {
+    "accepted": 12,
+    "active_requests": 0,
+    "backend": "llama.cpp",
+    "batch_tokens": 256,
+    "batches": 254,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 12,
+    "context_tokens": 8192,
+    "decode_tokens": 234,
+    "device": "CPU",
+    "failed": 0,
+    "generated_tokens": 246,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 3110,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 11,
+    "active_requests": 0,
+    "backend": "llama.cpp",
+    "batch_tokens": 256,
+    "batches": 221,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 11,
+    "context_tokens": 8192,
+    "decode_tokens": 202,
+    "device": "CPU",
+    "failed": 0,
+    "generated_tokens": 213,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 2854,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "summary": {
+    "dispatch_lag_ms": {
+      "p50": 11.7164,
+      "p95": 11.7164,
+      "p99": 11.7164
+    },
+    "e2e_ms": {
+      "p50": 1336.9939,
+      "p95": 1336.9939,
+      "p99": 1336.9939
+    },
+    "elapsed_s": 1.3487103,
+    "failed": 0,
+    "goodput_requests_per_second": 0.7414490717539564,
+    "inter_token_ms": {
+      "p50": 25.396999999999935,
+      "p95": 26.414389999999948,
+      "p99": 26.89756800000004
+    },
+    "mean_tpot_ms": {
+      "p50": 25.484084375,
+      "p95": 25.484084375,
+      "p99": 25.484084375
+    },
+    "output_tokens_per_second": 24.46781936788056,
+    "requests": 1,
+    "slo_compliant": 1,
+    "successful": 1,
+    "successful_output_tokens": 33,
+    "ttft_ms": {
+      "p50": 521.3382,
+      "p95": 521.3382,
+      "p99": 521.3382
+    }
+  },
+  "trace": "benchmarks\\traces\\kv-cpu-256.jsonl",
+  "trace_fnv1a64": 2574012230443007473,
+  "warmup": true
+}

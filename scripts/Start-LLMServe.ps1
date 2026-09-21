@@ -9,7 +9,9 @@ param(
     [ValidateRange(1, 65536)][int]$BatchTokens = 256,
     [ValidateRange(1, 65536)][int]$PrefillChunk = 32,
     [ValidateRange(0, 128)][int]$PrefixEntries = 4,
-    [ValidateRange(1, 256)][int]$Threads = 8
+    [ValidateSet(1, 2, 4, 8, 16, 32, 64, 128, 256)][int]$PageSize = 16,
+    [ValidateRange(1, 256)][int]$Threads = 8,
+    [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'mini') { 0 } else { 99 })
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,7 +38,7 @@ if (Test-Path -LiteralPath $marker) { Remove-Item -LiteralPath $marker }
 $argsList = @('--model', $Model, '--backend', $Backend, '--policy', $Policy, '--port', "$Port",
     '--max-active', "$MaxActive", '--queue-capacity', "$QueueCapacity", '--batch-tokens', "$BatchTokens",
     '--prefill-chunk', "$PrefillChunk", '--prefix-entries', "$PrefixEntries", '--threads', "$Threads",
-    '--shutdown-file', $marker)
+    '--page-size', "$PageSize", '--gpu-layers', "$GpuLayers", '--shutdown-file', $marker)
 $arguments = $argsList | ForEach-Object {
     if ($_.Contains('"')) { throw 'Argument cannot contain a double quote.' }
     '"' + $_ + '"'

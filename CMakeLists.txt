@@ -116,6 +116,8 @@ if(LLMSERVE_WITH_LLAMA)
     target_link_libraries(llmserve-bench PRIVATE llmserve_http_vendor vendor::nlohmann)
     add_executable(mini-kernel-bench apps/kernel_bench.cpp)
     target_link_libraries(mini-kernel-bench PRIVATE minillm_compute vendor::nlohmann)
+    add_executable(mini-kv-cache-bench apps/kv_cache_bench.cpp)
+    target_link_libraries(mini-kv-cache-bench PRIVATE minillm_compute vendor::nlohmann)
 endif()
 
 if(LLMSERVE_BUILD_TESTS)

@@ -1,0 +1,117 @@
+{
+  "benchmark": "cpu-kv-cache-comparison",
+  "date": "2026-09-21",
+  "source_commit": "600a1b93cdc95aa11dcbcb56d52d73ad6d5ae8ea",
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "binaries": {
+    "llmserve_sha256": "7ADD73795167012BA036AB90225718D3E3034F44815403EAC0226A45D023F5BD",
+    "mini_kv_cache_bench_sha256": "69694B7A251CEB05DA70E8BEE2407D6AFEF2F2A14662815F95B879391B0BF4C4"
+  },
+  "model": {
+    "file": "models/Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "layers": 28,
+    "kv_heads": 8,
+    "head_dim": 128
+  },
+  "environment": {
+    "cpu": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cores": 8,
+    "logical_processors": 16,
+    "threads": 8,
+    "mini_kernel": "AVX2/FMA/F16C",
+    "llama_cpu_variant": "native AVX512",
+    "llama_flash_attention": true
+  },
+  "workload": {
+    "requests_per_report": 1,
+    "rounds_per_backend_and_length": 3,
+    "completion_tokens": 33,
+    "context_capacity_tokens": 8192,
+    "prefill_chunk_tokens": 256,
+    "max_active_sequences": 1,
+    "prefix_cache": false,
+    "mini_page_tokens": 16,
+    "prompt_lengths": [16, 256, 1024, 1536]
+  },
+  "kv_payload": {
+    "type_k": "F16",
+    "type_v": "F16",
+    "bytes_per_token": 114688,
+    "kib_per_token": 112,
+    "mini_page_bytes": 1835008,
+    "mini_page_mib": 1.75,
+    "capacity_bytes": 939524096,
+    "capacity_mib": 896
+  },
+  "decode": [
+    {
+      "prompt_tokens": 16,
+      "mini_tpot_rounds_ms": [28.52298125, 37.349190625, 32.647353125],
+      "mini_tpot_median_ms": 32.647353125,
+      "llama_tpot_rounds_ms": [23.1627375, 23.503321875, 23.061740625],
+      "llama_tpot_median_ms": 23.1627375,
+      "mini_over_llama": 1.40947731782567
+    },
+    {
+      "prompt_tokens": 256,
+      "mini_tpot_rounds_ms": [29.544290625, 45.623915625, 34.31699375],
+      "mini_tpot_median_ms": 34.31699375,
+      "llama_tpot_rounds_ms": [25.522159375, 25.484084375, 27.074903125],
+      "llama_tpot_median_ms": 25.522159375,
+      "mini_over_llama": 1.34459601343979
+    },
+    {
+      "prompt_tokens": 1024,
+      "mini_tpot_rounds_ms": [35.311928125, 41.968825, 39.090053125],
+      "mini_tpot_median_ms": 39.090053125,
+      "llama_tpot_rounds_ms": [30.346790625, 29.88693125, 30.010209375],
+      "llama_tpot_median_ms": 30.010209375,
+      "mini_over_llama": 1.30255849389588
+    },
+    {
+      "prompt_tokens": 1536,
+      "mini_tpot_rounds_ms": [48.57105, 50.289715625, 49.263715625],
+      "mini_tpot_median_ms": 49.263715625,
+      "llama_tpot_rounds_ms": [32.739565625, 33.843925, 34.9442],
+      "llama_tpot_median_ms": 33.843925,
+      "mini_over_llama": 1.45561472627658
+    }
+  ],
+  "context_growth": {
+    "range_tokens": 1520,
+    "mini_tpot_growth_ms": 16.6163625,
+    "llama_tpot_growth_ms": 10.6811875,
+    "mini_over_llama_growth": 1.55566621220721,
+    "mini_microseconds_per_additional_cached_token": 10.9318174342105,
+    "llama_microseconds_per_additional_cached_token": 7.02709703947368
+  },
+  "process_private_bytes": {
+    "scope": "Whole-process Private Bytes; includes model and runtime allocations and is not a direct KV tensor measurement.",
+    "mini_after_start": 68161536,
+    "mini_after_longest_workload": 249438208,
+    "llama_after_start": 1208999936,
+    "llama_after_longest_workload": 1213554688
+  },
+  "layout_isolation": {
+    "report": "layout-isolation.json",
+    "scope": "Identical single-thread AVX2/F16C attention math; PagedKV access versus a per-layer contiguous F16 layout; not an actual llama.cpp kernel benchmark.",
+    "paged_over_contiguous": {
+      "16": 1.1988977023051428,
+      "256": 1.2560439940511188,
+      "1024": 1.345407160368399,
+      "1536": 1.3180407822007525
+    }
+  },
+  "page_256_exploration": {
+    "scope": "MiniLLM only at 1536 prompt tokens; five sequential rounds; retained as exploratory evidence because latency drifted materially across rounds.",
+    "tpot_rounds_ms": [49.77774375, 46.1991, 38.59390625, 36.55885625, 36.222415625],
+    "median_ms": 38.59390625,
+    "status": "inconclusive_due_to_ordered_drift"
+  },
+  "interpretation": {
+    "payload": "Both backends use the same 112 KiB/token F16 KV payload for this model.",
+    "allocation": "MiniLLM materializes 16-token pages lazily and retains a high-water pool; llama.cpp preallocates the configured KV tensor capacity.",
+    "performance": "At 1536 prompt tokens MiniLLM decode TPOT is 45.6% higher. Its TPOT growth from 16 to 1536 tokens is 55.6% higher. The isolated layout benchmark measures a 19.9% to 34.5% PagedKV overhead over contiguous storage under identical math, but the full runtime gap also includes instruction set, graph, FlashAttention, softmax, batching, and other kernel differences."
+  }
+}

@@ -25,6 +25,8 @@
 | ENG-015 | 已缓解 | 持续集成 | Action 运行时弃用及托管操作系统标签漂移 |
 | ENG-016 | 已解决 | SIMD | Attention 的 V 加权累加未使用 SIMD |
 | ENG-017 | 待解决 | 模型验证 | 混合批断言受执行时序影响 |
+| ENG-018 | 待解决 | 性能 | CPU PagedKV 的长上下文访问成本高于连续布局与 llama.cpp |
+| ENG-019 | 已缓解 | 构建 | 普通 PowerShell 缺少完整 MSVC 开发环境 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -187,3 +189,21 @@
 - 原因：尚未确定。当前断言依赖工作线程处理请求和调用线程连续提交请求之间的相对时序，是否形成 prefill/decode 混合批并非由测试输入完全确定。
 - 下一步：用可控的 runner 屏障或确定性请求注入构造同时存在 prefill 与 decode 的调度状态，再断言 mixed batch；模型数值验证不应依赖未受控的主机时序。
 - 验证：尚未完成确定性回归，因此保持待解决。
+
+## ENG-018：CPU PagedKV 的长上下文访问成本
+
+- 状态：待解决。
+- 影响：同一 Qwen3-0.6B Q8_0、F16 K/V、8 线程 CPU 工作负载下，1536-token prompt 的 MiniLLM 中位 TPOT 为 `49.263715625 ms`，llama.cpp 为 `33.843925 ms`，MiniLLM 高 `45.6%`。从 16 增长到 1536 token 时，两者 TPOT 分别增长 `16.6163625 ms` 与 `10.6811875 ms`。
+- 复现条件或证据：原始服务报告、固定 token trace 和汇总见 `benchmarks/results/kv-cache-cpu/` 与 `benchmarks/traces/kv-cpu-*.jsonl`。`mini-kv-cache-bench` 在完全相同的 AVX2/F16C QK、softmax 和 PV 数学下，仅切换真实 `PagedKV` 与按层连续 F16 布局；16、256、1024、1536 token 的耗时比分别为 `1.20x`、`1.26x`、`1.35x`、`1.32x`。
+- 原因：隔离基准证明逐 token accessor 与跨页不连续访问具有显著成本；完整差距还混有 llama.cpp 的 AVX512、FlashAttention、计算图和其他 kernel 差异，现有证据不能把全部差距归因于 KV allocator。将 page size 改为 256 的顺序实验发生明显性能漂移，不能据此确认最优页大小。
+- 下一步：使用 profiler 分离 QK、softmax、PV、page lookup 与矩阵计算；实现按物理页批量访问的 attention 接口与 online softmax，对照按层 page slab 或索引缓存；页大小实验必须交替顺序并记录频率与温度。不得把布局微基准等同于端到端收益。
+- 验证：差距已由三轮真实服务报告和七轮布局隔离报告复现，但尚未实现或验证优化，因此保持待解决。
+
+## ENG-019：普通 PowerShell 缺少完整 MSVC 开发环境
+
+- 状态：已缓解。
+- 影响：直接执行 `cmake --build build/cpu --config Release -j 8` 无法完成增量编译，但旧二进制上的 CTest 仍可运行，容易造成测试通过而源码未重新构建的误判。
+- 复现条件或证据：普通 PowerShell 中编译 `src/minillm/parallel.cpp` 报告原始诊断 `fatal error C1083: 无法打开包括文件: “atomic”: No such file or directory`。
+- 原因：`cl.exe` 路径存在，但当前进程没有加载 Visual Studio Developer Shell 提供的完整 `INCLUDE`、`LIB` 等环境。
+- 解决方法：Windows 构建统一调用 `scripts/Build-LLMServe.ps1`；脚本在需要时通过 `vswhere.exe` 导入 `Microsoft.VisualStudio.DevShell.dll` 并进入 x64 开发环境。
+- 验证依据：`scripts/Build-LLMServe.ps1 -BuildDirectory build/cpu -Jobs 8` 随后完成 CPU Release 配置与增量构建，`ctest --test-dir build/cpu --output-on-failure` 的 `unit`、`gguf` 两个套件全部通过。直接调用 CMake 的普通 PowerShell 环境仍未自动修复，因此状态为已缓解。

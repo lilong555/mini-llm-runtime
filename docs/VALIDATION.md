@@ -108,6 +108,62 @@ Evidence: `benchmarks/results/simd-q8-dot.json`.
 This ratio applies only to this dot-product microbenchmark. It is not an
 end-to-end model or serving throughput claim.
 
+## CPU KV Cache Comparison
+
+Evidence: `benchmarks/results/kv-cache-cpu/summary.json`, the 29 raw reports
+in that directory, and the four byte-stable traces under `benchmarks/traces/kv-cpu-*.jsonl`.
+Measurements were collected on 2026-09-21 from source commit
+`600a1b93cdc95aa11dcbcb56d52d73ad6d5ae8ea` and pinned llama.cpp commit
+`911f6cdc8ab8a530b2bee09ee61471a6f3178eeb`.
+
+Both backends used the same Qwen3-0.6B Q8_0 file, CPU execution, eight
+threads, F16 K and V, an 8192-token context capacity, one active sequence,
+256-token prefill chunks, no prefix cache, and 33 forced output tokens.
+MiniLLM used its AVX2/FMA/F16C kernels and 16-token physical pages. The
+upstream CPU backend used its native AVX512 build and FlashAttention. Each
+cell below is the median of three complete single-request runs; all raw
+rounds are retained.
+
+| Prompt tokens | Mini TPOT, ms | llama.cpp TPOT, ms | Mini / llama.cpp |
+| ---: | ---: | ---: | ---: |
+| 16 | 32.65 | 23.16 | 1.41x |
+| 256 | 34.32 | 25.52 | 1.34x |
+| 1024 | 39.09 | 30.01 | 1.30x |
+| 1536 | 49.26 | 33.84 | 1.46x |
+
+From 16 to 1536 cached prompt tokens, MiniLLM TPOT increased by 16.62 ms
+and llama.cpp TPOT increased by 10.68 ms. The measured context-growth cost
+was therefore 1.56x higher for MiniLLM, or 10.93 versus 7.03 microseconds
+per additional cached token per decoded token. This is the closest
+end-to-end estimate of the KV/attention-path gap in this experiment; it is
+not a pure allocator measurement.
+
+For this model both F16 caches carry exactly 112 KiB per token. MiniLLM's
+16-token page is 1.75 MiB and its full 8192-token payload capacity is
+896 MiB. MiniLLM lazily materializes pages and retains freed backing
+storage; llama.cpp preallocates the configured KV tensors. Whole-process
+Private Bytes were 65.0 MiB for MiniLLM immediately after startup and
+237.9 MiB after the longest workload, versus 1153.0 MiB and 1157.4 MiB for
+llama.cpp. These process counters include non-KV allocations and are only
+supporting evidence for the different allocation policies, not direct KV
+tensor sizes.
+
+`mini-kv-cache-bench` isolates layout while keeping the QK, softmax, PV,
+F16 conversion and AVX2/F16C math identical. For one resident-memory layer
+with the model's real 16 heads, 8 KV heads and 128-wide heads, PagedKV took
+1.20x, 1.26x, 1.35x and 1.32x the time of a per-layer contiguous F16 layout
+at 16, 256, 1024 and 1536 tokens. This demonstrates a measurable cost from
+per-token access and page discontinuities, but it is not an actual
+llama.cpp kernel benchmark. The full runtime difference also includes
+AVX512 versus AVX2, graph execution, FlashAttention, softmax, batching and
+other kernel differences.
+
+An exploratory five-run MiniLLM test changed the page size from 16 to 256
+tokens at a 1536-token prompt. TPOT drifted monotonically from 49.78 to
+36.22 ms, so its 38.59 ms median is retained but not used as comparative
+evidence. A future page-size experiment must interleave configurations and
+control frequency and thermal state.
+
 ## Serving Protocol
 
 `scripts/Benchmark-Policies.ps1` restarts the server before each trial,

@@ -1,0 +1,269 @@
+{
+  "benchmark": "llmserve-open-loop",
+  "by_class": {
+    "long": {
+      "dispatch_lag_ms": {
+        "p50": 5.513,
+        "p95": 5.513,
+        "p99": 5.513
+      },
+      "e2e_ms": {
+        "p50": 22930.4867,
+        "p95": 22930.4867,
+        "p99": 22930.4867
+      },
+      "elapsed_s": 22.9359997,
+      "failed": 0,
+      "goodput_requests_per_second": 0.0,
+      "inter_token_ms": {
+        "p50": 48.52879999999823,
+        "p95": 50.44201500000163,
+        "p99": 50.590323999998475
+      },
+      "mean_tpot_ms": {
+        "p50": 48.571050000000014,
+        "p95": 48.571050000000014,
+        "p99": 48.571050000000014
+      },
+      "output_tokens_per_second": 1.4387862064717414,
+      "requests": 1,
+      "slo_compliant": 0,
+      "successful": 1,
+      "successful_output_tokens": 33,
+      "ttft_ms": {
+        "p50": 21375.9245,
+        "p95": 21375.9245,
+        "p99": 21375.9245
+      }
+    }
+  },
+  "clock": "steady_clock",
+  "percentile_method": "linear",
+  "requests": [
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 5.513,
+      "e2e_ms": 22930.4867,
+      "error": "",
+      "http_status": 200,
+      "id": "s20260921-r0",
+      "mean_tpot_ms": 48.571050000000014,
+      "server_timings": {
+        "queue_ms": 0.019,
+        "total_ms": 22929.0751,
+        "ttft_ms": 21374.7389
+      },
+      "success": true,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_times_ms": [
+        21375.9245,
+        21426.5457,
+        21475.303,
+        21524.7091,
+        21573.717,
+        21621.8523,
+        21671.3423,
+        21719.6072,
+        21768.9146,
+        21819.4362,
+        21869.7698,
+        21920.1467,
+        21968.494,
+        22016.8051,
+        22064.0868,
+        22113.2468,
+        22161.7307,
+        22211.2239,
+        22258.1869,
+        22306.9911,
+        22355.8243,
+        22405.4065,
+        22451.6495,
+        22498.8726,
+        22547.0525,
+        22595.6262,
+        22643.4767,
+        22692.3384,
+        22740.2582,
+        22788.6753,
+        22836.0577,
+        22882.9621,
+        22930.1981
+      ],
+      "ttft_ms": 21375.9245,
+      "usage": {
+        "completion_tokens": 33,
+        "prompt_tokens": 1536,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 1569
+      },
+      "within_slo": false
+    }
+  ],
+  "server_after": {
+    "accepted": 8,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 172,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 8,
+    "context_tokens": 8192,
+    "decode_tokens": 156,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 164,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 2836,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 7,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 134,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 7,
+    "context_tokens": 8192,
+    "decode_tokens": 124,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 131,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 1300,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "summary": {
+    "dispatch_lag_ms": {
+      "p50": 5.513,
+      "p95": 5.513,
+      "p99": 5.513
+    },
+    "e2e_ms": {
+      "p50": 22930.4867,
+      "p95": 22930.4867,
+      "p99": 22930.4867
+    },
+    "elapsed_s": 22.9359997,
+    "failed": 0,
+    "goodput_requests_per_second": 0.0,
+    "inter_token_ms": {
+      "p50": 48.52879999999823,
+      "p95": 50.44201500000163,
+      "p99": 50.590323999998475
+    },
+    "mean_tpot_ms": {
+      "p50": 48.571050000000014,
+      "p95": 48.571050000000014,
+      "p99": 48.571050000000014
+    },
+    "output_tokens_per_second": 1.4387862064717414,
+    "requests": 1,
+    "slo_compliant": 0,
+    "successful": 1,
+    "successful_output_tokens": 33,
+    "ttft_ms": {
+      "p50": 21375.9245,
+      "p95": 21375.9245,
+      "p99": 21375.9245
+    }
+  },
+  "trace": "benchmarks\\traces\\kv-cpu-1536.jsonl",
+  "trace_fnv1a64": 9737874867280105073,
+  "warmup": true
+}

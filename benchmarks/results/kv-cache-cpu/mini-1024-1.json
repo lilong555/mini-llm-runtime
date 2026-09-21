@@ -1,0 +1,269 @@
+{
+  "benchmark": "llmserve-open-loop",
+  "by_class": {
+    "long": {
+      "dispatch_lag_ms": {
+        "p50": 10.832,
+        "p95": 10.832,
+        "p99": 10.832
+      },
+      "e2e_ms": {
+        "p50": 14260.7317,
+        "p95": 14260.7317,
+        "p99": 14260.7317
+      },
+      "elapsed_s": 14.2715637,
+      "failed": 0,
+      "goodput_requests_per_second": 0.0,
+      "inter_token_ms": {
+        "p50": 34.207399999999325,
+        "p95": 43.035084999999526,
+        "p99": 43.54167599999937
+      },
+      "mean_tpot_ms": {
+        "p50": 35.31192812500001,
+        "p95": 35.31192812500001,
+        "p99": 35.31192812500001
+      },
+      "output_tokens_per_second": 2.312290418463395,
+      "requests": 1,
+      "slo_compliant": 0,
+      "successful": 1,
+      "successful_output_tokens": 33,
+      "ttft_ms": {
+        "p50": 13130.5294,
+        "p95": 13130.5294,
+        "p99": 13130.5294
+      }
+    }
+  },
+  "clock": "steady_clock",
+  "percentile_method": "linear",
+  "requests": [
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 10.832,
+      "e2e_ms": 14260.7317,
+      "error": "",
+      "http_status": 200,
+      "id": "s20260921-r0",
+      "mean_tpot_ms": 35.31192812500001,
+      "server_timings": {
+        "queue_ms": 0.0184,
+        "total_ms": 14259.427,
+        "ttft_ms": 13129.4178
+      },
+      "success": true,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852
+      ],
+      "token_times_ms": [
+        13130.5294,
+        13163.7645,
+        13195.5287,
+        13229.4052,
+        13263.327,
+        13295.4197,
+        13330.5298,
+        13374.2948,
+        13408.5711,
+        13442.1031,
+        13477.0657,
+        13512.0506,
+        13545.2,
+        13579.222,
+        13613.633,
+        13647.2126,
+        13681.3511,
+        13716.5906,
+        13749.5886,
+        13784.1313,
+        13820.6405,
+        13853.1224,
+        13888.1544,
+        13924.8068,
+        13967.8514,
+        14000.4165,
+        14035.2474,
+        14068.9893,
+        14101.6332,
+        14142.6154,
+        14184.2049,
+        14227.2322,
+        14260.5111
+      ],
+      "ttft_ms": 13130.5294,
+      "usage": {
+        "completion_tokens": 33,
+        "prompt_tokens": 1024,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 1057
+      },
+      "within_slo": false
+    }
+  ],
+  "server_after": {
+    "accepted": 6,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 126,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 6,
+    "context_tokens": 8192,
+    "decode_tokens": 117,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 123,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 1299,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 5,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 90,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 5,
+    "context_tokens": 8192,
+    "decode_tokens": 85,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 90,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 275,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "summary": {
+    "dispatch_lag_ms": {
+      "p50": 10.832,
+      "p95": 10.832,
+      "p99": 10.832
+    },
+    "e2e_ms": {
+      "p50": 14260.7317,
+      "p95": 14260.7317,
+      "p99": 14260.7317
+    },
+    "elapsed_s": 14.2715637,
+    "failed": 0,
+    "goodput_requests_per_second": 0.0,
+    "inter_token_ms": {
+      "p50": 34.207399999999325,
+      "p95": 43.035084999999526,
+      "p99": 43.54167599999937
+    },
+    "mean_tpot_ms": {
+      "p50": 35.31192812500001,
+      "p95": 35.31192812500001,
+      "p99": 35.31192812500001
+    },
+    "output_tokens_per_second": 2.312290418463395,
+    "requests": 1,
+    "slo_compliant": 0,
+    "successful": 1,
+    "successful_output_tokens": 33,
+    "ttft_ms": {
+      "p50": 13130.5294,
+      "p95": 13130.5294,
+      "p99": 13130.5294
+    }
+  },
+  "trace": "benchmarks\\traces\\kv-cpu-1024.jsonl",
+  "trace_fnv1a64": 10394772441795338315,
+  "warmup": true
+}

@@ -1,0 +1,269 @@
+{
+  "benchmark": "llmserve-open-loop",
+  "by_class": {
+    "long": {
+      "dispatch_lag_ms": {
+        "p50": 6.367,
+        "p95": 6.367,
+        "p99": 6.367
+      },
+      "e2e_ms": {
+        "p50": 13914.5653,
+        "p95": 13914.5653,
+        "p99": 13914.5653
+      },
+      "elapsed_s": 13.9209323,
+      "failed": 0,
+      "goodput_requests_per_second": 0.0,
+      "inter_token_ms": {
+        "p50": 38.92060000000038,
+        "p95": 41.51301499999945,
+        "p99": 42.31605400000022
+      },
+      "mean_tpot_ms": {
+        "p50": 39.090053125,
+        "p95": 39.090053125,
+        "p99": 39.090053125
+      },
+      "output_tokens_per_second": 2.370530887503849,
+      "requests": 1,
+      "slo_compliant": 0,
+      "successful": 1,
+      "successful_output_tokens": 33,
+      "ttft_ms": {
+        "p50": 12663.4649,
+        "p95": 12663.4649,
+        "p99": 12663.4649
+      }
+    }
+  },
+  "clock": "steady_clock",
+  "percentile_method": "linear",
+  "requests": [
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 6.367,
+      "e2e_ms": 13914.5653,
+      "error": "",
+      "http_status": 200,
+      "id": "s20260921-r0",
+      "mean_tpot_ms": 39.090053125,
+      "server_timings": {
+        "queue_ms": 0.0148,
+        "total_ms": 13898.3623,
+        "ttft_ms": 12647.3178
+      },
+      "success": true,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        1900,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852
+      ],
+      "token_times_ms": [
+        12663.4649,
+        12701.6518,
+        12741.3954,
+        12778.2365,
+        12818.2446,
+        12858.705,
+        12897.7881,
+        12940.3852,
+        12981.753,
+        13021.5339,
+        13060.0096,
+        13096.7442,
+        13135.4364,
+        13174.0573,
+        13212.2376,
+        13252.0365,
+        13290.9622,
+        13330.8465,
+        13371.0555,
+        13409.5156,
+        13449.9389,
+        13487.8188,
+        13527.3431,
+        13565.3519,
+        13603.0164,
+        13644.7069,
+        13683.0193,
+        13721.6333,
+        13761.4253,
+        13798.7915,
+        13838.0943,
+        13875.4311,
+        13914.3466
+      ],
+      "ttft_ms": 12663.4649,
+      "usage": {
+        "completion_tokens": 33,
+        "prompt_tokens": 1024,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 1057
+      },
+      "within_slo": false
+    }
+  ],
+  "server_after": {
+    "accepted": 22,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 470,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 22,
+    "context_tokens": 8192,
+    "decode_tokens": 429,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 451,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 6971,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 21,
+    "active_requests": 0,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 434,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 21,
+    "context_tokens": 8192,
+    "decode_tokens": 397,
+    "device": "CPU/avx2-fma-f16c",
+    "failed": 0,
+    "generated_tokens": 418,
+    "gpu": false,
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 1,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 256,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 256,
+    "prefill_tokens": 5947,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": false,
+    "queue_capacity": 8,
+    "ready": true,
+    "rejected": 0,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "summary": {
+    "dispatch_lag_ms": {
+      "p50": 6.367,
+      "p95": 6.367,
+      "p99": 6.367
+    },
+    "e2e_ms": {
+      "p50": 13914.5653,
+      "p95": 13914.5653,
+      "p99": 13914.5653
+    },
+    "elapsed_s": 13.9209323,
+    "failed": 0,
+    "goodput_requests_per_second": 0.0,
+    "inter_token_ms": {
+      "p50": 38.92060000000038,
+      "p95": 41.51301499999945,
+      "p99": 42.31605400000022
+    },
+    "mean_tpot_ms": {
+      "p50": 39.090053125,
+      "p95": 39.090053125,
+      "p99": 39.090053125
+    },
+    "output_tokens_per_second": 2.370530887503849,
+    "requests": 1,
+    "slo_compliant": 0,
+    "successful": 1,
+    "successful_output_tokens": 33,
+    "ttft_ms": {
+      "p50": 12663.4649,
+      "p95": 12663.4649,
+      "p99": 12663.4649
+    }
+  },
+  "trace": "benchmarks\\traces\\kv-cpu-1024.jsonl",
+  "trace_fnv1a64": 10394772441795338315,
+  "warmup": true
+}

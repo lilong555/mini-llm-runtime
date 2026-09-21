@@ -121,6 +121,8 @@ ctest --test-dir build\cpu --output-on-failure
 .\build\cpu\bin\llmserve-http-tests.exe --port 8000 `
     --output benchmarks\results\validation\http-mini.json
 .\build\cpu\bin\mini-kernel-bench.exe --output benchmarks\results\simd-q8-dot.json
+.\build\cpu\bin\mini-kv-cache-bench.exe `
+    --output benchmarks\results\kv-cache-cpu\layout-isolation.json
 ```
 
 模型验证使用由同一份 Q8_0 权重解量化得到的 F32 GGUF，避免把上游额外的激活量化误差混入参考。参照文件约 2.39 GB，只用于验证，生成命令、来源和哈希固定在 `scripts/Validate-Model.ps1` 与 `models/reference-manifest.json`。
@@ -139,6 +141,8 @@ ctest --test-dir build\cpu --output-on-failure
 对照只改变 `mixed` / `prefill_first` 策略，每次重启服务、执行相同 warmup、交替运行顺序。报告保留逐请求 token ID、token 到达时间、失败、调度延迟和服务端配置；失败请求不会从总请求数中删除。
 
 结果与限制见 [验证记录](docs/VALIDATION.md)。SIMD 内核的微基准加速不能当作模型或 Serving 的端到端加速。
+
+CPU KV 对照使用同一模型、相同 F16 K/V、8 线程和固定 token trace，分别记录 MiniLLM 与 llama.cpp 的长上下文 TPOT。隔离基准在相同 AVX2/F16C attention 数学下只切换物理分页与按层连续布局，不把该结果表述为 llama.cpp 内核性能。原始报告及汇总位于 `benchmarks/results/kv-cache-cpu/`。
 
 ## KV 容量
 
