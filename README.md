@@ -180,9 +180,13 @@ benchmarks/          固定输入及实测报告
 
 遇到的问题按编号记录在 [ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md)，包含现象、原因、解决方法、验证证据和仍未解决的事项。模型权重、第三方 checkout、构建产物、运行状态与本地 Python 辅助实验不上传。
 
-## 研究重点
+## 项目计划
 
-1. 用 profiler 定位 CPU prefill 瓶颈，研究量化矩阵分块和权重复用，分别报告 kernel 与端到端收益。
-2. 在已有保守容量保证上实现增量准入、decode headroom 与压力下的公平性，防止将 OOM 转化成活锁。
-3. 扩展长上下文、共享前缀、突发流量与过载负载，补齐多种模型输入的精度和 SLO 证据。
-4. 将自有物理页表接入 CUDA attention 作为独立研究项；在完成真实数据路径之前不宣称自研 GPU PagedAttention。
+完整路线、任务依赖、基准矩阵与验收条件见 [项目计划](docs/PROJECT_PLAN.md)。主线是在可复现实验基础上解释并优化 CPU Runtime，再建立自研 CUDA 完整模型与分页 attention 路径。
+
+1. 统一实验身份与严格结果验收，扩展真实模型覆盖，建立分阶段 profiler、模型级 benchmark 和 batch telemetry。
+2. 根据热点完成一到两个 CPU 优化研究，分别报告 kernel、模型和 Serving 收益及退化。
+3. 打通物理 KV 观测，验证公平性与真实内存压力，按证据推进成本感知调度和可证明前进的增量准入。
+4. 建立权重常驻、连续 GPU KV 与自有 CUDA forward，接入 Serving 后再实现 GPU 分页 KV 和自研 PagedAttention。
+
+近期从计划中的 `PLAN-001`～`PLAN-003` 开始；Radix/hash 索引、抢占和其他扩展以测量结果为进入条件。

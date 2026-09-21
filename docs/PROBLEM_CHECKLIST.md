@@ -86,10 +86,13 @@
 
 ## 执行顺序
 
-1. 保持 P0 回归通过，将跨平台构建与 sanitizer 纳入持续验证。
-2. 扩展 CPU/GPU 分开的重复实验，补齐冷/热前缀，保留真实输入、失败与输出差异。
-3. 用阶段 profiling 选择一个 Runtime 优化点，先验证数值，再验证端到端。
-4. 在有资源守恒证据的基础上推进增量准入与公平调度。
-5. 自有 CUDA paged attention、Radix Tree 和抢占作为独立扩展，不与主线成绩混合。
+总体路线、阶段依赖与具体任务以 [项目计划](PROJECT_PLAN.md) 为准；本清单跟踪限定范围内的能力验收。
+
+1. 统一实验身份与严格结果验收，保持 P0 回归，补齐对应数值覆盖和确定性混合批验证。
+2. 建立 Runtime profiler、模型级 benchmark 和 batch telemetry，解释调度与长上下文 KV 成本。
+3. 按热点完成一到两个 CPU 优化研究，先验证数值，再分别验证模型与 Serving。
+4. 在资源可观测与守恒证据基础上验证公平性、成本预测和条件性增量准入。
+5. 建立自研 resident CUDA 完整模型与连续 GPU KV，接入 Serving 后推进 GPU 分页与自研 PagedAttention。
+6. Radix/hash 索引、抢占和其他扩展按测量触发，不阻塞 CUDA 主线。
 
 实际遇到的问题、原因、处理方法与验证状态见 [ENGINEERING_LOG.md](ENGINEERING_LOG.md)。

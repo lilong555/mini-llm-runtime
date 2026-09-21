@@ -27,6 +27,7 @@
 | ENG-017 | 待解决 | 模型验证 | 混合批断言受执行时序影响 |
 | ENG-018 | 待解决 | 性能 | CPU PagedKV 的长上下文访问成本高于连续布局与 llama.cpp |
 | ENG-019 | 已缓解 | 构建 | 普通 PowerShell 缺少完整 MSVC 开发环境 |
+| ENG-020 | 待解决 | 实验验收 | 基准汇总未严格拒绝不完整或不等价的报告 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -207,3 +208,12 @@
 - 原因：`cl.exe` 路径存在，但当前进程没有加载 Visual Studio Developer Shell 提供的完整 `INCLUDE`、`LIB` 等环境。
 - 解决方法：Windows 构建统一调用 `scripts/Build-LLMServe.ps1`；脚本在需要时通过 `vswhere.exe` 导入 `Microsoft.VisualStudio.DevShell.dll` 并进入 x64 开发环境。
 - 验证依据：`scripts/Build-LLMServe.ps1 -BuildDirectory build/cpu -Jobs 8` 随后完成 CPU Release 配置与增量构建，`ctest --test-dir build/cpu --output-on-failure` 的 `unit`、`gguf` 两个套件全部通过。直接调用 CMake 的普通 PowerShell 环境仍未自动修复，因此状态为已缓解。
+
+## ENG-020：基准汇总缺少严格的完整性与等价性验收
+
+- 状态：待解决。
+- 影响：缺失请求或输出 token 不一致的报告仍可能生成汇总；未校验的配置、模型文件或二进制差异可能混入策略比较，不能将汇总生成成功等同于实验验收通过。
+- 复现条件或证据：`scripts/Analyze-Benchmarks.ps1` 使用第一份报告构建 `$expected`，只遍历其他报告中存在的请求；同一 ID 写入哈希表会覆盖旧值，没有完整集合或重复 ID 检查。输出差异仅累加 `$mismatches` 并写入 `token_sequence_mismatches_against_first_trial`，没有对应失败分支。跨报告检查只有 `trace_fnv1a64`、`server_before.backend`、`server_before.model`，未核对完整配置、模型文件摘要和二进制身份。
+- 原因：脚本承担统计汇总职责，但缺少独立的实验身份、请求完整性与比较条件验收层。
+- 下一步：按 `docs/PROJECT_PLAN.md` 的 `PLAN-001` 建立统一 manifest，使用输入 trace 校验预期请求，拒绝缺失/重复、输出差异及未声明的配置或身份变化；明确压力实验合法失败终态与正确性失败的区别。
+- 验证：上述缺口由源码检查确认；严格验收尚未实现，删除请求、重复 ID、错误模型摘要、配置差异和 token mismatch 的拒绝用例尚待执行，因此保持待解决。该结论不表示已有归档报告已发生这些错误。
