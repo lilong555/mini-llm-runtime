@@ -185,6 +185,7 @@
 ## ENG-017：模型验证的混合批断言受执行时序影响
 
 - 状态：待解决。
+- WSL2 验证证据：Ubuntu GCC 11.4.0 原生 `RelWithDebInfo` 构建运行 `bash scripts/dev.sh validate`，九项数值与 KV 检查及三组生成对照完成，随后在 `/home/li/code/mini-llm-runtime/tests/model_tests.cpp:295: stats.mixed_batches > 0` 失败。完整报告见 `benchmarks/results/wsl-native/model.json`，不计为全套通过。
 - 影响：真实模型的数值、生成、KV 和前缀缓存检查均可通过，但默认 8 线程执行可能仅因没有观察到 mixed batch 而使整个验证命令失败。
 - 复现条件或证据：使用 `scripts/Validate-Model.ps1` 的默认 8 线程配置连续两次得到原始诊断 `tests\model_tests.cpp:295: stats.mixed_batches > 0`；两次运行在失败前的 scalar/SIMD、chunk boundary、paged tail copy-on-write、生成一致性和 KV 回收检查结果相同。相同二进制使用 `--threads 1` 时记录 `mixed_batches: 1` 并通过全部 10 项检查。
 - 原因：尚未确定。当前断言依赖工作线程处理请求和调用线程连续提交请求之间的相对时序，是否形成 prefill/decode 混合批并非由测试输入完全确定。

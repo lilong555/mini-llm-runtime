@@ -41,6 +41,21 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 
 ## 快速运行
 
+### WSL2 原生开发（默认）
+
+主工作区：Ubuntu `/home/li/code/mini-llm-runtime`。源码、依赖、模型与构建产物位于 Linux 文件系统。
+
+```bash
+cd /home/li/code/mini-llm-runtime
+bash scripts/dev.sh dependencies
+bash scripts/dev.sh model
+bash scripts/dev.sh build
+bash scripts/dev.sh test
+bash scripts/dev.sh serve --port 8000
+```
+
+完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
+
 ### Windows / PowerShell
 
 需要 Visual Studio 2022 C++ 工具链、CMake >= 3.24 和 Ninja。运行不依赖 Python。
