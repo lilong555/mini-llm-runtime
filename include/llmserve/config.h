@@ -1,5 +1,7 @@
 #pragma once
 
+#include "llmserve/telemetry.h"
+
 #include <cstddef>
 #include <string>
 
@@ -21,6 +23,8 @@ struct EngineConfig {
     int aging_ms = 250;
     int admission_reserve_ms = 2000;
     SchedulingPolicy policy = SchedulingPolicy::mixed;
+    TelemetryMode telemetry_mode = TelemetryMode::off;
+    std::size_t telemetry_capacity = 1024;
 
     void validate() const;
 };

@@ -1,4 +1,5 @@
 #include "test_support.h"
+#include "gated_runner.h"
 #include "../apps/options.h"
 
 #include "llmserve/engine.h"
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -172,6 +174,105 @@ void write_report(const std::string& path, const json& report) {
     stream << report.dump(2) << '\n';
 }
 
+void check_profile(const minillm::Runtime& runtime, const minillm::ForwardProfile& profile) {
+    CHECK(profile.completed && profile.wall_ns > 0);
+    CHECK(profile.threads == runtime.config().threads);
+    CHECK(profile.stages.size() == 3 + 14 * runtime.dimensions().layers + 2 * profile.logits_tokens);
+    auto total = profile.unaccounted_ns;
+    std::size_t heads = 0;
+    for (const auto& stage : profile.stages) {
+        total += stage.wall_ns;
+        CHECK(stage.parallel.wall_ns <= stage.wall_ns);
+        if (stage.parallel.count) {
+            CHECK(stage.parallel.completed && stage.parallel.threads == profile.threads);
+            CHECK(stage.parallel.chunks == (stage.parallel.count + stage.parallel.grain - 1) / stage.parallel.grain);
+        }
+        if (stage.matrix_m) {
+            CHECK(stage.matrix_m == stage.input_tokens);
+            CHECK(stage.parallel.count == stage.matrix_n && stage.parallel.grain == 16);
+        }
+        if (stage.stage == minillm::ProfileStage::lm_head) {
+            ++heads;
+            CHECK(stage.layer == -1 && stage.matrix_m == 1 && stage.logits_tokens == 1);
+            CHECK(stage.matrix_n == runtime.dimensions().vocabulary);
+            CHECK(stage.matrix_k == runtime.dimensions().embedding);
+        }
+    }
+    CHECK(total == profile.wall_ns && heads == profile.logits_tokens);
+}
+
+json check_runtime_profiling(minillm::Runtime& runtime, const std::vector<std::int32_t>& prompt) {
+    auto profile = runtime.make_profile();
+    const auto capacity = profile.stages.capacity();
+    std::vector<std::vector<minillm::Logits>> reference;
+    std::vector<std::size_t> pages;
+    std::size_t calls = 0;
+    for (const auto enabled : {false, true}) {
+        for (std::int32_t seq = 0; seq < 8; ++seq) {
+            runtime.clear_sequence(seq);
+        }
+        const auto run = [&](const std::vector<minillm::InputToken>& batch, std::size_t index) {
+            profile.batch_id = index + 1;
+            const auto output = runtime.forward(batch, enabled ? &profile : nullptr);
+            if (!enabled) {
+                reference.push_back(output);
+                pages.push_back(runtime.used_kv_pages());
+            } else {
+                check_profile(runtime, profile);
+                CHECK(profile.batch_id == index + 1 && profile.stages.capacity() == capacity);
+                CHECK(profile.kv_pages_after == pages[index] && runtime.used_kv_pages() == pages[index]);
+                CHECK(output.size() == reference[index].size());
+                for (std::size_t i = 0; i < output.size(); ++i) {
+                    CHECK(output[i].sequence == reference[index][i].sequence);
+                    CHECK(output[i].values.size() == reference[index][i].values.size());
+                    CHECK(std::memcmp(output[i].values.data(), reference[index][i].values.data(),
+                                      output[i].values.size() * sizeof(float)) == 0);
+                }
+                ++calls;
+            }
+            return output;
+        };
+        std::vector<minillm::InputToken> setup;
+        for (std::int32_t i = 0; i < 17; ++i) {
+            setup.push_back({prompt[static_cast<std::size_t>(i)], i, 0, false});
+        }
+        CHECK(run(setup, 0).empty());
+        runtime.share_prefix(0, 2, 17);
+        auto output = run({{prompt[17], 17, 0, true}, {prompt[0], 0, 1, false},
+                           {prompt[18], 17, 2, true}, {prompt[1], 1, 1, true}}, 1);
+        if (enabled) {
+            CHECK(profile.sequences == 3 && profile.input_tokens == 4 && profile.logits_tokens == 3);
+            CHECK(profile.context_before_sum == 34 && profile.context_before_max == 17);
+            CHECK(profile.context_after_sum == 38 && profile.context_after_max == 18);
+        }
+        for (std::int32_t step = 0; step < 3; ++step) {
+            std::vector<minillm::InputToken> batch;
+            for (const auto& logits : output) {
+                batch.push_back({argmax(logits.values), (logits.sequence == 1 ? 2 : 18) + step,
+                                 logits.sequence, true});
+            }
+            output = run(batch, static_cast<std::size_t>(step) + 2);
+        }
+    }
+    const auto retained_pages = runtime.used_kv_pages();
+    test::throws<std::invalid_argument>([&] { runtime.forward({}, &profile); });
+    CHECK(!profile.completed && profile.stages.size() == 1 && profile.wall_ns > 0);
+    CHECK(profile.input_tokens == 0 && profile.kv_pages_after == retained_pages);
+    const minillm::InputToken invalid{prompt.front(), 0, 0, true};
+    test::throws<std::invalid_argument>([&] { runtime.forward({&invalid, 1}, &profile); });
+    CHECK(!profile.completed && runtime.used_kv_pages() == retained_pages);
+    for (std::int32_t seq = 0; seq < 8; ++seq) {
+        runtime.clear_sequence(seq);
+    }
+    runtime.forward({&invalid, 1}, &profile);
+    check_profile(runtime, profile);
+    runtime.clear_sequence(0);
+    CHECK(runtime.used_kv_pages() == 0);
+    return {{"name", "runtime_profile_output_kv_and_error_recovery"},
+            {"profiled_forwards", calls + 1}, {"bitwise_logits_equal", true},
+            {"greedy_steps", 3}, {"used_pages", runtime.used_kv_pages()}};
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -199,6 +300,7 @@ int main(int argc, char** argv) {
         const auto reference_path = options.get("--reference-model", path);
         report["reference_model_path"] = reference_path;
         report["reference_gpu_layers"] = gpu_layers;
+        report["threads"] = threads;
         report["kernel"] = minillm::kernel_name(minillm::KernelMode::automatic);
         Reference reference(reference_path, gpu_layers, threads);
         minillm::RuntimeConfig cfg{path, 512, 16, 8, 128, static_cast<std::size_t>(threads)};
@@ -257,6 +359,30 @@ int main(int argc, char** argv) {
         }
         CHECK(runtime.used_kv_pages() == 0);
         checks.push_back({{"name", "physical_kv_reclaimed"}, {"used_pages", runtime.used_kv_pages()}});
+        checks.push_back(check_runtime_profiling(runtime, repeated));
+        {
+            auto small_cfg = cfg;
+            small_cfg.context_tokens = 16;
+            small_cfg.batch_tokens = 16;
+            minillm::Runtime limited(small_cfg);
+            auto profile = limited.make_profile();
+            std::vector<minillm::InputToken> batch;
+            for (std::int32_t i = 0; i < 16; ++i) {
+                batch.push_back({repeated[static_cast<std::size_t>(i)], i, 0, false});
+            }
+            limited.forward(batch, &profile);
+            check_profile(limited, profile);
+            const minillm::InputToken overflow{repeated[16], 16, 0, true};
+            test::throws<std::runtime_error>([&] { limited.forward({&overflow, 1}, &profile); });
+            CHECK(!profile.completed && profile.stages.size() == 1);
+            CHECK(profile.kv_pages_before == 1 && profile.kv_pages_after == 1);
+            limited.clear_sequence(0);
+            limited.forward(batch, &profile);
+            check_profile(limited, profile);
+            limited.clear_sequence(0);
+            CHECK(limited.used_kv_pages() == 0);
+            checks.push_back({{"name", "runtime_profile_capacity_failure_and_recovery"}, {"used_pages", 0}});
+        }
         llmserve::EngineConfig ec;
         ec.context_tokens = 512;
         ec.max_model_len = 128;
@@ -265,17 +391,30 @@ int main(int argc, char** argv) {
         ec.prefill_chunk = 4;
         ec.block_size = 4;
         ec.prefix_cache_tokens = 128;
+        ec.telemetry_mode = llmserve::TelemetryMode::stages;
+        ec.telemetry_capacity = 128;
         llmserve::ModelConfig mc{path, 0, threads};
-        llmserve::Engine engine(ec, llmserve::make_mini_runner(mc, ec));
+        auto gate = std::make_shared<test::RunnerGate>();
+        llmserve::Engine engine(ec, std::make_unique<test::GatedRunner>(
+            llmserve::make_mini_runner(mc, ec), gate));
         std::vector<std::shared_ptr<llmserve::RequestHandle>> handles;
-        for (std::size_t i = 0; i < texts.size(); ++i) {
-            llmserve::RequestInput input;
-            input.prompt = texts[i];
-            input.max_tokens = 8;
-            input.ignore_eos = true;
-            input.timeout_ms = 180000;
-            handles.push_back(engine.submit(input));
+        try {
+            for (std::size_t i = 0; i < texts.size(); ++i) {
+                llmserve::RequestInput input;
+                input.prompt = texts[i];
+                input.max_tokens = 8;
+                input.ignore_eos = true;
+                input.timeout_ms = 180000;
+                handles.push_back(engine.submit(input));
+                if (i == 0) {
+                    gate->wait_until_sampled();
+                }
+            }
+        } catch (...) {
+            gate->release();
+            throw;
         }
+        gate->release();
         for (std::size_t i = 0; i < handles.size(); ++i) {
             const auto actual = collect(handles[i]);
             report["generations"].push_back({{"prompt", texts[i]}, {"actual", actual},
@@ -298,8 +437,29 @@ int main(int argc, char** argv) {
         CHECK(stats.kv_active_unique_blocks == 0);
         checks.push_back({{"name", "real_continuous_batching_and_prefix_cache"},
             {"mixed_batches", stats.mixed_batches}, {"max_batch_sequences", stats.max_batch_sequences},
-            {"cache_hits", stats.cache_hits}, {"greedy_generations_matched", handles.size() + 1}});
+            {"cache_hits", stats.cache_hits}, {"greedy_generations_matched", handles.size() + 1},
+            {"injection", "after_first_prefill_before_next_iteration"}});
         engine.stop();
+        const auto& telemetry = engine.telemetry();
+        CHECK(telemetry.dropped == 0 && telemetry.recorded == stats.batches);
+        CHECK(telemetry.resources_final && telemetry.resources_final->live_kv_pages == 0);
+        std::size_t observed_tokens = 0;
+        for (std::size_t i = 0; i < telemetry.recorded; ++i) {
+            const auto& batch = telemetry.batches[i];
+            CHECK(batch.completed && batch.runner.completed && batch.runner.available);
+            CHECK(batch.resources_before && batch.resources_after);
+            std::uint64_t stage_ns = batch.runner.unaccounted_ns;
+            for (const auto& stage : batch.runner.stages) { stage_ns += stage.wall_ns; }
+            CHECK(stage_ns == batch.runner.forward_ns);
+            CHECK(stage_ns + batch.runner.sampling_ns <= batch.runner_ns);
+            for (std::size_t j = 0; j < batch.sequences; ++j) {
+                observed_tokens += static_cast<std::size_t>(batch.slices[j].emitted);
+            }
+        }
+        CHECK(observed_tokens == 32);
+        checks.push_back({{"name", "serving_telemetry_stages_and_reclamation"},
+            {"batches", telemetry.recorded}, {"emitted_tokens", observed_tokens},
+            {"final_live_pages", telemetry.resources_final->live_kv_pages}});
         report["status"] = "passed";
         report["passed"] = checks.size();
         write_report(report_path, report);

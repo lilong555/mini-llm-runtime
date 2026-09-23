@@ -1,0 +1,174 @@
+ninja: no work to do.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.105243,
+    "p95": 0.105243,
+    "p99": 0.105243
+  },
+  "e2e_ms": null,
+  "elapsed_s": 0.071484921,
+  "failed": 1,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": null,
+  "mean_tpot_ms": null,
+  "output_tokens_per_second": 0.0,
+  "requests": 1,
+  "slo_compliant": 0,
+  "successful": 0,
+  "successful_output_tokens": 0,
+  "ttft_ms": null
+}
+LLMServe on port 8033 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.086621,
+    "p95": 0.086621,
+    "p99": 0.086621
+  },
+  "e2e_ms": null,
+  "elapsed_s": 0.069103767,
+  "failed": 1,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": null,
+  "mean_tpot_ms": null,
+  "output_tokens_per_second": 0.0,
+  "requests": 1,
+  "slo_compliant": 0,
+  "successful": 0,
+  "successful_output_tokens": 0,
+  "ttft_ms": null
+}
+LLMServe on port 8033 stopped.
+{
+  "schema_version": 1,
+  "run_id": "20260922T122836Z-a1fe5d327adb-4151fa5f",
+  "manifest_sha256": "b67c51f74b2e3c4a6c1ec607e747f8bd7cdc84c7a60eb4232391c0a03f75f613",
+  "validation": "passed",
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_sha256": "44d8d87bdcb857b98b4651eb74f2da9bb519c669f627cff8bee73131cfda5185",
+  "requests_per_trial": 1,
+  "policies": {
+    "mixed": {
+      "trials": 1,
+      "successful": 0.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 0.0,
+      "ttft_p95_ms_median": null,
+      "mean_tpot_p95_ms_median": null,
+      "goodput_requests_per_second_median": 0.0
+    },
+    "prefill_first": {
+      "trials": 1,
+      "successful": 0.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 0.0,
+      "ttft_p95_ms_median": null,
+      "mean_tpot_p95_ms_median": null,
+      "goodput_requests_per_second_median": 0.0
+    }
+  }
+}
+ninja: no work to do.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.0885825,
+    "p95": 0.09095444999999999,
+    "p99": 0.09116529
+  },
+  "e2e_ms": {
+    "p50": 1004.18329,
+    "p95": 1004.18329,
+    "p99": 1004.18329
+  },
+  "elapsed_s": 1.004269237,
+  "failed": 1,
+  "goodput_requests_per_second": 0.9957489119025957,
+  "inter_token_ms": {
+    "p50": 56.95662199999998,
+    "p95": 70.92728159999993,
+    "p99": 78.33153551999996
+  },
+  "mean_tpot_ms": {
+    "p50": 57.496019266666664,
+    "p95": 57.496019266666664,
+    "p99": 57.496019266666664
+  },
+  "output_tokens_per_second": 15.931982590441532,
+  "requests": 2,
+  "slo_compliant": 1,
+  "successful": 1,
+  "successful_output_tokens": 16,
+  "ttft_ms": {
+    "p50": 141.642961,
+    "p95": 141.642961,
+    "p99": 141.642961
+  }
+}
+LLMServe on port 8033 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.0940955,
+    "p95": 0.09757175,
+    "p99": 0.09788075
+  },
+  "e2e_ms": {
+    "p50": 763.866316,
+    "p95": 763.866316,
+    "p99": 763.866316
+  },
+  "elapsed_s": 0.763964274,
+  "failed": 1,
+  "goodput_requests_per_second": 1.3089617329409307,
+  "inter_token_ms": {
+    "p50": 42.39541099999997,
+    "p95": 46.63585539999998,
+    "p99": 46.65448548
+  },
+  "mean_tpot_ms": {
+    "p50": 43.174186266666666,
+    "p95": 43.174186266666666,
+    "p99": 43.174186266666666
+  },
+  "output_tokens_per_second": 20.94338772705489,
+  "requests": 2,
+  "slo_compliant": 1,
+  "successful": 1,
+  "successful_output_tokens": 16,
+  "ttft_ms": {
+    "p50": 116.160386,
+    "p95": 116.160386,
+    "p99": 116.160386
+  }
+}
+LLMServe on port 8033 stopped.
+{
+  "schema_version": 1,
+  "run_id": "20260922T122843Z-a1fe5d327adb-9869df8b",
+  "manifest_sha256": "df35fde26771ed688fbd5a5768be2ba8caab16ba2e2400e01c45fbd7b6706425",
+  "validation": "passed",
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_sha256": "9ba0bd9789cb74d7d248702806796da2a7f96983e61aed4d7b295e1249ef186d",
+  "requests_per_trial": 2,
+  "policies": {
+    "mixed": {
+      "trials": 1,
+      "successful": 1.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 15.931982590441532,
+      "ttft_p95_ms_median": 141.642961,
+      "mean_tpot_p95_ms_median": 57.496019266666664,
+      "goodput_requests_per_second_median": 0.9957489119025957
+    },
+    "prefill_first": {
+      "trials": 1,
+      "successful": 1.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 20.94338772705489,
+      "ttft_p95_ms_median": 116.160386,
+      "mean_tpot_p95_ms_median": 43.174186266666666,
+      "goodput_requests_per_second_median": 1.3089617329409307
+    }
+  }
+}

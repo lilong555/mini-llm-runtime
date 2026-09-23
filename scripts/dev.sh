@@ -4,37 +4,65 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
 build=build/wsl-cpu
 model=models/Qwen3-0.6B-Q8_0.gguf
+backend=mini
+gpu_layers=0
+cuda=OFF
+report_prefix=.run/wsl
+if [[ ${1:-} == cuda ]]; then
+  shift
+  build=build/wsl-cuda
+  backend=llama
+  gpu_layers=99
+  cuda=ON
+  report_prefix=.run/wsl-cuda
+fi
 case "${1:-help}" in
   build)
-    cmake -S . -B "$build" -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLMSERVE_CUDA=OFF
+    options=(-DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLMSERVE_WITH_LLAMA=ON
+      -DLLMSERVE_BUILD_TESTS=ON "-DLLMSERVE_CUDA=$cuda")
+    if [[ $cuda == ON ]]; then
+      options+=("-DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-89}")
+    fi
+    cmake -S . -B "$build" -G Ninja "${options[@]}"
     cmake --build "$build" --parallel "${JOBS:-4}"
     ;;
   test)
-    ctest --test-dir "$build" --output-on-failure --output-junit test-results.xml
+    ctest --test-dir "$build" --output-on-failure --no-tests=error \
+      --test-output-size-passed 65536 --output-junit test-results.xml
     ;;
   model)
     python3 scripts/models.py
     ;;
   validate)
-    python3 scripts/models.py --reference
+    python3 scripts/models.py --reference --converter "$build/bin/mini-llm"
     mkdir -p .run
     "$build/bin/llmserve-model-tests" --model "$model" \
       --reference-model models/Qwen3-0.6B-Q8_0-dequant-F32.gguf \
-      --gpu-layers 0 --output .run/wsl-model.json
+      --gpu-layers "$gpu_layers" --output "$report_prefix-model.json"
     ;;
   serve)
     shift
-    exec "$build/bin/llmserve" --model "$model" --backend mini --gpu-layers 0 "$@"
+    exec "$build/bin/llmserve" --model "$model" --backend "$backend" \
+      --gpu-layers "$gpu_layers" "$@"
     ;;
   http-test)
     mkdir -p .run
-    "$build/bin/llmserve-http-tests" --port "${2:-8000}" --output .run/wsl-http.json
+    "$build/bin/llmserve-http-tests" --port "${2:-8000}" --output "$report_prefix-http.json"
+    ;;
+  benchmark)
+    shift
+    exec pwsh -NoProfile -File scripts/Benchmark-Policies.ps1 \
+      -Backend "$backend" -BinaryDirectory "$build/bin" "$@"
+    ;;
+  runtime-benchmark)
+    shift
+    exec pwsh -NoProfile -File scripts/Benchmark-Runtime.ps1 -BinaryDirectory "$build/bin" "$@"
     ;;
   check-http)
     mkdir -p .run
     state=$(mktemp -d "$root/.run/http-check.XXXXXX")
     port=${2:-8015}
-    "$build/bin/llmserve" --model "$model" --backend mini --gpu-layers 0 \
+    "$build/bin/llmserve" --model "$model" --backend "$backend" --gpu-layers "$gpu_layers" \
       --port "$port" --shutdown-file "$state/stop" >"$state/server.log" 2>&1 &
     server_pid=$!
     trap 'touch "$state/stop"; wait "$server_pid" || true' EXIT
@@ -47,8 +75,17 @@ case "${1:-help}" in
       fi
       sleep 0.2
     done
-    [[ $ready == true ]] || { echo 'Server readiness timed out' >&2; exit 1; }
-    "$build/bin/llmserve-http-tests" --port "$port" --output .run/wsl-http.json
+    [[ $ready == true ]] || { echo '服务就绪检查超时' >&2; exit 1; }
+    "$build/bin/llmserve-http-tests" --port "$port" --output "$report_prefix-http.json"
+    ;;
+  smoke)
+    [[ $cuda == ON ]] || { echo '用法：bash scripts/dev.sh cuda smoke' >&2; exit 1; }
+    architecture=${CUDA_ARCHITECTURES:-89}
+    [[ $architecture =~ ^[0-9]+$ ]] || { echo '冒烟检查只接受单个数字架构，如 89' >&2; exit 1; }
+    mkdir -p .run
+    nvcc -std=c++17 -O2 -lineinfo "-arch=sm_$architecture" \
+      scripts/cuda_smoke.cu -o .run/cuda-smoke
+    .run/cuda-smoke
     ;;
   dependencies)
     target=third_party/llama.cpp
@@ -61,7 +98,7 @@ case "${1:-help}" in
     [[ -z $(git -C "$target" status --porcelain) ]] || { echo 'Dependency has local changes' >&2; exit 1; }
     ;;
   *)
-    echo 'Usage: bash scripts/dev.sh {dependencies|model|build|test|validate|serve [server options]|http-test [port]|check-http [port]}'
+    echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
     [[ ${1:-help} == help ]]
     ;;
 esac

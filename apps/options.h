@@ -1,6 +1,7 @@
 #pragma once
 
 #include <charconv>
+#include <cmath>
 #include <cstdint>
 #include <map>
 #include <set>
@@ -42,6 +43,17 @@ public:
         if (error != std::errc{} || end != text.data() + text.size() ||
             value < minimum || value > maximum) {
             throw std::invalid_argument("out-of-range integer: " + key);
+        }
+        return value;
+    }
+    double number(const std::string& key, double fallback, double minimum, double maximum) const {
+        if (!has(key)) { return fallback; }
+        const auto text = get(key);
+        double value = 0;
+        const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), value);
+        if (error != std::errc{} || end != text.data() + text.size() || !std::isfinite(value) ||
+            value < minimum || value > maximum) {
+            throw std::invalid_argument("out-of-range number: " + key);
         }
         return value;
     }

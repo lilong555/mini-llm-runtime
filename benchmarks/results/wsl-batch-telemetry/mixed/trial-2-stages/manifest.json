@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "benchmark": "llmserve-policy-comparison",
+  "run_id": "20260923T103234Z-a1fe5d327adb-7107a4db",
+  "created_at_utc": "2026-09-23T10:32:34.3242491Z",
+  "source": {
+    "git_sha": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "git_dirty": true,
+    "worktree_state_sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd",
+    "state_file": "source-state.json",
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json"
+    ],
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    }
+  },
+  "binaries": {
+    "server": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/llmserve",
+      "sha256": "54c6335eda2d62d2835cf789fe47e4b82ebe92382e1f11312e8bb22a4d987227"
+    },
+    "benchmark_client": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/llmserve-bench",
+      "sha256": "8c671627d91147d4fec1f2cea198941431ec2cfd9ed0c942158f3f4d0f3e89c2"
+    }
+  },
+  "build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "compiler": "/usr/bin/c++",
+    "compiler_id": "GNU",
+    "compiler_version": "11.4.0",
+    "cxx_flags": "",
+    "configuration_flags": "-O2 -g -DNDEBUG",
+    "linker_flags": "",
+    "configuration_linker_flags": "",
+    "cuda_enabled": "OFF",
+    "cuda_architectures": null
+  },
+  "dependencies": {
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+  },
+  "model": {
+    "file": "Qwen3-0.6B-Q8_0.gguf",
+    "path": "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "size_bytes": 639446688,
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "provenance_manifest": "/home/li/code/mini-llm-runtime/models/manifest.json",
+    "provenance": {
+      "repository": "Qwen/Qwen3-0.6B-GGUF",
+      "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+      "file": "Qwen3-0.6B-Q8_0.gguf",
+      "size_bytes": 639446688,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+    },
+    "weight_dtype": "Q8_0"
+  },
+  "trace": {
+    "path": "trace.jsonl",
+    "original_path": "/home/li/code/mini-llm-runtime/benchmarks/traces/cpu-mixed-s0.jsonl",
+    "size_bytes": 9986,
+    "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7",
+    "fnv1a64": "14963550166524963314",
+    "request_count": 24,
+    "seed": null
+  },
+  "engine": {
+    "backend": "mini",
+    "metrics_backend": "minillm",
+    "requested_kernel_mode": "auto",
+    "metrics_kernel_mode": "auto",
+    "threads": 8,
+    "gpu_layers": 0,
+    "context_tokens": 8192,
+    "max_model_len": 2048,
+    "batch_tokens": 256,
+    "prefill_chunk": 32,
+    "max_active": 8,
+    "queue_capacity": 64,
+    "block_size": 16,
+    "prefix_cache_entries": 4,
+    "prefix_cache_tokens": 2048,
+    "event_buffer_size": 128,
+    "aging_ms": 250,
+    "admission_reserve_ms": 2000,
+    "telemetry_mode": "stages",
+    "telemetry_capacity": 1024
+  },
+  "comparison": {
+    "dimension": "engine.policy",
+    "allowed_changes": [
+      "engine.policy"
+    ],
+    "variants": [
+      "mixed",
+      "prefill_first"
+    ],
+    "reference": {
+      "variant": "mixed",
+      "trial": 0
+    }
+  },
+  "protocol": {
+    "trials_per_variant": 1,
+    "order": "alternating",
+    "order_offset": 0,
+    "warmup": true,
+    "warmup_request": {
+      "prompt": "Hello",
+      "max_tokens": 8,
+      "ignore_eos": true,
+      "cache_namespace": "benchmark-warmup"
+    },
+    "allowed_request_outcomes": [
+      "success"
+    ],
+    "activation_dtype": "F32",
+    "kv_dtype": "F16",
+    "sampling": "greedy",
+    "profiler_mode": "stages",
+    "arrival_scale": 1.0
+  },
+  "environment": {
+    "os": "Unix 5.15.167.4",
+    "machine": "LAPTOP-GBFPGV8B",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "logical_processors": 16,
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "driver_version": "591.74",
+        "memory_mib": "8188"
+      }
+    ],
+    "cpu_frequency_temperature": null
+  },
+  "reports": [
+    {
+      "file": "mixed-0.json",
+      "variant": "mixed",
+      "trial": 0,
+      "order": 0,
+      "telemetry_file": "mixed-0-telemetry.jsonl"
+    },
+    {
+      "file": "prefill_first-0.json",
+      "variant": "prefill_first",
+      "trial": 0,
+      "order": 1,
+      "telemetry_file": "prefill_first-0-telemetry.jsonl"
+    }
+  ]
+}

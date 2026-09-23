@@ -1,0 +1,10 @@
+{
+  "Reports": 15,
+  "SuiteExecutions": 37,
+  "CaseExecutions": 888,
+  "SuitesWithoutCaseCounts": 3,
+  "DiagnosticReports": [
+    "/home/li/code/mini-llm-runtime/benchmarks/results/diagnostics/wsl-native-ctest-truncated.xml"
+  ],
+  "Status": "passed_with_unreported_case_counts"
+}

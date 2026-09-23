@@ -1,0 +1,19 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 457  of event 'cpu-clock:u'
+# Event count (approx.): 2296482125
+#
+# Overhead  Symbol                                                                                                IPC   [IPC Coverage]
+# ........  ....................................................................................................  ....................
+#
+    78.77%  [.] minillm::detail::dot_q8_avx2                                                                      -      -            
+     5.91%  [.] minillm::half_to_float                                                                            -      -            
+     1.53%  [.] llama_vocab::impl::load                                                                           -      -            
+
+
+#
+# (Cannot load tips.txt file, please install perf!)
+#

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "run_id": "20260922T135302Z-a1fe5d327adb-1ba354b9",
+  "manifest_sha256": "e3d456442ced255f5fb7c41d17d705a23b451e53cf393b8e47832adcfd0263c7",
+  "online_batch_perturbation": "not_measured_offline_fixed_batches",
+  "results": [
+    {
+      "workload": "decode-1536",
+      "threads": 8,
+      "none_median_ns": 58473754.0,
+      "stages_median_ns": 58748511.0,
+      "overhead_percent": 0.46988089733386307,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 57001217.0,
+          "stages_ns": 58756297.0,
+          "ratio": 1.030790219794781
+        },
+        {
+          "trial": 1,
+          "none_ns": 56858353.0,
+          "stages_ns": 56610936.0,
+          "ratio": 0.9956485373397995
+        },
+        {
+          "trial": 2,
+          "none_ns": 60430375.0,
+          "stages_ns": 59963662.0,
+          "ratio": 0.9922768475290779
+        }
+      ],
+      "profile_forward_median_ns": 58745927.0,
+      "unaccounted_median_ns": 41612.0
+    },
+    {
+      "workload": "decode-16",
+      "threads": 8,
+      "none_median_ns": 42982640.0,
+      "stages_median_ns": 43798489.0,
+      "overhead_percent": 1.8980895542944687,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 42982640.0,
+          "stages_ns": 43279486.0,
+          "ratio": 1.0069061835196722
+        },
+        {
+          "trial": 1,
+          "none_ns": 50713145.0,
+          "stages_ns": 44011591.0,
+          "ratio": 0.8678537093292085
+        },
+        {
+          "trial": 2,
+          "none_ns": 42381054.0,
+          "stages_ns": 43798489.0,
+          "ratio": 1.0334450153127386
+        }
+      ],
+      "profile_forward_median_ns": 43795994.0,
+      "unaccounted_median_ns": 36758.0
+    },
+    {
+      "workload": "decode-256",
+      "threads": 8,
+      "none_median_ns": 44847244.0,
+      "stages_median_ns": 44803030.0,
+      "overhead_percent": -0.09858799796036433,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 44847244.0,
+          "stages_ns": 44803030.0,
+          "ratio": 0.9990141200203964
+        },
+        {
+          "trial": 1,
+          "none_ns": 79500644.0,
+          "stages_ns": 43333847.0,
+          "ratio": 0.5450754210242624
+        },
+        {
+          "trial": 2,
+          "none_ns": 43304531.0,
+          "stages_ns": 46193820.0,
+          "ratio": 1.0667202468951806
+        }
+      ],
+      "profile_forward_median_ns": 44799323.0,
+      "unaccounted_median_ns": 34624.0
+    },
+    {
+      "workload": "mixed-16-2",
+      "threads": 8,
+      "none_median_ns": 237975338.0,
+      "stages_median_ns": 242315883.0,
+      "overhead_percent": 1.8239474041633619,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 237975338.0,
+          "stages_ns": 244290555.0,
+          "ratio": 1.0265372750515853
+        },
+        {
+          "trial": 1,
+          "none_ns": 280769034.0,
+          "stages_ns": 249582961.0,
+          "ratio": 0.8889262374995385
+        },
+        {
+          "trial": 2,
+          "none_ns": 235486491.0,
+          "stages_ns": 235921178.0,
+          "ratio": 1.001845910557986
+        }
+      ],
+      "profile_forward_median_ns": 242312776.0,
+      "unaccounted_median_ns": 61521.0
+    },
+    {
+      "workload": "prefill-128",
+      "threads": 8,
+      "none_median_ns": 1513793282.0,
+      "stages_median_ns": 1501671569.0,
+      "overhead_percent": -0.8007508782166717,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 1470237843.0,
+          "stages_ns": 1483237099.0,
+          "ratio": 1.0088416007395615
+        },
+        {
+          "trial": 1,
+          "none_ns": 1513793282.0,
+          "stages_ns": 1501671569.0,
+          "ratio": 0.9919924912178333
+        },
+        {
+          "trial": 2,
+          "none_ns": 1543349230.0,
+          "stages_ns": 1505462659.0,
+          "ratio": 0.9754517187273292
+        }
+      ],
+      "profile_forward_median_ns": 1501668744.0,
+      "unaccounted_median_ns": 155182.0
+    },
+    {
+      "workload": "prefill-16",
+      "threads": 8,
+      "none_median_ns": 207505442.0,
+      "stages_median_ns": 205169696.0,
+      "overhead_percent": -1.1256312015180736,
+      "paired_trials": [
+        {
+          "trial": 0,
+          "none_ns": 202418502.0,
+          "stages_ns": 199725348.0,
+          "ratio": 0.986695119401684
+        },
+        {
+          "trial": 1,
+          "none_ns": 202776905.0,
+          "stages_ns": 204180389.0,
+          "ratio": 1.006921320749027
+        },
+        {
+          "trial": 2,
+          "none_ns": 217467585.0,
+          "stages_ns": 205425918.0,
+          "ratio": 0.9446277614201675
+        }
+      ],
+      "profile_forward_median_ns": 205165679.0,
+      "unaccounted_median_ns": 57904.0
+    }
+  ]
+}

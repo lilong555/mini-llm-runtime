@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "validated_at": "2026-09-22T19:47:18+08:00",
+  "tool": "Nsight Compute 2025.1.1.0",
+  "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "driver": "591.74",
+  "uid": 1000,
+  "binary": {
+    "path": ".run/cuda-smoke",
+    "sha256": "e4a17957bf5c798e71edf8a768c92ee7f263de480fdf993625d99b46b8b5f146"
+  },
+  "launch_stats_exit_code": 0,
+  "basic_exit_code": 0,
+  "profiled_kernel_count": 1,
+  "profiler_replay_passes": 8,
+  "application_launches": 64,
+  "verified_elements": 1048593,
+  "kernel": "add(const float *, const float *, float *, int)",
+  "checked_metrics": {
+    "gpu__time_duration.sum": {
+      "value": 35712.0,
+      "unit": "ns"
+    },
+    "sm__cycles_active.avg": {
+      "value": 54385.53,
+      "unit": "cycle"
+    },
+    "dram__cycles_active.avg": {
+      "value": 262228.0,
+      "unit": "cycle"
+    },
+    "sm__warps_active.avg.pct_of_peak_sustained_active": {
+      "value": 89.28,
+      "unit": "%"
+    },
+    "gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 91.95,
+      "unit": "%"
+    },
+    "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 12.51,
+      "unit": "%"
+    }
+  },
+  "metrics_csv": "ncu-metrics.csv",
+  "metrics_csv_sha256": "8a7d74efc95b285e3e14fa32ec75180c3ea6f6a4bacaf46238590e8e3ae3ff43",
+  "local_raw_reports_sha256": {
+    ".run/ncu-check.VX6pb2/launch.ncu-rep": "6c0bc1bf7600e0eb71e5e0be411206d1d3c07a17b094430711de0b88b0deaf70",
+    ".run/ncu-check.VX6pb2/basic.ncu-rep": "8d3b4efc326b5ac7f39c096780de9d7f4b31410e9eb57ace3846f4f290881613"
+  },
+  "scope": "单 kernel 的基础硬件指标采集；不是模型或端到端性能基线"
+}

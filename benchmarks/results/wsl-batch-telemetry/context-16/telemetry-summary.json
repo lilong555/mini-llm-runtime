@@ -1,0 +1,829 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "reports": [
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off",
+      "file": "mixed-0.json",
+      "mode": "off",
+      "policy": "mixed",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "fedd590c6933e89e42488a7692804f29f62e95671bc66b772c21e19c5f648470",
+      "report_sha256": "4ef6221da10ac52f417589fb0faffe0a2c5edc9fcdcc54519f35449cb382d885",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.14505,
+          "p95": 0.14505,
+          "p99": 0.14505
+        },
+        "e2e_ms": {
+          "p50": 1771.556952,
+          "p95": 1771.556952,
+          "p99": 1771.556952
+        },
+        "elapsed_s": 1.771702002,
+        "failed": 0,
+        "goodput_requests_per_second": 0.5644290060468081,
+        "inter_token_ms": {
+          "p50": 46.02125799999996,
+          "p95": 56.31687090000003,
+          "p99": 60.80793150000002
+        },
+        "mean_tpot_ms": {
+          "p50": 48.3629895625,
+          "p95": 48.3629895625,
+          "p99": 48.3629895625
+        },
+        "output_tokens_per_second": 18.626157199544668,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 223.856696,
+          "p95": 223.856696,
+          "p99": 223.856696
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off",
+      "file": "prefill_first-0.json",
+      "mode": "off",
+      "policy": "prefill_first",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "fedd590c6933e89e42488a7692804f29f62e95671bc66b772c21e19c5f648470",
+      "report_sha256": "76108aca07ac3942fddb80e1485d72911adab5831308a81f737b1f156638c8a2",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.097458,
+          "p95": 0.097458,
+          "p99": 0.097458
+        },
+        "e2e_ms": {
+          "p50": 1643.736224,
+          "p95": 1643.736224,
+          "p99": 1643.736224
+        },
+        "elapsed_s": 1.643833682,
+        "failed": 0,
+        "goodput_requests_per_second": 0.6083340492107036,
+        "inter_token_ms": {
+          "p50": 44.799927500000024,
+          "p95": 48.10388495000002,
+          "p99": 53.25873672999995
+        },
+        "mean_tpot_ms": {
+          "p50": 45.116555375,
+          "p95": 45.116555375,
+          "p99": 45.116555375
+        },
+        "output_tokens_per_second": 20.075023623953218,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 199.91594,
+          "p95": 199.91594,
+          "p99": 199.91594
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches",
+      "file": "mixed-0.json",
+      "mode": "batches",
+      "policy": "mixed",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "dc5c0df9d21a1b04f4b90af9a630fc207b65ac0ed55d3ba52509175b677a6fa9",
+      "report_sha256": "5b9203e272bafb0ff83f29d39d843062277fe3d21b3f172a90219e716c1414cb",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.092677,
+          "p95": 0.092677,
+          "p99": 0.092677
+        },
+        "e2e_ms": {
+          "p50": 1653.765783,
+          "p95": 1653.765783,
+          "p99": 1653.765783
+        },
+        "elapsed_s": 1.65385846,
+        "failed": 0,
+        "goodput_requests_per_second": 0.6046466636570581,
+        "inter_token_ms": {
+          "p50": 44.570074500000004,
+          "p95": 53.36312519999996,
+          "p99": 54.552970620000025
+        },
+        "mean_tpot_ms": {
+          "p50": 45.53079878125,
+          "p95": 45.53079878125,
+          "p99": 45.53079878125
+        },
+        "output_tokens_per_second": 19.953339900682916,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 196.694609,
+          "p95": 196.694609,
+          "p99": 196.694609
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "f21c896fda66100f069890e9f6c0323c9280d0cd65853141a4ce6cb3f7a8953f",
+      "batches": {
+        "batches": 33,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:16+0": 1
+        },
+        "iteration_sum_ms": 1652.210876,
+        "scheduler_percent": 0.0036070456178258444,
+        "admission_percent": 0.001543325998539184,
+        "runner_percent": 99.9355157979241,
+        "runner_ms": {
+          "count": 33,
+          "min": 42.542405,
+          "max": 195.152919,
+          "p50": 44.611103,
+          "p95": 54.209293,
+          "p99": 150.20157883999997
+        },
+        "stage_sum_ms": {}
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 54.82828100000006,
+          "engine_max_itl_ms": 54.714697,
+          "interval_residual_ms": [
+            -0.057381000000006566,
+            0.06992599999998106,
+            -0.09400199999998193,
+            -0.06011700000002662,
+            0.11783400000000199,
+            -0.04028699999997798,
+            0.006461999999991974,
+            0.05017699999999792,
+            0.11358400000005986,
+            -0.005353000000063446,
+            -0.04595500000003483,
+            -0.029535000000002753,
+            -0.07370599999995875,
+            0.06758500000004375,
+            -0.11919200000007635,
+            0.006844000000057804,
+            0.012774999999969339,
+            0.010459000000018648,
+            0.060993999999993775,
+            -0.04978200000007149,
+            -0.05239699999998493,
+            -0.002420000000000755,
+            0.01828799999997699,
+            0.06883700000015835,
+            -0.07692000000017174,
+            0.09840400000002347,
+            -0.12657999999992597,
+            0.09077900000002614,
+            0.13627099999990122,
+            -0.10994799999991045,
+            0.2236829999998733,
+            -0.3365239999997982
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches",
+      "file": "prefill_first-0.json",
+      "mode": "batches",
+      "policy": "prefill_first",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "dc5c0df9d21a1b04f4b90af9a630fc207b65ac0ed55d3ba52509175b677a6fa9",
+      "report_sha256": "8f3eeff8177b4d5c1e348855c8dc2549d1b479430c97c05782b23fe2bff8552c",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.093996,
+          "p95": 0.093996,
+          "p99": 0.093996
+        },
+        "e2e_ms": {
+          "p50": 1670.80932,
+          "p95": 1670.80932,
+          "p99": 1670.80932
+        },
+        "elapsed_s": 1.670903316,
+        "failed": 0,
+        "goodput_requests_per_second": 0.5984786734363031,
+        "inter_token_ms": {
+          "p50": 44.75182100000001,
+          "p95": 56.19255915000006,
+          "p99": 58.421248319999954
+        },
+        "mean_tpot_ms": {
+          "p50": 46.0207035625,
+          "p95": 46.0207035625,
+          "p99": 46.0207035625
+        },
+        "output_tokens_per_second": 19.749796223398004,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 198.067595,
+          "p95": 198.067595,
+          "p99": 198.067595
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "a1193e5abcbedfb56ce29edfb92ec47f65f4b874bf1904294daed5ed883fbfd0",
+      "batches": {
+        "batches": 33,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:16+0": 1
+        },
+        "iteration_sum_ms": 1669.448348,
+        "scheduler_percent": 0.003560816965149975,
+        "admission_percent": 0.0018485148125109887,
+        "runner_percent": 99.93149353788812,
+        "runner_ms": {
+          "count": 33,
+          "min": 42.861009,
+          "max": 196.795204,
+          "p50": 44.848776,
+          "p95": 58.1005548,
+          "p99": 152.60748367999997
+        },
+        "stage_sum_ms": {}
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 58.78339899999992,
+          "engine_max_itl_ms": 58.768081,
+          "interval_residual_ms": [
+            -0.07242000000001525,
+            0.22163400000001587,
+            -0.17716000000002907,
+            -0.008408000000009963,
+            0.0334810000000445,
+            0.012928000000002271,
+            0.28220099999995085,
+            -0.13032499999991387,
+            0.015317999999915344,
+            -0.1428929999999653,
+            0.07374000000001502,
+            -0.1147200000000197,
+            0.009477999999958797,
+            0.11540099999999853,
+            -0.11593499999991508,
+            -0.11191100000009158,
+            0.12265100000003315,
+            -0.07772199999988061,
+            0.0927359999998032,
+            -0.09818199999986632,
+            0.026271999999963214,
+            0.1364059999999725,
+            -0.09339799999999343,
+            0.08174900000002339,
+            -0.06765800000000155,
+            -0.06813200000003405,
+            0.26552599999995863,
+            -0.21477299999994415,
+            0.12046900000005678,
+            -0.020923999999979515,
+            -0.008170999999983053,
+            -0.13469199999999404
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages",
+      "file": "mixed-0.json",
+      "mode": "stages",
+      "policy": "mixed",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "6ec32be1204b3019791c85babf3d30699b75664ae2e18c80712865b227e62424",
+      "report_sha256": "10f60bf56ef5d958befd0d675eedb3a4dabbe1551351916e5b87394229958f66",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.088253,
+          "p95": 0.088253,
+          "p99": 0.088253
+        },
+        "e2e_ms": {
+          "p50": 1752.61122,
+          "p95": 1752.61122,
+          "p99": 1752.61122
+        },
+        "elapsed_s": 1.752699473,
+        "failed": 0,
+        "goodput_requests_per_second": 0.5705484684652495,
+        "inter_token_ms": {
+          "p50": 47.783168500000045,
+          "p95": 55.41450690000001,
+          "p99": 59.73616521999992
+        },
+        "mean_tpot_ms": {
+          "p50": 48.543207875,
+          "p95": 48.543207875,
+          "p99": 48.543207875
+        },
+        "output_tokens_per_second": 18.828099459353233,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 199.122356,
+          "p95": 199.122356,
+          "p99": 199.122356
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "75b38285f2f14bdc2df5677225303bba1322fd7fe2a58a6161fdbc76b1d781ed",
+      "batches": {
+        "batches": 33,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:16+0": 1
+        },
+        "iteration_sum_ms": 1751.27083,
+        "scheduler_percent": 0.0032677983907263503,
+        "admission_percent": 0.0015943850329534696,
+        "runner_percent": 99.9346463162411,
+        "runner_ms": {
+          "count": 33,
+          "min": 43.607055,
+          "max": 197.803475,
+          "p50": 47.840692,
+          "p95": 57.96559979999999,
+          "p99": 154.18597803999995
+        },
+        "stage_sum_ms": {
+          "kv_prepare": 0.819955,
+          "embedding": 0.090655,
+          "rope_prepare": 0.107404,
+          "attention_norm": 69.554318,
+          "query_projection": 153.542446,
+          "key_projection": 105.462401,
+          "value_projection": 100.414839,
+          "qk_norm_rope_kv": 69.07932,
+          "attention": 70.078432,
+          "output_projection": 153.729269,
+          "attention_residual": 0.581222,
+          "ffn_norm": 67.971257,
+          "gate_projection": 208.003712,
+          "up_projection": 208.003791,
+          "swiglu": 70.929543,
+          "down_projection": 206.170146,
+          "ffn_residual": 0.604286,
+          "final_norm": 0.116522,
+          "lm_head": 249.256762
+        }
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 61.560588999999936,
+          "engine_max_itl_ms": 61.530197,
+          "interval_residual_ms": [
+            -0.06607499999999789,
+            0.04114399999998142,
+            0.08393999999999835,
+            -0.00015699999997309533,
+            -0.10148399999997082,
+            0.0016069999999785978,
+            -0.06247899999996065,
+            0.004959999999968545,
+            0.13392099999997953,
+            -0.03348799999994867,
+            -0.035803999999984626,
+            -0.043191000000057045,
+            0.22447299999996062,
+            -0.24819099999994876,
+            0.28004400000001795,
+            -0.3289120000000523,
+            -0.015347999999875128,
+            0.1905359999998879,
+            -0.1457879999999392,
+            0.1521600000000376,
+            -0.172420000000173,
+            0.09620600000010171,
+            0.04069699999998022,
+            -0.019086999999949228,
+            0.03228399999986209,
+            0.024955000000140615,
+            -0.06936200000005499,
+            -0.016755999999901405,
+            0.030391999999935138,
+            0.03264100000003367,
+            -0.07424399999995046,
+            -0.06681300000001755
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages",
+      "file": "prefill_first-0.json",
+      "mode": "stages",
+      "policy": "prefill_first",
+      "trial": 0,
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "manifest_sha256": "6ec32be1204b3019791c85babf3d30699b75664ae2e18c80712865b227e62424",
+      "report_sha256": "d111bc67bd1fc81d5be05e4d69da5835e60c9092ad1460fdb7cca9015b3b02f4",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.07073,
+          "p95": 0.07073,
+          "p99": 0.07073
+        },
+        "e2e_ms": {
+          "p50": 1623.537435,
+          "p95": 1623.537435,
+          "p99": 1623.537435
+        },
+        "elapsed_s": 1.623608165,
+        "failed": 0,
+        "goodput_requests_per_second": 0.6159121526713929,
+        "inter_token_ms": {
+          "p50": 43.54656899999998,
+          "p95": 50.89247129999995,
+          "p99": 54.78859425999998
+        },
+        "mean_tpot_ms": {
+          "p50": 44.6019910625,
+          "p95": 44.6019910625,
+          "p99": 44.6019910625
+        },
+        "output_tokens_per_second": 20.325101038155964,
+        "requests": 1,
+        "slo_compliant": 1,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 196.078992,
+          "p95": 196.078992,
+          "p99": 196.078992
+        }
+      },
+      "metrics_batch_delta": 33,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "7c1a5c518762c98625b632183c77437399ed082f7d228cf77947065445580617",
+      "batches": {
+        "batches": 33,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:16+0": 1
+        },
+        "iteration_sum_ms": 1621.915756,
+        "scheduler_percent": 0.0036435307926067154,
+        "admission_percent": 0.0015634597485222285,
+        "runner_percent": 99.929216730539,
+        "runner_ms": {
+          "count": 33,
+          "min": 42.664545,
+          "max": 194.820611,
+          "p50": 43.573103,
+          "p95": 54.386947,
+          "p99": 150.09646955999997
+        },
+        "stage_sum_ms": {
+          "kv_prepare": 0.702079,
+          "embedding": 0.088137,
+          "rope_prepare": 0.08478,
+          "attention_norm": 67.236729,
+          "query_projection": 142.230758,
+          "key_projection": 93.506633,
+          "value_projection": 91.661376,
+          "qk_norm_rope_kv": 66.093213,
+          "attention": 66.012273,
+          "output_projection": 141.587627,
+          "attention_residual": 0.562551,
+          "ffn_norm": 65.572625,
+          "gate_projection": 189.517369,
+          "up_projection": 191.381836,
+          "swiglu": 67.576322,
+          "down_projection": 192.010966,
+          "ffn_residual": 0.574756,
+          "final_norm": 0.101404,
+          "lm_head": 228.886749
+        }
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 55.22087499999998,
+          "engine_max_itl_ms": 55.114246,
+          "interval_residual_ms": [
+            0.06599800000000755,
+            -0.1045700000000096,
+            0.05012399999998962,
+            0.054822999999998956,
+            -0.10632700000000739,
+            0.10657400000000905,
+            -0.0915470000000127,
+            0.011311999999975342,
+            -0.04366099999991491,
+            0.053045999999923765,
+            0.03056700000004753,
+            -0.13661600000001073,
+            0.1299669999999935,
+            0.17810799999995908,
+            -0.29201399999994493,
+            -0.002422000000038338,
+            0.08532200000005474,
+            0.003737999999955832,
+            0.06233800000011058,
+            -0.06434900000009947,
+            0.03813000000003086,
+            -0.10594400000010751,
+            0.13658100000014883,
+            -0.15836400000014805,
+            0.14938700000014649,
+            -0.10855200000007414,
+            -0.022701999999888756,
+            0.01372699999991056,
+            0.07632599999999456,
+            0.1685739999999285,
+            -0.14895600000001963,
+            0.10662899999997677
+          ]
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "policy": "mixed",
+      "mode": "batches",
+      "off_processes": 1,
+      "on_processes": 1,
+      "elapsed_s": {
+        "off": {
+          "count": 1,
+          "min": 1.771702002,
+          "max": 1.771702002,
+          "p50": 1.771702002,
+          "p95": 1.771702002,
+          "p99": 1.771702002
+        },
+        "on": {
+          "count": 1,
+          "min": 1.65385846,
+          "max": 1.65385846,
+          "p50": 1.65385846,
+          "p95": 1.65385846,
+          "p99": 1.65385846
+        },
+        "median_change_percent": -6.651431328009538
+      },
+      "output_tokens_per_second": {
+        "off": {
+          "count": 1,
+          "min": 18.626157199544668,
+          "max": 18.626157199544668,
+          "p50": 18.626157199544668,
+          "p95": 18.626157199544668,
+          "p99": 18.626157199544668
+        },
+        "on": {
+          "count": 1,
+          "min": 19.953339900682916,
+          "max": 19.953339900682916,
+          "p50": 19.953339900682916,
+          "p95": 19.953339900682916,
+          "p99": 19.953339900682916
+        },
+        "median_change_percent": 7.1253704503830395
+      },
+      "batch_counts": {
+        "off": [
+          33
+        ],
+        "on": [
+          33
+        ]
+      },
+      "mixed_batch_counts": {
+        "off": [
+          0
+        ],
+        "on": [
+          0
+        ]
+      }
+    },
+    {
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "policy": "mixed",
+      "mode": "stages",
+      "off_processes": 1,
+      "on_processes": 1,
+      "elapsed_s": {
+        "off": {
+          "count": 1,
+          "min": 1.771702002,
+          "max": 1.771702002,
+          "p50": 1.771702002,
+          "p95": 1.771702002,
+          "p99": 1.771702002
+        },
+        "on": {
+          "count": 1,
+          "min": 1.752699473,
+          "max": 1.752699473,
+          "p50": 1.752699473,
+          "p95": 1.752699473,
+          "p99": 1.752699473
+        },
+        "median_change_percent": -1.072557855584566
+      },
+      "output_tokens_per_second": {
+        "off": {
+          "count": 1,
+          "min": 18.626157199544668,
+          "max": 18.626157199544668,
+          "p50": 18.626157199544668,
+          "p95": 18.626157199544668,
+          "p99": 18.626157199544668
+        },
+        "on": {
+          "count": 1,
+          "min": 18.828099459353233,
+          "max": 18.828099459353233,
+          "p50": 18.828099459353233,
+          "p95": 18.828099459353233,
+          "p99": 18.828099459353233
+        },
+        "median_change_percent": 1.0841863817916408
+      },
+      "batch_counts": {
+        "off": [
+          33
+        ],
+        "on": [
+          33
+        ]
+      },
+      "mixed_batch_counts": {
+        "off": [
+          0
+        ],
+        "on": [
+          0
+        ]
+      }
+    },
+    {
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "policy": "prefill_first",
+      "mode": "batches",
+      "off_processes": 1,
+      "on_processes": 1,
+      "elapsed_s": {
+        "off": {
+          "count": 1,
+          "min": 1.643833682,
+          "max": 1.643833682,
+          "p50": 1.643833682,
+          "p95": 1.643833682,
+          "p99": 1.643833682
+        },
+        "on": {
+          "count": 1,
+          "min": 1.670903316,
+          "max": 1.670903316,
+          "p50": 1.670903316,
+          "p95": 1.670903316,
+          "p99": 1.670903316
+        },
+        "median_change_percent": 1.6467380061871761
+      },
+      "output_tokens_per_second": {
+        "off": {
+          "count": 1,
+          "min": 20.075023623953218,
+          "max": 20.075023623953218,
+          "p50": 20.075023623953218,
+          "p95": 20.075023623953218,
+          "p99": 20.075023623953218
+        },
+        "on": {
+          "count": 1,
+          "min": 19.749796223398004,
+          "max": 19.749796223398004,
+          "p50": 19.749796223398004,
+          "p95": 19.749796223398004,
+          "p99": 19.749796223398004
+        },
+        "median_change_percent": -1.6200598646726294
+      },
+      "batch_counts": {
+        "off": [
+          33
+        ],
+        "on": [
+          33
+        ]
+      },
+      "mixed_batch_counts": {
+        "off": [
+          0
+        ],
+        "on": [
+          0
+        ]
+      }
+    },
+    {
+      "condition_sha256": "73c0e4e5d864ccc8bb6a1ffa21c7384c8378ae04f060e523af6703a44c7d29bd",
+      "policy": "prefill_first",
+      "mode": "stages",
+      "off_processes": 1,
+      "on_processes": 1,
+      "elapsed_s": {
+        "off": {
+          "count": 1,
+          "min": 1.643833682,
+          "max": 1.643833682,
+          "p50": 1.643833682,
+          "p95": 1.643833682,
+          "p99": 1.643833682
+        },
+        "on": {
+          "count": 1,
+          "min": 1.623608165,
+          "max": 1.623608165,
+          "p50": 1.623608165,
+          "p95": 1.623608165,
+          "p99": 1.623608165
+        },
+        "median_change_percent": -1.2303870653989857
+      },
+      "output_tokens_per_second": {
+        "off": {
+          "count": 1,
+          "min": 20.075023623953218,
+          "max": 20.075023623953218,
+          "p50": 20.075023623953218,
+          "p95": 20.075023623953218,
+          "p99": 20.075023623953218
+        },
+        "on": {
+          "count": 1,
+          "min": 20.325101038155964,
+          "max": 20.325101038155964,
+          "p50": 20.325101038155964,
+          "p95": 20.325101038155964,
+          "p99": 20.325101038155964
+        },
+        "median_change_percent": 1.2457141714361741
+      },
+      "batch_counts": {
+        "off": [
+          33
+        ],
+        "on": [
+          33
+        ]
+      },
+      "mixed_batch_counts": {
+        "off": [
+          0
+        ],
+        "on": [
+          0
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "独立进程延迟差异包含系统噪声与在线 batch 变化，不是纯插桩耗时。",
+    "客户端与 Engine 时钟原点不同，只比较对应 token 间隔，不将绝对时间相减。",
+    "interval_residual_ms 包含事件队列、HTTP、socket 缓冲和客户端调度，不等于网络延迟。",
+    "阶段按层求和；worker 经过时间重叠，不能计入 forward wall time。",
+    "未采集 sequence 生命周期与完整输入，不提供 Runtime replay；attention 尚未分离页查找、QK、softmax、PV。"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "20260922T122836Z-a1fe5d327adb-4151fa5f",
+  "manifest_sha256": "b67c51f74b2e3c4a6c1ec607e747f8bd7cdc84c7a60eb4232391c0a03f75f613",
+  "validation": "passed",
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_sha256": "44d8d87bdcb857b98b4651eb74f2da9bb519c669f627cff8bee73131cfda5185",
+  "requests_per_trial": 1,
+  "policies": {
+    "mixed": {
+      "trials": 1,
+      "successful": 0.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 0.0,
+      "ttft_p95_ms_median": null,
+      "mean_tpot_p95_ms_median": null,
+      "goodput_requests_per_second_median": 0.0
+    },
+    "prefill_first": {
+      "trials": 1,
+      "successful": 0.0,
+      "failed": 1.0,
+      "output_tokens_per_second_median": 0.0,
+      "ttft_p95_ms_median": null,
+      "mean_tpot_p95_ms_median": null,
+      "goodput_requests_per_second_median": 0.0
+    }
+  }
+}

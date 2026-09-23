@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minillm/kernels.h"
+#include "minillm/profile.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -58,7 +59,9 @@ public:
     std::vector<std::int32_t> tokenize(std::string_view text) const;
     std::string token_piece(std::int32_t token) const;
     bool is_eog(std::int32_t token) const;
-    std::vector<Logits> forward(std::span<const InputToken> tokens);
+    // 在测量前预留阶段记录；forward 会重用存储并保留调用方设置的 batch_id。
+    ForwardProfile make_profile() const;
+    std::vector<Logits> forward(std::span<const InputToken> tokens, ForwardProfile* profile = nullptr);
     void share_prefix(std::int32_t source, std::int32_t target, std::size_t tokens);
     void clear_sequence(std::int32_t sequence) noexcept;
     std::size_t used_kv_pages() const noexcept;

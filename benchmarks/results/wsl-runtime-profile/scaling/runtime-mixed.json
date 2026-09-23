@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "run_id": "20260922T133003Z-a1fe5d327adb-2abe496a",
+  "manifest_sha256": "b4cf52d1f16bb69cdd2d453a19420cb2265ee1b7b3f2c063a838bc9d864327e9",
+  "profiler": "none",
+  "results": [
+    {
+      "workload": "mixed-16-2",
+      "mode": "mixed",
+      "threads": 1,
+      "samples": 9,
+      "wall_ns": [
+        1402874758,
+        1397292172,
+        1397550160,
+        1474133797,
+        1473591535,
+        1558122492,
+        1477070418,
+        1451116348,
+        1435056702
+      ],
+      "median_ns": 1451116348.0,
+      "min_ns": 1397292172.0,
+      "max_ns": 1558122492.0,
+      "sampling_median_ns": 1082188.0,
+      "input_tokens": 18,
+      "logits_tokens": 3,
+      "input_tokens_per_second": 12.404243136540007
+    },
+    {
+      "workload": "mixed-16-2",
+      "mode": "mixed",
+      "threads": 2,
+      "samples": 9,
+      "wall_ns": [
+        742865206,
+        746452997,
+        741980423,
+        780920552,
+        772753715,
+        778861150,
+        750075574,
+        745958481,
+        753241346
+      ],
+      "median_ns": 750075574.0,
+      "min_ns": 741980423.0,
+      "max_ns": 780920552.0,
+      "sampling_median_ns": 1089953.0,
+      "input_tokens": 18,
+      "logits_tokens": 3,
+      "input_tokens_per_second": 23.997581875663105
+    },
+    {
+      "workload": "mixed-16-2",
+      "mode": "mixed",
+      "threads": 4,
+      "samples": 9,
+      "wall_ns": [
+        427551194,
+        446072153,
+        429009499,
+        408959221,
+        408909293,
+        408540672,
+        400299510,
+        400009013,
+        399916979
+      ],
+      "median_ns": 408909293.0,
+      "min_ns": 399916979.0,
+      "max_ns": 446072153.0,
+      "sampling_median_ns": 1132042.0,
+      "input_tokens": 18,
+      "logits_tokens": 3,
+      "input_tokens_per_second": 44.0195424954551
+    },
+    {
+      "workload": "mixed-16-2",
+      "mode": "mixed",
+      "threads": 8,
+      "samples": 9,
+      "wall_ns": [
+        269832448,
+        264414493,
+        260260366,
+        259240645,
+        256481579,
+        252563628,
+        237243515,
+        234427793,
+        235950249
+      ],
+      "median_ns": 256481579.0,
+      "min_ns": 234427793.0,
+      "max_ns": 269832448.0,
+      "sampling_median_ns": 1159184.0,
+      "input_tokens": 18,
+      "logits_tokens": 3,
+      "input_tokens_per_second": 70.18047873137898
+    },
+    {
+      "workload": "mixed-16-2",
+      "mode": "mixed",
+      "threads": 16,
+      "samples": 9,
+      "wall_ns": [
+        205335545,
+        207573975,
+        198888189,
+        207509970,
+        205952721,
+        205307052,
+        177367259,
+        180759018,
+        178193633
+      ],
+      "median_ns": 205307052.0,
+      "min_ns": 177367259.0,
+      "max_ns": 207573975.0,
+      "sampling_median_ns": 1165265.0,
+      "input_tokens": 18,
+      "logits_tokens": 3,
+      "input_tokens_per_second": 87.67355930862034
+    }
+  ]
+}

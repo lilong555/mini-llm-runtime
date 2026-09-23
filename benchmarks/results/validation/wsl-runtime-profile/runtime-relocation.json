@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "validation_bytes_identical": true,
+  "datasets": [
+    {
+      "dataset": "scaling",
+      "status": "passed",
+      "reports": 30,
+      "measured_forwards": 450,
+      "validation_sha256": "51de909657db075f98574a36a9ad95b0e7802563c07f35dc446cdbcb79a504a2"
+    },
+    {
+      "dataset": "context",
+      "status": "passed",
+      "reports": 6,
+      "measured_forwards": 108,
+      "validation_sha256": "b59920c84da0993bd5f134ff158cefc64eb9a1bb5d10698fec7cbb825e61d7e6"
+    }
+  ]
+}

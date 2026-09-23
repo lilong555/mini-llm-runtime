@@ -104,12 +104,25 @@ struct Engine::Impl {
     std::uint64_t rejected = 0;
     Statistics counters;
     Statistics snapshot;
+    TelemetryCapture capture;
+    Clock::time_point telemetry_epoch{};
+    std::uint64_t next_batch_id = 0;
 
     Impl(EngineConfig cfg, std::unique_ptr<ModelRunner> model)
         : config(checked_config(cfg)), runner(std::move(model)),
           pool(config.context_tokens / config.block_size), prefixes(config.block_size) {
         if (!runner || runner->info().context_tokens < config.context_tokens) {
             throw std::invalid_argument("model runner does not satisfy the context capacity");
+        }
+        capture.mode = config.telemetry_mode;
+        if (capture.mode != TelemetryMode::off) {
+            capture.batches.resize(config.telemetry_capacity);
+            for (auto& batch : capture.batches) {
+                batch.slices.resize(config.max_active);
+                capture.storage_bytes += batch.slices.capacity() * sizeof(SliceTelemetry);
+            }
+            capture.storage_bytes += capture.batches.capacity() * sizeof(BatchTelemetry);
+            telemetry_epoch = Clock::now();
         }
         for (std::size_t i = config.max_active; i > 0; --i) {
             free_sequences.push_back(static_cast<SequenceId>(i - 1));
@@ -275,7 +288,7 @@ struct Engine::Impl {
         item->started = Clock::now();
         item->last_scheduled = request->created_;
         runner->clear_sequence(item->sequence);
-        // Publish ownership before backend calls so failure cleanup can reclaim the reservation.
+        // 先发布所有权，后端调用失败时即可回收容量预留。
         active.push_back(std::move(item));
         if (match) {
             runner->copy_sequence(match->sequence, active.back()->sequence, match->tokens);
@@ -330,7 +343,34 @@ struct Engine::Impl {
         runner->copy_sequence(item.sequence, sequence, length);
     }
 
-    void iteration() {
+    std::uint64_t elapsed_ns(Clock::time_point time) const noexcept {
+        return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(time - telemetry_epoch).count());
+    }
+
+    void iteration(Clock::time_point start, Clock::time_point admitted) {
+        const auto batch_id = ++next_batch_id;
+        BatchTelemetry* record = nullptr;
+        if (capture.mode != TelemetryMode::off) {
+            if (capture.recorded < capture.batches.size()) {
+                record = &capture.batches[capture.recorded++];
+                record->batch_id = batch_id;
+                record->start_ns = elapsed_ns(start);
+                record->admission_ns = elapsed_ns(admitted) - record->start_ns;
+                record->waiting_requests = waiting.size();
+                record->active_requests = active.size();
+                record->reserved_unique_blocks = pool.capacity() - pool.free_count();
+            } else {
+                ++capture.dropped;
+            }
+        }
+        struct FinishCapture {
+            Impl& engine;
+            BatchTelemetry* record;
+            ~FinishCapture() {
+                if (record) { record->finish_ns = engine.elapsed_ns(Clock::now()); }
+            }
+        } finish_capture{*this, record};
         const auto now = Clock::now();
         std::vector<ScheduleItem> items;
         for (std::size_t i = 0; i < active.size(); ++i) {
@@ -339,6 +379,7 @@ struct Engine::Impl {
                 item.request->input_.priority, age_ms(item.last_scheduled, now), item.request->order_});
         }
         const auto plan = schedule_batch(items, config);
+        const auto scheduled = record ? Clock::now() : Clock::time_point{};
         if (plan.slices.empty()) {
             throw std::logic_error("scheduler made no progress");
         }
@@ -357,7 +398,52 @@ struct Engine::Impl {
                     static_cast<std::int32_t>(prompt.size() + item.generated - 1), item.sequence, true});
             }
         }
-        const auto samples = runner->execute(tokens);
+        if (record) {
+            record->scheduler_ns = elapsed_ns(scheduled) - elapsed_ns(admitted);
+            record->prefill_tokens = plan.prefill_tokens;
+            record->decode_tokens = plan.decode_tokens;
+            record->sequences = plan.slices.size();
+            for (std::size_t i = 0; i < plan.slices.size(); ++i) {
+                const auto& slice = plan.slices[i];
+                const auto& item = *active[slice.key];
+                auto& observed = record->slices[i];
+                std::copy(item.request->id().begin(), item.request->id().end(), observed.request_id.begin());
+                observed.request_order = item.request->order_;
+                observed.sequence = item.sequence;
+                observed.prefill = slice.prefill;
+                observed.tokens = slice.tokens;
+                observed.context_before = slice.prefill ? item.processed :
+                    item.request->prompt_.size() + item.generated - 1;
+                observed.logits_tokens = !slice.prefill ||
+                    item.processed + slice.tokens == item.request->prompt_.size() ? 1 : 0;
+                observed.token_index = item.generated;
+                record->logits_tokens += observed.logits_tokens;
+                record->context_before_sum += observed.context_before;
+                record->context_before_max = std::max(record->context_before_max, observed.context_before);
+                const auto after = observed.context_before + observed.tokens;
+                record->context_after_sum += after;
+                record->context_after_max = std::max(record->context_after_max, after);
+            }
+            record->resources_before = runner->resources();
+            record->runner_start_ns = elapsed_ns(Clock::now());
+            record->prepare_ns = record->runner_start_ns - elapsed_ns(scheduled);
+        }
+        std::vector<Sample> samples;
+        try {
+            samples = record && capture.mode == TelemetryMode::stages ?
+                runner->execute_profiled(tokens, record->runner) : runner->execute(tokens);
+            if (record) { record->runner_completed = true; }
+        } catch (...) {
+            if (record) {
+                record->runner_ns = elapsed_ns(Clock::now()) - record->runner_start_ns;
+                record->resources_after = runner->resources();
+            }
+            throw;
+        }
+        if (record) {
+            record->runner_ns = elapsed_ns(Clock::now()) - record->runner_start_ns;
+            record->resources_after = runner->resources();
+        }
         const auto expected_samples = static_cast<std::size_t>(std::count_if(
             tokens.begin(), tokens.end(), [](const auto& token) { return token.logits; }));
         if (samples.size() != expected_samples) {
@@ -391,6 +477,16 @@ struct Engine::Impl {
             }
             sampled[static_cast<std::size_t>(sample.sequence)] = true;
             auto& item = *by_sequence[static_cast<std::size_t>(sample.sequence)];
+            SliceTelemetry* observed = nullptr;
+            if (record) {
+                for (std::size_t i = 0; i < record->sequences; ++i) {
+                    if (record->slices[i].sequence == sample.sequence) {
+                        observed = &record->slices[i];
+                        observed->sampled_token = sample.token;
+                        break;
+                    }
+                }
+            }
             if (item.processed != item.request->prompt_.size()) {
                 throw std::runtime_error("model runner sampled an unfinished prefill");
             }
@@ -408,13 +504,21 @@ struct Engine::Impl {
             event.token = sample.token;
             event.text = item.text.append(eog ? "" : runner->token_piece(sample.token));
             event.usage = {item.request->prompt_.size(), item.generated, item.reused};
-            if (!item.request->emit(std::move(event))) {
+            if (capture.mode != TelemetryMode::off) {
+                event.telemetry = TokenTelemetry{batch_id, item.request->order_, item.generated - 1,
+                                                 elapsed_ns(Clock::now())};
+                if (observed) { observed->emitted_ns = event.telemetry->engine_elapsed_ns; }
+            }
+            const auto emitted = item.request->emit(std::move(event));
+            if (observed) { observed->emitted = emitted; }
+            if (!emitted) {
                 finish(item, "backpressure", 429, "client event buffer is full");
             } else if (eog || item.generated >= item.request->input_.max_tokens) {
                 finish(item, eog ? "stop" : "length");
             }
         }
         erase_finished();
+        if (record) { record->completed = true; }
     }
 
     void drain_incoming() {
@@ -440,6 +544,7 @@ struct Engine::Impl {
             evict(*sequence);
         }
         counters.ready = false;
+        if (capture.mode != TelemetryMode::off) { capture.resources_final = runner->resources(); }
         publish();
     }
 
@@ -455,11 +560,13 @@ struct Engine::Impl {
                 if (stopping.load()) {
                     break;
                 }
+                const auto start = capture.mode != TelemetryMode::off ? Clock::now() : Clock::time_point{};
                 drain_incoming();
                 expire_requests();
                 admit_waiting();
                 if (!active.empty()) {
-                    iteration();
+                    const auto admitted = capture.mode != TelemetryMode::off ? Clock::now() : Clock::time_point{};
+                    iteration(start, admitted);
                 } else if (!waiting.empty()) {
                     throw std::logic_error("no request fits an otherwise idle KV pool");
                 }
@@ -549,6 +656,13 @@ bool Engine::cancel(const std::string& id) {
 }
 
 void Engine::stop() { impl_->stop(); }
+
+const TelemetryCapture& Engine::telemetry() const {
+    if (impl_->worker.joinable()) {
+        throw std::logic_error("telemetry is available only after Engine::stop()");
+    }
+    return impl_->capture;
+}
 
 Statistics Engine::statistics() const {
     std::lock_guard lock(impl_->mutex);

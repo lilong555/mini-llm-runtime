@@ -1,0 +1,169 @@
+{
+  "checks": [
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999984314390363,
+        "max_abs": 0.0343475341796875,
+        "rmse": 0.006840458722310978
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "The capital of France is"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999667267117968,
+        "max_abs": 0.08973979949951172,
+        "rmse": 0.02133540628594031
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "One plus one equals"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999872010446695,
+        "max_abs": 0.025411605834960938,
+        "rmse": 0.011662816624712974
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "Memory is important because"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999999999758241,
+        "max_abs": 0.000125885009765625,
+        "rmse": 2.2004889026196954e-05
+      },
+      "name": "scalar_simd_logits"
+    },
+    {
+      "chunk": 1,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "chunk": 7,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "chunk": 16,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "paged_tail_copy_on_write_logits"
+    },
+    {
+      "name": "physical_kv_reclaimed",
+      "used_pages": 0
+    }
+  ],
+  "error": "/home/li/code/mini-llm-runtime/tests/model_tests.cpp:295: stats.mixed_batches > 0",
+  "generations": [
+    {
+      "actual": [
+        12095,
+        13,
+        576,
+        6722,
+        315,
+        9625,
+        374,
+        1083
+      ],
+      "prompt": "The capital of France is",
+      "reference": [
+        12095,
+        13,
+        576,
+        6722,
+        315,
+        9625,
+        374,
+        1083
+      ]
+    },
+    {
+      "actual": [
+        825,
+        11,
+        825,
+        5519,
+        825,
+        16819,
+        1378,
+        13
+      ],
+      "prompt": "One plus one equals",
+      "reference": [
+        825,
+        11,
+        825,
+        5519,
+        825,
+        16819,
+        1378,
+        13
+      ]
+    },
+    {
+      "actual": [
+        432,
+        6147,
+        601,
+        311,
+        3535,
+        279,
+        1879,
+        2163
+      ],
+      "prompt": "Memory is important because",
+      "reference": [
+        432,
+        6147,
+        601,
+        311,
+        3535,
+        279,
+        1879,
+        2163
+      ]
+    }
+  ],
+  "kernel": "avx2-fma-f16c",
+  "model_path": "models/Qwen3-0.6B-Q8_0.gguf",
+  "reference_gpu_layers": 99,
+  "reference_model_path": "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+  "status": "failed",
+  "thresholds": {
+    "reference_cosine": 0.9999,
+    "reference_max_abs": 0.5,
+    "reference_rmse": 0.05,
+    "same_runtime_max_abs": 1e-05
+  }
+}

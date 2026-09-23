@@ -56,6 +56,7 @@ struct Event {
     Kind kind = Kind::token;
     std::string text;
     std::optional<Token> token;
+    std::optional<TokenTelemetry> telemetry;
     std::string finish_reason;
     std::string error_code;
     std::string error_message;
@@ -129,6 +130,8 @@ public:
     bool cancel(const std::string& id);
     void stop();
     Statistics statistics() const;
+    // 停止并 join 模型线程后返回完整缓冲，避免在线复制干扰调度。
+    const TelemetryCapture& telemetry() const;
     const EngineConfig& config() const noexcept;
     const ModelInfo& model_info() const noexcept;
     std::vector<Token> tokenize(std::string_view text) const;

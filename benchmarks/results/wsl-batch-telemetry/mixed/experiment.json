@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "benchmark": "llmserve-telemetry-comparison",
+  "trials": 3,
+  "groups": [
+    {
+      "directory": "trial-0-off",
+      "trial": 0,
+      "mode": "off",
+      "order": 0
+    },
+    {
+      "directory": "trial-0-batches",
+      "trial": 0,
+      "mode": "batches",
+      "order": 1
+    },
+    {
+      "directory": "trial-0-stages",
+      "trial": 0,
+      "mode": "stages",
+      "order": 2
+    },
+    {
+      "directory": "trial-1-stages",
+      "trial": 1,
+      "mode": "stages",
+      "order": 3
+    },
+    {
+      "directory": "trial-1-batches",
+      "trial": 1,
+      "mode": "batches",
+      "order": 4
+    },
+    {
+      "directory": "trial-1-off",
+      "trial": 1,
+      "mode": "off",
+      "order": 5
+    },
+    {
+      "directory": "trial-2-off",
+      "trial": 2,
+      "mode": "off",
+      "order": 6
+    },
+    {
+      "directory": "trial-2-batches",
+      "trial": 2,
+      "mode": "batches",
+      "order": 7
+    },
+    {
+      "directory": "trial-2-stages",
+      "trial": 2,
+      "mode": "stages",
+      "order": 8
+    }
+  ],
+  "allowed_changes": [
+    "engine.policy",
+    "engine.telemetry_mode"
+  ],
+  "limitations": [
+    "CPU 频率、温度和背景负载未固定。",
+    "开关差异包含系统噪声与 batch 组成变化。"
+  ]
+}

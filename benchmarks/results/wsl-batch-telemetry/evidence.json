@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "source_state_sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd",
+  "reports": 42,
+  "requests": 594,
+  "output_tokens": 9810,
+  "summaries": [
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/telemetry-summary.json",
+      "size_bytes": 25163,
+      "sha256": "ed1f41eb953f7d56ec6698e7028455155b13fa1c1860586f66e65507be1b9745"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/telemetry-summary.json",
+      "size_bytes": 25050,
+      "sha256": "9fe2bdcc1d0ae708b74355c39c2552205e84d7637582dcfbdf5e50ccaae11dad"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/telemetry-summary.json",
+      "size_bytes": 24996,
+      "sha256": "96ca09f60d2276d393d2da85b86e51131daf8070177eae8ded92dfd0639e3183"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/telemetry-summary.json",
+      "size_bytes": 88344,
+      "sha256": "5effbe0af37f2b176dfdb7d566fba211984f2229d87ff3221854175705c8a54b"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/telemetry-summary.json",
+      "size_bytes": 252026,
+      "sha256": "652c3b708419f3b3240729e1263127c12b25ea51f47b256bf6cc84f6fbd40a69"
+    }
+  ],
+  "hypotheses": {
+    "path": "benchmarks/results/wsl-batch-telemetry/hypothesis-table.json",
+    "size_bytes": 14597,
+    "sha256": "ebeac4d5d142da80a9b6dadae723492e6201d4ea4854cdb8a5b88d9afd4f4a2a"
+  },
+  "validation": {
+    "path": "benchmarks/results/validation/wsl-batch-telemetry/evidence.json",
+    "size_bytes": 8030,
+    "sha256": "81ed43577b05b2fbd82c9d7415cdb9486b704ddf84cff1fd68ff6e6252856069"
+  }
+}

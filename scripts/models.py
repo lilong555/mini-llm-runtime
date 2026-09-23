@@ -22,6 +22,7 @@ def verify(path, manifest):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reference', action='store_true')
+    parser.add_argument('--converter', type=pathlib.Path, default=ROOT / 'build/wsl-cpu/bin/mini-llm')
     args = parser.parse_args()
     model_manifest = json.loads((ROOT / 'models/manifest.json').read_text())
     model = ROOT / 'models' / model_manifest['file']
@@ -39,7 +40,7 @@ def main():
         reference = ROOT / 'models' / manifest['file']
         if not reference.exists():
             partial = reference.with_suffix('.gguf.part')
-            subprocess.run([str(ROOT / 'build/wsl-cpu/bin/mini-llm'), '--model', str(model),
+            subprocess.run([str(args.converter.resolve()), '--model', str(model),
                             '--dequantize-ref', str(partial)], check=True)
             verify(partial, manifest)
             partial.rename(reference)

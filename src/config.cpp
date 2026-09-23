@@ -6,6 +6,11 @@
 namespace llmserve {
 
 void EngineConfig::validate() const {
+    if (telemetry_capacity == 0 || telemetry_capacity > 16384 ||
+        (telemetry_mode != TelemetryMode::off && telemetry_mode != TelemetryMode::batches &&
+         telemetry_mode != TelemetryMode::stages)) {
+        throw std::invalid_argument("invalid telemetry mode or capacity (1..16384)");
+    }
     if (block_size == 0 || context_tokens == 0 || context_tokens % block_size != 0) {
         throw std::invalid_argument("context_tokens must be a positive multiple of block_size");
     }

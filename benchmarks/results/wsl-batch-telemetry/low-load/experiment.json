@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "benchmark": "llmserve-telemetry-comparison",
+  "trials": 1,
+  "groups": [
+    {
+      "directory": "trial-0-off",
+      "trial": 0,
+      "mode": "off",
+      "order": 0
+    },
+    {
+      "directory": "trial-0-batches",
+      "trial": 0,
+      "mode": "batches",
+      "order": 1
+    },
+    {
+      "directory": "trial-0-stages",
+      "trial": 0,
+      "mode": "stages",
+      "order": 2
+    }
+  ],
+  "allowed_changes": [
+    "engine.policy",
+    "engine.telemetry_mode"
+  ],
+  "limitations": [
+    "CPU 频率、温度和背景负载未固定。",
+    "开关差异包含系统噪声与 batch 组成变化。"
+  ]
+}

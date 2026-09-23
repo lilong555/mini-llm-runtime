@@ -1,0 +1,132 @@
+{
+  "status": "passed",
+  "run_id": "20260922T133003Z-a1fe5d327adb-2abe496a",
+  "manifest_sha256": "b4cf52d1f16bb69cdd2d453a19420cb2265ee1b7b3f2c063a838bc9d864327e9",
+  "reports": 30,
+  "measured_forwards": 450,
+  "profiled_forwards": 225,
+  "fixed_input_outputs_equal": true,
+  "stage_accounting": "exact",
+  "raw_reports": [
+    {
+      "file": "threads-1-none-0.json",
+      "sha256": "6de3826f431c7698239518521c07d75fc901c77e35fce083b3cdd222fb7484f7"
+    },
+    {
+      "file": "threads-1-stages-0.json",
+      "sha256": "117a79ed6c98d930883e6a1c3049b967d7e57aa86ceaf8d46b91678c5f37efe8"
+    },
+    {
+      "file": "threads-2-none-0.json",
+      "sha256": "f8e1e575cbc85a6cfc3d02d5cca939683e7bf04ce366be356ef9e12655edcb4f"
+    },
+    {
+      "file": "threads-2-stages-0.json",
+      "sha256": "a520319924743454aae25fe19d79188b401818c89518f8b8339dd28dc56e4796"
+    },
+    {
+      "file": "threads-4-none-0.json",
+      "sha256": "7a71c4baf1291ab83b9f9fda13fa2e19d93bd66e7cd6a835432e9b7d3e10d8e1"
+    },
+    {
+      "file": "threads-4-stages-0.json",
+      "sha256": "7aebad4805115b871aa762ea59211cfcd3d3ed9cdee959ee1a55fd491a74f7da"
+    },
+    {
+      "file": "threads-8-none-0.json",
+      "sha256": "b55310e642949bd3f8cbbd84869f538155896c1abf10ff1a61d6d6a1d85d1d36"
+    },
+    {
+      "file": "threads-8-stages-0.json",
+      "sha256": "1a8e5b8089acfffedbd46e2d05d6cb99dbd2de710b505309fc4b59caa7c772e0"
+    },
+    {
+      "file": "threads-16-none-0.json",
+      "sha256": "9abe9f456a1113f6725134925426981aaa986c731039ce0d69a06f8b457ef91f"
+    },
+    {
+      "file": "threads-16-stages-0.json",
+      "sha256": "fd3438d71889bed37503c08730f81dc81c2a3014fc381ae08562d57d98000ff0"
+    },
+    {
+      "file": "threads-16-stages-1.json",
+      "sha256": "1d94b0bc6b4c6af591153604e3c3c4361583364b449765730b92da334661f10c"
+    },
+    {
+      "file": "threads-16-none-1.json",
+      "sha256": "4f1b0a79698aa5bb32efb55efba93e8b7ae5d727c2bcfed3dbda84ce46b96a1f"
+    },
+    {
+      "file": "threads-8-stages-1.json",
+      "sha256": "39e368636b617d29562433cf6457bdc791bff87afd58d81d43b2dd2b9ba249ce"
+    },
+    {
+      "file": "threads-8-none-1.json",
+      "sha256": "924fbbd102c87043ac4039b807c25636cea9ceab3bdce6385fef32bf33072208"
+    },
+    {
+      "file": "threads-4-stages-1.json",
+      "sha256": "163151ff0c47c89ecf0738d2dc04f046d2c67a02809916306cc353f3989b4fc5"
+    },
+    {
+      "file": "threads-4-none-1.json",
+      "sha256": "29f24a02ab951ae3d0e64b58151a265a04e81dd663d147d9c97c9fbbd1c55820"
+    },
+    {
+      "file": "threads-2-stages-1.json",
+      "sha256": "97b108399adeff7d9a63a3d8616565313896acac1920ce6a9dc43585d64448bf"
+    },
+    {
+      "file": "threads-2-none-1.json",
+      "sha256": "a5d24f2aa76bd46e407d10cd4a5843875ab683c890eaa8dcb121e316500a1eb9"
+    },
+    {
+      "file": "threads-1-stages-1.json",
+      "sha256": "54acd4bbc779a66c65dd3d8bed26da908e69ee25526bc5fd199fdfad3758485f"
+    },
+    {
+      "file": "threads-1-none-1.json",
+      "sha256": "a906c71309e7bbecd7c93f701d8f1cc027fe9909f1670d20ee64ed2225d71671"
+    },
+    {
+      "file": "threads-1-none-2.json",
+      "sha256": "73ee5354ef920835983917aa2a73bbd89f2e47d420e6e59cdd064b08909f781d"
+    },
+    {
+      "file": "threads-1-stages-2.json",
+      "sha256": "ece11ea24d3c88fb85076bcfefca79ef2d1396f0805230272ff2ed9fe0094b3f"
+    },
+    {
+      "file": "threads-2-none-2.json",
+      "sha256": "4b1e15b1569e4b8c2abff5e113c1097b48456d441e678f28fc5e7aef44e97716"
+    },
+    {
+      "file": "threads-2-stages-2.json",
+      "sha256": "1475d43dc1619848eee8685d2bee5a71154dc40cf7564c7cc11d90c09ac5e8ac"
+    },
+    {
+      "file": "threads-4-none-2.json",
+      "sha256": "517d6a6eabdba66d656ddb62c9cd19f469170cf5c8d1ae3467f5e57e1971556b"
+    },
+    {
+      "file": "threads-4-stages-2.json",
+      "sha256": "180253b5284226086e7c7f918b0e06f1431be9cf73db8d31d596b12c58afcd12"
+    },
+    {
+      "file": "threads-8-none-2.json",
+      "sha256": "9df431974003d7ffc40f76ceedb915caa9ea98f8be755ecd52735253fecd78b3"
+    },
+    {
+      "file": "threads-8-stages-2.json",
+      "sha256": "c0096f7043c928e0380142ba9e0cf1801e8b6a6de999579043cb465728c64914"
+    },
+    {
+      "file": "threads-16-none-2.json",
+      "sha256": "05d3f8cd28f5726b8f648485b8396d20892233adc3b3e137a564216b977984bd"
+    },
+    {
+      "file": "threads-16-stages-2.json",
+      "sha256": "e5f2e0a1349d7e7aab56810a031bffb2e0fd3168a9ee69928eb2650fece2d117"
+    }
+  ]
+}

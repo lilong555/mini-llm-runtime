@@ -1,0 +1,14 @@
+{
+  "diagnostics": [
+    [
+      "No NVTX events collected. Does the process use NVTX?"
+    ],
+    [
+      "Installed CUDA driver version (13.1) is not supported by this build of Nsight Systems. CUDA trace will be collected using libraries for driver version 12.8"
+    ],
+    [
+      "CUDA device 0: Unified Memory cannot be traced on devices that don't support peer-to-peer transfers.Please verify that SLI/NVLink is functioning properly."
+    ]
+  ],
+  "kernel_table_present": false
+}

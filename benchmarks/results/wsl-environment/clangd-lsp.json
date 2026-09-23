@@ -1,0 +1,7 @@
+{
+  "status": "passed",
+  "file": "src/minillm/runtime.cpp",
+  "background_index": false,
+  "diagnostics": [],
+  "exit_code": 0
+}

@@ -39,3 +39,4 @@ CMakeUserPresets.json
 *.dmp
 *.user
 gguf-test-*/
+benchmarks/results/**/source-snapshot.zip

@@ -31,6 +31,9 @@ public:
         info_.backend = "llama.cpp";
         info_.model = std::filesystem::path(model_config.path).stem().string();
         info_.device = "CPU";
+        info_.threads = model_config.threads;
+        info_.gpu_layers = model_config.gpu_layers;
+        info_.kernel_mode = "upstream";
         for (std::size_t i = 0; i < ggml_backend_dev_count(); ++i) {
             const auto device = ggml_backend_dev_get(i);
             if (ggml_backend_dev_type(device) == GGML_BACKEND_DEVICE_TYPE_GPU &&

@@ -1,0 +1,5 @@
+==PROF== Connected to process 328170 (/home/li/code/mini-llm-runtime/.run/cuda-smoke)
+==PROF== Profiling "add" - 0 (1/1): 0%....50%....100% - 1 pass
+GPU=NVIDIA GeForce RTX 4070 Laptop GPU，计算能力=8.9，64 次 kernel，1048593 个结果校验通过
+==PROF== Disconnected from process 328170
+==PROF== Report: /home/li/code/mini-llm-runtime/.run/ncu-check.VX6pb2/launch.ncu-rep

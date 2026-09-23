@@ -3,8 +3,7 @@
 ## Repository Policy
 
 - Repository: `lilong555/mini-llm-runtime`.
-- Visibility: public. Changes to repository visibility still require an
-  explicit request from the owner.
+- 可见性：公开。
 - Default branch: `main`.
 - Dependency checkout: fetched by `scripts/Fetch-Dependencies.ps1`, not
   vendored or silently updated.
@@ -63,6 +62,5 @@ A release candidate must have:
 - Current limitations and open problems recorded in the documentation.
 - Explicit separation between CPU, upstream CUDA, and custom kernel claims.
 
-Before any upload, inspect staged paths and sizes. Never commit credentials or
-other local secrets. After repository creation or a settings change, confirm
-the GitHub `visibility` field is `PUBLIC`.
+上传前检查暂存文件的路径和大小，不得提交凭据或其他本地秘密。
+仓库创建或设置变更后，核验 GitHub 的 `visibility` 字段为 `PUBLIC`。

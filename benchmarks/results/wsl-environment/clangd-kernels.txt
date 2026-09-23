@@ -1,0 +1,28 @@
+I[19:14:58.308] Ubuntu clangd version 19.1.7 (++20250114103320+cd708029e0b2-1~exp1~20250114103432.75)
+I[19:14:58.308] Features: linux+grpc
+I[19:14:58.308] PID: 188427
+I[19:14:58.308] Working directory: /home/li/code/mini-llm-runtime
+I[19:14:58.308] argv[0]: /usr/bin/clangd-19
+I[19:14:58.308] argv[1]: --check=src/minillm/kernels.cpp
+I[19:14:58.308] Entering check mode (no LSP server)
+I[19:14:58.308] Testing on source file /home/li/code/mini-llm-runtime/src/minillm/kernels.cpp
+I[19:14:58.308] Loading compilation database...
+I[19:14:58.311] Loaded compilation database from /home/li/code/mini-llm-runtime/build/wsl-cpu/compile_commands.json
+I[19:14:58.311] Compile command from CDB is: [/home/li/code/mini-llm-runtime/build/wsl-cpu] /usr/bin/c++ --driver-mode=g++ -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -O2 -g -DNDEBUG -std=c++20 -Wall -Wextra -Wpedantic -Wconversion -o CMakeFiles/minillm_compute.dir/src/minillm/kernels.cpp.o -c -resource-dir=/usr/lib/llvm-19/lib/clang/19 -- /home/li/code/mini-llm-runtime/src/minillm/kernels.cpp
+I[19:14:58.311] Parsing command...
+I[19:14:58.312] internal (cc1) args are: -cc1 -triple x86_64-pc-linux-gnu -fsyntax-only -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name kernels.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -debug-info-kind=constructor -dwarf-version=5 -debugger-tuning=gdb -fdebug-compilation-dir=/home/li/code/mini-llm-runtime/build/wsl-cpu -fcoverage-compilation-dir=/home/li/code/mini-llm-runtime/build/wsl-cpu -resource-dir /usr/lib/llvm-19/lib/clang/19 -D MINILLM_HAS_AVX2=1 -I /home/li/code/mini-llm-runtime/include -D NDEBUG -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward -internal-isystem /usr/lib/llvm-19/lib/clang/19/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -O2 -Wall -Wextra -Wpedantic -Wconversion -std=c++20 -fdeprecated-macro -ferror-limit 19 -fgnuc-version=4.2.1 -fno-implicit-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -vectorize-loops -vectorize-slp -no-round-trip-args -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -x c++ /home/li/code/mini-llm-runtime/src/minillm/kernels.cpp
+I[19:14:58.312] Building preamble...
+I[19:14:58.614] Built preamble of size 6311512 for file /home/li/code/mini-llm-runtime/src/minillm/kernels.cpp version null in 0.30 seconds
+I[19:14:58.614] Indexing headers...
+I[19:14:58.697] Building AST...
+I[19:14:58.713] Indexing AST...
+I[19:14:58.714] Building inlay hints
+I[19:14:58.714] Building semantic highlighting
+I[19:14:58.714] Testing features at each token (may be slow in large files)
+I[19:14:58.866] Found definition heuristically using nearby identifier mode
+I[19:14:58.866] Found definition heuristically using nearby identifier mode
+I[19:14:58.882] Found definition heuristically using nearby identifier mode
+I[19:14:58.882] Found definition heuristically using nearby identifier mode
+I[19:14:58.900] Found definition heuristically using nearby identifier mode
+I[19:14:58.900] Found definition heuristically using nearby identifier mode
+I[19:14:58.967] All checks completed, 0 errors

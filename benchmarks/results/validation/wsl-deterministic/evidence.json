@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "verified_at_utc": "2026-09-22T12:33:08.1513030Z",
+  "source": {
+    "git_sha": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "git_dirty": true,
+    "manifest": "../../wsl-protocol-validation/queue-full/manifest.json",
+    "manifest_sha256": "df35fde26771ed688fbd5a5768be2ba8caab16ba2e2400e01c45fbd7b6706425",
+    "worktree_state_sha256": "6fab4d85b75a11faa00a78189459d36ba895e9b001e819eadfdde5150fd8371d",
+    "snapshot_sha256": "e544c19bb3ac924525190080a5e87e9a99428dada6789f81c1c6f4bdb2f15ab4"
+  },
+  "environment": {
+    "os": "Unix 5.15.167.4",
+    "machine": "LAPTOP-GBFPGV8B",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "logical_processors": 16,
+    "gpu": [
+      {
+        "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+        "driver_version": "591.74",
+        "memory_mib": "8188"
+      }
+    ],
+    "cpu_frequency_temperature": null
+  },
+  "cpu_build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "compiler": "/usr/bin/c++",
+    "compiler_id": "GNU",
+    "compiler_version": "11.4.0",
+    "cxx_flags": "",
+    "configuration_flags": "-O2 -g -DNDEBUG",
+    "linker_flags": "",
+    "configuration_linker_flags": "",
+    "cuda_enabled": "OFF",
+    "cuda_architectures": null
+  },
+  "asan_flags": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+  "binaries": {
+    "cpu/llmserve": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/llmserve",
+      "sha256": "e3b54564b90fe4072981ac95a89eadc25e0f10a04caae3a86b2c00f170fadcaa"
+    },
+    "cuda/llmserve": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cuda/bin/llmserve",
+      "sha256": "59530046f901bf3f7d683e8a8971bcef8f2655cb01cd3c4648ee90c278bb24ad"
+    },
+    "cpu/llmserve-model-tests": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/llmserve-model-tests",
+      "sha256": "5d3a65e4293da383e2e9e7a2e76d1a3a5a60a09e06ffdf7d54af81318a495b3e"
+    },
+    "cuda/llmserve-model-tests": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cuda/bin/llmserve-model-tests",
+      "sha256": "3aa6baae0b45c93db92e2778c896ca4b5c6d4b7eabd93620930ee0b8ca1f26b2"
+    },
+    "cpu/llmserve-http-tests": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/llmserve-http-tests",
+      "sha256": "5d5c2dfa42e9eadb177e2a8dbb4f2fefffa7c2946ad3c243a3789ea0ec252cb3"
+    },
+    "cuda/llmserve-http-tests": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-cuda/bin/llmserve-http-tests",
+      "sha256": "86eac94fbedb332f6e997426001a8bcccf5426d22cec5ea2d4ff8cda3ee77d6d"
+    },
+    "asan/llmserve-unit-tests": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-asan/bin/llmserve-unit-tests",
+      "sha256": "8343cc33e1d3d0c69ffed28771111e1d426158d79c868c42c0a0ec306b700618"
+    }
+  },
+  "models": {
+    "manifest": {
+      "repository": "Qwen/Qwen3-0.6B-GGUF",
+      "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+      "file": "Qwen3-0.6B-Q8_0.gguf",
+      "size_bytes": 639446688,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+    },
+    "reference-manifest": {
+      "file": "Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+      "source_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      "converter": "llama.cpp",
+      "converter_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+      "conversion": "Q8_0 weights dequantized to F32; no original model weights restored",
+      "size_bytes": 2390150816,
+      "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+      "purpose": "Matched-weight numerical reference without activation quantization"
+    }
+  },
+  "model_checks": [
+    {
+      "file": "model-cpu-1t-1.json",
+      "passed": 10,
+      "threads": 1,
+      "reference_gpu_layers": 0,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    },
+    {
+      "file": "model-cpu-2t-2.json",
+      "passed": 10,
+      "threads": 2,
+      "reference_gpu_layers": 0,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    },
+    {
+      "file": "model-cpu-8t-3.json",
+      "passed": 10,
+      "threads": 8,
+      "reference_gpu_layers": 0,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    },
+    {
+      "file": "model-cpu-8t-4.json",
+      "passed": 10,
+      "threads": 8,
+      "reference_gpu_layers": 0,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    },
+    {
+      "file": "model-cpu-8t-5.json",
+      "passed": 10,
+      "threads": 8,
+      "reference_gpu_layers": 0,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    },
+    {
+      "file": "model-cuda-8t.json",
+      "passed": 10,
+      "threads": 8,
+      "reference_gpu_layers": 99,
+      "mixed_batches": 1,
+      "max_batch_sequences": 3
+    }
+  ],
+  "http_checks": [
+    {
+      "file": "http-cpu.json",
+      "passed": 8,
+      "backend": "minillm",
+      "gpu": false
+    },
+    {
+      "file": "http-cuda.json",
+      "passed": 8,
+      "backend": "llama.cpp",
+      "gpu": true
+    }
+  ],
+  "ctest": {
+    "Reports": 3,
+    "SuiteExecutions": 8,
+    "CaseExecutions": 251,
+    "SuitesWithoutCaseCounts": 0,
+    "DiagnosticReports": [],
+    "Status": "passed"
+  },
+  "artifacts": [
+    {
+      "file": "benchmark-relocation.json",
+      "sha256": "9c8befde50088d3fecff859bf26256c27c06a193012c271281414c045a0ec705",
+      "size_bytes": 563
+    },
+    {
+      "file": "ctest-asan.xml",
+      "sha256": "1afb6999566e41702f08b624e4fe5b7162484f63ed962710e9dc7c640182fe62",
+      "size_bytes": 3262
+    },
+    {
+      "file": "ctest-cpu.xml",
+      "sha256": "a683862cba53ee69c322d3332163f73c4cd51b2b6e95a57dfcdb0cb328a33cb3",
+      "size_bytes": 3676
+    },
+    {
+      "file": "ctest-cuda.xml",
+      "sha256": "680ab9c8115fee74b9921fd3d940c0604eaec63e48e808914f931143fe12bbbf",
+      "size_bytes": 3677
+    },
+    {
+      "file": "http-cpu.json",
+      "sha256": "ed53e6582d7ef75eebb70ff64a2ca50d47453b89a09ad354ee2c1ed697b1e662",
+      "size_bytes": 3721
+    },
+    {
+      "file": "http-cpu.txt",
+      "sha256": "621c3658bddce7ba06055d5f4f89fea61b757cdc6cc86dd0633eedecc872e978",
+      "size_bytes": 3752
+    },
+    {
+      "file": "http-cuda.json",
+      "sha256": "e211ceb37b6c6b50f1d345f1c5ebc3a24319c4d1ec66c67a7fbb6ff214da9766",
+      "size_bytes": 3767
+    },
+    {
+      "file": "http-cuda.txt",
+      "sha256": "26b967888fd8814dd0de1c22e937a9aa0b4b47fe6f6cd0ceb221cfee16602c55",
+      "size_bytes": 3798
+    },
+    {
+      "file": "model-cpu-1t-1.json",
+      "sha256": "e733efa69a7f6072e92016d2a830fa2df9ec2230daf2f3fbfc0861b37649ab1c",
+      "size_bytes": 3521
+    },
+    {
+      "file": "model-cpu-1t-1.txt",
+      "sha256": "910c643ba0b1047dd07332c3093470613df0863f91e00a49dc3b1451d5a57495",
+      "size_bytes": 4454
+    },
+    {
+      "file": "model-cpu-2t-2.json",
+      "sha256": "2cb6aaba4e0601f92383254b203ec219608c2fcbac4b7f0632aae35024409261",
+      "size_bytes": 3521
+    },
+    {
+      "file": "model-cpu-2t-2.txt",
+      "sha256": "112064ff28ef0b0c76640a4cc8de1154c7dcfa6447c920836bd784be548d95ae",
+      "size_bytes": 4454
+    },
+    {
+      "file": "model-cpu-8t-3.json",
+      "sha256": "a08dfd325c548d6f409cc5e69566e2c11ada4616e5256f88667ce6f9bbee24b3",
+      "size_bytes": 3521
+    },
+    {
+      "file": "model-cpu-8t-3.txt",
+      "sha256": "77aae4a61d1d385336c44c2834f64edbe9fecbb40503c3a93dc10949c1e9ed8a",
+      "size_bytes": 4454
+    },
+    {
+      "file": "model-cpu-8t-4.json",
+      "sha256": "a08dfd325c548d6f409cc5e69566e2c11ada4616e5256f88667ce6f9bbee24b3",
+      "size_bytes": 3521
+    },
+    {
+      "file": "model-cpu-8t-4.txt",
+      "sha256": "77aae4a61d1d385336c44c2834f64edbe9fecbb40503c3a93dc10949c1e9ed8a",
+      "size_bytes": 4454
+    },
+    {
+      "file": "model-cpu-8t-5.json",
+      "sha256": "a08dfd325c548d6f409cc5e69566e2c11ada4616e5256f88667ce6f9bbee24b3",
+      "size_bytes": 3521
+    },
+    {
+      "file": "model-cpu-8t-5.txt",
+      "sha256": "77aae4a61d1d385336c44c2834f64edbe9fecbb40503c3a93dc10949c1e9ed8a",
+      "size_bytes": 4454
+    },
+    {
+      "file": "model-cuda-8t.json",
+      "sha256": "0d1589f13f8de1d09eb5f71f9543ca1ecf1a6716cc6cd9340c24d10b0127fc82",
+      "size_bytes": 3518
+    },
+    {
+      "file": "model-cuda-8t.txt",
+      "sha256": "a151849486a37b72a11f0c87913d53dad2b0a3fd25562d305b011439c514d2ab",
+      "size_bytes": 4454
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "dataset": "scaling",
+  "manifest_sha256": "b4cf52d1f16bb69cdd2d453a19420cb2265ee1b7b3f2c063a838bc9d864327e9",
+  "stages": [
+    "query_projection",
+    "key_projection",
+    "value_projection",
+    "output_projection",
+    "gate_projection",
+    "up_projection",
+    "down_projection"
+  ],
+  "aggregation": "sum_per_forward_then_median",
+  "results": [
+    {
+      "workload": "decode-16",
+      "threads": 8,
+      "samples": 9,
+      "projection_median_ns": 28745956,
+      "forward_median_ns": 45633450,
+      "share_of_forward": 0.6299316838853954
+    },
+    {
+      "workload": "decode-256",
+      "threads": 8,
+      "samples": 9,
+      "projection_median_ns": 30466130,
+      "forward_median_ns": 49415710,
+      "share_of_forward": 0.6165272137140193
+    },
+    {
+      "workload": "mixed-16-2",
+      "threads": 8,
+      "samples": 9,
+      "projection_median_ns": 219935719,
+      "forward_median_ns": 259432718,
+      "share_of_forward": 0.8477562918644671
+    },
+    {
+      "workload": "prefill-128",
+      "threads": 8,
+      "samples": 9,
+      "projection_median_ns": 1499284951,
+      "forward_median_ns": 1559217990,
+      "share_of_forward": 0.9615621167890707
+    },
+    {
+      "workload": "prefill-16",
+      "threads": 8,
+      "samples": 9,
+      "projection_median_ns": 193891430,
+      "forward_median_ns": 213113678,
+      "share_of_forward": 0.909802842406014
+    }
+  ]
+}

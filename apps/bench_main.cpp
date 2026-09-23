@@ -9,7 +9,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <map>
 #include <random>
+#include <set>
 #include <sstream>
 #include <thread>
 #include <vector>
@@ -56,7 +59,10 @@ struct Measurement {
     bool success = false;
     bool within_slo = false;
     std::string error;
+    std::string finish_reason;
     int http_status = 0;
+    int done_count = 0;
+    int terminal_events = 0;
     double dispatch_lag_ms = 0;
     double ttft_ms = 0;
     double tpot_ms = 0;
@@ -64,6 +70,7 @@ struct Measurement {
     double finished_s = 0;
     std::vector<double> token_times_ms;
     std::vector<std::int32_t> token_ids;
+    json token_telemetry = json::array();
     json usage;
     json server_timings;
 };
@@ -85,8 +92,6 @@ void replay_one(const json& row, const std::string& model, int port,
         body["model"] = model;
         body["stream"] = true;
         std::string pending;
-        int done = 0;
-        bool terminal = false;
         const auto response = client.Post("/v1/completions", {{"X-Request-ID", measurement.id}},
             body.dump(), "application/json", [&](const char* data, std::size_t length) {
                 try {
@@ -101,25 +106,34 @@ void replay_one(const json& row, const std::string& model, int port,
                         if (!frame.starts_with("data: ")) {
                             continue;
                         }
+                        if (measurement.done_count != 0) {
+                            throw std::runtime_error("SSE data after DONE");
+                        }
                         const auto payload = frame.substr(6);
                         if (payload == "[DONE]") {
-                            ++done;
+                            ++measurement.done_count;
                             continue;
                         }
                         const auto event = json::parse(payload);
+                        if (measurement.terminal_events != 0) {
+                            throw std::runtime_error("SSE data after terminal event");
+                        }
                         if (event.contains("error")) {
                             measurement.error = event["error"].value("code", "server_error");
-                            continue;
                         }
                         if (event.contains("token_id")) {
                             measurement.token_ids.push_back(event["token_id"].get<std::int32_t>());
                             measurement.token_times_ms.push_back(
                                 std::chrono::duration<double, std::milli>(Clock::now() - sent).count());
+                            measurement.token_telemetry.push_back(event.value("telemetry", json(nullptr)));
                         }
                         if (event.contains("usage")) {
                             measurement.usage = event["usage"];
                             measurement.server_timings = event.value("timings", json::object());
-                            terminal = true;
+                            ++measurement.terminal_events;
+                            if (!event.contains("error")) {
+                                measurement.finish_reason = event.at("choices").at(0).at("finish_reason").get<std::string>();
+                            }
                         }
                     }
                     return true;
@@ -129,10 +143,22 @@ void replay_one(const json& row, const std::string& model, int port,
                 }
             });
         measurement.http_status = response ? response->status : 0;
+        if (response && response->status != 200 && measurement.error.empty() && !pending.empty()) {
+            const auto error = json::parse(pending, nullptr, false);
+            if (!error.is_discarded() && error.contains("error")) {
+                measurement.error = error["error"].value("code", "server_error");
+            }
+        }
         if (!response && measurement.error.empty()) {
             measurement.error = httplib::to_string(response.error());
         }
-        measurement.success = response && response->status == 200 && done == 1 && terminal &&
+        const auto maximum = body.value("max_tokens", std::size_t{64});
+        const auto complete_length = measurement.finish_reason == "length" &&
+            measurement.token_ids.size() == maximum;
+        const auto complete_stop = measurement.finish_reason == "stop" &&
+            !body.value("ignore_eos", false) && measurement.token_ids.size() <= maximum;
+        measurement.success = response && response->status == 200 && measurement.done_count == 1 &&
+            measurement.terminal_events == 1 && pending.empty() && (complete_length || complete_stop) &&
             measurement.error.empty() && !measurement.token_ids.empty() &&
             measurement.usage.value("completion_tokens", std::size_t{0}) == measurement.token_ids.size();
         if (!measurement.success && measurement.error.empty()) {
@@ -168,7 +194,9 @@ json summarize(const std::vector<Measurement>& values, double elapsed) {
         good += static_cast<std::size_t>(value.within_slo);
         tokens += value.token_ids.size();
         ttft.push_back(value.ttft_ms);
-        tpot.push_back(value.tpot_ms);
+        if (value.token_ids.size() > 1) {
+            tpot.push_back(value.tpot_ms);
+        }
         e2e.push_back(value.e2e_ms);
         for (std::size_t i = 1; i < value.token_times_ms.size(); ++i) {
             itl.push_back(value.token_times_ms[i] - value.token_times_ms[i - 1]);
@@ -192,7 +220,7 @@ json summarize(const std::vector<Measurement>& values, double elapsed) {
 
 void make_trace(const Options& options, httplib::Client& client, const std::string& model) {
     const auto count = options.integer("--requests", 24, 1, 256);
-    const auto rate = options.integer("--rate", 4, 0, 10000);
+    const auto rate = options.number("--rate", 4, 0, 10000);
     const auto seed = options.integer("--seed", 0, 0, 2147483647);
     const auto long_tokens = options.integer("--long-tokens", 128, 1, 4096);
     const auto short_tokens = options.integer("--short-tokens", 16, 1, 4096);
@@ -237,10 +265,15 @@ void make_trace(const Options& options, httplib::Client& client, const std::stri
 int main(int argc, char** argv) {
     try {
         Options options(argc, argv, {"--port", "--trace", "--output", "--requests", "--rate", "--seed",
-            "--long-tokens", "--short-tokens", "--max-tokens", "--ttft-slo-ms", "--tpot-slo-ms"},
+            "--long-tokens", "--short-tokens", "--max-tokens", "--ttft-slo-ms", "--tpot-slo-ms",
+            "--run-id", "--trial", "--variant", "--trace-sha256", "--manifest-sha256",
+            "--model-sha256", "--server-sha256", "--client-sha256", "--arrival-scale"},
             {"--help", "--make-trace", "--shared-prefix", "--no-warmup"});
         if (options.has("--help") || !options.has("--trace")) {
             std::cout << "llmserve-bench --trace WORKLOAD.jsonl --output REPORT.json [--port 8000] [--no-warmup]\n"
+                         "               [--arrival-scale 1.0]\n"
+                         "               [--run-id ID --trial N --variant NAME --trace-sha256 HASH\n"
+                         "                --manifest-sha256 HASH --model-sha256 HASH --server-sha256 HASH --client-sha256 HASH]\n"
                          "llmserve-bench --make-trace --trace WORKLOAD.jsonl [--port 8000]\n"
                          "               [--requests 24] [--rate 4] [--seed 0] [--shared-prefix]\n"
                          "               [--long-tokens 128] [--short-tokens 16] [--max-tokens 16]\n"
@@ -258,18 +291,44 @@ int main(int argc, char** argv) {
         if (!options.has("--output")) {
             throw std::invalid_argument("--output is required for benchmark replay");
         }
-        std::ifstream input(options.get("--trace"));
+        const auto run_id = options.get("--run-id");
+        const auto variant = options.get("--variant");
+        const auto trace_sha256 = options.get("--trace-sha256");
+        const auto manifest_sha256 = options.get("--manifest-sha256");
+        const auto model_sha256 = options.get("--model-sha256");
+        const auto server_sha256 = options.get("--server-sha256");
+        const auto client_sha256 = options.get("--client-sha256");
+        const auto trial = options.integer("--trial", -1, -1, 1000000);
+        const auto has_run_identity = !run_id.empty() || !variant.empty() || !trace_sha256.empty() ||
+            !manifest_sha256.empty() || !model_sha256.empty() || !server_sha256.empty() ||
+            !client_sha256.empty() || trial >= 0;
+        if (has_run_identity && (run_id.empty() || variant.empty() || trace_sha256.empty() ||
+            manifest_sha256.empty() || model_sha256.empty() || server_sha256.empty() ||
+            client_sha256.empty() || trial < 0)) {
+            throw std::invalid_argument("benchmark run identity fields must be supplied together");
+        }
+        if (has_run_identity) {
+            for (const auto& hash : {trace_sha256, manifest_sha256, model_sha256, server_sha256, client_sha256}) {
+                if (hash.size() != 64 || hash.find_first_not_of("0123456789abcdef") != std::string::npos) {
+                    throw std::invalid_argument("benchmark SHA-256 must use 64 lowercase hex digits");
+                }
+            }
+        }
+        std::ifstream input(options.get("--trace"), std::ios::binary);
         if (!input) {
             throw std::runtime_error("cannot open workload trace");
         }
+        const std::string raw_trace{std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+        std::istringstream trace_stream(raw_trace);
         std::vector<json> rows;
+        const auto arrival_scale = options.number("--arrival-scale", 1, 0.000001, 10000);
         std::set<std::string> identifiers;
         std::string line;
         std::uint64_t digest = 14695981039346656037ull;
-        while (std::getline(input, line)) {
-            for (const auto byte : line + "\n") {
-                digest = (digest ^ static_cast<unsigned char>(byte)) * 1099511628211ull;
-            }
+        for (const auto byte : raw_trace) {
+            digest = (digest ^ static_cast<unsigned char>(byte)) * 1099511628211ull;
+        }
+        while (std::getline(trace_stream, line)) {
             auto row = json::parse(line);
             const auto arrival = row.at("arrival_s").get<double>();
             if (!std::isfinite(arrival) || arrival < 0 || arrival > 3600 ||
@@ -277,7 +336,8 @@ int main(int argc, char** argv) {
                 !row.at("request_id").is_string() || !row.at("request").is_object() || rows.size() >= 256) {
                 throw std::invalid_argument("invalid trace row or more than 256 requests");
             }
-            if ((row.contains("class_name") && !row["class_name"].is_string()) ||
+            if (row.at("request_id").get_ref<const std::string&>().empty() ||
+                (row.contains("class_name") && !row["class_name"].is_string()) ||
                 !identifiers.insert(row.at("request_id").get<std::string>()).second) {
                 throw std::invalid_argument("invalid trace class or duplicate request ID");
             }
@@ -292,6 +352,13 @@ int main(int argc, char** argv) {
         if (rows.empty()) {
             throw std::invalid_argument("empty workload trace");
         }
+        for (auto& row : rows) {
+            const auto scaled = row.at("arrival_s").get<double>() * arrival_scale;
+            if (!std::isfinite(scaled) || scaled > 3600) {
+                throw std::invalid_argument("scaled trace duration exceeds 3600 seconds");
+            }
+            row["arrival_s"] = scaled;
+        }
         if (!options.has("--no-warmup")) {
             const auto warmup = client.Post("/v1/completions",
                 json{{"prompt", "Hello"}, {"max_tokens", 8}, {"ignore_eos", true},
@@ -300,11 +367,18 @@ int main(int argc, char** argv) {
                 throw std::runtime_error("benchmark warmup failed");
             }
         }
-        const auto before = get_json(client, "/metrics");
-        if (before.at("outstanding_requests").get<std::size_t>() != 0) {
+        auto before = get_json(client, "/metrics");
+        for (int i = 0; i < 100 && before.at("active_requests").get<std::size_t>() != 0; ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            before = get_json(client, "/metrics");
+        }
+        if (before.at("outstanding_requests").get<std::size_t>() != 0 ||
+            before.at("active_requests").get<std::size_t>() != 0) {
             throw std::runtime_error("benchmark requires an otherwise idle server");
         }
         const auto start = Clock::now() + std::chrono::seconds(1);
+        const auto started_at_unix_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
         std::vector<Measurement> results(rows.size());
         std::vector<std::jthread> workers;
         for (std::size_t i = 0; i < rows.size(); ++i) {
@@ -322,9 +396,13 @@ int main(int argc, char** argv) {
             requests.push_back({{"id", result.id}, {"class_name", result.class_name},
                 {"success", result.success}, {"within_slo", result.within_slo},
                 {"error", result.error}, {"http_status", result.http_status},
+                {"finish_reason", result.finish_reason}, {"sse_done_count", result.done_count},
+                {"terminal_events", result.terminal_events},
                 {"dispatch_lag_ms", result.dispatch_lag_ms}, {"ttft_ms", result.ttft_ms},
-                {"mean_tpot_ms", result.tpot_ms}, {"e2e_ms", result.e2e_ms},
+                {"mean_tpot_ms", result.token_ids.size() > 1 ? json(result.tpot_ms) : json(nullptr)},
+                {"e2e_ms", result.e2e_ms}, {"finished_s", result.finished_s},
                 {"token_times_ms", result.token_times_ms}, {"token_ids", result.token_ids},
+                {"token_telemetry", result.token_telemetry},
                 {"usage", result.usage}, {"server_timings", result.server_timings}});
         }
         json by_class;
@@ -332,14 +410,25 @@ int main(int argc, char** argv) {
             by_class[name] = summarize(values, elapsed);
         }
         auto after = get_json(client, "/metrics");
-        for (int i = 0; i < 100 && after.value("active_requests", 0) != 0; ++i) {
+        for (int i = 0; i < 100 && (after.value("active_requests", 0) != 0 ||
+             after.value("outstanding_requests", 0) != 0); ++i) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             after = get_json(client, "/metrics");
         }
         const auto summary = summarize(results, elapsed);
-        const json report{{"benchmark", "llmserve-open-loop"}, {"clock", "steady_clock"},
+        json run_identity = nullptr;
+        if (has_run_identity) {
+            run_identity = {{"run_id", run_id}, {"trial", trial}, {"variant", variant},
+                {"trace_sha256", trace_sha256}, {"manifest_sha256", manifest_sha256},
+                {"model_sha256", model_sha256}, {"server_sha256", server_sha256},
+                {"client_sha256", client_sha256}};
+        }
+        const json report{{"schema_version", 1}, {"benchmark", "llmserve-open-loop"}, {"clock", "steady_clock"},
             {"percentile_method", "linear"}, {"trace", options.get("--trace")},
-            {"trace_fnv1a64", digest}, {"warmup", !options.has("--no-warmup")},
+            {"trace_fnv1a64", std::to_string(digest)}, {"warmup", !options.has("--no-warmup")},
+            {"arrival_scale", arrival_scale},
+            {"started_at_unix_ms", started_at_unix_ms},
+            {"run_identity", run_identity},
             {"server_before", before}, {"server_after", after}, {"summary", summary},
             {"by_class", by_class}, {"requests", requests}};
         auto file = output_file(options.get("--output"));

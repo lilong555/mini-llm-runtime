@@ -1,0 +1,4154 @@
+{
+  "arrival_scale": 6.0,
+  "benchmark": "llmserve-open-loop",
+  "by_class": {
+    "long": {
+      "dispatch_lag_ms": {
+        "p50": 0.107249,
+        "p95": 0.1159825,
+        "p99": 0.1162805
+      },
+      "e2e_ms": {
+        "p50": 2565.753643,
+        "p95": 3357.5104795,
+        "p99": 3397.5719607
+      },
+      "elapsed_s": 37.086204982,
+      "failed": 0,
+      "goodput_requests_per_second": 0.0,
+      "inter_token_ms": {
+        "p50": 51.64106699999991,
+        "p95": 99.4582272500001,
+        "p99": 272.1501727999998
+      },
+      "mean_tpot_ms": {
+        "p50": 57.68798696666667,
+        "p95": 110.80141308333333,
+        "p99": 112.07381355
+      },
+      "output_tokens_per_second": 2.5885635924892867,
+      "requests": 6,
+      "slo_compliant": 0,
+      "successful": 6,
+      "successful_output_tokens": 96,
+      "ttft_ms": {
+        "p50": 1602.225801,
+        "p95": 1814.956882,
+        "p99": 1816.6164948
+      }
+    },
+    "short": {
+      "dispatch_lag_ms": {
+        "p50": 0.0907895,
+        "p95": 0.13094444999999988,
+        "p99": 0.18648888999999985
+      },
+      "e2e_ms": {
+        "p50": 1265.3254315,
+        "p95": 2812.3470298499997,
+        "p99": 2970.7671187699993
+      },
+      "elapsed_s": 37.086204982,
+      "failed": 0,
+      "goodput_requests_per_second": 0.3505346531495909,
+      "inter_token_ms": {
+        "p50": 58.51621950000002,
+        "p95": 384.45208339999994,
+        "p99": 417.63870685
+      },
+      "mean_tpot_ms": {
+        "p50": 69.92894073333332,
+        "p95": 153.48078581,
+        "p99": 168.27150937533332
+      },
+      "output_tokens_per_second": 7.76569077746786,
+      "requests": 18,
+      "slo_compliant": 13,
+      "successful": 18,
+      "successful_output_tokens": 288,
+      "ttft_ms": {
+        "p50": 246.4894965,
+        "p95": 750.0761721,
+        "p99": 755.62679042
+      }
+    }
+  },
+  "clock": "steady_clock",
+  "percentile_method": "linear",
+  "requests": [
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.104138,
+      "e2e_ms": 2846.273184,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 2.846377322,
+      "http_status": 200,
+      "id": "s0-r0",
+      "mean_tpot_ms": 69.16444673333332,
+      "server_timings": {
+        "queue_ms": 0.038973,
+        "total_ms": 2844.875154,
+        "ttft_ms": 1807.187032
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13,
+        220,
+        6145,
+        220,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        15,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 12,
+          "engine_elapsed_ns": 3233217224,
+          "request_order": 2,
+          "token_index": 0
+        },
+        {
+          "batch_id": 13,
+          "engine_elapsed_ns": 3311135689,
+          "request_order": 2,
+          "token_index": 1
+        },
+        {
+          "batch_id": 14,
+          "engine_elapsed_ns": 3394674105,
+          "request_order": 2,
+          "token_index": 2
+        },
+        {
+          "batch_id": 15,
+          "engine_elapsed_ns": 3473386333,
+          "request_order": 2,
+          "token_index": 3
+        },
+        {
+          "batch_id": 16,
+          "engine_elapsed_ns": 3550907585,
+          "request_order": 2,
+          "token_index": 4
+        },
+        {
+          "batch_id": 17,
+          "engine_elapsed_ns": 3615647751,
+          "request_order": 2,
+          "token_index": 5
+        },
+        {
+          "batch_id": 18,
+          "engine_elapsed_ns": 3692292516,
+          "request_order": 2,
+          "token_index": 6
+        },
+        {
+          "batch_id": 19,
+          "engine_elapsed_ns": 3762419852,
+          "request_order": 2,
+          "token_index": 7
+        },
+        {
+          "batch_id": 20,
+          "engine_elapsed_ns": 3828167580,
+          "request_order": 2,
+          "token_index": 8
+        },
+        {
+          "batch_id": 21,
+          "engine_elapsed_ns": 3905306766,
+          "request_order": 2,
+          "token_index": 9
+        },
+        {
+          "batch_id": 22,
+          "engine_elapsed_ns": 3974500601,
+          "request_order": 2,
+          "token_index": 10
+        },
+        {
+          "batch_id": 23,
+          "engine_elapsed_ns": 4037137028,
+          "request_order": 2,
+          "token_index": 11
+        },
+        {
+          "batch_id": 24,
+          "engine_elapsed_ns": 4101474338,
+          "request_order": 2,
+          "token_index": 12
+        },
+        {
+          "batch_id": 25,
+          "engine_elapsed_ns": 4171422837,
+          "request_order": 2,
+          "token_index": 13
+        },
+        {
+          "batch_id": 26,
+          "engine_elapsed_ns": 4219113802,
+          "request_order": 2,
+          "token_index": 14
+        },
+        {
+          "batch_id": 27,
+          "engine_elapsed_ns": 4270886470,
+          "request_order": 2,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1808.733334,
+        1886.656467,
+        1970.066148,
+        2048.905158,
+        2126.606208,
+        2191.003136,
+        2267.766719,
+        2337.920975,
+        2403.509151,
+        2480.690136,
+        2549.863648,
+        2612.445566,
+        2676.841547,
+        2746.910625,
+        2794.500546,
+        2846.200035
+      ],
+      "ttft_ms": 1808.733334,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.085037,
+      "e2e_ms": 2485.893839,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 2.747140008,
+      "http_status": 200,
+      "id": "s0-r1",
+      "mean_tpot_ms": 120.02118006666667,
+      "server_timings": {
+        "queue_ms": 104.260964,
+        "total_ms": 2484.312298,
+        "ttft_ms": 683.889771
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 10,
+          "engine_elapsed_ns": 2371050345,
+          "request_order": 3,
+          "token_index": 0
+        },
+        {
+          "batch_id": 11,
+          "engine_elapsed_ns": 2785092102,
+          "request_order": 3,
+          "token_index": 1
+        },
+        {
+          "batch_id": 12,
+          "engine_elapsed_ns": 3233189041,
+          "request_order": 3,
+          "token_index": 2
+        },
+        {
+          "batch_id": 13,
+          "engine_elapsed_ns": 3311194548,
+          "request_order": 3,
+          "token_index": 3
+        },
+        {
+          "batch_id": 14,
+          "engine_elapsed_ns": 3394705665,
+          "request_order": 3,
+          "token_index": 4
+        },
+        {
+          "batch_id": 15,
+          "engine_elapsed_ns": 3473418664,
+          "request_order": 3,
+          "token_index": 5
+        },
+        {
+          "batch_id": 16,
+          "engine_elapsed_ns": 3550951519,
+          "request_order": 3,
+          "token_index": 6
+        },
+        {
+          "batch_id": 17,
+          "engine_elapsed_ns": 3615668872,
+          "request_order": 3,
+          "token_index": 7
+        },
+        {
+          "batch_id": 18,
+          "engine_elapsed_ns": 3692311281,
+          "request_order": 3,
+          "token_index": 8
+        },
+        {
+          "batch_id": 19,
+          "engine_elapsed_ns": 3762448506,
+          "request_order": 3,
+          "token_index": 9
+        },
+        {
+          "batch_id": 20,
+          "engine_elapsed_ns": 3828188459,
+          "request_order": 3,
+          "token_index": 10
+        },
+        {
+          "batch_id": 21,
+          "engine_elapsed_ns": 3905338325,
+          "request_order": 3,
+          "token_index": 11
+        },
+        {
+          "batch_id": 22,
+          "engine_elapsed_ns": 3974523044,
+          "request_order": 3,
+          "token_index": 12
+        },
+        {
+          "batch_id": 23,
+          "engine_elapsed_ns": 4037158940,
+          "request_order": 3,
+          "token_index": 13
+        },
+        {
+          "batch_id": 24,
+          "engine_elapsed_ns": 4101493294,
+          "request_order": 3,
+          "token_index": 14
+        },
+        {
+          "batch_id": 25,
+          "engine_elapsed_ns": 4171452323,
+          "request_order": 3,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        685.450881,
+        1099.414031,
+        1547.528834,
+        1625.54647,
+        1708.924098,
+        1787.763224,
+        1865.535315,
+        1929.872197,
+        2006.702382,
+        2076.778965,
+        2142.377759,
+        2219.601696,
+        2288.722973,
+        2351.30369,
+        2415.744088,
+        2485.768582
+      ],
+      "ttft_ms": 685.450881,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.095372,
+      "e2e_ms": 1254.404663,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 8.785608709,
+      "http_status": 200,
+      "id": "s0-r2",
+      "mean_tpot_ms": 70.28125059999999,
+      "server_timings": {
+        "queue_ms": 0.041277,
+        "total_ms": 1253.132461,
+        "ttft_ms": 198.953801
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        17,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 28,
+          "engine_elapsed_ns": 9155827614,
+          "request_order": 4,
+          "token_index": 0
+        },
+        {
+          "batch_id": 29,
+          "engine_elapsed_ns": 9376369240,
+          "request_order": 4,
+          "token_index": 1
+        },
+        {
+          "batch_id": 30,
+          "engine_elapsed_ns": 9435041631,
+          "request_order": 4,
+          "token_index": 2
+        },
+        {
+          "batch_id": 31,
+          "engine_elapsed_ns": 9491612564,
+          "request_order": 4,
+          "token_index": 3
+        },
+        {
+          "batch_id": 32,
+          "engine_elapsed_ns": 9549290562,
+          "request_order": 4,
+          "token_index": 4
+        },
+        {
+          "batch_id": 33,
+          "engine_elapsed_ns": 9606115081,
+          "request_order": 4,
+          "token_index": 5
+        },
+        {
+          "batch_id": 34,
+          "engine_elapsed_ns": 9663876900,
+          "request_order": 4,
+          "token_index": 6
+        },
+        {
+          "batch_id": 35,
+          "engine_elapsed_ns": 9727228891,
+          "request_order": 4,
+          "token_index": 7
+        },
+        {
+          "batch_id": 36,
+          "engine_elapsed_ns": 9786922743,
+          "request_order": 4,
+          "token_index": 8
+        },
+        {
+          "batch_id": 37,
+          "engine_elapsed_ns": 9847588921,
+          "request_order": 4,
+          "token_index": 9
+        },
+        {
+          "batch_id": 38,
+          "engine_elapsed_ns": 9908756409,
+          "request_order": 4,
+          "token_index": 10
+        },
+        {
+          "batch_id": 39,
+          "engine_elapsed_ns": 9968696655,
+          "request_order": 4,
+          "token_index": 11
+        },
+        {
+          "batch_id": 40,
+          "engine_elapsed_ns": 10028198478,
+          "request_order": 4,
+          "token_index": 12
+        },
+        {
+          "batch_id": 41,
+          "engine_elapsed_ns": 10087962620,
+          "request_order": 4,
+          "token_index": 13
+        },
+        {
+          "batch_id": 42,
+          "engine_elapsed_ns": 10148925833,
+          "request_order": 4,
+          "token_index": 14
+        },
+        {
+          "batch_id": 43,
+          "engine_elapsed_ns": 10209975035,
+          "request_order": 4,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        200.052302,
+        420.74432,
+        479.300817,
+        535.891815,
+        593.523924,
+        650.338717,
+        708.16423,
+        771.513991,
+        831.19475,
+        892.024597,
+        952.981558,
+        1012.924739,
+        1072.406277,
+        1132.205666,
+        1193.174446,
+        1254.271061
+      ],
+      "ttft_ms": 200.052302,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.090679,
+      "e2e_ms": 1240.284622,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 8.832043721,
+      "http_status": 200,
+      "id": "s0-r3",
+      "mean_tpot_ms": 58.67077473333334,
+      "server_timings": {
+        "queue_ms": 138.146462,
+        "total_ms": 1238.836471,
+        "ttft_ms": 358.696755
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        18,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 29,
+          "engine_elapsed_ns": 9376405038,
+          "request_order": 5,
+          "token_index": 0
+        },
+        {
+          "batch_id": 30,
+          "engine_elapsed_ns": 9435062751,
+          "request_order": 5,
+          "token_index": 1
+        },
+        {
+          "batch_id": 31,
+          "engine_elapsed_ns": 9491632111,
+          "request_order": 5,
+          "token_index": 2
+        },
+        {
+          "batch_id": 32,
+          "engine_elapsed_ns": 9549314207,
+          "request_order": 5,
+          "token_index": 3
+        },
+        {
+          "batch_id": 33,
+          "engine_elapsed_ns": 9606139117,
+          "request_order": 5,
+          "token_index": 4
+        },
+        {
+          "batch_id": 34,
+          "engine_elapsed_ns": 9663896307,
+          "request_order": 5,
+          "token_index": 5
+        },
+        {
+          "batch_id": 35,
+          "engine_elapsed_ns": 9727258648,
+          "request_order": 5,
+          "token_index": 6
+        },
+        {
+          "batch_id": 36,
+          "engine_elapsed_ns": 9786943322,
+          "request_order": 5,
+          "token_index": 7
+        },
+        {
+          "batch_id": 37,
+          "engine_elapsed_ns": 9847607796,
+          "request_order": 5,
+          "token_index": 8
+        },
+        {
+          "batch_id": 38,
+          "engine_elapsed_ns": 9908777068,
+          "request_order": 5,
+          "token_index": 9
+        },
+        {
+          "batch_id": 39,
+          "engine_elapsed_ns": 9968717475,
+          "request_order": 5,
+          "token_index": 10
+        },
+        {
+          "batch_id": 40,
+          "engine_elapsed_ns": 10028216743,
+          "request_order": 5,
+          "token_index": 11
+        },
+        {
+          "batch_id": 41,
+          "engine_elapsed_ns": 10087978440,
+          "request_order": 5,
+          "token_index": 12
+        },
+        {
+          "batch_id": 42,
+          "engine_elapsed_ns": 10148950510,
+          "request_order": 5,
+          "token_index": 13
+        },
+        {
+          "batch_id": 43,
+          "engine_elapsed_ns": 10210007567,
+          "request_order": 5,
+          "token_index": 14
+        },
+        {
+          "batch_id": 44,
+          "engine_elapsed_ns": 10256515949,
+          "request_order": 5,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        360.159932,
+        418.747428,
+        475.334437,
+        532.960348,
+        589.793049,
+        647.609153,
+        710.959061,
+        770.62665,
+        831.364406,
+        892.426524,
+        952.395455,
+        1011.899643,
+        1071.65063,
+        1132.619424,
+        1193.716028,
+        1240.221553
+      ],
+      "ttft_ms": 360.159932,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.08877,
+      "e2e_ms": 3207.279925,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 12.164107498,
+      "http_status": 200,
+      "id": "s0-r4",
+      "mean_tpot_ms": 112.39191366666667,
+      "server_timings": {
+        "queue_ms": 0.049153,
+        "total_ms": 3205.818194,
+        "ttft_ms": 1519.948594
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13,
+        220,
+        6145,
+        220,
+        19,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        19,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 48,
+          "engine_elapsed_ns": 11902692695,
+          "request_order": 6,
+          "token_index": 0
+        },
+        {
+          "batch_id": 49,
+          "engine_elapsed_ns": 12302509813,
+          "request_order": 6,
+          "token_index": 1
+        },
+        {
+          "batch_id": 50,
+          "engine_elapsed_ns": 12378929643,
+          "request_order": 6,
+          "token_index": 2
+        },
+        {
+          "batch_id": 51,
+          "engine_elapsed_ns": 12453375128,
+          "request_order": 6,
+          "token_index": 3
+        },
+        {
+          "batch_id": 52,
+          "engine_elapsed_ns": 12529179621,
+          "request_order": 6,
+          "token_index": 4
+        },
+        {
+          "batch_id": 53,
+          "engine_elapsed_ns": 12605256711,
+          "request_order": 6,
+          "token_index": 5
+        },
+        {
+          "batch_id": 54,
+          "engine_elapsed_ns": 12684490479,
+          "request_order": 6,
+          "token_index": 6
+        },
+        {
+          "batch_id": 55,
+          "engine_elapsed_ns": 12760766526,
+          "request_order": 6,
+          "token_index": 7
+        },
+        {
+          "batch_id": 56,
+          "engine_elapsed_ns": 12837700660,
+          "request_order": 6,
+          "token_index": 8
+        },
+        {
+          "batch_id": 57,
+          "engine_elapsed_ns": 12913465217,
+          "request_order": 6,
+          "token_index": 9
+        },
+        {
+          "batch_id": 58,
+          "engine_elapsed_ns": 12988419267,
+          "request_order": 6,
+          "token_index": 10
+        },
+        {
+          "batch_id": 59,
+          "engine_elapsed_ns": 13065061429,
+          "request_order": 6,
+          "token_index": 11
+        },
+        {
+          "batch_id": 60,
+          "engine_elapsed_ns": 13141011669,
+          "request_order": 6,
+          "token_index": 12
+        },
+        {
+          "batch_id": 61,
+          "engine_elapsed_ns": 13397257130,
+          "request_order": 6,
+          "token_index": 13
+        },
+        {
+          "batch_id": 62,
+          "engine_elapsed_ns": 13494250974,
+          "request_order": 6,
+          "token_index": 14
+        },
+        {
+          "batch_id": 63,
+          "engine_elapsed_ns": 13588535295,
+          "request_order": 6,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1521.30649,
+        1921.11424,
+        1997.627227,
+        2071.975918,
+        2147.79029,
+        2224.003728,
+        2303.178253,
+        2379.374687,
+        2456.295048,
+        2532.125089,
+        2607.150765,
+        2683.748923,
+        2759.527477,
+        3015.899747,
+        3112.825875,
+        3207.185195
+      ],
+      "ttft_ms": 1521.30649,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.088481,
+      "e2e_ms": 2110.147116,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 12.23923714,
+      "http_status": 200,
+      "id": "s0-r5",
+      "mean_tpot_ms": 90.74793066666665,
+      "server_timings": {
+        "queue_ms": 347.633192,
+        "total_ms": 2108.571637,
+        "ttft_ms": 747.434049
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        20,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 49,
+          "engine_elapsed_ns": 12302525693,
+          "request_order": 7,
+          "token_index": 0
+        },
+        {
+          "batch_id": 50,
+          "engine_elapsed_ns": 12378966934,
+          "request_order": 7,
+          "token_index": 1
+        },
+        {
+          "batch_id": 51,
+          "engine_elapsed_ns": 12453397801,
+          "request_order": 7,
+          "token_index": 2
+        },
+        {
+          "batch_id": 52,
+          "engine_elapsed_ns": 12529200560,
+          "request_order": 7,
+          "token_index": 3
+        },
+        {
+          "batch_id": 53,
+          "engine_elapsed_ns": 12605277420,
+          "request_order": 7,
+          "token_index": 4
+        },
+        {
+          "batch_id": 54,
+          "engine_elapsed_ns": 12684517670,
+          "request_order": 7,
+          "token_index": 5
+        },
+        {
+          "batch_id": 55,
+          "engine_elapsed_ns": 12760785382,
+          "request_order": 7,
+          "token_index": 6
+        },
+        {
+          "batch_id": 56,
+          "engine_elapsed_ns": 12837720568,
+          "request_order": 7,
+          "token_index": 7
+        },
+        {
+          "batch_id": 57,
+          "engine_elapsed_ns": 12913485726,
+          "request_order": 7,
+          "token_index": 8
+        },
+        {
+          "batch_id": 58,
+          "engine_elapsed_ns": 12988445056,
+          "request_order": 7,
+          "token_index": 9
+        },
+        {
+          "batch_id": 59,
+          "engine_elapsed_ns": 13065083781,
+          "request_order": 7,
+          "token_index": 10
+        },
+        {
+          "batch_id": 60,
+          "engine_elapsed_ns": 13141029763,
+          "request_order": 7,
+          "token_index": 11
+        },
+        {
+          "batch_id": 61,
+          "engine_elapsed_ns": 13397279984,
+          "request_order": 7,
+          "token_index": 12
+        },
+        {
+          "batch_id": 62,
+          "engine_elapsed_ns": 13494273396,
+          "request_order": 7,
+          "token_index": 13
+        },
+        {
+          "batch_id": 63,
+          "engine_elapsed_ns": 13588562596,
+          "request_order": 7,
+          "token_index": 14
+        },
+        {
+          "batch_id": 64,
+          "engine_elapsed_ns": 13663643613,
+          "request_order": 7,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        748.851771,
+        825.26852,
+        899.713467,
+        975.518999,
+        1051.741307,
+        1130.910403,
+        1207.112212,
+        1284.028159,
+        1359.860862,
+        1434.910325,
+        1511.396682,
+        1587.243375,
+        1843.624582,
+        1940.579323,
+        2035.023856,
+        2110.070731
+      ],
+      "ttft_ms": 748.851771,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.087309,
+      "e2e_ms": 2021.860475,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 12.239237019,
+      "http_status": 200,
+      "id": "s0-r6",
+      "mean_tpot_ms": 90.74728686666667,
+      "server_timings": {
+        "queue_ms": 259.248667,
+        "total_ms": 2020.198833,
+        "ttft_ms": 659.060374
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        21,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 49,
+          "engine_elapsed_ns": 12302537134,
+          "request_order": 8,
+          "token_index": 0
+        },
+        {
+          "batch_id": 50,
+          "engine_elapsed_ns": 12378987633,
+          "request_order": 8,
+          "token_index": 1
+        },
+        {
+          "batch_id": 51,
+          "engine_elapsed_ns": 12453410575,
+          "request_order": 8,
+          "token_index": 2
+        },
+        {
+          "batch_id": 52,
+          "engine_elapsed_ns": 12529213475,
+          "request_order": 8,
+          "token_index": 3
+        },
+        {
+          "batch_id": 53,
+          "engine_elapsed_ns": 12605287138,
+          "request_order": 8,
+          "token_index": 4
+        },
+        {
+          "batch_id": 54,
+          "engine_elapsed_ns": 12684530946,
+          "request_order": 8,
+          "token_index": 5
+        },
+        {
+          "batch_id": 55,
+          "engine_elapsed_ns": 12760795281,
+          "request_order": 8,
+          "token_index": 6
+        },
+        {
+          "batch_id": 56,
+          "engine_elapsed_ns": 12837732821,
+          "request_order": 8,
+          "token_index": 7
+        },
+        {
+          "batch_id": 57,
+          "engine_elapsed_ns": 12913494833,
+          "request_order": 8,
+          "token_index": 8
+        },
+        {
+          "batch_id": 58,
+          "engine_elapsed_ns": 12988458631,
+          "request_order": 8,
+          "token_index": 9
+        },
+        {
+          "batch_id": 59,
+          "engine_elapsed_ns": 13065096365,
+          "request_order": 8,
+          "token_index": 10
+        },
+        {
+          "batch_id": 60,
+          "engine_elapsed_ns": 13141039301,
+          "request_order": 8,
+          "token_index": 11
+        },
+        {
+          "batch_id": 61,
+          "engine_elapsed_ns": 13397291756,
+          "request_order": 8,
+          "token_index": 12
+        },
+        {
+          "batch_id": 62,
+          "engine_elapsed_ns": 13494286531,
+          "request_order": 8,
+          "token_index": 13
+        },
+        {
+          "batch_id": 63,
+          "engine_elapsed_ns": 13588575521,
+          "request_order": 8,
+          "token_index": 14
+        },
+        {
+          "batch_id": 64,
+          "engine_elapsed_ns": 13663665334,
+          "request_order": 8,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        660.56571,
+        736.982033,
+        811.447939,
+        887.232482,
+        963.454754,
+        1042.623913,
+        1118.825718,
+        1195.741509,
+        1271.574345,
+        1346.605411,
+        1423.110152,
+        1498.934062,
+        1755.339625,
+        1852.284768,
+        1946.636284,
+        2021.775013
+      ],
+      "ttft_ms": 660.56571,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.083003,
+      "e2e_ms": 2474.933905,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 14.189893498,
+      "http_status": 200,
+      "id": "s0-r7",
+      "mean_tpot_ms": 147.80271393333334,
+      "server_timings": {
+        "queue_ms": 0.367448,
+        "total_ms": 2473.68808,
+        "ttft_ms": 256.61871
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        22,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 61,
+          "engine_elapsed_ns": 13397307827,
+          "request_order": 9,
+          "token_index": 0
+        },
+        {
+          "batch_id": 62,
+          "engine_elapsed_ns": 13494298133,
+          "request_order": 9,
+          "token_index": 1
+        },
+        {
+          "batch_id": 63,
+          "engine_elapsed_ns": 13588587053,
+          "request_order": 9,
+          "token_index": 2
+        },
+        {
+          "batch_id": 64,
+          "engine_elapsed_ns": 13663676596,
+          "request_order": 9,
+          "token_index": 3
+        },
+        {
+          "batch_id": 65,
+          "engine_elapsed_ns": 13707406198,
+          "request_order": 9,
+          "token_index": 4
+        },
+        {
+          "batch_id": 66,
+          "engine_elapsed_ns": 13750568863,
+          "request_order": 9,
+          "token_index": 5
+        },
+        {
+          "batch_id": 67,
+          "engine_elapsed_ns": 13797313633,
+          "request_order": 9,
+          "token_index": 6
+        },
+        {
+          "batch_id": 68,
+          "engine_elapsed_ns": 13841365893,
+          "request_order": 9,
+          "token_index": 7
+        },
+        {
+          "batch_id": 69,
+          "engine_elapsed_ns": 13885841520,
+          "request_order": 9,
+          "token_index": 8
+        },
+        {
+          "batch_id": 70,
+          "engine_elapsed_ns": 13931079893,
+          "request_order": 9,
+          "token_index": 9
+        },
+        {
+          "batch_id": 71,
+          "engine_elapsed_ns": 13976544795,
+          "request_order": 9,
+          "token_index": 10
+        },
+        {
+          "batch_id": 72,
+          "engine_elapsed_ns": 14366234519,
+          "request_order": 9,
+          "token_index": 11
+        },
+        {
+          "batch_id": 73,
+          "engine_elapsed_ns": 14757759970,
+          "request_order": 9,
+          "token_index": 12
+        },
+        {
+          "batch_id": 74,
+          "engine_elapsed_ns": 15152590687,
+          "request_order": 9,
+          "token_index": 13
+        },
+        {
+          "batch_id": 75,
+          "engine_elapsed_ns": 15555060464,
+          "request_order": 9,
+          "token_index": 14
+        },
+        {
+          "batch_id": 76,
+          "engine_elapsed_ns": 15614353371,
+          "request_order": 9,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        257.809477,
+        354.716518,
+        449.094243,
+        524.229134,
+        567.906175,
+        611.235496,
+        657.919591,
+        701.953909,
+        746.462406,
+        791.800047,
+        837.026567,
+        1226.731534,
+        1618.259248,
+        2013.103584,
+        2415.54991,
+        2474.850186
+      ],
+      "ttft_ms": 257.809477,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.116355,
+      "e2e_ms": 2276.469791,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 14.817816168,
+      "http_status": 200,
+      "id": "s0-r8",
+      "mean_tpot_ms": 45.8149332,
+      "server_timings": {
+        "queue_ms": 9.272141,
+        "total_ms": 2274.990251,
+        "ttft_ms": 1587.779174
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13,
+        220,
+        6145,
+        220,
+        23,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        23,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 75,
+          "engine_elapsed_ns": 15555075573,
+          "request_order": 10,
+          "token_index": 0
+        },
+        {
+          "batch_id": 76,
+          "engine_elapsed_ns": 15614379591,
+          "request_order": 10,
+          "token_index": 1
+        },
+        {
+          "batch_id": 77,
+          "engine_elapsed_ns": 15658839601,
+          "request_order": 10,
+          "token_index": 2
+        },
+        {
+          "batch_id": 78,
+          "engine_elapsed_ns": 15704182372,
+          "request_order": 10,
+          "token_index": 3
+        },
+        {
+          "batch_id": 79,
+          "engine_elapsed_ns": 15748852134,
+          "request_order": 10,
+          "token_index": 4
+        },
+        {
+          "batch_id": 80,
+          "engine_elapsed_ns": 15792548391,
+          "request_order": 10,
+          "token_index": 5
+        },
+        {
+          "batch_id": 81,
+          "engine_elapsed_ns": 15837242982,
+          "request_order": 10,
+          "token_index": 6
+        },
+        {
+          "batch_id": 82,
+          "engine_elapsed_ns": 15883470128,
+          "request_order": 10,
+          "token_index": 7
+        },
+        {
+          "batch_id": 83,
+          "engine_elapsed_ns": 15927188318,
+          "request_order": 10,
+          "token_index": 8
+        },
+        {
+          "batch_id": 84,
+          "engine_elapsed_ns": 15970915279,
+          "request_order": 10,
+          "token_index": 9
+        },
+        {
+          "batch_id": 85,
+          "engine_elapsed_ns": 16015243626,
+          "request_order": 10,
+          "token_index": 10
+        },
+        {
+          "batch_id": 86,
+          "engine_elapsed_ns": 16060073442,
+          "request_order": 10,
+          "token_index": 11
+        },
+        {
+          "batch_id": 87,
+          "engine_elapsed_ns": 16105221147,
+          "request_order": 10,
+          "token_index": 12
+        },
+        {
+          "batch_id": 88,
+          "engine_elapsed_ns": 16148533235,
+          "request_order": 10,
+          "token_index": 13
+        },
+        {
+          "batch_id": 89,
+          "engine_elapsed_ns": 16195089037,
+          "request_order": 10,
+          "token_index": 14
+        },
+        {
+          "batch_id": 90,
+          "engine_elapsed_ns": 16242259078,
+          "request_order": 10,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1589.163156,
+        1648.464173,
+        1692.981909,
+        1738.345669,
+        1783.028947,
+        1826.791481,
+        1871.317912,
+        1917.594545,
+        1961.34871,
+        2005.022705,
+        2049.384876,
+        2094.272854,
+        2139.480276,
+        2182.71127,
+        2229.180609,
+        2276.387154
+      ],
+      "ttft_ms": 1589.163156,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.112285,
+      "e2e_ms": 877.555942,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 16.189113905,
+      "http_status": 200,
+      "id": "s0-r9",
+      "mean_tpot_ms": 45.16696566666667,
+      "server_timings": {
+        "queue_ms": 0.039895,
+        "total_ms": 876.211983,
+        "ttft_ms": 198.515325
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        24,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 91,
+          "engine_elapsed_ns": 16935856233,
+          "request_order": 11,
+          "token_index": 0
+        },
+        {
+          "batch_id": 92,
+          "engine_elapsed_ns": 16981320804,
+          "request_order": 11,
+          "token_index": 1
+        },
+        {
+          "batch_id": 93,
+          "engine_elapsed_ns": 17026322206,
+          "request_order": 11,
+          "token_index": 2
+        },
+        {
+          "batch_id": 94,
+          "engine_elapsed_ns": 17069393191,
+          "request_order": 11,
+          "token_index": 3
+        },
+        {
+          "batch_id": 95,
+          "engine_elapsed_ns": 17115880779,
+          "request_order": 11,
+          "token_index": 4
+        },
+        {
+          "batch_id": 96,
+          "engine_elapsed_ns": 17161991584,
+          "request_order": 11,
+          "token_index": 5
+        },
+        {
+          "batch_id": 97,
+          "engine_elapsed_ns": 17208467207,
+          "request_order": 11,
+          "token_index": 6
+        },
+        {
+          "batch_id": 98,
+          "engine_elapsed_ns": 17253509747,
+          "request_order": 11,
+          "token_index": 7
+        },
+        {
+          "batch_id": 99,
+          "engine_elapsed_ns": 17298727229,
+          "request_order": 11,
+          "token_index": 8
+        },
+        {
+          "batch_id": 100,
+          "engine_elapsed_ns": 17342510447,
+          "request_order": 11,
+          "token_index": 9
+        },
+        {
+          "batch_id": 101,
+          "engine_elapsed_ns": 17389249290,
+          "request_order": 11,
+          "token_index": 10
+        },
+        {
+          "batch_id": 102,
+          "engine_elapsed_ns": 17435240441,
+          "request_order": 11,
+          "token_index": 11
+        },
+        {
+          "batch_id": 103,
+          "engine_elapsed_ns": 17480492620,
+          "request_order": 11,
+          "token_index": 12
+        },
+        {
+          "batch_id": 104,
+          "engine_elapsed_ns": 17524676992,
+          "request_order": 11,
+          "token_index": 13
+        },
+        {
+          "batch_id": 105,
+          "engine_elapsed_ns": 17568264933,
+          "request_order": 11,
+          "token_index": 14
+        },
+        {
+          "batch_id": 106,
+          "engine_elapsed_ns": 17613533874,
+          "request_order": 11,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        199.967628,
+        245.330997,
+        290.337228,
+        333.396216,
+        379.859833,
+        426.010847,
+        472.43697,
+        517.409479,
+        562.70496,
+        606.560319,
+        653.355302,
+        699.418542,
+        744.531146,
+        788.631178,
+        832.208478,
+        877.472113
+      ],
+      "ttft_ms": 199.967628,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.0909,
+      "e2e_ms": 1066.067947,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 19.929112444,
+      "http_status": 200,
+      "id": "s0-r10",
+      "mean_tpot_ms": 57.82774713333333,
+      "server_timings": {
+        "queue_ms": 0.048104,
+        "total_ms": 1064.901418,
+        "ttft_ms": 197.338914
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        16,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        15,
+        13,
+        17,
+        13,
+        13850
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 107,
+          "engine_elapsed_ns": 20486034314,
+          "request_order": 12,
+          "token_index": 0
+        },
+        {
+          "batch_id": 108,
+          "engine_elapsed_ns": 20531974358,
+          "request_order": 12,
+          "token_index": 1
+        },
+        {
+          "batch_id": 109,
+          "engine_elapsed_ns": 20576400957,
+          "request_order": 12,
+          "token_index": 2
+        },
+        {
+          "batch_id": 110,
+          "engine_elapsed_ns": 20619375379,
+          "request_order": 12,
+          "token_index": 3
+        },
+        {
+          "batch_id": 111,
+          "engine_elapsed_ns": 20665817024,
+          "request_order": 12,
+          "token_index": 4
+        },
+        {
+          "batch_id": 112,
+          "engine_elapsed_ns": 20708436940,
+          "request_order": 12,
+          "token_index": 5
+        },
+        {
+          "batch_id": 113,
+          "engine_elapsed_ns": 20751801222,
+          "request_order": 12,
+          "token_index": 6
+        },
+        {
+          "batch_id": 114,
+          "engine_elapsed_ns": 20799395627,
+          "request_order": 12,
+          "token_index": 7
+        },
+        {
+          "batch_id": 115,
+          "engine_elapsed_ns": 20848755775,
+          "request_order": 12,
+          "token_index": 8
+        },
+        {
+          "batch_id": 116,
+          "engine_elapsed_ns": 20896766952,
+          "request_order": 12,
+          "token_index": 9
+        },
+        {
+          "batch_id": 117,
+          "engine_elapsed_ns": 20946092172,
+          "request_order": 12,
+          "token_index": 10
+        },
+        {
+          "batch_id": 118,
+          "engine_elapsed_ns": 20995922007,
+          "request_order": 12,
+          "token_index": 11
+        },
+        {
+          "batch_id": 119,
+          "engine_elapsed_ns": 21045603378,
+          "request_order": 12,
+          "token_index": 12
+        },
+        {
+          "batch_id": 120,
+          "engine_elapsed_ns": 21094501463,
+          "request_order": 12,
+          "token_index": 13
+        },
+        {
+          "batch_id": 121,
+          "engine_elapsed_ns": 21138760716,
+          "request_order": 12,
+          "token_index": 14
+        },
+        {
+          "batch_id": 122,
+          "engine_elapsed_ns": 21353558766,
+          "request_order": 12,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        198.57761,
+        244.477237,
+        288.991113,
+        331.814247,
+        378.243459,
+        420.842164,
+        464.283245,
+        511.936459,
+        561.257225,
+        609.249712,
+        658.535702,
+        708.455725,
+        758.04969,
+        806.98726,
+        851.212479,
+        1065.993817
+      ],
+      "ttft_ms": 198.57761,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.096955,
+      "e2e_ms": 906.979474,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 20.595284773,
+      "http_status": 200,
+      "id": "s0-r11",
+      "mean_tpot_ms": 44.41235486666666,
+      "server_timings": {
+        "queue_ms": 24.491149,
+        "total_ms": 905.473951,
+        "ttft_ms": 239.290732
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        16,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 122,
+          "engine_elapsed_ns": 21353591589,
+          "request_order": 13,
+          "token_index": 0
+        },
+        {
+          "batch_id": 123,
+          "engine_elapsed_ns": 21398739269,
+          "request_order": 13,
+          "token_index": 1
+        },
+        {
+          "batch_id": 124,
+          "engine_elapsed_ns": 21444120237,
+          "request_order": 13,
+          "token_index": 2
+        },
+        {
+          "batch_id": 125,
+          "engine_elapsed_ns": 21487625766,
+          "request_order": 13,
+          "token_index": 3
+        },
+        {
+          "batch_id": 126,
+          "engine_elapsed_ns": 21531163276,
+          "request_order": 13,
+          "token_index": 4
+        },
+        {
+          "batch_id": 127,
+          "engine_elapsed_ns": 21576310362,
+          "request_order": 13,
+          "token_index": 5
+        },
+        {
+          "batch_id": 128,
+          "engine_elapsed_ns": 21621135427,
+          "request_order": 13,
+          "token_index": 6
+        },
+        {
+          "batch_id": 129,
+          "engine_elapsed_ns": 21664833265,
+          "request_order": 13,
+          "token_index": 7
+        },
+        {
+          "batch_id": 130,
+          "engine_elapsed_ns": 21709457639,
+          "request_order": 13,
+          "token_index": 8
+        },
+        {
+          "batch_id": 131,
+          "engine_elapsed_ns": 21753666055,
+          "request_order": 13,
+          "token_index": 9
+        },
+        {
+          "batch_id": 132,
+          "engine_elapsed_ns": 21798183131,
+          "request_order": 13,
+          "token_index": 10
+        },
+        {
+          "batch_id": 133,
+          "engine_elapsed_ns": 21843360714,
+          "request_order": 13,
+          "token_index": 11
+        },
+        {
+          "batch_id": 134,
+          "engine_elapsed_ns": 21887040604,
+          "request_order": 13,
+          "token_index": 12
+        },
+        {
+          "batch_id": 135,
+          "engine_elapsed_ns": 21931405764,
+          "request_order": 13,
+          "token_index": 13
+        },
+        {
+          "batch_id": 136,
+          "engine_elapsed_ns": 21976138198,
+          "request_order": 13,
+          "token_index": 14
+        },
+        {
+          "batch_id": 137,
+          "engine_elapsed_ns": 22019769648,
+          "request_order": 13,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        240.733045,
+        285.952632,
+        331.339246,
+        374.756102,
+        418.433373,
+        463.634462,
+        508.324013,
+        552.090307,
+        596.674699,
+        640.80547,
+        685.345376,
+        730.61604,
+        774.267449,
+        818.615587,
+        863.446195,
+        906.918368
+      ],
+      "ttft_ms": 240.733045,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.079714,
+      "e2e_ms": 2245.235907,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 23.532128305,
+      "http_status": 200,
+      "id": "s0-r12",
+      "mean_tpot_ms": 46.21152720000001,
+      "server_timings": {
+        "queue_ms": 0.043435,
+        "total_ms": 2243.948818,
+        "ttft_ms": 1550.694041
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        17,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 141,
+          "engine_elapsed_ns": 24263365406,
+          "request_order": 14,
+          "token_index": 0
+        },
+        {
+          "batch_id": 142,
+          "engine_elapsed_ns": 24308505776,
+          "request_order": 14,
+          "token_index": 1
+        },
+        {
+          "batch_id": 143,
+          "engine_elapsed_ns": 24353029002,
+          "request_order": 14,
+          "token_index": 2
+        },
+        {
+          "batch_id": 144,
+          "engine_elapsed_ns": 24404474686,
+          "request_order": 14,
+          "token_index": 3
+        },
+        {
+          "batch_id": 145,
+          "engine_elapsed_ns": 24454366017,
+          "request_order": 14,
+          "token_index": 4
+        },
+        {
+          "batch_id": 146,
+          "engine_elapsed_ns": 24502341980,
+          "request_order": 14,
+          "token_index": 5
+        },
+        {
+          "batch_id": 147,
+          "engine_elapsed_ns": 24549698410,
+          "request_order": 14,
+          "token_index": 6
+        },
+        {
+          "batch_id": 148,
+          "engine_elapsed_ns": 24596730183,
+          "request_order": 14,
+          "token_index": 7
+        },
+        {
+          "batch_id": 149,
+          "engine_elapsed_ns": 24643327306,
+          "request_order": 14,
+          "token_index": 8
+        },
+        {
+          "batch_id": 150,
+          "engine_elapsed_ns": 24688659126,
+          "request_order": 14,
+          "token_index": 9
+        },
+        {
+          "batch_id": 151,
+          "engine_elapsed_ns": 24733792654,
+          "request_order": 14,
+          "token_index": 10
+        },
+        {
+          "batch_id": 152,
+          "engine_elapsed_ns": 24779449293,
+          "request_order": 14,
+          "token_index": 11
+        },
+        {
+          "batch_id": 153,
+          "engine_elapsed_ns": 24822967983,
+          "request_order": 14,
+          "token_index": 12
+        },
+        {
+          "batch_id": 154,
+          "engine_elapsed_ns": 24867311719,
+          "request_order": 14,
+          "token_index": 13
+        },
+        {
+          "batch_id": 155,
+          "engine_elapsed_ns": 24912513146,
+          "request_order": 14,
+          "token_index": 14
+        },
+        {
+          "batch_id": 156,
+          "engine_elapsed_ns": 24956592821,
+          "request_order": 14,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1551.993577,
+        1597.065503,
+        1641.622825,
+        1693.20547,
+        1743.062811,
+        1791.0266569999999,
+        1838.392545,
+        1885.305643,
+        1932.030813,
+        1977.432485,
+        2022.409809,
+        2068.045773,
+        2111.741038,
+        2156.137695,
+        2201.089986,
+        2245.166485
+      ],
+      "ttft_ms": 1551.993577,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.115128,
+      "e2e_ms": 1101.074618,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 26.386158883,
+      "http_status": 200,
+      "id": "s0-r13",
+      "mean_tpot_ms": 59.93476826666667,
+      "server_timings": {
+        "queue_ms": 0.036034,
+        "total_ms": 1099.903749,
+        "ttft_ms": 200.716109
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        18,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 157,
+          "engine_elapsed_ns": 26911481998,
+          "request_order": 15,
+          "token_index": 0
+        },
+        {
+          "batch_id": 158,
+          "engine_elapsed_ns": 26955483514,
+          "request_order": 15,
+          "token_index": 1
+        },
+        {
+          "batch_id": 159,
+          "engine_elapsed_ns": 27000322481,
+          "request_order": 15,
+          "token_index": 2
+        },
+        {
+          "batch_id": 160,
+          "engine_elapsed_ns": 27044908911,
+          "request_order": 15,
+          "token_index": 3
+        },
+        {
+          "batch_id": 161,
+          "engine_elapsed_ns": 27090707783,
+          "request_order": 15,
+          "token_index": 4
+        },
+        {
+          "batch_id": 162,
+          "engine_elapsed_ns": 27134491979,
+          "request_order": 15,
+          "token_index": 5
+        },
+        {
+          "batch_id": 163,
+          "engine_elapsed_ns": 27177950263,
+          "request_order": 15,
+          "token_index": 6
+        },
+        {
+          "batch_id": 164,
+          "engine_elapsed_ns": 27222478939,
+          "request_order": 15,
+          "token_index": 7
+        },
+        {
+          "batch_id": 165,
+          "engine_elapsed_ns": 27266952585,
+          "request_order": 15,
+          "token_index": 8
+        },
+        {
+          "batch_id": 166,
+          "engine_elapsed_ns": 27311804663,
+          "request_order": 15,
+          "token_index": 9
+        },
+        {
+          "batch_id": 167,
+          "engine_elapsed_ns": 27355827714,
+          "request_order": 15,
+          "token_index": 10
+        },
+        {
+          "batch_id": 168,
+          "engine_elapsed_ns": 27575390203,
+          "request_order": 15,
+          "token_index": 11
+        },
+        {
+          "batch_id": 169,
+          "engine_elapsed_ns": 27633892349,
+          "request_order": 15,
+          "token_index": 12
+        },
+        {
+          "batch_id": 170,
+          "engine_elapsed_ns": 27693467085,
+          "request_order": 15,
+          "token_index": 13
+        },
+        {
+          "batch_id": 171,
+          "engine_elapsed_ns": 27751086747,
+          "request_order": 15,
+          "token_index": 14
+        },
+        {
+          "batch_id": 172,
+          "engine_elapsed_ns": 27810643297,
+          "request_order": 15,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        201.985155,
+        245.981612,
+        290.81752,
+        335.314717,
+        381.296182,
+        424.959478,
+        468.370342,
+        513.183604,
+        557.396116,
+        602.21657,
+        646.297287,
+        865.757693,
+        924.273985,
+        983.884351,
+        1041.485795,
+        1101.006679
+      ],
+      "ttft_ms": 201.985155,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.086129,
+      "e2e_ms": 1276.2462,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 27.194575072,
+      "http_status": 200,
+      "id": "s0-r14",
+      "mean_tpot_ms": 69.57663086666666,
+      "server_timings": {
+        "queue_ms": 11.4433,
+        "total_ms": 1274.563799,
+        "ttft_ms": 230.988477
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        19,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 168,
+          "engine_elapsed_ns": 27575411814,
+          "request_order": 16,
+          "token_index": 0
+        },
+        {
+          "batch_id": 169,
+          "engine_elapsed_ns": 27633909372,
+          "request_order": 16,
+          "token_index": 1
+        },
+        {
+          "batch_id": 170,
+          "engine_elapsed_ns": 27693489347,
+          "request_order": 16,
+          "token_index": 2
+        },
+        {
+          "batch_id": 171,
+          "engine_elapsed_ns": 27751104480,
+          "request_order": 16,
+          "token_index": 3
+        },
+        {
+          "batch_id": 172,
+          "engine_elapsed_ns": 27810669617,
+          "request_order": 16,
+          "token_index": 4
+        },
+        {
+          "batch_id": 173,
+          "engine_elapsed_ns": 28035917132,
+          "request_order": 16,
+          "token_index": 5
+        },
+        {
+          "batch_id": 174,
+          "engine_elapsed_ns": 28093412856,
+          "request_order": 16,
+          "token_index": 6
+        },
+        {
+          "batch_id": 175,
+          "engine_elapsed_ns": 28151200704,
+          "request_order": 16,
+          "token_index": 7
+        },
+        {
+          "batch_id": 176,
+          "engine_elapsed_ns": 28212868181,
+          "request_order": 16,
+          "token_index": 8
+        },
+        {
+          "batch_id": 177,
+          "engine_elapsed_ns": 28270405795,
+          "request_order": 16,
+          "token_index": 9
+        },
+        {
+          "batch_id": 178,
+          "engine_elapsed_ns": 28328199869,
+          "request_order": 16,
+          "token_index": 10
+        },
+        {
+          "batch_id": 179,
+          "engine_elapsed_ns": 28386857076,
+          "request_order": 16,
+          "token_index": 11
+        },
+        {
+          "batch_id": 180,
+          "engine_elapsed_ns": 28444650124,
+          "request_order": 16,
+          "token_index": 12
+        },
+        {
+          "batch_id": 181,
+          "engine_elapsed_ns": 28502002998,
+          "request_order": 16,
+          "token_index": 13
+        },
+        {
+          "batch_id": 182,
+          "engine_elapsed_ns": 28560389204,
+          "request_order": 16,
+          "token_index": 14
+        },
+        {
+          "batch_id": 183,
+          "engine_elapsed_ns": 28618961207,
+          "request_order": 16,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        232.513119,
+        291.029266,
+        350.640376,
+        408.241182,
+        467.771995,
+        693.060246,
+        750.570377,
+        808.37514,
+        869.965261,
+        927.488801,
+        985.28346,
+        1043.960314,
+        1101.816032,
+        1159.093732,
+        1217.518846,
+        1276.162582
+      ],
+      "ttft_ms": 232.513119,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.118692,
+      "e2e_ms": 2106.049517,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 28.465192686,
+      "http_status": 200,
+      "id": "s0-r15",
+      "mean_tpot_ms": 123.58227446666668,
+      "server_timings": {
+        "queue_ms": 25.601284,
+        "total_ms": 2104.532008,
+        "ttft_ms": 250.855892
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        20,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 173,
+          "engine_elapsed_ns": 28035939955,
+          "request_order": 17,
+          "token_index": 0
+        },
+        {
+          "batch_id": 174,
+          "engine_elapsed_ns": 28093433946,
+          "request_order": 17,
+          "token_index": 1
+        },
+        {
+          "batch_id": 175,
+          "engine_elapsed_ns": 28151223196,
+          "request_order": 17,
+          "token_index": 2
+        },
+        {
+          "batch_id": 176,
+          "engine_elapsed_ns": 28212891024,
+          "request_order": 17,
+          "token_index": 3
+        },
+        {
+          "batch_id": 177,
+          "engine_elapsed_ns": 28270426695,
+          "request_order": 17,
+          "token_index": 4
+        },
+        {
+          "batch_id": 178,
+          "engine_elapsed_ns": 28328214015,
+          "request_order": 17,
+          "token_index": 5
+        },
+        {
+          "batch_id": 179,
+          "engine_elapsed_ns": 28386879068,
+          "request_order": 17,
+          "token_index": 6
+        },
+        {
+          "batch_id": 180,
+          "engine_elapsed_ns": 28444668599,
+          "request_order": 17,
+          "token_index": 7
+        },
+        {
+          "batch_id": 181,
+          "engine_elapsed_ns": 28502023276,
+          "request_order": 17,
+          "token_index": 8
+        },
+        {
+          "batch_id": 182,
+          "engine_elapsed_ns": 28560404673,
+          "request_order": 17,
+          "token_index": 9
+        },
+        {
+          "batch_id": 183,
+          "engine_elapsed_ns": 28618989841,
+          "request_order": 17,
+          "token_index": 10
+        },
+        {
+          "batch_id": 184,
+          "engine_elapsed_ns": 28662248456,
+          "request_order": 17,
+          "token_index": 11
+        },
+        {
+          "batch_id": 185,
+          "engine_elapsed_ns": 28708181240,
+          "request_order": 17,
+          "token_index": 12
+        },
+        {
+          "batch_id": 186,
+          "engine_elapsed_ns": 29094621906,
+          "request_order": 17,
+          "token_index": 13
+        },
+        {
+          "batch_id": 187,
+          "engine_elapsed_ns": 29493202906,
+          "request_order": 17,
+          "token_index": 14
+        },
+        {
+          "batch_id": 188,
+          "engine_elapsed_ns": 29889593438,
+          "request_order": 17,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        252.245948,
+        309.756127,
+        367.587422,
+        429.150981,
+        486.674488,
+        544.469215,
+        603.095949,
+        661.001785,
+        718.27807,
+        776.693582,
+        835.292387,
+        878.634631,
+        924.614453,
+        1310.952229,
+        1709.62499,
+        2105.980065
+      ],
+      "ttft_ms": 252.245948,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.114865,
+      "e2e_ms": 2285.234102,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 29.526665014,
+      "http_status": 200,
+      "id": "s0-r16",
+      "mean_tpot_ms": 44.65724606666666,
+      "server_timings": {
+        "queue_ms": 40.771692,
+        "total_ms": 2283.650143,
+        "ttft_ms": 1613.661109
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        21,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 189,
+          "engine_elapsed_ns": 30281111224,
+          "request_order": 18,
+          "token_index": 0
+        },
+        {
+          "batch_id": 190,
+          "engine_elapsed_ns": 30326284183,
+          "request_order": 18,
+          "token_index": 1
+        },
+        {
+          "batch_id": 191,
+          "engine_elapsed_ns": 30371190919,
+          "request_order": 18,
+          "token_index": 2
+        },
+        {
+          "batch_id": 192,
+          "engine_elapsed_ns": 30415358711,
+          "request_order": 18,
+          "token_index": 3
+        },
+        {
+          "batch_id": 193,
+          "engine_elapsed_ns": 30459773862,
+          "request_order": 18,
+          "token_index": 4
+        },
+        {
+          "batch_id": 194,
+          "engine_elapsed_ns": 30503959639,
+          "request_order": 18,
+          "token_index": 5
+        },
+        {
+          "batch_id": 195,
+          "engine_elapsed_ns": 30548451920,
+          "request_order": 18,
+          "token_index": 6
+        },
+        {
+          "batch_id": 196,
+          "engine_elapsed_ns": 30593240437,
+          "request_order": 18,
+          "token_index": 7
+        },
+        {
+          "batch_id": 197,
+          "engine_elapsed_ns": 30637199583,
+          "request_order": 18,
+          "token_index": 8
+        },
+        {
+          "batch_id": 198,
+          "engine_elapsed_ns": 30682981429,
+          "request_order": 18,
+          "token_index": 9
+        },
+        {
+          "batch_id": 199,
+          "engine_elapsed_ns": 30728033748,
+          "request_order": 18,
+          "token_index": 10
+        },
+        {
+          "batch_id": 200,
+          "engine_elapsed_ns": 30772339191,
+          "request_order": 18,
+          "token_index": 11
+        },
+        {
+          "batch_id": 201,
+          "engine_elapsed_ns": 30816422033,
+          "request_order": 18,
+          "token_index": 12
+        },
+        {
+          "batch_id": 202,
+          "engine_elapsed_ns": 30861327925,
+          "request_order": 18,
+          "token_index": 13
+        },
+        {
+          "batch_id": 203,
+          "engine_elapsed_ns": 30906190426,
+          "request_order": 18,
+          "token_index": 14
+        },
+        {
+          "batch_id": 204,
+          "engine_elapsed_ns": 30951072375,
+          "request_order": 18,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1615.288446,
+        1660.371103,
+        1705.211807,
+        1749.402473,
+        1793.888358,
+        1838.01041,
+        1882.580961,
+        1927.419309,
+        1971.389943,
+        2017.044463,
+        2062.13002,
+        2106.494621,
+        2150.498043,
+        2195.386693,
+        2240.410643,
+        2285.147137
+      ],
+      "ttft_ms": 1615.288446,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.106474,
+      "e2e_ms": 902.94328,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 30.486690848,
+      "http_status": 200,
+      "id": "s0-r17",
+      "mean_tpot_ms": 46.6321554,
+      "server_timings": {
+        "queue_ms": 0.029129,
+        "total_ms": 901.650095,
+        "ttft_ms": 202.124303
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        22,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 205,
+          "engine_elapsed_ns": 31211638093,
+          "request_order": 19,
+          "token_index": 0
+        },
+        {
+          "batch_id": 206,
+          "engine_elapsed_ns": 31256596277,
+          "request_order": 19,
+          "token_index": 1
+        },
+        {
+          "batch_id": 207,
+          "engine_elapsed_ns": 31305468506,
+          "request_order": 19,
+          "token_index": 2
+        },
+        {
+          "batch_id": 208,
+          "engine_elapsed_ns": 31356979834,
+          "request_order": 19,
+          "token_index": 3
+        },
+        {
+          "batch_id": 209,
+          "engine_elapsed_ns": 31403993946,
+          "request_order": 19,
+          "token_index": 4
+        },
+        {
+          "batch_id": 210,
+          "engine_elapsed_ns": 31451324579,
+          "request_order": 19,
+          "token_index": 5
+        },
+        {
+          "batch_id": 211,
+          "engine_elapsed_ns": 31496275557,
+          "request_order": 19,
+          "token_index": 6
+        },
+        {
+          "batch_id": 212,
+          "engine_elapsed_ns": 31544626738,
+          "request_order": 19,
+          "token_index": 7
+        },
+        {
+          "batch_id": 213,
+          "engine_elapsed_ns": 31597310330,
+          "request_order": 19,
+          "token_index": 8
+        },
+        {
+          "batch_id": 214,
+          "engine_elapsed_ns": 31641425544,
+          "request_order": 19,
+          "token_index": 9
+        },
+        {
+          "batch_id": 215,
+          "engine_elapsed_ns": 31685202305,
+          "request_order": 19,
+          "token_index": 10
+        },
+        {
+          "batch_id": 216,
+          "engine_elapsed_ns": 31728821696,
+          "request_order": 19,
+          "token_index": 11
+        },
+        {
+          "batch_id": 217,
+          "engine_elapsed_ns": 31774626263,
+          "request_order": 19,
+          "token_index": 12
+        },
+        {
+          "batch_id": 218,
+          "engine_elapsed_ns": 31820778375,
+          "request_order": 19,
+          "token_index": 13
+        },
+        {
+          "batch_id": 219,
+          "engine_elapsed_ns": 31866208147,
+          "request_order": 19,
+          "token_index": 14
+        },
+        {
+          "batch_id": 220,
+          "engine_elapsed_ns": 31911136172,
+          "request_order": 19,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        203.355649,
+        248.404524,
+        297.311045,
+        348.821855,
+        395.77269,
+        443.310934,
+        488.04027,
+        536.565994,
+        589.125582,
+        633.154525,
+        677.164333,
+        720.572468,
+        766.379888,
+        812.523279,
+        857.968101,
+        902.83798
+      ],
+      "ttft_ms": 203.355649,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.08728,
+      "e2e_ms": 865.993827,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 32.232956454,
+      "http_status": 200,
+      "id": "s0-r18",
+      "mean_tpot_ms": 44.55467446666667,
+      "server_timings": {
+        "queue_ms": 0.030892,
+        "total_ms": 864.843565,
+        "ttft_ms": 196.36213
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        23,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 221,
+          "engine_elapsed_ns": 32988980701,
+          "request_order": 20,
+          "token_index": 0
+        },
+        {
+          "batch_id": 222,
+          "engine_elapsed_ns": 33033273602,
+          "request_order": 20,
+          "token_index": 1
+        },
+        {
+          "batch_id": 223,
+          "engine_elapsed_ns": 33078375284,
+          "request_order": 20,
+          "token_index": 2
+        },
+        {
+          "batch_id": 224,
+          "engine_elapsed_ns": 33121705116,
+          "request_order": 20,
+          "token_index": 3
+        },
+        {
+          "batch_id": 225,
+          "engine_elapsed_ns": 33166974009,
+          "request_order": 20,
+          "token_index": 4
+        },
+        {
+          "batch_id": 226,
+          "engine_elapsed_ns": 33211087620,
+          "request_order": 20,
+          "token_index": 5
+        },
+        {
+          "batch_id": 227,
+          "engine_elapsed_ns": 33254888225,
+          "request_order": 20,
+          "token_index": 6
+        },
+        {
+          "batch_id": 228,
+          "engine_elapsed_ns": 33299941425,
+          "request_order": 20,
+          "token_index": 7
+        },
+        {
+          "batch_id": 229,
+          "engine_elapsed_ns": 33343624721,
+          "request_order": 20,
+          "token_index": 8
+        },
+        {
+          "batch_id": 230,
+          "engine_elapsed_ns": 33392256966,
+          "request_order": 20,
+          "token_index": 9
+        },
+        {
+          "batch_id": 231,
+          "engine_elapsed_ns": 33435671820,
+          "request_order": 20,
+          "token_index": 10
+        },
+        {
+          "batch_id": 232,
+          "engine_elapsed_ns": 33479923289,
+          "request_order": 20,
+          "token_index": 11
+        },
+        {
+          "batch_id": 233,
+          "engine_elapsed_ns": 33524031802,
+          "request_order": 20,
+          "token_index": 12
+        },
+        {
+          "batch_id": 234,
+          "engine_elapsed_ns": 33569222444,
+          "request_order": 20,
+          "token_index": 13
+        },
+        {
+          "batch_id": 235,
+          "engine_elapsed_ns": 33612604583,
+          "request_order": 20,
+          "token_index": 14
+        },
+        {
+          "batch_id": 236,
+          "engine_elapsed_ns": 33657428121,
+          "request_order": 20,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        197.601893,
+        241.756581,
+        286.908171,
+        330.251999,
+        375.490242,
+        419.661342,
+        463.435006,
+        508.439004,
+        552.205858,
+        600.774598,
+        644.184853,
+        688.433881,
+        732.581796,
+        777.7631,
+        821.149531,
+        865.92201
+      ],
+      "ttft_ms": 197.601893,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.097604,
+      "e2e_ms": 2777.401422,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 35.367958692,
+      "http_status": 200,
+      "id": "s0-r19",
+      "mean_tpot_ms": 171.9691902666667,
+      "server_timings": {
+        "queue_ms": 0.038802,
+        "total_ms": 2776.034224,
+        "ttft_ms": 196.608118
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        16,
+        24,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 237,
+          "engine_elapsed_ns": 34212875204,
+          "request_order": 21,
+          "token_index": 0
+        },
+        {
+          "batch_id": 238,
+          "engine_elapsed_ns": 34257049248,
+          "request_order": 21,
+          "token_index": 1
+        },
+        {
+          "batch_id": 239,
+          "engine_elapsed_ns": 34301265723,
+          "request_order": 21,
+          "token_index": 2
+        },
+        {
+          "batch_id": 240,
+          "engine_elapsed_ns": 34346174015,
+          "request_order": 21,
+          "token_index": 3
+        },
+        {
+          "batch_id": 241,
+          "engine_elapsed_ns": 34390708569,
+          "request_order": 21,
+          "token_index": 4
+        },
+        {
+          "batch_id": 242,
+          "engine_elapsed_ns": 34434695850,
+          "request_order": 21,
+          "token_index": 5
+        },
+        {
+          "batch_id": 243,
+          "engine_elapsed_ns": 34479012298,
+          "request_order": 21,
+          "token_index": 6
+        },
+        {
+          "batch_id": 244,
+          "engine_elapsed_ns": 34523255128,
+          "request_order": 21,
+          "token_index": 7
+        },
+        {
+          "batch_id": 245,
+          "engine_elapsed_ns": 34567406820,
+          "request_order": 21,
+          "token_index": 8
+        },
+        {
+          "batch_id": 246,
+          "engine_elapsed_ns": 34949524989,
+          "request_order": 21,
+          "token_index": 9
+        },
+        {
+          "batch_id": 247,
+          "engine_elapsed_ns": 35516847129,
+          "request_order": 21,
+          "token_index": 10
+        },
+        {
+          "batch_id": 248,
+          "engine_elapsed_ns": 35922820004,
+          "request_order": 21,
+          "token_index": 11
+        },
+        {
+          "batch_id": 249,
+          "engine_elapsed_ns": 36340483267,
+          "request_order": 21,
+          "token_index": 12
+        },
+        {
+          "batch_id": 250,
+          "engine_elapsed_ns": 36593985108,
+          "request_order": 21,
+          "token_index": 13
+        },
+        {
+          "batch_id": 251,
+          "engine_elapsed_ns": 36694946313,
+          "request_order": 21,
+          "token_index": 14
+        },
+        {
+          "batch_id": 252,
+          "engine_elapsed_ns": 36792248470,
+          "request_order": 21,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        197.795709,
+        242.0355,
+        286.238261,
+        331.120942,
+        375.672852,
+        419.690148,
+        463.966409,
+        508.312997,
+        552.288835,
+        934.436183,
+        1501.777613,
+        1907.724992,
+        2325.370278,
+        2578.853587,
+        2680.063002,
+        2777.333563
+      ],
+      "ttft_ms": 197.795709,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "long",
+      "dispatch_lag_ms": 0.11036,
+      "e2e_ms": 3407.587331,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 36.506473979,
+      "http_status": 200,
+      "id": "s0-r20",
+      "mean_tpot_ms": 106.02991133333332,
+      "server_timings": {
+        "queue_ms": 42.754513,
+        "total_ms": 3406.250882,
+        "ttft_ms": 1815.836259
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        37852,
+        5185,
+        13,
+        220,
+        6145,
+        220,
+        17,
+        15,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        6145
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 249,
+          "engine_elapsed_ns": 36340514546,
+          "request_order": 22,
+          "token_index": 0
+        },
+        {
+          "batch_id": 250,
+          "engine_elapsed_ns": 36594006639,
+          "request_order": 22,
+          "token_index": 1
+        },
+        {
+          "batch_id": 251,
+          "engine_elapsed_ns": 36694980838,
+          "request_order": 22,
+          "token_index": 2
+        },
+        {
+          "batch_id": 252,
+          "engine_elapsed_ns": 36792306981,
+          "request_order": 22,
+          "token_index": 3
+        },
+        {
+          "batch_id": 253,
+          "engine_elapsed_ns": 36867453052,
+          "request_order": 22,
+          "token_index": 4
+        },
+        {
+          "batch_id": 254,
+          "engine_elapsed_ns": 36942608229,
+          "request_order": 22,
+          "token_index": 5
+        },
+        {
+          "batch_id": 255,
+          "engine_elapsed_ns": 37017331369,
+          "request_order": 22,
+          "token_index": 6
+        },
+        {
+          "batch_id": 256,
+          "engine_elapsed_ns": 37091389575,
+          "request_order": 22,
+          "token_index": 7
+        },
+        {
+          "batch_id": 257,
+          "engine_elapsed_ns": 37168160177,
+          "request_order": 22,
+          "token_index": 8
+        },
+        {
+          "batch_id": 258,
+          "engine_elapsed_ns": 37245826986,
+          "request_order": 22,
+          "token_index": 9
+        },
+        {
+          "batch_id": 259,
+          "engine_elapsed_ns": 37322083331,
+          "request_order": 22,
+          "token_index": 10
+        },
+        {
+          "batch_id": 260,
+          "engine_elapsed_ns": 37578442410,
+          "request_order": 22,
+          "token_index": 11
+        },
+        {
+          "batch_id": 261,
+          "engine_elapsed_ns": 37673176871,
+          "request_order": 22,
+          "token_index": 12
+        },
+        {
+          "batch_id": 262,
+          "engine_elapsed_ns": 37770055153,
+          "request_order": 22,
+          "token_index": 13
+        },
+        {
+          "batch_id": 263,
+          "engine_elapsed_ns": 37849176470,
+          "request_order": 22,
+          "token_index": 14
+        },
+        {
+          "batch_id": 264,
+          "engine_elapsed_ns": 37930908429,
+          "request_order": 22,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        1817.031398,
+        2070.476809,
+        2171.705037,
+        2268.99993,
+        2343.997434,
+        2419.147597,
+        2493.883708,
+        2567.93317,
+        2644.7164,
+        2722.363312,
+        2798.671541,
+        3054.98833,
+        3149.721622,
+        3246.599111,
+        3325.723063,
+        3407.480068
+      ],
+      "ttft_ms": 1817.031398,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 128,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 144
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.085641,
+      "e2e_ms": 3010.372141,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 36.345646796,
+      "http_status": 200,
+      "id": "s0-r21",
+      "mean_tpot_ms": 150.2181262,
+      "server_timings": {
+        "queue_ms": 188.515821,
+        "total_ms": 3009.04372,
+        "ttft_ms": 755.824515
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        17,
+        16,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        17
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 247,
+          "engine_elapsed_ns": 35516867367,
+          "request_order": 23,
+          "token_index": 0
+        },
+        {
+          "batch_id": 248,
+          "engine_elapsed_ns": 35922836896,
+          "request_order": 23,
+          "token_index": 1
+        },
+        {
+          "batch_id": 249,
+          "engine_elapsed_ns": 36340502844,
+          "request_order": 23,
+          "token_index": 2
+        },
+        {
+          "batch_id": 250,
+          "engine_elapsed_ns": 36594019283,
+          "request_order": 23,
+          "token_index": 3
+        },
+        {
+          "batch_id": 251,
+          "engine_elapsed_ns": 36695001728,
+          "request_order": 23,
+          "token_index": 4
+        },
+        {
+          "batch_id": 252,
+          "engine_elapsed_ns": 36792335866,
+          "request_order": 23,
+          "token_index": 5
+        },
+        {
+          "batch_id": 253,
+          "engine_elapsed_ns": 36867469744,
+          "request_order": 23,
+          "token_index": 6
+        },
+        {
+          "batch_id": 254,
+          "engine_elapsed_ns": 36942627315,
+          "request_order": 23,
+          "token_index": 7
+        },
+        {
+          "batch_id": 255,
+          "engine_elapsed_ns": 37017350946,
+          "request_order": 23,
+          "token_index": 8
+        },
+        {
+          "batch_id": 256,
+          "engine_elapsed_ns": 37091415334,
+          "request_order": 23,
+          "token_index": 9
+        },
+        {
+          "batch_id": 257,
+          "engine_elapsed_ns": 37168187028,
+          "request_order": 23,
+          "token_index": 10
+        },
+        {
+          "batch_id": 258,
+          "engine_elapsed_ns": 37245845471,
+          "request_order": 23,
+          "token_index": 11
+        },
+        {
+          "batch_id": 259,
+          "engine_elapsed_ns": 37322101586,
+          "request_order": 23,
+          "token_index": 12
+        },
+        {
+          "batch_id": 260,
+          "engine_elapsed_ns": 37578467918,
+          "request_order": 23,
+          "token_index": 13
+        },
+        {
+          "batch_id": 261,
+          "engine_elapsed_ns": 37673196077,
+          "request_order": 23,
+          "token_index": 14
+        },
+        {
+          "batch_id": 262,
+          "engine_elapsed_ns": 37770071975,
+          "request_order": 23,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        757.014445,
+        1163.007637,
+        1580.643388,
+        1834.088762,
+        1935.34563,
+        2032.622804,
+        2107.601324,
+        2182.959609,
+        2257.495728,
+        2331.574187,
+        2408.328403,
+        2485.975302,
+        2562.26028,
+        2818.601237,
+        2913.333595,
+        3010.286338
+      ],
+      "ttft_ms": 757.014445,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": false
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.090385,
+      "e2e_ms": 1931.214878,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 36.565119054,
+      "http_status": 200,
+      "id": "s0-r22",
+      "mean_tpot_ms": 93.04249153333333,
+      "server_timings": {
+        "queue_ms": 278.815479,
+        "total_ms": 1927.830301,
+        "ttft_ms": 532.313263
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        17,
+        17,
+        13,
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        17
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 250,
+          "engine_elapsed_ns": 36594030704,
+          "request_order": 24,
+          "token_index": 0
+        },
+        {
+          "batch_id": 251,
+          "engine_elapsed_ns": 36695019963,
+          "request_order": 24,
+          "token_index": 1
+        },
+        {
+          "batch_id": 252,
+          "engine_elapsed_ns": 36792368187,
+          "request_order": 24,
+          "token_index": 2
+        },
+        {
+          "batch_id": 253,
+          "engine_elapsed_ns": 36867481546,
+          "request_order": 24,
+          "token_index": 3
+        },
+        {
+          "batch_id": 254,
+          "engine_elapsed_ns": 36942640420,
+          "request_order": 24,
+          "token_index": 4
+        },
+        {
+          "batch_id": 255,
+          "engine_elapsed_ns": 37017362999,
+          "request_order": 24,
+          "token_index": 5
+        },
+        {
+          "batch_id": 256,
+          "engine_elapsed_ns": 37091431665,
+          "request_order": 24,
+          "token_index": 6
+        },
+        {
+          "batch_id": 257,
+          "engine_elapsed_ns": 37168201326,
+          "request_order": 24,
+          "token_index": 7
+        },
+        {
+          "batch_id": 258,
+          "engine_elapsed_ns": 37245858295,
+          "request_order": 24,
+          "token_index": 8
+        },
+        {
+          "batch_id": 259,
+          "engine_elapsed_ns": 37322111374,
+          "request_order": 24,
+          "token_index": 9
+        },
+        {
+          "batch_id": 260,
+          "engine_elapsed_ns": 37578480542,
+          "request_order": 24,
+          "token_index": 10
+        },
+        {
+          "batch_id": 261,
+          "engine_elapsed_ns": 37673208200,
+          "request_order": 24,
+          "token_index": 11
+        },
+        {
+          "batch_id": 262,
+          "engine_elapsed_ns": 37770089157,
+          "request_order": 24,
+          "token_index": 12
+        },
+        {
+          "batch_id": 263,
+          "engine_elapsed_ns": 37849197359,
+          "request_order": 24,
+          "token_index": 13
+        },
+        {
+          "batch_id": 264,
+          "engine_elapsed_ns": 37930932615,
+          "request_order": 24,
+          "token_index": 14
+        },
+        {
+          "batch_id": 265,
+          "engine_elapsed_ns": 37989521112,
+          "request_order": 24,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        535.487194,
+        636.69671,
+        734.018922,
+        808.957834,
+        884.231442,
+        958.875182,
+        1032.915623,
+        1109.763958,
+        1187.345804,
+        1263.63073,
+        1519.985102,
+        1614.704067,
+        1711.583926,
+        1790.705539,
+        1872.463235,
+        1931.124567
+      ],
+      "ttft_ms": 535.487194,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    },
+    {
+      "class_name": "short",
+      "dispatch_lag_ms": 0.200375,
+      "e2e_ms": 1205.129147,
+      "error": "",
+      "finish_reason": "length",
+      "finished_s": 37.086204982,
+      "http_status": 200,
+      "id": "s0-r23",
+      "mean_tpot_ms": 62.14707706666666,
+      "server_timings": {
+        "queue_ms": 13.727164,
+        "total_ms": 1202.054678,
+        "ttft_ms": 270.088056
+      },
+      "sse_done_count": 1,
+      "success": true,
+      "terminal_events": 1,
+      "token_ids": [
+        13850,
+        323,
+        37852,
+        5185,
+        13,
+        220,
+        17,
+        15,
+        17,
+        18,
+        12,
+        15,
+        19,
+        12,
+        16,
+        15
+      ],
+      "token_telemetry": [
+        {
+          "batch_id": 260,
+          "engine_elapsed_ns": 37578492515,
+          "request_order": 25,
+          "token_index": 0
+        },
+        {
+          "batch_id": 261,
+          "engine_elapsed_ns": 37673220744,
+          "request_order": 25,
+          "token_index": 1
+        },
+        {
+          "batch_id": 262,
+          "engine_elapsed_ns": 37770100759,
+          "request_order": 25,
+          "token_index": 2
+        },
+        {
+          "batch_id": 263,
+          "engine_elapsed_ns": 37849212899,
+          "request_order": 25,
+          "token_index": 3
+        },
+        {
+          "batch_id": 264,
+          "engine_elapsed_ns": 37930945349,
+          "request_order": 25,
+          "token_index": 4
+        },
+        {
+          "batch_id": 265,
+          "engine_elapsed_ns": 37989550518,
+          "request_order": 25,
+          "token_index": 5
+        },
+        {
+          "batch_id": 266,
+          "engine_elapsed_ns": 38035215419,
+          "request_order": 25,
+          "token_index": 6
+        },
+        {
+          "batch_id": 267,
+          "engine_elapsed_ns": 38080172859,
+          "request_order": 25,
+          "token_index": 7
+        },
+        {
+          "batch_id": 268,
+          "engine_elapsed_ns": 38125982077,
+          "request_order": 25,
+          "token_index": 8
+        },
+        {
+          "batch_id": 269,
+          "engine_elapsed_ns": 38177213749,
+          "request_order": 25,
+          "token_index": 9
+        },
+        {
+          "batch_id": 270,
+          "engine_elapsed_ns": 38231136205,
+          "request_order": 25,
+          "token_index": 10
+        },
+        {
+          "batch_id": 271,
+          "engine_elapsed_ns": 38283862381,
+          "request_order": 25,
+          "token_index": 11
+        },
+        {
+          "batch_id": 272,
+          "engine_elapsed_ns": 38340405445,
+          "request_order": 25,
+          "token_index": 12
+        },
+        {
+          "batch_id": 273,
+          "engine_elapsed_ns": 38391263251,
+          "request_order": 25,
+          "token_index": 13
+        },
+        {
+          "batch_id": 274,
+          "engine_elapsed_ns": 38449685656,
+          "request_order": 25,
+          "token_index": 14
+        },
+        {
+          "batch_id": 275,
+          "engine_elapsed_ns": 38510416276,
+          "request_order": 25,
+          "token_index": 15
+        }
+      ],
+      "token_times_ms": [
+        272.799917,
+        367.532438,
+        464.410693,
+        543.533867,
+        625.376162,
+        683.952887,
+        729.718761,
+        774.561162,
+        820.394937,
+        871.950175,
+        925.759787,
+        978.322997,
+        1034.932825,
+        1085.675963,
+        1144.23655,
+        1205.006073
+      ],
+      "ttft_ms": 272.799917,
+      "usage": {
+        "completion_tokens": 16,
+        "prompt_tokens": 16,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 32
+      },
+      "within_slo": true
+    }
+  ],
+  "run_identity": {
+    "client_sha256": "8c671627d91147d4fec1f2cea198941431ec2cfd9ed0c942158f3f4d0f3e89c2",
+    "manifest_sha256": "0086adee34840bb527b39ca0a532a5271166dd662b659d22d033b76b4deb1fc0",
+    "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "run_id": "20260923T103621Z-a1fe5d327adb-a25fd230",
+    "server_sha256": "54c6335eda2d62d2835cf789fe47e4b82ebe92382e1f11312e8bb22a4d987227",
+    "trace_sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7",
+    "trial": 0,
+    "variant": "mixed"
+  },
+  "schema_version": 1,
+  "server_after": {
+    "accepted": 25,
+    "active_requests": 0,
+    "admission_reserve_ms": 2000,
+    "aging_ms": 250,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 275,
+    "cache_evictions": 20,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 25,
+    "context_tokens": 8192,
+    "decode_tokens": 367,
+    "device": "CPU/avx2-fma-f16c",
+    "event_buffer_size": 128,
+    "failed": 0,
+    "generated_tokens": 392,
+    "gpu": false,
+    "gpu_layers": 0,
+    "kernel_mode": "auto",
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 11,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 8,
+    "max_batch_sequences": 4,
+    "max_batch_tokens": 49,
+    "max_model_len": 2048,
+    "mixed_batches": 21,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 32,
+    "prefill_tokens": 1057,
+    "prefix_cache": {
+      "entries": 4,
+      "tokens": 176
+    },
+    "prefix_cache_enabled": true,
+    "prefix_cache_entries": 4,
+    "prefix_cache_tokens": 2048,
+    "queue_capacity": 64,
+    "ready": true,
+    "rejected": 0,
+    "telemetry_capacity": 1024,
+    "telemetry_mode": "stages",
+    "threads": 8,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 1,
+    "active_requests": 0,
+    "admission_reserve_ms": 2000,
+    "aging_ms": 250,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 8,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 1,
+    "context_tokens": 8192,
+    "decode_tokens": 7,
+    "device": "CPU/avx2-fma-f16c",
+    "event_buffer_size": 128,
+    "failed": 0,
+    "generated_tokens": 8,
+    "gpu": false,
+    "gpu_layers": 0,
+    "kernel_mode": "auto",
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 8,
+    "max_batch_sequences": 1,
+    "max_batch_tokens": 1,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 32,
+    "prefill_tokens": 1,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": true,
+    "prefix_cache_entries": 4,
+    "prefix_cache_tokens": 2048,
+    "queue_capacity": 64,
+    "ready": true,
+    "rejected": 0,
+    "telemetry_capacity": 1024,
+    "telemetry_mode": "stages",
+    "threads": 8,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "started_at_unix_ms": 1790159782886,
+  "summary": {
+    "dispatch_lag_ms": {
+      "p50": 0.093136,
+      "p95": 0.11834145,
+      "p99": 0.18158790999999996
+    },
+    "e2e_ms": {
+      "p50": 2063.954996,
+      "p95": 3177.7437573999996,
+      "p99": 3361.51662762
+    },
+    "elapsed_s": 37.086204982,
+    "failed": 0,
+    "goodput_requests_per_second": 0.3505346531495909,
+    "inter_token_ms": {
+      "p50": 58.470630499999956,
+      "p95": 256.37271684999985,
+      "p99": 415.46891641000013
+    },
+    "mean_tpot_ms": {
+      "p50": 69.37053879999999,
+      "p95": 149.85581435999998,
+      "p99": 166.96644553133333
+    },
+    "output_tokens_per_second": 10.354254369957147,
+    "requests": 24,
+    "slo_compliant": 13,
+    "successful": 24,
+    "successful_output_tokens": 384,
+    "ttft_ms": {
+      "p50": 316.47992450000004,
+      "p95": 1779.7166007999997,
+      "p99": 1815.12284328
+    }
+  },
+  "trace": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/trace.jsonl",
+  "trace_fnv1a64": "14963550166524963314",
+  "warmup": true
+}

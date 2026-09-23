@@ -1,0 +1,247 @@
+ninja: no work to do.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.084626,
+    "p95": 0.09322559999999999,
+    "p99": 0.15462837999999995
+  },
+  "e2e_ms": {
+    "p50": 9833.238719,
+    "p95": 14052.815062349999,
+    "p99": 14623.195311380001
+  },
+  "elapsed_s": 19.396555324,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 165.80860650000068,
+    "p95": 871.0524511500005,
+    "p99": 1162.5850735000013
+  },
+  "mean_tpot_ms": {
+    "p50": 321.24344806666664,
+    "p95": 367.8568905366667,
+    "p99": 375.3214725986667
+  },
+  "output_tokens_per_second": 19.79732965908973,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5205.402449,
+    "p95": 11653.57921585,
+    "p99": 11783.65912372
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.09060199999999999,
+    "p95": 0.20338069999999994,
+    "p99": 0.25795725999999997
+  },
+  "e2e_ms": {
+    "p50": 9929.2061585,
+    "p95": 14920.40160125,
+    "p99": 15265.626189890001
+  },
+  "elapsed_s": 19.895870837,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 164.54677349999997,
+    "p95": 1306.5980802000001,
+    "p99": 2492.4512520099997
+  },
+  "mean_tpot_ms": {
+    "p50": 314.8626525333333,
+    "p95": 323.24791689,
+    "p99": 365.36401701266664
+  },
+  "output_tokens_per_second": 19.300487178770883,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5282.498781,
+    "p95": 11667.636620349997,
+    "p99": 12670.94892107
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.089545,
+    "p95": 0.17031079999999998,
+    "p99": 0.18887328
+  },
+  "e2e_ms": {
+    "p50": 9673.8808795,
+    "p95": 14622.7179464,
+    "p99": 14968.01576697
+  },
+  "elapsed_s": 19.598146201,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 163.3523809999997,
+    "p95": 1305.8732920499997,
+    "p99": 2396.66504628
+  },
+  "mean_tpot_ms": {
+    "p50": 310.27741233333336,
+    "p95": 312.46636670666663,
+    "p99": 362.8342257106666
+  },
+  "output_tokens_per_second": 19.59368993687813,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5188.812005,
+    "p95": 11399.189421949995,
+    "p99": 12395.52772245
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.08563699999999999,
+    "p95": 0.15812249999999994,
+    "p99": 0.16759291999999998
+  },
+  "e2e_ms": {
+    "p50": 10618.0380735,
+    "p95": 15336.71363505,
+    "p99": 15949.62166947
+  },
+  "elapsed_s": 20.778846329,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 184.77431500000012,
+    "p95": 933.7540445999996,
+    "p99": 1223.2749046700008
+  },
+  "mean_tpot_ms": {
+    "p50": 344.6999341,
+    "p95": 404.6781895266666,
+    "p99": 406.2129220593333
+  },
+  "output_tokens_per_second": 18.480333023305068,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5562.702331,
+    "p95": 12749.121572049999,
+    "p99": 12854.28808773
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.092192,
+    "p95": 0.1804429,
+    "p99": 0.20561095999999998
+  },
+  "e2e_ms": {
+    "p50": 10414.359596,
+    "p95": 14867.552325999999,
+    "p99": 15447.55594082
+  },
+  "elapsed_s": 20.231340993,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 175.1554675,
+    "p95": 922.3708956000012,
+    "p99": 1203.6674113300005
+  },
+  "mean_tpot_ms": {
+    "p50": 334.722321,
+    "p95": 381.76500268333336,
+    "p99": 391.92835485
+  },
+  "output_tokens_per_second": 18.98045216740023,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5626.688552,
+    "p95": 12367.60963415,
+    "p99": 12503.40840607
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "dispatch_lag_ms": {
+    "p50": 0.0875295,
+    "p95": 0.14224134999999996,
+    "p99": 0.15479157000000002
+  },
+  "e2e_ms": {
+    "p50": 10126.3575495,
+    "p95": 15190.30205685,
+    "p99": 15535.53264565
+  },
+  "elapsed_s": 20.165906307,
+  "failed": 0,
+  "goodput_requests_per_second": 0.0,
+  "inter_token_ms": {
+    "p50": 171.36718949999886,
+    "p95": 1318.5921012499998,
+    "p99": 2436.4460659500005
+  },
+  "mean_tpot_ms": {
+    "p50": 317.8324979,
+    "p95": 321.91843171666665,
+    "p99": 372.53105508466666
+  },
+  "output_tokens_per_second": 19.04204027104429,
+  "requests": 24,
+  "slo_compliant": 0,
+  "successful": 24,
+  "successful_output_tokens": 384,
+  "ttft_ms": {
+    "p50": 5499.598059,
+    "p95": 11890.515027849997,
+    "p99": 12893.37728697
+  }
+}
+LLMServe on port 8031 stopped.
+{
+  "schema_version": 1,
+  "run_id": "20260922T121933Z-a1fe5d327adb-2e650f56",
+  "manifest_sha256": "7a0be6a483ecece8821d3a5e03bcc47461d69cde9d5077e5a54ed10cb1615623",
+  "validation": "passed",
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7",
+  "requests_per_trial": 24,
+  "policies": {
+    "mixed": {
+      "trials": 3,
+      "successful": 72.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 18.98045216740023,
+      "ttft_p95_ms_median": 12367.60963415,
+      "mean_tpot_p95_ms_median": 381.76500268333336,
+      "goodput_requests_per_second_median": 0.0
+    },
+    "prefill_first": {
+      "trials": 3,
+      "successful": 72.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 19.300487178770883,
+      "ttft_p95_ms_median": 11667.636620349997,
+      "mean_tpot_p95_ms_median": 321.91843171666665,
+      "goodput_requests_per_second_median": 0.0
+    }
+  }
+}
