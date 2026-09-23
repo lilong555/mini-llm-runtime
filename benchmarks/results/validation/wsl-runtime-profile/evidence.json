@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "created_at_utc": "2026-09-22T14:06:33.4467570Z",
+  "source": {
+    "git_sha": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "git_dirty": true,
+    "scoped_files_match": true,
+    "worktree_state_sha256": "e3985ebd39e3670c5ccfed1defb94cff12f3d317b53be4784d55b589ce26b8dc",
+    "manifest_path": "../../wsl-runtime-profile/scaling/manifest.json",
+    "manifest_sha256": "b4cf52d1f16bb69cdd2d453a19420cb2265ee1b7b3f2c063a838bc9d864327e9"
+  },
+  "builds": [
+    {
+      "directory": "build/wsl-cpu",
+      "cache_sha256": "210383a1d2b6b9e2b5b908b061c8d58b7e07725c0b0bcebf7d22b0bf56c3071a",
+      "type": "RelWithDebInfo",
+      "compiler": "/usr/bin/c++",
+      "cxx_flags": "",
+      "configuration_flags": "-O2 -g -DNDEBUG",
+      "cuda_enabled": "OFF"
+    },
+    {
+      "directory": "build/wsl-cuda",
+      "cache_sha256": "8c9b7b7c548d34d96eabc505030657c9803e913ae62cd40e8b6c31d924e2aa86",
+      "type": "RelWithDebInfo",
+      "compiler": "/usr/bin/c++",
+      "cxx_flags": "",
+      "configuration_flags": "-O2 -g -DNDEBUG",
+      "cuda_enabled": "ON"
+    },
+    {
+      "directory": "build/wsl-asan",
+      "cache_sha256": "f40fc2e29ebbf8d121c4913a0595246c9ca30db05087a5f95fbe87b91efc126a",
+      "type": "Debug",
+      "compiler": "/usr/bin/c++",
+      "cxx_flags": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+      "configuration_flags": "-g",
+      "cuda_enabled": "OFF"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "build/wsl-cpu/bin/llmserve-unit-tests",
+      "sha256": "f9a49fff8f4105df1377bd565868f010f6fd0220b6b1e754858a2ef89a7b2b79",
+      "size_bytes": 5200608
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-gguf-tests",
+      "sha256": "bd58cef0ac400e49ba7b943683d436825d983a85dc37f7c1559cab0bded13c60",
+      "size_bytes": 5986920
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-model-tests",
+      "sha256": "bcea74ccf6b1d4ee080f3baea191dc75a827dafc4fff5e4d47e69620cf6aac5a",
+      "size_bytes": 74583568
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-http-tests",
+      "sha256": "5d5c2dfa42e9eadb177e2a8dbb4f2fefffa7c2946ad3c243a3789ea0ec252cb3",
+      "size_bytes": 16426568
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve",
+      "sha256": "9da99197d9aff617dd80ea3962b8bac2179928c2e66fe67a4152b51ef1b21ce5",
+      "size_bytes": 87899784
+    },
+    {
+      "path": "build/wsl-cpu/bin/mini-runtime-bench",
+      "sha256": "86db69ca6a84fec8037183dc6ea64468bdd607e1a5f0d4a0914525fb99c11455",
+      "size_bytes": 72709688
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-unit-tests",
+      "sha256": "5834e7a6078613e5399f3b378dcda98b95b51fc570aa2e8957d0af5881fa6874",
+      "size_bytes": 5200608
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-gguf-tests",
+      "sha256": "adf659de51183a98a2741e55ef78b4d94b0e970bdf06459a0209315fe3b34270",
+      "size_bytes": 5986920
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-model-tests",
+      "sha256": "83908add62f4da757be7988dbc37fe46a6d6a39c0acefdd16ff8340f06ec1c14",
+      "size_bytes": 222908480
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-http-tests",
+      "sha256": "86eac94fbedb332f6e997426001a8bcccf5426d22cec5ea2d4ff8cda3ee77d6d",
+      "size_bytes": 16426568
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve",
+      "sha256": "f2b39228ce95e1863937ce89ce45ee2f400bcc65e2e7491e17128c10c49913b3",
+      "size_bytes": 236201656
+    },
+    {
+      "path": "build/wsl-cuda/bin/mini-runtime-bench",
+      "sha256": "9f9947ae9554b91f9998cee7d2912376509571198e63796f629912befc6a9a21",
+      "size_bytes": 221034832
+    },
+    {
+      "path": "build/wsl-asan/bin/llmserve-unit-tests",
+      "sha256": "2f1a21a2b7deb6b4957ddff1026e18d77a3ff8beb9315c31a7e63104e3ce0d62",
+      "size_bytes": 11752112
+    }
+  ],
+  "model": {
+    "repository": "Qwen/Qwen3-0.6B-GGUF",
+    "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+    "file": "Qwen3-0.6B-Q8_0.gguf",
+    "size_bytes": 639446688,
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "license": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+  },
+  "reference_model": {
+    "file": "Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+    "source_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "converter": "llama.cpp",
+    "converter_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "conversion": "Q8_0 weights dequantized to F32; no original model weights restored",
+    "size_bytes": 2390150816,
+    "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+    "purpose": "Matched-weight numerical reference without activation quantization"
+  },
+  "ctest": {
+    "Reports": 3,
+    "SuiteExecutions": 11,
+    "CaseExecutions": 358,
+    "SuitesWithoutCaseCounts": 0,
+    "DiagnosticReports": [],
+    "Status": "passed"
+  },
+  "model_checks": [
+    {
+      "file": "cpu-model-1.json",
+      "passed": 12,
+      "threads": 1,
+      "reference_gpu_layers": 0
+    },
+    {
+      "file": "cpu-model-8.json",
+      "passed": 12,
+      "threads": 8,
+      "reference_gpu_layers": 0
+    },
+    {
+      "file": "cuda-model-8.json",
+      "passed": 12,
+      "threads": 8,
+      "reference_gpu_layers": 99
+    }
+  ],
+  "http_checks": [
+    {
+      "file": "cpu-http.json",
+      "passed": 8,
+      "backend": "minillm"
+    },
+    {
+      "file": "cuda-http.json",
+      "passed": 8,
+      "backend": "llama.cpp"
+    }
+  ],
+  "http_ports_after": [
+    {
+      "port": 8071,
+      "listening": false
+    },
+    {
+      "port": 8072,
+      "listening": false
+    }
+  ],
+  "runtime_datasets": [
+    {
+      "dataset": "scaling",
+      "status": "passed",
+      "reports": 30,
+      "measured_forwards": 450,
+      "validation_sha256": "51de909657db075f98574a36a9ad95b0e7802563c07f35dc446cdbcb79a504a2"
+    },
+    {
+      "dataset": "context",
+      "status": "passed",
+      "reports": 6,
+      "measured_forwards": 108,
+      "validation_sha256": "b59920c84da0993bd5f134ff158cefc64eb9a1bb5d10698fec7cbb825e61d7e6"
+    }
+  ],
+  "reports": [
+    {
+      "path": "asan-ctest.xml",
+      "sha256": "d4fba607f93ab8acbc197a7f02d0c15a8c427ca8cb49233fd86128ae51de9638",
+      "size_bytes": 4221
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "sha256": "4da6171cf7d2e3f41cb9bf1c0a607b579f86247d8c6adf4cf023459935279d5f",
+      "size_bytes": 4660
+    },
+    {
+      "path": "cpu-http.json",
+      "sha256": "820205dce7bfb768f30aa378fb4f0fa5af19c5359d878a4c81fbc7bf2ca235b0",
+      "size_bytes": 3720
+    },
+    {
+      "path": "cpu-model-1.json",
+      "sha256": "4ff852b147dfa4c706bdb17dd69e73ce2f08398b7cc02e084ba7351de811f889",
+      "size_bytes": 3807
+    },
+    {
+      "path": "cpu-model-8.json",
+      "sha256": "4ca60908256b21cd2b1617799291b69e35798fcacd4debd476f5f55e1f8c9fd5",
+      "size_bytes": 3807
+    },
+    {
+      "path": "cpu-topology.json",
+      "sha256": "b4403327965323ecb2bc12e61fae9990d71d3e5f5636ab9b76ad301989e26455",
+      "size_bytes": 3982
+    },
+    {
+      "path": "ctest-archive-evidence.json",
+      "sha256": "82b7c1a021a3c51c64c7d4cf218f48e0a9c1908bc17c6f8369c775bed4eac34c",
+      "size_bytes": 281
+    },
+    {
+      "path": "ctest-evidence.json",
+      "sha256": "7d2d36f9e883d0543c4183ad85141de1f666d79ba214637164f3cd974800ad07",
+      "size_bytes": 150
+    },
+    {
+      "path": "cuda-ctest.xml",
+      "sha256": "3b540baaf8d141d184866e7b6fc8cf02f2763c79a4d4eb424c5f9111e7eca52f",
+      "size_bytes": 4661
+    },
+    {
+      "path": "cuda-http.json",
+      "sha256": "3c673a4bad73b40655c2c6c4f509ec6bafd3c588f0bda6280b75879424af4d9d",
+      "size_bytes": 3764
+    },
+    {
+      "path": "cuda-model-8.json",
+      "sha256": "b0a44360879998130eeaaddc2dc427c0f1fbf1e01e1e8c1aea010bc584f6d27b",
+      "size_bytes": 3804
+    },
+    {
+      "path": "runtime-relocation.json",
+      "sha256": "5950783d59b16d445a8e2a2ebb68750d3d3d92a956bbf73fb09c60dd1c069b36",
+      "size_bytes": 510
+    }
+  ]
+}

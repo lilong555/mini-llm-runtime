@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="4"
+	timestamp="2026-09-22T20:28:33"
+	>
+	<testcase name="unit" classname="unit" time="0.191031" status="run">
+		<properties/>
+		<system-out>[PASS] block_pool_allocation_is_atomic
+[PASS] block_pool_reference_counts_and_invalid_tables
+[PASS] block_pool_randomized_accounting
+[PASS] prefix_index_alignment_namespace_and_pruning
+[PASS] prefix_index_lru_and_full_hit_recompute
+[PASS] utf8_split_and_invalid_sequences
+[PASS] scheduler_mixed_budget_and_decode_protection
+[PASS] scheduler_prefill_first_and_aging
+[PASS] config_rejects_unprogressable_settings
+[PASS] half_conversion_all_finite_patterns
+[PASS] simd_float_and_half_dot_match_scalar
+[PASS] simd_half_value_accumulation_matches_scalar
+[PASS] simd_q8_dot_matches_dequantized_weights
+[PASS] rms_norm_in_place_and_simd
+[PASS] paged_kv_layer_layout_and_full_page_sharing
+[PASS] paged_kv_partial_tail_copy_on_write
+[PASS] paged_kv_exhaustion_does_not_corrupt_aliases
+[PASS] paged_kv_randomized_alias_append_and_reclamation
+[PASS] parallel_executor_exact_coverage_and_exception_recovery
+[PASS] engine_serial_batched_and_cached_outputs_agree
+[PASS] engine_mixed_batch_after_deterministic_request_injection
+[PASS] engine_cache_namespace_and_full_hit_recompute
+[PASS] engine_context_validation_and_duplicate_ids
+[PASS] engine_bounded_queue_and_cancellation
+[PASS] engine_deadline_and_slow_consumer_reclaim_resources
+[PASS] engine_backend_failure_is_terminal_and_rejects_new_work
+[PASS] engine_prefix_copy_failure_has_one_terminal_and_no_reservation_leak
+[PASS] engine_missing_logits_is_a_backend_error
+[PASS] engine_small_kv_pool_evicts_and_makes_progress
+[PASS] engine_shutdown_terminates_queued_and_running_requests
+30/30 tests passed
+</system-out>
+	</testcase>
+	<testcase name="benchmark-validation" classname="benchmark-validation" time="4.50638" status="run">
+		<properties/>
+		<system-out>[PASS] native-port-detection
+[PASS] normal
+[PASS] no-warmup
+[PASS] single-token
+[PASS] case-sensitive-ids
+[PASS] allowed-timeout
+[PASS] allowed-rejection
+[PASS] all-failed
+[PASS] missing-request
+[PASS] duplicate-request
+[PASS] unexpected-request
+[PASS] model-hash
+[PASS] model-provenance
+[PASS] wrong-warmup
+[PASS] wrong-arithmetic
+[PASS] server-binary
+[PASS] client-binary
+[PASS] config-difference
+[PASS] scheduler-config
+[PASS] token-mismatch
+[PASS] truncated-output
+[PASS] invalid-success-type
+[PASS] negative-token
+[PASS] token-timestamps
+[PASS] missing-done
+[PASS] duplicate-terminal
+[PASS] forged-throughput
+[PASS] forged-latency
+[PASS] undeclared-timeout
+[PASS] missing-output-reference
+[PASS] trace-hash
+[PASS] trace-fnv
+[PASS] manifest-hash
+[PASS] missing-variant
+[PASS] duplicate-report
+[PASS] missing-trial
+[PASS] changed-comparison
+[PASS] live-kv
+[PASS] missing-report-file
+[PASS] unexpected-report-file
+[PASS] source-snapshot-hash
+[PASS] missing-manifest
+[PASS] stale-success
+[PASS] ctest-standard
+[PASS] ctest-benchmark
+[PASS] ctest-legacy-benchmark
+[PASS] ctest-legacy-wrong-suite
+[PASS] ctest-truncated
+[PASS] ctest-failed
+[PASS] ctest-count-mismatch
+[PASS] ctest-diagnostic-classification
+51/51 benchmark validation tests passed
+</system-out>
+	</testcase>
+	<testcase name="gguf" classname="gguf" time="0.00246105" status="run">
+		<properties/>
+		<system-out>gguf_init_from_reader: invalid magic characters: 'not ', expected 'GGUF'
+[PASS] gguf_mapped_tensor_rows_and_metadata_types
+[PASS] gguf_truncated_tensor_data_is_rejected
+[PASS] gguf_bad_magic_and_missing_file_are_rejected
+[PASS] gguf_unsupported_tensor_type_is_rejected
+4/4 tests passed
+</system-out>
+	</testcase>
+</testsuite>

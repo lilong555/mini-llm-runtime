@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "run_id": "20260923T103142Z-a1fe5d327adb-2b15bb51",
+  "manifest_sha256": "ea6f2d71058437f0ad780338c9949352479e6dff347e67c7e57233af355bf587",
+  "validation": "passed",
+  "backend": "minillm",
+  "model": "Qwen3-0.6B-Q8_0",
+  "trace_sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7",
+  "requests_per_trial": 24,
+  "policies": {
+    "mixed": {
+      "trials": 1,
+      "successful": 24.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 18.13987830048804,
+      "ttft_p95_ms_median": 13125.9732046,
+      "mean_tpot_p95_ms_median": 400.78890463333335,
+      "goodput_requests_per_second_median": 0.0
+    },
+    "prefill_first": {
+      "trials": 1,
+      "successful": 24.0,
+      "failed": 0.0,
+      "output_tokens_per_second_median": 17.588050908689386,
+      "ttft_p95_ms_median": 12989.178139599997,
+      "mean_tpot_p95_ms_median": 367.6698521100001,
+      "goodput_requests_per_second_median": 0.0
+    }
+  }
+}

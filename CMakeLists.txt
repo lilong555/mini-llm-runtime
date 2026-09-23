@@ -111,13 +111,15 @@ if(LLMSERVE_WITH_LLAMA)
     add_library(llmserve_http src/http_server.cpp)
     target_link_libraries(llmserve_http PUBLIC llmserve_core PRIVATE llmserve_http_vendor vendor::nlohmann)
     add_executable(llmserve apps/server_main.cpp)
-    target_link_libraries(llmserve PRIVATE llmserve_http llmserve_mini llmserve_llama llama)
+    target_link_libraries(llmserve PRIVATE llmserve_http llmserve_mini llmserve_llama llama vendor::nlohmann)
     add_executable(llmserve-bench apps/bench_main.cpp)
     target_link_libraries(llmserve-bench PRIVATE llmserve_http_vendor vendor::nlohmann)
     add_executable(mini-kernel-bench apps/kernel_bench.cpp)
     target_link_libraries(mini-kernel-bench PRIVATE minillm_compute vendor::nlohmann)
     add_executable(mini-kv-cache-bench apps/kv_cache_bench.cpp)
     target_link_libraries(mini-kv-cache-bench PRIVATE minillm_compute vendor::nlohmann)
+    add_executable(mini-runtime-bench apps/runtime_bench.cpp)
+    target_link_libraries(mini-runtime-bench PRIVATE minillm_runtime llama vendor::nlohmann vendor::hash)
 endif()
 
 if(LLMSERVE_BUILD_TESTS)
@@ -126,6 +128,30 @@ if(LLMSERVE_BUILD_TESTS)
     target_link_libraries(llmserve-unit-tests PRIVATE llmserve_core minillm_compute)
     add_test(NAME unit COMMAND llmserve-unit-tests)
     set_tests_properties(unit PROPERTIES TIMEOUT 30)
+    find_package(Python3 COMPONENTS Interpreter QUIET)
+    if(Python3_Interpreter_FOUND)
+        add_test(NAME telemetry-validation COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_validation_tests.py")
+        set_tests_properties(telemetry-validation PROPERTIES TIMEOUT 30)
+    endif()
+    find_program(LLMSERVE_POWERSHELL NAMES pwsh powershell)
+    if(LLMSERVE_POWERSHELL)
+        add_test(NAME benchmark-validation
+            COMMAND "${LLMSERVE_POWERSHELL}" -NoProfile -File
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/benchmark_validation_tests.ps1"
+                -Analyzer "${CMAKE_CURRENT_SOURCE_DIR}/scripts/Analyze-Benchmarks.ps1")
+        set_tests_properties(benchmark-validation PROPERTIES TIMEOUT 60)
+        set(RUNTIME_BENCH_TEST_ARGS)
+        if(LLMSERVE_WITH_LLAMA)
+            list(APPEND RUNTIME_BENCH_TEST_ARGS -Executable $<TARGET_FILE:mini-runtime-bench>)
+        endif()
+        add_test(NAME runtime-benchmark-validation
+            COMMAND "${LLMSERVE_POWERSHELL}" -NoProfile -File
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/runtime_benchmark_tests.ps1"
+                -Analyzer "${CMAKE_CURRENT_SOURCE_DIR}/scripts/Analyze-Runtime.ps1"
+                ${RUNTIME_BENCH_TEST_ARGS})
+        set_tests_properties(runtime-benchmark-validation PROPERTIES TIMEOUT 120)
+    endif()
     if(LLMSERVE_WITH_LLAMA)
         add_executable(llmserve-model-tests tests/model_tests.cpp)
         target_link_libraries(llmserve-model-tests PRIVATE llmserve_mini llmserve_llama llama vendor::nlohmann)

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_id": "20260923T103338Z-a1fe5d327adb-3e015da3",
+  "valid": true,
+  "checked_at_utc": "2026-09-23T10:37:46.7997567Z",
+  "manifest_sha256": "a76b16aeaf0ddb096266e485917abc35825cc239ecbae58d185f0a7677540c67",
+  "checks": [
+    "trace_identity_and_request_set",
+    "report_identity_configuration_and_terminality",
+    "deterministic_output_tokens"
+  ],
+  "reports_expected": 2,
+  "reports_checked": 2,
+  "requests_per_report": 24,
+  "output_reference_successful_requests": 24,
+  "successfully_compared_requests": 48,
+  "errors": []
+}

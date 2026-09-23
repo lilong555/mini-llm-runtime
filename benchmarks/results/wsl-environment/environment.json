@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "kind": "environment_validation",
+  "date": "2026-09-22",
+  "source": {
+    "revision": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "branch": "build/wsl-native",
+    "dirty": true,
+    "tracked_diff_scope": ["CMakeLists.txt", "cmake", "include", "src", "apps", "tests", "scripts"],
+    "tracked_diff_sha256": "631e132a3baace04508759e8f8a1c389e9e9d04791ccd8f97fda3f0e4bbcdefc",
+    "additional_files_sha256": {
+      ".clangd": "2266b6a8bb40fc5061d740e60d4f5d72d7f4b4e11754789f9f2b443d1317f1db",
+      "scripts/cuda_smoke.cu": "aa0bd5ecd6bf936b31ff67b8d804b6f237372def390a0c852da6c184438addd9",
+      "tests/benchmark_validation_tests.ps1": "af89b8b2151e147f477ed11f9a11658fc0371c58cef770ac8809907b3ff46456"
+    }
+  },
+  "system": {
+    "distribution": "Ubuntu 22.04.3 LTS",
+    "kernel": "5.15.167.4-microsoft-standard-WSL2",
+    "cpu": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "logical_cpus": 16,
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "gpu_memory_mib": 8188,
+    "gpu_driver": "591.74",
+    "cuda_architecture": "89",
+    "perf_event_paranoid": 2
+  },
+  "tools": {
+    "gcc": "11.4.0",
+    "clang": "19.1.7",
+    "clangd": "19.1.7",
+    "cmake": "4.4.0",
+    "ninja": "1.13.0.git.kitware.jobserver-pipe-1",
+    "python": "3.10.12",
+    "powershell": "7.6.6",
+    "perf": "5.15.209",
+    "nvcc": "12.8.93",
+    "nsight_systems": "2026.1.3.425-261338342291v0",
+    "nsight_compute": "2025.1.1.0",
+    "cuda_toolkit_path": "/usr/local/cuda-12.8"
+  },
+  "builds": {
+    "cpu": {"directory": "build/wsl-cpu", "type": "RelWithDebInfo", "compiler": "GCC 11.4.0", "cuda": false},
+    "cuda": {"directory": "build/wsl-cuda", "type": "RelWithDebInfo", "compiler": "GCC 11.4.0", "cuda": true},
+    "clang": {"directory": "build/wsl-clang", "type": "Release", "compiler": "Clang 19.1.7", "cuda": false}
+  },
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "models": [
+    {
+      "file": "models/Qwen3-0.6B-Q8_0.gguf",
+      "size_bytes": 639446688,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
+    },
+    {
+      "file": "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+      "size_bytes": 2390150816,
+      "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+    }
+  ],
+  "binaries_sha256": {
+    "build/wsl-cpu/bin/mini-llm": "f04fddee041a8acfbbb7fee9e80835394cb03a27c39e20a94ad0133846f2042d",
+    "build/wsl-cpu/bin/llmserve": "67a2442da42016e60740e353aa6ea1ae7c539484f4dec04759358ffaf0914fc8",
+    "build/wsl-cuda/bin/llmserve": "e2764b6d0013832f1cb44a6171ded193b53996d7973f45b2cd11032710bbeff1",
+    "build/wsl-cpu/bin/llmserve-model-tests": "923e2f1cc6f2a8d6cdcb5b439825b08da691fcd70f90bdc4a414bbbcaadcdadf",
+    "build/wsl-cuda/bin/llmserve-model-tests": "fe2b77e5cd914fce93b2ab94141b7ffe80348770c0f5dd27f4e788187fb6fea8",
+    ".run/cuda-smoke": "e4a17957bf5c798e71edf8a768c92ee7f263de480fdf993625d99b46b8b5f146"
+  },
+  "nsight_systems_package": {
+    "package": "nsight-systems-2026.1.3",
+    "version": "2026.1.3.425-261338342291v0",
+    "url": "https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/nsight-systems-2026.1.3_2026.1.3.425-1_amd64.deb",
+    "size_bytes": 421764948,
+    "sha256": "c7309f1c9850f66a9eb95e7215883b8e8e439df6f65ea0cecd81e6b0181a4e83",
+    "install_root": "/home/li/.local/opt/nsight-systems-2026.1.3",
+    "entrypoint": "/home/li/.local/bin/nsys"
+  },
+  "gpu_counter_validation": {
+    "status": "passed",
+    "report": "benchmarks/results/wsl-environment/ncu-validation.json",
+    "scope": "普通 WSL 用户的单 kernel 基础硬件指标采集"
+  },
+  "local_raw_artifacts_sha256": {
+    ".run/nsys-cuda.nsys-rep": "58534ccf903bb9644e37edccc9cbef1a888bb81225734c5339508ca1a7166ad2",
+    ".run/nsys-cuda.sqlite": "5c6f8fe44db0be9be56e05bd40dcd44bed4e6f03719e7f963218e8eccdb3bbdf",
+    ".run/toolchain-setup/nsys-recheck.nsys-rep": "51b67c1f3608e5584579cfa46a423f39031a35425e8937e835f8f303cca89fe2",
+    ".run/wsl-perf.data": "a0a2f1924d45884120587c054e21c67345bd25287f9387642ca10186f7662cd6",
+    ".run/ncu-check.VX6pb2/launch.ncu-rep": "6c0bc1bf7600e0eb71e5e0be411206d1d3c07a17b094430711de0b88b0deaf70",
+    ".run/ncu-check.VX6pb2/basic.ncu-rep": "8d3b4efc326b5ac7f39c096780de9d7f4b31410e9eb57ace3846f4f290881613"
+  },
+  "limitations": [
+    "ENG-017：CPU 和 CUDA 参照的完整模型验证均在 stats.mixed_batches > 0 处失败",
+    "Nsight Compute 仅验证了单 kernel 基础指标，不代表全部指标或完整模型性能采集已验收",
+    "Nsight Systems 报告当前设备不支持 Unified Memory 跟踪",
+    "perf 仅验证了进程级用户态事件",
+    "环境检查不是性能基线，也不证明自有 CUDA Runtime 已实现"
+  ]
+}

@@ -1,0 +1,15 @@
+# started on Tue Sep 22 19:17:43 2026
+
+
+ Performance counter stats for 'build/wsl-cpu/bin/mini-llm --model models/Qwen3-0.6B-Q8_0.gguf --prompt The capital of France is --tokens 8 --threads 8':
+
+           2811.96 msec task-clock:u              #    3.228 CPUs utilized          
+        9643539665      cycles:u                  #    3.429 GHz                    
+       16683091302      instructions:u            #    1.73  insn per cycle         
+
+       0.871093972 seconds time elapsed
+
+       2.141587000 seconds user
+       0.668593000 seconds sys
+
+

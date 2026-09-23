@@ -1,0 +1,4 @@
+========= COMPUTE-SANITIZER
+GPU=NVIDIA GeForce RTX 4070 Laptop GPU，计算能力=8.9，64 次 kernel，1048593 个结果校验通过
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

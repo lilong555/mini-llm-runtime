@@ -40,6 +40,7 @@ struct StreamResult {
     json usage;
     std::string error;
     int done = 0;
+    json telemetry = json::array();
 };
 
 class Frames {
@@ -73,6 +74,7 @@ void capture(StreamResult& output, const std::string& payload) {
         output.text += value.at("choices").at(0).at("text").get<std::string>();
         if (value.contains("token_id")) {
             output.tokens.push_back(value.at("token_id").get<std::int32_t>());
+            output.telemetry.push_back(value.value("telemetry", json(nullptr)));
         }
         if (value.contains("usage")) {
             output.usage = value.at("usage");
@@ -139,6 +141,19 @@ int main(int argc, char** argv) {
         CHECK(streamed.tokens == full.at("token_ids").get<std::vector<std::int32_t>>());
         CHECK(streamed.usage.at("completion_tokens") == 8);
         CHECK(streamed.usage.at("prompt_tokens") == full.at("usage").at("prompt_tokens"));
+        for (std::size_t i = 0; i < streamed.telemetry.size(); ++i) {
+            const auto& token = streamed.telemetry[i];
+            if (before.value("telemetry_mode", "off") == "off") {
+                CHECK(token.is_null());
+            } else {
+                CHECK(token.at("token_index") == i && token.at("batch_id").get<std::uint64_t>() > 0);
+                CHECK(token.at("engine_elapsed_ns").get<std::uint64_t>() > 0);
+                if (i > 0) {
+                    CHECK(token.at("batch_id") > streamed.telemetry[i - 1].at("batch_id"));
+                    CHECK(token.at("request_order") == streamed.telemetry[0].at("request_order"));
+                }
+            }
+        }
         checks.push_back("stream_nonstream_text_tokens_and_usage_match");
         report["sample"] = full;
 

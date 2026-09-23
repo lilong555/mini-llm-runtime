@@ -1,4 +1,5 @@
 #include "test_support.h"
+#include "gated_runner.h"
 
 #include "llmserve/block_pool.h"
 #include "llmserve/engine.h"
@@ -354,6 +355,62 @@ TEST(parallel_executor_exact_coverage_and_exception_recovery) {
     CHECK(count == 10);
 }
 
+TEST(parallel_profile_accounting_and_reuse) {
+    for (const std::size_t threads : {1, 4}) {
+        minillm::ParallelExecutor executor(threads);
+        minillm::ParallelProfile profile;
+        for (int repeat = 0; repeat < 20; ++repeat) {
+            std::vector<int> values(1003);
+            executor.run(values.size(), 7, [&](auto begin, auto end) {
+                for (auto i = begin; i < end; ++i) {
+                    ++values[i];
+                }
+            }, &profile);
+            CHECK(std::all_of(values.begin(), values.end(), [](int n) { return n == 1; }));
+            CHECK(profile.completed);
+            CHECK(profile.count == values.size() && profile.grain == 7 && profile.threads == threads);
+            CHECK(profile.chunks == (values.size() + 6) / 7);
+            CHECK(profile.participating_threads >= 1 && profile.participating_threads <= threads);
+            CHECK(profile.dispatch_ns + profile.caller_work_ns + profile.caller_wait_ns <= profile.wall_ns);
+            CHECK(profile.worker_work_max_ns <= profile.wall_ns);
+            CHECK(profile.worker_start_delay_max_ns <= profile.wall_ns);
+            CHECK(profile.worker_work_sum_ns <= profile.wall_ns * (threads - 1));
+            if (threads == 1) {
+                CHECK(profile.worker_work_sum_ns == 0 && profile.worker_start_delay_max_ns == 0);
+            }
+        }
+        executor.run(0, 1, [](auto, auto) { throw std::runtime_error("must not execute"); }, &profile);
+        CHECK(profile.completed && profile.count == 0 && profile.chunks == 0);
+        test::throws<std::invalid_argument>([&] { executor.run(1, 0, [](auto, auto) {}, &profile); });
+        CHECK(!profile.completed && profile.count == 1 && profile.chunks == 0);
+        test::throws<std::runtime_error>([&] {
+            executor.run(10, 1, [](auto, auto) { throw std::runtime_error("injected"); }, &profile);
+        });
+        CHECK(!profile.completed && profile.count == 10 && profile.wall_ns > 0);
+        std::atomic<int> count{0};
+        executor.run(17, 1, [&](auto, auto) { ++count; });
+        CHECK(count == 17);
+        executor.run(17, 1, [](auto, auto) {}, &profile);
+        CHECK(profile.completed && profile.chunks == 17);
+    }
+}
+
+TEST(forward_profile_reserve_failure_clears_stale_success) {
+    minillm::ForwardProfile profile;
+    profile.batch_id = 17;
+    profile.completed = true;
+    profile.wall_ns = 42;
+    profile.input_tokens = 2;
+    profile.stages.reserve(2);
+    profile.stages.push_back({minillm::ProfileStage::embedding});
+    const auto capacity = profile.stages.capacity();
+    test::throws<std::length_error>([&] { profile.reset(profile.stages.max_size() + 1); });
+    CHECK(!profile.completed && profile.wall_ns == 0 && profile.input_tokens == 0);
+    CHECK(profile.batch_id == 17 && profile.stages.empty() && profile.stages.capacity() == capacity);
+    profile.reset(4);
+    CHECK(profile.batch_id == 17 && !profile.completed && profile.stages.capacity() >= 4);
+}
+
 struct Probe {
     std::atomic<int> delay_ms{0};
     std::atomic<bool> fail{false};
@@ -415,6 +472,7 @@ struct Collected {
     std::string text;
     std::vector<Token> tokens;
     Event terminal;
+    std::vector<TokenTelemetry> telemetry;
 };
 
 static Collected collect(const std::shared_ptr<RequestHandle>& handle) {
@@ -425,6 +483,7 @@ static Collected collect(const std::shared_ptr<RequestHandle>& handle) {
             result.text += event->text;
             if (event->token) {
                 result.tokens.push_back(*event->token);
+                if (event->telemetry) { result.telemetry.push_back(*event->telemetry); }
             }
             if (event->kind != Event::Kind::token) {
                 result.terminal = std::move(*event);
@@ -478,6 +537,37 @@ TEST(engine_serial_batched_and_cached_outputs_agree) {
     CHECK(engine.statistics().cache_hits >= 8);
 }
 
+TEST(engine_mixed_batch_after_deterministic_request_injection) {
+    for (int repeat = 0; repeat < 10; ++repeat) {
+        EngineConfig config;
+        config.max_active = 3;
+        config.batch_tokens = 8;
+        config.prefill_chunk = 4;
+        auto gate = std::make_shared<test::RunnerGate>();
+        Engine engine(config, std::make_unique<test::GatedRunner>(
+            std::make_unique<FakeRunner>(), gate));
+        std::vector<std::shared_ptr<RequestHandle>> handles;
+        try {
+            handles.push_back(engine.submit(request("first prompt", 4)));
+            gate->wait_until_sampled();
+            handles.push_back(engine.submit(request("second prompt", 4)));
+            handles.push_back(engine.submit(request("third prompt", 4)));
+        } catch (...) {
+            gate->release();
+            throw;
+        }
+        gate->release();
+        for (const auto& handle : handles) {
+            const auto result = collect(handle);
+            CHECK(result.terminal.status == 200);
+            CHECK(result.tokens.size() == 4);
+        }
+        check_idle(engine);
+        CHECK(engine.statistics().mixed_batches > 0);
+        CHECK(engine.statistics().max_batch_sequences > 1);
+    }
+}
+
 TEST(engine_cache_namespace_and_full_hit_recompute) {
     EngineConfig config;
     config.block_size = 4;
@@ -490,6 +580,112 @@ TEST(engine_cache_namespace_and_full_hit_recompute) {
     input.cache_namespace = "isolated";
     CHECK(collect(engine.submit(input)).terminal.usage.cached_tokens == 0);
     check_idle(engine);
+}
+
+TEST(engine_telemetry_links_mixed_batches_and_cached_tokens) {
+    for (const auto mode : {TelemetryMode::batches, TelemetryMode::stages}) {
+        EngineConfig config;
+        config.telemetry_mode = mode;
+        config.telemetry_capacity = 64;
+        config.max_active = 3;
+        config.batch_tokens = 8;
+        config.prefill_chunk = 4;
+        config.block_size = 4;
+        auto gate = std::make_shared<test::RunnerGate>();
+        Engine engine(config, std::make_unique<test::GatedRunner>(std::make_unique<FakeRunner>(), gate));
+        test::throws<std::logic_error>([&] { engine.telemetry(); });
+        std::vector<std::shared_ptr<RequestHandle>> handles;
+        try {
+            handles.push_back(engine.submit(request("a cached first prompt", 4)));
+            gate->wait_until_sampled();
+            handles.push_back(engine.submit(request("second prompt", 4)));
+            handles.push_back(engine.submit(request("third prompt", 4)));
+        } catch (...) {
+            gate->release();
+            throw;
+        }
+        gate->release();
+        std::map<std::string, Collected> results;
+        for (const auto& handle : handles) { results.emplace(handle->id(), collect(handle)); }
+        auto cached = engine.submit(request("a cached first prompt", 4));
+        results.emplace(cached->id(), collect(cached));
+        CHECK(results.at(cached->id()).tokens == results.at(handles.front()->id()).tokens);
+        CHECK(results.at(cached->id()).terminal.usage.cached_tokens > 0);
+        engine.stop();
+        const auto& capture = engine.telemetry();
+        CHECK(capture.recorded == engine.statistics().batches && capture.dropped == 0);
+        CHECK(capture.storage_bytes > 0 && !capture.resources_final);
+        std::size_t emitted = 0, mixed = 0;
+        std::uint64_t previous_finish = 0;
+        for (std::size_t i = 0; i < capture.recorded; ++i) {
+            const auto& batch = capture.batches[i];
+            CHECK(batch.batch_id == i + 1 && batch.completed && batch.runner_completed);
+            CHECK(batch.start_ns >= previous_finish);
+            CHECK(batch.start_ns + batch.admission_ns + batch.scheduler_ns + batch.prepare_ns == batch.runner_start_ns);
+            CHECK(batch.runner_start_ns + batch.runner_ns <= batch.finish_ns);
+            CHECK(!batch.runner.available && !batch.resources_before && !batch.resources_after);
+            mixed += batch.prefill_tokens > 0 && batch.decode_tokens > 0;
+            std::size_t before = 0, after = 0, logits = 0, tokens = 0;
+            for (std::size_t j = 0; j < batch.sequences; ++j) {
+                const auto& slice = batch.slices[j];
+                before += slice.context_before;
+                after += slice.context_before + slice.tokens;
+                logits += slice.logits_tokens;
+                tokens += slice.tokens;
+                if (!slice.emitted) { continue; }
+                ++emitted;
+                const auto& result = results.at(slice.request_id.data());
+                CHECK(result.terminal.status == 200 && result.telemetry.size() == result.tokens.size());
+                const auto& event = result.telemetry.at(slice.token_index);
+                CHECK(event.batch_id == batch.batch_id && event.request_order == slice.request_order);
+                CHECK(event.engine_elapsed_ns == slice.emitted_ns && event.token_index == slice.token_index);
+                CHECK(slice.sampled_token == result.tokens.at(slice.token_index));
+                CHECK(slice.emitted_ns >= batch.runner_start_ns + batch.runner_ns);
+                CHECK(slice.emitted_ns <= batch.finish_ns);
+            }
+            CHECK(before == batch.context_before_sum && after == batch.context_after_sum);
+            CHECK(tokens == batch.prefill_tokens + batch.decode_tokens && logits == batch.logits_tokens);
+            previous_finish = batch.finish_ns;
+        }
+        CHECK(emitted == 16 && mixed > 0);
+    }
+}
+
+TEST(engine_telemetry_overflow_preserves_output_and_reports_loss) {
+    std::vector<Token> baseline;
+    for (const auto mode : {TelemetryMode::off, TelemetryMode::batches, TelemetryMode::stages}) {
+        EngineConfig config;
+        config.telemetry_mode = mode;
+        config.telemetry_capacity = 1;
+        Engine engine(config, std::make_unique<FakeRunner>());
+        const auto result = collect(engine.submit(request("bounded capture", 8)));
+        CHECK(result.terminal.status == 200);
+        engine.stop();
+        const auto& capture = engine.telemetry();
+        if (mode == TelemetryMode::off) {
+            baseline = result.tokens;
+            CHECK(capture.batches.empty() && capture.storage_bytes == 0 && result.telemetry.empty());
+        } else {
+            CHECK(result.tokens == baseline && result.telemetry.size() == baseline.size());
+            CHECK(capture.recorded == 1 && capture.batches.size() == 1);
+            CHECK(capture.dropped + 1 == engine.statistics().batches);
+        }
+    }
+}
+
+TEST(engine_telemetry_backend_failure_is_incomplete) {
+    auto probe = std::make_shared<Probe>();
+    probe->fail = true;
+    EngineConfig config;
+    config.telemetry_mode = TelemetryMode::stages;
+    Engine engine(config, std::make_unique<FakeRunner>(probe));
+    CHECK(collect(engine.submit(request("failure"))).terminal.error_code == "backend_error");
+    engine.stop();
+    const auto& capture = engine.telemetry();
+    CHECK(capture.recorded == 1 && capture.dropped == 0);
+    CHECK(!capture.batches[0].completed && !capture.batches[0].runner_completed);
+    CHECK(capture.batches[0].finish_ns >= capture.batches[0].runner_start_ns + capture.batches[0].runner_ns);
+    CHECK(engine.statistics().kv_used_blocks == 0);
 }
 
 TEST(engine_context_validation_and_duplicate_ids) {

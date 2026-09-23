@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "methods": {
+    "scheduler_percent": "100 * sum(scheduler_ns) / sum(finish_ns - start_ns)，排除预热 batch。",
+    "interval_overlap": "同一请求相邻 token 的 [engine_elapsed_ns 前值, 后值]，与每个 runner/scheduler 区间取交集后相加。",
+    "context": "每个独立进程的 32 次纯 decode；KV 随生成增长，不是固定 KV 长度重复测量。"
+  },
+  "hypotheses": [
+    {
+      "id": "H-008-scheduler-cost",
+      "hypothesis": "scheduler 自身计算是本组 Serving 延迟的主要来源",
+      "status": "在已测输入范围内排除",
+      "evidence": [
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-0-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0006743233528797996,
+          "admission_percent": 0.0020326608644986935,
+          "runner_percent": 99.96426653915998
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-0-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0008762191612967453,
+          "admission_percent": 0.0023510134161401144,
+          "runner_percent": 99.96506532221157
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-0-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0006923818266021586,
+          "admission_percent": 0.005137389228318126,
+          "runner_percent": 99.9615048406582
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0007933784900739483,
+          "admission_percent": 0.004686442013599822,
+          "runner_percent": 99.96068578412722
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-1-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0008667796256302755,
+          "admission_percent": 0.0023060454065340916,
+          "runner_percent": 99.96160824866536
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-1-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0007777413979645493,
+          "admission_percent": 0.002288738092432481,
+          "runner_percent": 99.96464461316604
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-1-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0009182792683902978,
+          "admission_percent": 0.0024404582123129753,
+          "runner_percent": 99.9661124810126
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-1-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0006699687720756062,
+          "admission_percent": 0.001866189503261109,
+          "runner_percent": 99.96537075791315
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-2-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0006968006027972121,
+          "admission_percent": 0.002013975834254567,
+          "runner_percent": 99.96364651163755
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-2-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0007917361169215728,
+          "admission_percent": 0.002359318294936982,
+          "runner_percent": 99.96320216691602
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-2-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0007375291412486427,
+          "admission_percent": 0.002229497358467985,
+          "runner_percent": 99.96599879796622
+        },
+        {
+          "group": "mixed",
+          "directory": "mixed/trial-2-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0007694212686643426,
+          "admission_percent": 0.0022779817921092065,
+          "runner_percent": 99.96677417296192
+        },
+        {
+          "group": "low-load",
+          "directory": "low-load/trial-0-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.001966519329163165,
+          "admission_percent": 0.00127730472464156,
+          "runner_percent": 99.95779678859886
+        },
+        {
+          "group": "low-load",
+          "directory": "low-load/trial-0-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0019821010271857693,
+          "admission_percent": 0.0012399917184632747,
+          "runner_percent": 99.95802534736606
+        },
+        {
+          "group": "low-load",
+          "directory": "low-load/trial-0-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0020736773671934327,
+          "admission_percent": 0.0011896906804984,
+          "runner_percent": 99.95475885759585
+        },
+        {
+          "group": "low-load",
+          "directory": "low-load/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0017918008444111823,
+          "admission_percent": 0.0012667611162053365,
+          "runner_percent": 99.95785947097654
+        },
+        {
+          "group": "context-16",
+          "directory": "context-16/trial-0-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0036070456178258444,
+          "admission_percent": 0.001543325998539184,
+          "runner_percent": 99.9355157979241
+        },
+        {
+          "group": "context-16",
+          "directory": "context-16/trial-0-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.003560816965149975,
+          "admission_percent": 0.0018485148125109887,
+          "runner_percent": 99.93149353788812
+        },
+        {
+          "group": "context-16",
+          "directory": "context-16/trial-0-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0032677983907263503,
+          "admission_percent": 0.0015943850329534696,
+          "runner_percent": 99.9346463162411
+        },
+        {
+          "group": "context-16",
+          "directory": "context-16/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0036435307926067154,
+          "admission_percent": 0.0015634597485222285,
+          "runner_percent": 99.929216730539
+        },
+        {
+          "group": "context-256",
+          "directory": "context-256/trial-0-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.00147905435726411,
+          "admission_percent": 0.0006359313110741936,
+          "runner_percent": 99.97484978132631
+        },
+        {
+          "group": "context-256",
+          "directory": "context-256/trial-0-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0015853606960642573,
+          "admission_percent": 0.0007054588998152402,
+          "runner_percent": 99.97329821309796
+        },
+        {
+          "group": "context-256",
+          "directory": "context-256/trial-0-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0015654120851753984,
+          "admission_percent": 0.0006391587085306874,
+          "runner_percent": 99.9753538406754
+        },
+        {
+          "group": "context-256",
+          "directory": "context-256/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.001462541132474843,
+          "admission_percent": 0.0006310703684656818,
+          "runner_percent": 99.97705277032404
+        },
+        {
+          "group": "context-1536",
+          "directory": "context-1536/trial-0-batches",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0005633426170646411,
+          "admission_percent": 0.00021409410692139157,
+          "runner_percent": 99.99387708133398
+        },
+        {
+          "group": "context-1536",
+          "directory": "context-1536/trial-0-batches",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0005402140247589334,
+          "admission_percent": 0.00022883799122666717,
+          "runner_percent": 99.99336632617663
+        },
+        {
+          "group": "context-1536",
+          "directory": "context-1536/trial-0-stages",
+          "file": "mixed-0.json",
+          "scheduler_percent": 0.0005573463074807627,
+          "admission_percent": 0.00021111150006302283,
+          "runner_percent": 99.99400489083305
+        },
+        {
+          "group": "context-1536",
+          "directory": "context-1536/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "scheduler_percent": 0.0005292163926947271,
+          "admission_percent": 0.00020964044780063723,
+          "runner_percent": 99.9944166384274
+        }
+      ],
+      "limit": "不排除策略通过改变执行顺序或 batch 组成影响等待和 ITL。"
+    },
+    {
+      "id": "H-008-prefill-interference",
+      "hypothesis": "prefill 的模型执行占据部分 decode 输出间隔",
+      "status": "获得在线时间线支持，尚无独立执行优化的因果对照",
+      "evidence": [
+        {
+          "directory": "mixed/trial-0-stages",
+          "file": "mixed-0.json",
+          "request_id": "s0-r9",
+          "token_index": 1,
+          "previous_batch_id": 28,
+          "batch_id": 29,
+          "client_itl_ms": 1463.7757150000007,
+          "engine_itl_ms": 1463.938704,
+          "runner_overlap_ms": 1463.754074,
+          "scheduler_overlap_ms": 0.002886,
+          "overlapping_prefill_tokens": 96
+        },
+        {
+          "directory": "mixed/trial-0-stages",
+          "file": "prefill_first-0.json",
+          "request_id": "s0-r1",
+          "token_index": 1,
+          "previous_batch_id": 10,
+          "batch_id": 17,
+          "client_itl_ms": 3673.8605549999997,
+          "engine_itl_ms": 3673.993311,
+          "runner_overlap_ms": 3673.558444,
+          "scheduler_overlap_ms": 0.012814,
+          "overlapping_prefill_tokens": 272
+        },
+        {
+          "directory": "mixed/trial-1-stages",
+          "file": "prefill_first-0.json",
+          "request_id": "s0-r1",
+          "token_index": 1,
+          "previous_batch_id": 10,
+          "batch_id": 17,
+          "client_itl_ms": 3534.4305980000004,
+          "engine_itl_ms": 3534.383883,
+          "runner_overlap_ms": 3534.019232,
+          "scheduler_overlap_ms": 0.014269,
+          "overlapping_prefill_tokens": 272
+        },
+        {
+          "directory": "mixed/trial-1-stages",
+          "file": "mixed-0.json",
+          "request_id": "s0-r9",
+          "token_index": 1,
+          "previous_batch_id": 28,
+          "batch_id": 29,
+          "client_itl_ms": 1250.2650539999995,
+          "engine_itl_ms": 1250.324774,
+          "runner_overlap_ms": 1250.158488,
+          "scheduler_overlap_ms": 0.002766,
+          "overlapping_prefill_tokens": 96
+        },
+        {
+          "directory": "mixed/trial-2-stages",
+          "file": "mixed-0.json",
+          "request_id": "s0-r12",
+          "token_index": 13,
+          "previous_batch_id": 44,
+          "batch_id": 45,
+          "client_itl_ms": 1230.420956,
+          "engine_itl_ms": 1230.425395,
+          "runner_overlap_ms": 1230.263227,
+          "scheduler_overlap_ms": 0.002274,
+          "overlapping_prefill_tokens": 96
+        },
+        {
+          "directory": "mixed/trial-2-stages",
+          "file": "prefill_first-0.json",
+          "request_id": "s0-r1",
+          "token_index": 1,
+          "previous_batch_id": 10,
+          "batch_id": 17,
+          "client_itl_ms": 3466.988911,
+          "engine_itl_ms": 3467.043786,
+          "runner_overlap_ms": 3466.722977,
+          "scheduler_overlap_ms": 0.013043,
+          "overlapping_prefill_tokens": 272
+        }
+      ],
+      "limit": "阶段时间共享；不能将同一矩阵时间分别完整分配给 prefill 与 decode。"
+    },
+    {
+      "id": "H-018-attention-growth",
+      "hypothesis": "attention 对长上下文 decode 成本增长有可测贡献",
+      "status": "单轮诊断支持，具体页访问成本待分离",
+      "evidence": [
+        {
+          "initial_kv": 16,
+          "policy": "mixed",
+          "samples": 32,
+          "context_min": 16,
+          "context_max": 47,
+          "runner_ms": 47.799024,
+          "attention_ms": 2.038596,
+          "lm_head_ms": 7.41035,
+          "directory": "context-16/trial-0-stages",
+          "file": "mixed-0.json"
+        },
+        {
+          "initial_kv": 16,
+          "policy": "prefill_first",
+          "samples": 32,
+          "context_min": 16,
+          "context_max": 47,
+          "runner_ms": 43.554479,
+          "attention_ms": 1.9516944999999999,
+          "lm_head_ms": 6.694913,
+          "directory": "context-16/trial-0-stages",
+          "file": "prefill_first-0.json"
+        },
+        {
+          "initial_kv": 256,
+          "policy": "mixed",
+          "samples": 32,
+          "context_min": 256,
+          "context_max": 287,
+          "runner_ms": 49.6359395,
+          "attention_ms": 3.9019649999999997,
+          "lm_head_ms": 7.557311,
+          "directory": "context-256/trial-0-stages",
+          "file": "mixed-0.json"
+        },
+        {
+          "initial_kv": 256,
+          "policy": "prefill_first",
+          "samples": 32,
+          "context_min": 256,
+          "context_max": 287,
+          "runner_ms": 47.641135,
+          "attention_ms": 3.6214655000000002,
+          "lm_head_ms": 7.310107,
+          "directory": "context-256/trial-0-stages",
+          "file": "prefill_first-0.json"
+        },
+        {
+          "initial_kv": 1536,
+          "policy": "mixed",
+          "samples": 32,
+          "context_min": 1536,
+          "context_max": 1567,
+          "runner_ms": 58.953176,
+          "attention_ms": 15.3557855,
+          "lm_head_ms": 6.9601225,
+          "directory": "context-1536/trial-0-stages",
+          "file": "mixed-0.json"
+        },
+        {
+          "initial_kv": 1536,
+          "policy": "prefill_first",
+          "samples": 32,
+          "context_min": 1536,
+          "context_max": 1567,
+          "runner_ms": 60.702124999999995,
+          "attention_ms": 16.201653999999998,
+          "lm_head_ms": 7.249497,
+          "directory": "context-1536/trial-0-stages",
+          "file": "prefill_first-0.json"
+        }
+      ],
+      "limit": "每种策略、模式仅一个独立进程；QK、softmax、PV 和页查找未分离，也没有同源码布局切换对照。"
+    }
+  ]
+}

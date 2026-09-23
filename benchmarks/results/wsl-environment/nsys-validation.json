@@ -1,0 +1,9 @@
+{
+  "kernel_events": 64,
+  "memcpy_events": 3,
+  "diagnostics": [
+    [
+      "CUDA device 0: Unified Memory cannot be traced on devices that don't support peer-to-peer transfers.Please verify that SLI/NVLink is functioning properly."
+    ]
+  ]
+}

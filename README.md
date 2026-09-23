@@ -34,12 +34,28 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | Prefix cache | token Trie、命名空间、完整块复用、LRU 淘汰；全命中时重算最后一块 |
 | 服务 | C++ HTTP/SSE、取消、超时、断连回收、慢消费者背压、严格参数校验 |
 | 实验 | scalar/SIMD 微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
+| 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
 支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 在 CPU 执行，CUDA 执行通过 llama.cpp 后端提供。
 
 不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自研 CUDA PagedAttention。自有 CPU paged attention 与上游 GPU attention 必须分别评价。
 
 ## 快速运行
+
+### WSL2 原生开发（默认）
+
+主工作区：Ubuntu `/home/li/code/mini-llm-runtime`。源码、依赖、模型与构建产物位于 Linux 文件系统。
+
+```bash
+cd /home/li/code/mini-llm-runtime
+bash scripts/dev.sh dependencies
+bash scripts/dev.sh model
+bash scripts/dev.sh build
+bash scripts/dev.sh test
+bash scripts/dev.sh serve --port 8000
+```
+
+完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
 
 ### Windows / PowerShell
 
@@ -138,6 +154,12 @@ ctest --test-dir build\cpu --output-on-failure
 .\scripts\Benchmark-Policies.ps1 -Backend mini -Trace benchmarks\traces\cpu-mixed-s0.jsonl
 ```
 
+WSL 原生入口为 `bash scripts/dev.sh benchmark -Trace benchmarks/traces/cpu-mixed-s0.jsonl`。策略对照的实验身份、源码快照、合法失败终态和严格验收规则见 [策略回放与验收](docs/BENCHMARKS.md)。
+
+`bash scripts/dev.sh runtime-benchmark` 直接测量 CPU Runtime 的固定 prefill、decode 和 mixed 输入，交替采集无计时与分阶段计时的独立进程，核对完整 logits 摘要及 KV 状态。接口、矩阵形状、线程池等待时间和开销边界见 [Runtime 计时与模型基准](docs/RUNTIME_PROFILING.md)。
+
+`scripts/Benchmark-Telemetry.ps1` 交替运行 `off / batches / stages` 与两种调度策略，关联每个 SSE token 的 batch、Engine 发布间隔及客户端 ITL。数据结构、到达率缩放、有界采集与验收见 [在线 batch 与 token 时间线](docs/BATCH_TELEMETRY.md)。
+
 对照只改变 `mixed` / `prefill_first` 策略，每次重启服务、执行相同 warmup、交替运行顺序。报告保留逐请求 token ID、token 到达时间、失败、调度延迟和服务端配置；失败请求不会从总请求数中删除。
 
 结果与限制见 [验证记录](docs/VALIDATION.md)。SIMD 内核的微基准加速不能当作模型或 Serving 的端到端加速。
@@ -176,7 +198,7 @@ benchmarks/          固定输入及实测报告
 
 ## 版本与问题管理
 
-本仓库可公开发布；`main` 为主分支，功能改动使用独立分支与有意义的提交，已发布标签不覆盖。具体约定见 [VERSION_CONTROL.md](docs/VERSION_CONTROL.md)。
+本仓库公开发布；`main` 为主分支，功能改动使用独立分支与有意义的提交，已发布标签不覆盖。具体约定见 [VERSION_CONTROL.md](docs/VERSION_CONTROL.md)。
 
 遇到的问题按编号记录在 [ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md)，包含现象、原因、解决方法、验证证据和仍未解决的事项。模型权重、第三方 checkout、构建产物、运行状态与本地 Python 辅助实验不上传。
 
@@ -189,4 +211,4 @@ benchmarks/          固定输入及实测报告
 3. 打通物理 KV 观测，验证公平性与真实内存压力，按证据推进成本感知调度和可证明前进的增量准入。
 4. 建立权重常驻、连续 GPU KV 与自有 CUDA forward，接入 Serving 后再实现 GPU 分页 KV 和自研 PagedAttention。
 
-近期从计划中的 `PLAN-001`～`PLAN-003` 开始；Radix/hash 索引、抢占和其他扩展以测量结果为进入条件。
+`PLAN-002` 的离线模型级 profiler 与基准已验收，结果见 [WSL Runtime 阶段基线](benchmarks/results/wsl-runtime-profile/README.md)。`PLAN-003` 提供有界在线 batch/token 关联与阶段验收，近期主线是 attention/KV 成本细分，同时补齐 `PLAN-001` 剩余身份范围和 `PLAN-004` 数值覆盖；Radix/hash 索引、抢占和其他扩展以测量结果为进入条件。

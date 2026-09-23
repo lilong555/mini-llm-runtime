@@ -1,0 +1,191 @@
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+...........................................................................
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+logits rmse=0.00205502 max_abs=0.0101852 cosine=1
+logits rmse=0.00198538 max_abs=0.00885487 cosine=1
+logits rmse=0.00115972 max_abs=0.00476313 cosine=1
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+logits rmse=2.20049e-05 max_abs=0.000125885 cosine=1
+logits rmse=0 max_abs=0 cosine=1
+logits rmse=0 max_abs=0 cosine=1
+logits rmse=0 max_abs=0 cosine=1
+logits rmse=0 max_abs=0 cosine=1
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+{
+  "checks": [
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999998904712761,
+        "max_abs": 0.01018524169921875,
+        "rmse": 0.002055020325772973
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "The capital of France is"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999996758779813,
+        "max_abs": 0.008854866027832031,
+        "rmse": 0.001985378578647471
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "One plus one equals"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999998739311504,
+        "max_abs": 0.004763126373291016,
+        "rmse": 0.0011597194832776404
+      },
+      "name": "teacher_forced_logits",
+      "prompt": "Memory is important because"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 0.9999999999758241,
+        "max_abs": 0.000125885009765625,
+        "rmse": 2.2004889026196954e-05
+      },
+      "name": "scalar_simd_logits"
+    },
+    {
+      "chunk": 1,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "chunk": 7,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "chunk": 16,
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "chunk_boundary_logits"
+    },
+    {
+      "metrics": {
+        "argmax_equal": true,
+        "cosine": 1.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "name": "paged_tail_copy_on_write_logits"
+    },
+    {
+      "name": "physical_kv_reclaimed",
+      "used_pages": 0
+    },
+    {
+      "cache_hits": 1,
+      "greedy_generations_matched": 4,
+      "injection": "after_first_prefill_before_next_iteration",
+      "max_batch_sequences": 3,
+      "mixed_batches": 1,
+      "name": "real_continuous_batching_and_prefix_cache"
+    }
+  ],
+  "generations": [
+    {
+      "actual": [
+        12095,
+        13,
+        576,
+        6722,
+        315,
+        9625,
+        374,
+        1083
+      ],
+      "prompt": "The capital of France is",
+      "reference": [
+        12095,
+        13,
+        576,
+        6722,
+        315,
+        9625,
+        374,
+        1083
+      ]
+    },
+    {
+      "actual": [
+        825,
+        11,
+        825,
+        5519,
+        825,
+        16819,
+        1378,
+        13
+      ],
+      "prompt": "One plus one equals",
+      "reference": [
+        825,
+        11,
+        825,
+        5519,
+        825,
+        16819,
+        1378,
+        13
+      ]
+    },
+    {
+      "actual": [
+        432,
+        6147,
+        601,
+        311,
+        3535,
+        279,
+        1879,
+        2163
+      ],
+      "prompt": "Memory is important because",
+      "reference": [
+        432,
+        6147,
+        601,
+        311,
+        3535,
+        279,
+        1879,
+        2163
+      ]
+    }
+  ],
+  "kernel": "avx2-fma-f16c",
+  "model_path": "models/Qwen3-0.6B-Q8_0.gguf",
+  "passed": 10,
+  "reference_gpu_layers": 0,
+  "reference_model_path": "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+  "status": "passed",
+  "threads": 8,
+  "thresholds": {
+    "reference_cosine": 0.9999,
+    "reference_max_abs": 0.5,
+    "reference_rmse": 0.05,
+    "same_runtime_max_abs": 1e-05
+  }
+}

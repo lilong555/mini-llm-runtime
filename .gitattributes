@@ -7,6 +7,7 @@
 *.json text
 # Replay digests cover raw trace bytes, including line endings.
 *.jsonl -text whitespace=cr-at-eol
+benchmarks/results/wsl-environment/*.txt -text whitespace=-blank-at-eol,-blank-at-eof
 *.yml text
 *.xml text
 *.png binary

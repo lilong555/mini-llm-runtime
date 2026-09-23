@@ -1,0 +1,2 @@
+{"request_id":"active","class_name":"active","arrival_s":0,"request":{"prompt":"The capital of France is","max_tokens":16,"ignore_eos":true,"timeout_ms":120000}}
+{"request_id":"rejected","class_name":"rejected","arrival_s":0.02,"request":{"prompt":"Hello","max_tokens":2,"ignore_eos":true,"timeout_ms":120000}}

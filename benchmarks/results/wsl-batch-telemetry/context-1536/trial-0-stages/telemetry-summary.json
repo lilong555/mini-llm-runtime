@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "reports": [
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages",
+      "file": "mixed-0.json",
+      "mode": "stages",
+      "policy": "mixed",
+      "trial": 0,
+      "condition_sha256": "1cce2489d9b1ecb40bfe72aae7b7f21b98053c75ce581bd3cd98a3a1a4138398",
+      "manifest_sha256": "e0eaf103b499c90231b47b0f8d692039d25019280a01d92ab015f4120d6c8fb1",
+      "report_sha256": "15c2010b2740c733039205eb3a6229b0613af8aa14e5e7a03b094d058737e8d0",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.094844,
+          "p95": 0.094844,
+          "p99": 0.094844
+        },
+        "e2e_ms": {
+          "p50": 24443.153183,
+          "p95": 24443.153183,
+          "p99": 24443.153183
+        },
+        "elapsed_s": 24.443248027,
+        "failed": 0,
+        "goodput_requests_per_second": 0.0,
+        "inter_token_ms": {
+          "p50": 59.05735099999947,
+          "p95": 64.28236510000079,
+          "p99": 65.74162171999993
+        },
+        "mean_tpot_ms": {
+          "p50": 59.53719012499994,
+          "p95": 59.53719012499994,
+          "p99": 59.53719012499994
+        },
+        "output_tokens_per_second": 1.35006607810665,
+        "requests": 1,
+        "slo_compliant": 0,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 22537.770538,
+          "p95": 22537.770538,
+          "p99": 22537.770538
+        }
+      },
+      "metrics_batch_delta": 80,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "36517ebfa1f1e43884b5fe60e9d9486f76fdabf6122ddd4430c01bd828cfc931",
+      "batches": {
+        "batches": 80,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:32+0": 48
+        },
+        "iteration_sum_ms": 24440.639181,
+        "scheduler_percent": 0.0005573463074807627,
+        "admission_percent": 0.00021111150006302283,
+        "runner_percent": 99.99400489083305,
+        "runner_ms": {
+          "count": 80,
+          "min": 56.819365,
+          "max": 605.358513,
+          "p50": 407.3850605,
+          "p95": 565.16446745,
+          "p99": 584.3908030499998
+        },
+        "stage_sum_ms": {
+          "kv_prepare": 56.001571,
+          "embedding": 2.099477,
+          "rope_prepare": 1.455829,
+          "attention_norm": 181.05001,
+          "query_projection": 2408.282515,
+          "key_projection": 1290.555701,
+          "value_projection": 1288.263305,
+          "qk_norm_rope_kv": 204.396852,
+          "attention": 4984.655981,
+          "output_projection": 2488.730092,
+          "attention_residual": 14.987607,
+          "ffn_norm": 180.672843,
+          "gate_projection": 3537.360187,
+          "up_projection": 3561.136783,
+          "swiglu": 218.649839,
+          "down_projection": 3750.437522,
+          "ffn_residual": 15.390239,
+          "final_norm": 0.086653,
+          "lm_head": 234.046388
+        }
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 66.24056299999938,
+          "engine_max_itl_ms": 66.504135,
+          "interval_residual_ms": [
+            0.23303799999861496,
+            -0.26357200000062164,
+            -0.10653099999903048,
+            -0.009304000001023383,
+            -0.026690999998848497,
+            0.1302929999999236,
+            -0.05741099999818289,
+            -0.08520600000198186,
+            0.052855000001166275,
+            -0.03357899999889469,
+            0.1474349999970599,
+            -0.10766700000051799,
+            0.02868000000149351,
+            -0.052479000001149245,
+            -0.015041999998487654,
+            -0.012076999999059979,
+            -0.029961000001087257,
+            0.10362699999843272,
+            0.16760399999984088,
+            -0.18583799999671413,
+            -0.013407000000626113,
+            -0.009287000000455237,
+            0.10803900000075117,
+            -0.0526310000022292,
+            -0.0513189999973136,
+            -0.029394000000294795,
+            0.14297999999800481,
+            -0.09396199999873289,
+            -0.005221999999385218,
+            0.09831699999773491,
+            0.2144870000004957,
+            -0.39087000000085226
+          ]
+        }
+      ]
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages",
+      "file": "prefill_first-0.json",
+      "mode": "stages",
+      "policy": "prefill_first",
+      "trial": 0,
+      "condition_sha256": "1cce2489d9b1ecb40bfe72aae7b7f21b98053c75ce581bd3cd98a3a1a4138398",
+      "manifest_sha256": "e0eaf103b499c90231b47b0f8d692039d25019280a01d92ab015f4120d6c8fb1",
+      "report_sha256": "7d1e8ed8b467d09c5d68e6d3b0c29d1898db3c0bf693702975c6fafcffbbbf98",
+      "summary": {
+        "dispatch_lag_ms": {
+          "p50": 0.116124,
+          "p95": 0.116124,
+          "p99": 0.116124
+        },
+        "e2e_ms": {
+          "p50": 25075.264928,
+          "p95": 25075.264928,
+          "p99": 25075.264928
+        },
+        "elapsed_s": 25.075381052,
+        "failed": 0,
+        "goodput_requests_per_second": 0.0,
+        "inter_token_ms": {
+          "p50": 60.71414449999793,
+          "p95": 66.76496079999815,
+          "p99": 68.14431170000157
+        },
+        "mean_tpot_ms": {
+          "p50": 61.32409215625,
+          "p95": 61.32409215625,
+          "p99": 61.32409215625
+        },
+        "output_tokens_per_second": 1.3160318454011264,
+        "requests": 1,
+        "slo_compliant": 0,
+        "successful": 1,
+        "successful_output_tokens": 33,
+        "ttft_ms": {
+          "p50": 23112.717834,
+          "p95": 23112.717834,
+          "p99": 23112.717834
+        }
+      },
+      "metrics_batch_delta": 80,
+      "metrics_mixed_delta": 0,
+      "telemetry_sha256": "dcb07d6cb7d0e98a679e08651ea445de6402f0cca6dea41edb1417767869f4d3",
+      "batches": {
+        "batches": 80,
+        "composition": {
+          "decode:0+1": 32,
+          "prefill:32+0": 48
+        },
+        "iteration_sum_ms": 25071.974684,
+        "scheduler_percent": 0.0005292163926947271,
+        "admission_percent": 0.00020964044780063723,
+        "runner_percent": 99.9944166384274,
+        "runner_ms": {
+          "count": 80,
+          "min": 56.608213,
+          "max": 597.980016,
+          "p50": 425.796884,
+          "p95": 567.9952818500001,
+          "p99": 595.93578435
+        },
+        "stage_sum_ms": {
+          "kv_prepare": 66.15544,
+          "embedding": 2.037759,
+          "rope_prepare": 1.453338,
+          "attention_norm": 184.479062,
+          "query_projection": 2468.363007,
+          "key_projection": 1323.20285,
+          "value_projection": 1323.859523,
+          "qk_norm_rope_kv": 211.282739,
+          "attention": 5160.221808,
+          "output_projection": 2548.457439,
+          "attention_residual": 15.404373,
+          "ffn_norm": 183.402167,
+          "gate_projection": 3622.779482,
+          "up_projection": 3640.345332,
+          "swiglu": 226.628586,
+          "down_projection": 3816.18892,
+          "ffn_residual": 15.600212,
+          "final_norm": 0.082356,
+          "lm_head": 239.149211
+        }
+      },
+      "request_stalls": [
+        {
+          "request_id": "s20260921-r0",
+          "client_max_itl_ms": 68.44365700000344,
+          "engine_max_itl_ms": 68.265482,
+          "interval_residual_ms": [
+            -0.03606899999916635,
+            0.08918900000006147,
+            -0.0383459999985547,
+            0.00439199999895834,
+            0.020922000000496155,
+            -0.008498000002191475,
+            -0.030548999999076898,
+            0.030714999998600945,
+            -0.08634999999754456,
+            0.1891089999983535,
+            -0.11873999999799167,
+            -0.04972700000195118,
+            0.0021860000010605063,
+            0.11294599999926191,
+            -0.025180000000446512,
+            -0.11062399999730133,
+            0.037336999998785814,
+            0.019714999998292626,
+            0.04569900000284832,
+            0.03606799999919019,
+            -0.009579999999992594,
+            0.013023999999205671,
+            0.049937000001293086,
+            0.0003339999984319775,
+            -0.07149100000092545,
+            -0.023407999997999696,
+            -0.00918000000261543,
+            0.178175000003435,
+            -0.20764400000106775,
+            -0.06393200000113808,
+            0.09744499999938938,
+            0.017875000000394436
+          ]
+        }
+      ]
+    }
+  ],
+  "comparisons": [],
+  "limits": [
+    "独立进程延迟差异包含系统噪声与在线 batch 变化，不是纯插桩耗时。",
+    "客户端与 Engine 时钟原点不同，只比较对应 token 间隔，不将绝对时间相减。",
+    "interval_residual_ms 包含事件队列、HTTP、socket 缓冲和客户端调度，不等于网络延迟。",
+    "阶段按层求和；worker 经过时间重叠，不能计入 forward wall time。",
+    "未采集 sequence 生命周期与完整输入，不提供 Runtime replay；attention 尚未分离页查找、QK、softmax、PV。"
+  ]
+}

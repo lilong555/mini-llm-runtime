@@ -151,6 +151,11 @@ json completion_json(const std::string& id, const std::string& model,
     if (event.token) {
         result["token_id"] = *event.token;
     }
+    if (event.telemetry) {
+        result["telemetry"] = {{"batch_id", event.telemetry->batch_id},
+            {"request_order", event.telemetry->request_order}, {"token_index", event.telemetry->token_index},
+            {"engine_elapsed_ns", event.telemetry->engine_elapsed_ns}};
+    }
     if (event.kind == Event::Kind::done) {
         result["usage"] = usage_json(event.usage);
         result["timings"] = timings_json(event.timings);
@@ -164,11 +169,16 @@ json metrics_json(const Engine& engine) {
     const auto& m = engine.model_info();
     return {
         {"ready", s.ready}, {"backend", m.backend}, {"model", m.model}, {"device", m.device},
-        {"gpu", m.gpu}, {"policy", policy_name(c.policy)},
+        {"gpu", m.gpu}, {"threads", m.threads}, {"gpu_layers", m.gpu_layers},
+        {"kernel_mode", m.kernel_mode}, {"policy", policy_name(c.policy)},
+        {"telemetry_mode", telemetry_mode_name(c.telemetry_mode)}, {"telemetry_capacity", c.telemetry_capacity},
         {"llama_commit", "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"},
         {"context_tokens", c.context_tokens}, {"max_model_len", c.max_model_len},
         {"batch_tokens", c.batch_tokens}, {"prefill_chunk", c.prefill_chunk},
         {"max_active", c.max_active}, {"queue_capacity", c.queue_capacity},
+        {"prefix_cache_entries", c.prefix_cache_entries},
+        {"prefix_cache_tokens", c.prefix_cache_tokens}, {"event_buffer_size", c.event_buffer_size},
+        {"aging_ms", c.aging_ms}, {"admission_reserve_ms", c.admission_reserve_ms},
         {"prefix_cache_enabled", c.prefix_cache_entries > 0},
         {"accepted", s.accepted}, {"rejected", s.rejected}, {"completed", s.completed},
         {"cancelled", s.cancelled}, {"timed_out", s.timed_out}, {"failed", s.failed},

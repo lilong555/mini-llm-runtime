@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "source_manifest": {
+    "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/manifest.json",
+    "size_bytes": 4707,
+    "sha256": "1c7b1441da5d3b2cb9628d3a38b4f091d149451c5a4994866334eb3a3a5ded4f"
+  },
+  "source": {
+    "git_sha": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "git_dirty": true,
+    "worktree_state_sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd",
+    "state_file": "source-state.json",
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json"
+    ],
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    }
+  },
+  "build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "compiler": "/usr/bin/c++",
+    "compiler_id": "GNU",
+    "compiler_version": "11.4.0",
+    "cxx_flags": "",
+    "configuration_flags": "-O2 -g -DNDEBUG",
+    "linker_flags": "",
+    "configuration_linker_flags": "",
+    "cuda_enabled": "OFF",
+    "cuda_architectures": null
+  },
+  "dependencies": {
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+  },
+  "models": [
+    {
+      "artifact": {
+        "path": "models/Qwen3-0.6B-Q8_0.gguf",
+        "size_bytes": 639446688,
+        "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
+      },
+      "provenance": {
+        "repository": "Qwen/Qwen3-0.6B-GGUF",
+        "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+        "file": "Qwen3-0.6B-Q8_0.gguf",
+        "size_bytes": 639446688,
+        "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+        "license": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+      }
+    },
+    {
+      "artifact": {
+        "path": "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+        "size_bytes": 2390150816,
+        "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+      },
+      "provenance": {
+        "file": "Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+        "source_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+        "converter": "llama.cpp",
+        "converter_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+        "conversion": "Q8_0 weights dequantized to F32; no original model weights restored",
+        "size_bytes": 2390150816,
+        "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+        "purpose": "Matched-weight numerical reference without activation quantization"
+      }
+    }
+  ],
+  "binaries": [
+    {
+      "path": "build/wsl-cpu/bin/llmserve",
+      "size_bytes": 89717104,
+      "sha256": "54c6335eda2d62d2835cf789fe47e4b82ebe92382e1f11312e8bb22a4d987227"
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-bench",
+      "size_bytes": 17056032,
+      "sha256": "8c671627d91147d4fec1f2cea198941431ec2cfd9ed0c942158f3f4d0f3e89c2"
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-unit-tests",
+      "size_bytes": 5575808,
+      "sha256": "e79c3ad913f40f6f3e92abec391800e5fc2f9fc05967287cf2422588d31b08a0"
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-model-tests",
+      "size_bytes": 74837224,
+      "sha256": "305b030fa5c4de30865ad4e5278462656918fe8b3f6743ad024da75a901c8448"
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-http-tests",
+      "size_bytes": 16522224,
+      "sha256": "c461da021ff7b6b3ba2c54e6705c24a30772fb5bfadcfa4bbbe8292903ab2736"
+    },
+    {
+      "path": "build/wsl-cpu/CMakeCache.txt",
+      "size_bytes": 33389,
+      "sha256": "950a8845dd4aeeee916997fcc9a75d877b1a1ab109af604750e13e9c36b76eda"
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve",
+      "size_bytes": 238023072,
+      "sha256": "10f79d42d747164a4664aaae293be9fc1b9baecea657d7607422500e2ee3887f"
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-bench",
+      "size_bytes": 17056032,
+      "sha256": "edd029ce1cf40df9c74ed31a0291cf52c1ccd448f8032511ad55912b9a0fd82a"
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-unit-tests",
+      "size_bytes": 5575808,
+      "sha256": "a5dca465af730f0553af113c35c283e9e82dd5e5abe827edfe9aa41ac027d16c"
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-model-tests",
+      "size_bytes": 223162136,
+      "sha256": "14d178d7f558bd3fe53eafe024a958733e0ebe24662790117f8f3d837a617ac7"
+    },
+    {
+      "path": "build/wsl-cuda/bin/llmserve-http-tests",
+      "size_bytes": 16522224,
+      "sha256": "0e77e2216f8d6504976c1f0441df824df01192196c8b2627db9ca09c55ba9bb0"
+    },
+    {
+      "path": "build/wsl-cuda/CMakeCache.txt",
+      "size_bytes": 53110,
+      "sha256": "4c4c9cc7165fb17457b017482d122a3b2cc24010680c7f5f38328b148c9ac118"
+    },
+    {
+      "path": "build/wsl-asan/bin/llmserve-unit-tests",
+      "size_bytes": 12815904,
+      "sha256": "84fd88cf42688857336b6f9a89a074aa0f0ff6645d1346d5a7bc8398935f4224"
+    },
+    {
+      "path": "build/wsl-asan/CMakeCache.txt",
+      "size_bytes": 16497,
+      "sha256": "a5a4e3ad19840299f66265657df5f973db73507e5cbc1f9b5c759c9b54d4cda2"
+    }
+  ],
+  "reports": [
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/asan-ctest.xml",
+      "size_bytes": 5353,
+      "sha256": "c643c7f3cc904e7a8b9971e2974293c51d9d1d3cdaaa1b9c35496d2a0a1c93af"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-ctest.xml",
+      "size_bytes": 5794,
+      "sha256": "60114a220322e7c0035d7c79fa7b8195b70f010b64493b8cec37675632b4dcfc"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-model-1.json",
+      "size_bytes": 3955,
+      "sha256": "7926761e338461d56c2ca8ac33634840ae83d0880d4479edec00a0e561cb5fe3"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-model-8.json",
+      "size_bytes": 3955,
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cuda-ctest.xml",
+      "size_bytes": 5791,
+      "sha256": "47640ea1af5b6136e53c61a58869a83a400b5b80aa6d696437a703e9dd91c881"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cuda-model-8.json",
+      "size_bytes": 3952,
+      "sha256": "af5821534a353d7a8512969050da16e3af3692a522793a2e1463428685a902e7"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-off.json",
+      "size_bytes": 3843,
+      "sha256": "3b96110ca00a730b08cc1667d437ca6a26c20bfd50a713ccbccbd1b469905211"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-stages.json",
+      "size_bytes": 3848,
+      "sha256": "3e0ebd5aeeff25ad70da3e747b285a7e8b99c8ca236fd67a5b3d820844298e07"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-stages.jsonl",
+      "size_bytes": 132705,
+      "sha256": "b49ca66295d4536bc531935747c812ee6e10776ddeffdc01005a9d95a8f7a339"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cuda-stages.json",
+      "size_bytes": 3895,
+      "sha256": "bed603e9cc275a0dba5110bc0fc69f1fe1c396214b9843c1f8818c489b0d462d"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cuda-stages.jsonl",
+      "size_bytes": 26289,
+      "sha256": "02d3841a2e9f67ff75deb773d846dc9c4be7ee3a9b91e1bf30ec394db906b974"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/relocation.json",
+      "size_bytes": 154,
+      "sha256": "b50560a8a6a0775c5565d40640b4d88d87cf2f9bce36cccb27e47acf632ae8f6"
+    }
+  ],
+  "ctest": {
+    "reports": 3,
+    "suites": 14,
+    "cases": 463
+  },
+  "limits": [
+    "ASan/UBSan 仅覆盖不依赖 llama 的核心构建。",
+    "Windows 与远程 CI 未在本批运行。"
+  ]
+}

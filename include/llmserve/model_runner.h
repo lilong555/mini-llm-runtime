@@ -31,6 +31,9 @@ struct ModelInfo {
     std::size_t context_tokens = 0;
     std::size_t vocab_size = 0;
     bool gpu = false;
+    int threads = 0;
+    int gpu_layers = 0;
+    std::string kernel_mode;
 };
 
 class ModelRunner {
@@ -41,6 +44,12 @@ public:
     virtual std::string token_piece(Token token) const = 0;
     virtual bool is_eog(Token token) const = 0;
     virtual std::vector<Sample> execute(std::span<const BatchToken> batch) = 0;
+    virtual std::vector<Sample> execute_profiled(std::span<const BatchToken> batch,
+                                                RunnerTelemetry& profile) {
+        profile = {};
+        return execute(batch);
+    }
+    virtual std::optional<RunnerResources> resources() const noexcept { return std::nullopt; }
     virtual void copy_sequence(SequenceId source, SequenceId target, std::size_t tokens) = 0;
     virtual void clear_sequence(SequenceId sequence) noexcept = 0;
     virtual void synchronize() noexcept = 0;

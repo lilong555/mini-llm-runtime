@@ -1,0 +1,4 @@
+==PROF== Connected to process 191225 (/home/li/code/mini-llm-runtime/.run/cuda-smoke)
+==ERROR== ERR_NVGPUCTRPERM - The user does not have permission to access NVIDIA GPU Performance Counters on the target device 0. For instructions on enabling permissions and to get more information see https://developer.nvidia.com/ERR_NVGPUCTRPERM
+GPU=NVIDIA GeForce RTX 4070 Laptop GPU，计算能力=8.9，64 次 kernel，1048593 个结果校验通过
+==PROF== Disconnected from process 191225

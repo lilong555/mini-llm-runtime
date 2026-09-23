@@ -1,10 +1,13 @@
 #include "options.h"
+#include "telemetry_output.h"
 
 #include "llmserve/engine.h"
 #include "llmserve/http_server.h"
 #include "llama.h"
 
 #include <iostream>
+#include <filesystem>
+#include <fstream>
 #include <stdexcept>
 
 int main(int argc, char** argv) {
@@ -12,7 +15,8 @@ int main(int argc, char** argv) {
         Options options(argc, argv, {"--model", "--backend", "--port", "--threads", "--gpu-layers",
             "--context", "--max-model-len", "--batch-tokens", "--prefill-chunk", "--max-active",
             "--queue-capacity", "--prefix-entries", "--prefix-tokens", "--page-size", "--policy",
-            "--kernel", "--shutdown-file", "--event-buffer"});
+            "--kernel", "--shutdown-file", "--event-buffer", "--telemetry", "--telemetry-output",
+            "--telemetry-capacity"});
         if (options.has("--help") || !options.has("--model")) {
             std::cout << "llmserve --model MODEL.gguf [--backend mini|llama] [--port 8000]\n"
                          "         [--threads 8] [--gpu-layers 0] [--context 8192]\n"
@@ -20,7 +24,9 @@ int main(int argc, char** argv) {
                          "         [--max-active 8] [--queue-capacity 64] [--page-size 16]\n"
                          "         [--prefix-entries 4] [--prefix-tokens 2048]\n"
                          "         [--policy mixed|prefill_first] [--kernel auto|scalar]\n"
-                         "         [--event-buffer 128] [--shutdown-file PATH]\n";
+                         "         [--event-buffer 128] [--shutdown-file PATH]\n"
+                         "         [--telemetry off|batches|stages] [--telemetry-output PATH]\n"
+                         "         [--telemetry-capacity 1024]\n";
             return options.has("--help") ? 0 : 1;
         }
         llama_log_set([](ggml_log_level level, const char* text, void*) {
@@ -33,6 +39,25 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("--backend must be mini or llama");
         }
         llmserve::EngineConfig config;
+        const auto telemetry = options.get("--telemetry", "off");
+        if (telemetry != "off" && telemetry != "batches" && telemetry != "stages") {
+            throw std::invalid_argument("--telemetry must be off, batches or stages");
+        }
+        config.telemetry_mode = telemetry == "off" ? llmserve::TelemetryMode::off :
+            telemetry == "batches" ? llmserve::TelemetryMode::batches : llmserve::TelemetryMode::stages;
+        config.telemetry_capacity = static_cast<std::size_t>(options.integer("--telemetry-capacity", 1024, 1, 16384));
+        const auto telemetry_path = options.get("--telemetry-output");
+        if ((telemetry == "off") != telemetry_path.empty()) {
+            throw std::invalid_argument("enabled telemetry requires --telemetry-output; off mode accepts no output path");
+        }
+        std::ofstream telemetry_file;
+        if (!telemetry_path.empty()) {
+            if (std::filesystem::exists(telemetry_path)) {
+                throw std::invalid_argument("telemetry output already exists");
+            }
+            telemetry_file.open(telemetry_path, std::ios::binary);
+            if (!telemetry_file) { throw std::runtime_error("cannot open telemetry output"); }
+        }
         config.context_tokens = static_cast<std::size_t>(options.integer("--context", 8192, 16, 1048576));
         config.max_model_len = static_cast<std::size_t>(options.integer("--max-model-len", 2048, 2, 1048576));
         config.batch_tokens = static_cast<std::size_t>(options.integer("--batch-tokens", 256, 1, 65536));
@@ -65,7 +90,10 @@ int main(int argc, char** argv) {
         auto runner = backend == "mini" ? llmserve::make_mini_runner(model, config) :
                                          llmserve::make_llama_runner(model, config);
         llmserve::Engine engine(config, std::move(runner));
-        if (!llmserve::serve_http(engine, port, options.get("--shutdown-file"))) {
+        const auto served = llmserve::serve_http(engine, port, options.get("--shutdown-file"));
+        engine.stop();
+        if (!telemetry_path.empty()) { write_telemetry(telemetry_file, engine); }
+        if (!served) {
             throw std::runtime_error("HTTP server could not listen; select an unused port");
         }
         return 0;

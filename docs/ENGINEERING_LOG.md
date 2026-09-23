@@ -15,7 +15,7 @@
 | ENG-005 | 已缓解 | 模型下载 | Windows 原生 HTTPS 模型下载失败 |
 | ENG-006 | 已解决 | 服务运维 | 时间戳类型不一致，阻止服务正常停止 |
 | ENG-007 | 已解决 | 请求生命周期 | 前缀复制失败时可能重复发布终态事件 |
-| ENG-008 | 待解决 | 性能 | CPU 混合调度在实测负载上表现更差 |
+| ENG-008 | 待解决 | 性能 | CPU 混合调度的平均 TPOT 与单次停顿存在权衡 |
 | ENG-009 | 已解决 | 验证流程 | 手动指定的参考模型文件名不存在 |
 | ENG-010 | 待解决 | 第三方依赖 | 固定版本的上游依赖产生 MSVC 编译警告 |
 | ENG-011 | 待解决 | 模型词表 | 分词器修正疑似控制 token 的词表条目 |
@@ -24,10 +24,21 @@
 | ENG-014 | 已解决 | 验证证据 | PowerShell 校验脚本在 XML 访问错误后继续执行 |
 | ENG-015 | 已缓解 | 持续集成 | Action 运行时弃用及托管操作系统标签漂移 |
 | ENG-016 | 已解决 | SIMD | Attention 的 V 加权累加未使用 SIMD |
-| ENG-017 | 待解决 | 模型验证 | 混合批断言受执行时序影响 |
+| ENG-017 | 已解决 | 模型验证 | 混合批断言受执行时序影响 |
 | ENG-018 | 待解决 | 性能 | CPU PagedKV 的长上下文访问成本高于连续布局与 llama.cpp |
 | ENG-019 | 已缓解 | 构建 | 普通 PowerShell 缺少完整 MSVC 开发环境 |
-| ENG-020 | 待解决 | 实验验收 | 基准汇总未严格拒绝不完整或不等价的报告 |
+| ENG-020 | 已解决 | 实验验收 | 基准汇总未严格拒绝不完整或不等价的报告 |
+| ENG-021 | 已解决 | 环境配置 | WSL 原生开发工具覆盖不完整 |
+| ENG-022 | 已解决 | 性能采集 | Nsight Systems 与驱动不兼容导致 GPU 时间线缺失 |
+| ENG-023 | 已解决 | 性能采集 | WSL 内 Nsight Compute 无权访问 GPU 性能计数器 |
+| ENG-024 | 已解决 | 编辑器 | clangd 未发现 WSL 编译数据库 |
+| ENG-025 | 已解决 | 基准编排 | 策略回放脚本依赖 Windows 行为且存在语法错误 |
+| ENG-026 | 已解决 | 验证证据 | CTest 归档格式与诊断分类不匹配 |
+| ENG-027 | 已解决 | 观测状态 | Profile 预分配失败保留旧的成功状态 |
+| ENG-028 | 已解决 | 在线观测 | token 延迟缺少 batch 与模型阶段关联 |
+| ENG-029 | 已解决 | 派生分析 | 相对路径与绝对路径混用导致归因汇总失败 |
+| ENG-030 | 已解决 | 版本管理 | GitHub 仓库可见性与发布授权不一致 |
+| ENG-031 | 已解决 | 版本管理 | WSL 仓库沿用 Windows 凭据助手路径 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -96,7 +107,7 @@
 ## ENG-008：CPU 混合调度性能退化
 
 - 状态：待解决。
-- 影响：在已测 CPU 压力负载下，混合 prefill/decode 没有改善吞吐或延迟。
+- 影响：在已测密集到达负载下，混合 prefill/decode 没有改善吞吐或请求平均 TPOT，但单次 ITL 尾部可以较低，不能将这些指标合并为“所有延迟均退化”。
 - 复现条件：使用 `scripts/Benchmark-Policies.ps1 -Backend mini` 回放 `benchmarks/traces/cpu-mixed-s0.jsonl`。每种策略运行三次，每次 24 个请求，到达率为 4 请求/秒，提示词长度为 128/16 个 token，输出长度为 16 个 token；每次均重启服务并执行相同预热。
 - 验证证据：见 `benchmarks/results/mini-scheduling/summary.json`。全部 144 个请求成功，未观察到输出 token 序列不一致。
 
@@ -107,8 +118,9 @@
 | 请求平均每 token 延迟（TPOT）的 P95，毫秒 | 398.89 | 352.85 |
 | 满足 SLO 的有效吞吐，请求/秒 | 0 | 0 |
 
-- 原因：尚未确定。CPU prefill 成本、矩阵权重复用和 token 预算组成只是待验证的假设，不是性能剖析结论。
-- 下一步：使用固定回放输入采集分阶段 CPU 性能数据，区分矩阵乘、attention、调度和等待开销；比较冷、热前缀负载及更低到达率。针对已定位的一个瓶颈优化，保留不利的基线结果，重新完成数值与端到端检查后再判断是否加速。
+- 在线证据：2026-09-23 的三轮无观测 WSL 对照中，mixed / prefill-first 中位吞吐为 18.41 / 18.66 token/s，P95 请求平均 TPOT 为 395.28 / 333.42 ms，P99 单次 ITL 为 1224.77 / 2480.67 ms。阶段模式中一次 3673.99 ms 的 Engine token 间隔包含六批 prefill 与随后一批 decode，runner 区间交集为 3673.56 ms，scheduler 仅为 0.012814 ms。完整输入、开关成本、低到达率及不利样本见 `benchmarks/results/wsl-batch-telemetry/eng-008-analysis.md`。
+- 原因：已测范围内排除 scheduler 自身计算为主要成本，支持继续研究 prefill 模型执行与 decode 停顿的关系；尚未通过受控计算路径切换确定矩阵权重复用、LM head 或线程池的独立贡献。
+- 下一步：针对已记录的真实矩阵形状和 attention 成本建立受控对照，补充 worker 时间线与冷、热前缀输入；完成对应数值门槛后实施一个优化，保留不利结果，重新完成模型与 HTTP 检查。
 - 验收标准：在明确声明的负载上取得可复现收益，输出不变，且不引入不可接受的公平性或尾延迟退化。仅凭 SIMD 点积微基准不能关闭此问题。
 
 ## ENG-009：参考模型文件路径
@@ -184,20 +196,26 @@
 
 ## ENG-017：模型验证的混合批断言受执行时序影响
 
-- 状态：待解决。
+- 状态：已解决，限定于测试中混合批状态的确定性构造。
+- 历史工具链证据：2026-09-22，GCC 11.4.0、CUDA 12.8 的独立产品构建及 CTest、CPU/CUDA HTTP 检查通过；`bash scripts/dev.sh validate` 和 `bash scripts/dev.sh cuda validate` 均以 `tests/model_tests.cpp:295: stats.mixed_batches > 0` 失败。各自九项数值与 KV 检查完成，完整失败报告保留在 `benchmarks/results/wsl-environment/cpu-model.json` 和 `cuda-model.json`，不能视为完整模型验收通过。
+- 故障复现（2026-09-22）：在 `build/wsl-native` 分支、提交 `a1fe5d327adb3f806c0dfa7042565e42fbaff0d5` 及当时的未提交工作区上完成 CPU 构建检查后，默认 8 线程模型验证再次以 `tests/model_tests.cpp:295: stats.mixed_batches > 0` 失败。九项数值与 KV 检查完成，三组生成 token 与参照一致；本地原始报告为 `.run/environment-model.json`，标准输出与诊断为 `.run/environment-model.log`。该结果不构成完整模型验收通过。
+- WSL2 验证证据：Ubuntu GCC 11.4.0 原生 `RelWithDebInfo` 构建运行 `bash scripts/dev.sh validate`，九项数值与 KV 检查及三组生成对照完成，随后在 `/home/li/code/mini-llm-runtime/tests/model_tests.cpp:295: stats.mixed_batches > 0` 失败。完整报告见 `benchmarks/results/wsl-native/model.json`，不计为全套通过。
 - 影响：真实模型的数值、生成、KV 和前缀缓存检查均可通过，但默认 8 线程执行可能仅因没有观察到 mixed batch 而使整个验证命令失败。
 - 复现条件或证据：使用 `scripts/Validate-Model.ps1` 的默认 8 线程配置连续两次得到原始诊断 `tests\model_tests.cpp:295: stats.mixed_batches > 0`；两次运行在失败前的 scalar/SIMD、chunk boundary、paged tail copy-on-write、生成一致性和 KV 回收检查结果相同。相同二进制使用 `--threads 1` 时记录 `mixed_batches: 1` 并通过全部 10 项检查。
-- 原因：尚未确定。当前断言依赖工作线程处理请求和调用线程连续提交请求之间的相对时序，是否形成 prefill/decode 混合批并非由测试输入完全确定。
-- 下一步：用可控的 runner 屏障或确定性请求注入构造同时存在 prefill 与 decode 的调度状态，再断言 mixed batch；模型数值验证不应依赖未受控的主机时序。
-- 验证：尚未完成确定性回归，因此保持待解决。
+- 原因：连续提交请求没有建立模型执行阶段之间的先后约束；请求长度和提交顺序不能保证下一次调度同时存在 prefill 与 decode。断言因而依赖调用线程与模型线程的相对时序。
+- 解决方法：测试侧 `test::GatedRunner` 在真实 runner 产生第一份 prefill sample 后暂停返回；调用线程确认屏障后提交其他请求，再释放屏障。下一轮调度具有已进入 decode 的请求和待 prefill 请求；屏障有有限等待，并在提交异常时释放。生产 Engine、调度策略和数值阈值保持各自原有语义。
+- 验证：`benchmarks/results/validation/wsl-deterministic/` 中 CPU 1、2 线程各一次、8 线程连续三次，以及 CUDA 参照的 8 线程一次，全部为 10/10 通过；六份报告均记录 `mixed_batches=1`、`max_batch_sequences=3`，三组生成及缓存重放与参照一致，KV 回收通过。核心回归 `engine_mixed_batch_after_deterministic_request_injection` 每次执行十轮受控注入，在 CPU、CUDA 和 ASan/UBSan 构建中通过。源码、模型和二进制身份见该目录的 `evidence.json`。
+- 适用边界：不代表完整 F16/F32 被测模型、长上下文或任意主机负载均已验收；混合调度的性能问题 `ENG-008` 独立保留。
 
 ## ENG-018：CPU PagedKV 的长上下文访问成本
 
 - 状态：待解决。
 - 影响：同一 Qwen3-0.6B Q8_0、F16 K/V、8 线程 CPU 工作负载下，1536-token prompt 的 MiniLLM 中位 TPOT 为 `49.263715625 ms`，llama.cpp 为 `33.843925 ms`，MiniLLM 高 `45.6%`。从 16 增长到 1536 token 时，两者 TPOT 分别增长 `16.6163625 ms` 与 `10.6811875 ms`。
 - 复现条件或证据：原始服务报告、固定 token trace 和汇总见 `benchmarks/results/kv-cache-cpu/` 与 `benchmarks/traces/kv-cpu-*.jsonl`。`mini-kv-cache-bench` 在完全相同的 AVX2/F16C QK、softmax 和 PV 数学下，仅切换真实 `PagedKV` 与按层连续 F16 布局；16、256、1024、1536 token 的耗时比分别为 `1.20x`、`1.26x`、`1.35x`、`1.32x`。
+- 模型级证据：`benchmarks/results/wsl-runtime-profile/context/` 的独立 8 线程实验中，无 profiler 的 16/256/1536 KV decode 中位数为 42.98/44.85/58.47 ms；profile 进程的合并 attention 阶段为 2.00/3.27/15.28 ms，LM head 为 6.80/6.51/6.43 ms。两种模式的完整输出摘要一致。该证据缩小了后续归因范围，但未分离 QK、softmax、PV 或页查找，不能替代旧服务对照或证明 allocator 是全部差距来源。
+- 在线证据：`benchmarks/results/wsl-batch-telemetry/eng-018-analysis.md` 中，单轮 mixed 阶段模式的初始 16/256/1536 KV 后续 32 次 decode，attention 中位数为 2.04/3.90/15.36 ms，LM head 为 7.41/7.56/6.96 ms；实际 KV 范围为 16–47、256–287、1536–1567。每配置一个独立进程，不视为稳定优化收益，也不与旧平台报告直接计算加速比。
 - 原因：隔离基准证明逐 token accessor 与跨页不连续访问具有显著成本；完整差距还混有 llama.cpp 的 AVX512、FlashAttention、计算图和其他 kernel 差异，现有证据不能把全部差距归因于 KV allocator。将 page size 改为 256 的顺序实验发生明显性能漂移，不能据此确认最优页大小。
-- 下一步：使用 profiler 分离 QK、softmax、PV、page lookup 与矩阵计算；实现按物理页批量访问的 attention 接口与 online softmax，对照按层 page slab 或索引缓存；页大小实验必须交替顺序并记录频率与温度。不得把布局微基准等同于端到端收益。
+- 下一步：沿已有在线 batch/token 关联分离 QK、softmax、PV 和 page lookup；对应数值门槛满足后，再对照按物理页访问、online softmax、page slab 或索引缓存。页大小实验必须交替顺序并记录频率与温度，不得把布局微基准等同于端到端收益。
 - 验证：差距已由三轮真实服务报告和七轮布局隔离报告复现，但尚未实现或验证优化，因此保持待解决。
 
 ## ENG-019：普通 PowerShell 缺少完整 MSVC 开发环境
@@ -211,9 +229,116 @@
 
 ## ENG-020：基准汇总缺少严格的完整性与等价性验收
 
-- 状态：待解决。
+- 状态：已解决，限定于同一二进制和模型的 Serving 策略对照。
 - 影响：缺失请求或输出 token 不一致的报告仍可能生成汇总；未校验的配置、模型文件或二进制差异可能混入策略比较，不能将汇总生成成功等同于实验验收通过。
 - 复现条件或证据：`scripts/Analyze-Benchmarks.ps1` 使用第一份报告构建 `$expected`，只遍历其他报告中存在的请求；同一 ID 写入哈希表会覆盖旧值，没有完整集合或重复 ID 检查。输出差异仅累加 `$mismatches` 并写入 `token_sequence_mismatches_against_first_trial`，没有对应失败分支。跨报告检查只有 `trace_fnv1a64`、`server_before.backend`、`server_before.model`，未核对完整配置、模型文件摘要和二进制身份。
 - 原因：脚本承担统计汇总职责，但缺少独立的实验身份、请求完整性与比较条件验收层。
-- 下一步：按 `docs/PROJECT_PLAN.md` 的 `PLAN-001` 建立统一 manifest，使用输入 trace 校验预期请求，拒绝缺失/重复、输出差异及未声明的配置或身份变化；明确压力实验合法失败终态与正确性失败的区别。
-- 验证：上述缺口由源码检查确认；严格验收尚未实现，删除请求、重复 ID、错误模型摘要、配置差异和 token mismatch 的拒绝用例尚待执行，因此保持待解决。该结论不表示已有归档报告已发生这些错误。
+- 解决方法：采集脚本绑定源码快照、构建配置、依赖、服务端与客户端、模型来源和原始 trace；每轮前后核对输入身份。验收器按 trace 检查完整请求集合、大小写敏感 ID、策略轮次、终态和输出长度，按显式参照检查成功请求的 token，并从原始时间戳核对统计。错误或不等价报告保存失败结果，不保留成功汇总；压力实验合法终态必须预先声明。
+- 验证：CTest 的 51 项基准与归档检查覆盖删除请求、重复 ID、错误模型或二进制摘要、配置差异、token mismatch、输出截断、缺失轮次、统计错误和旧汇总残留。`benchmarks/results/wsl-policy-validation/` 的六轮原始回放完成全部 144 个请求，token 一致，严格验收通过；整个目录复制到另一位置后，离线验收仍通过。`benchmarks/results/wsl-protocol-validation/` 中真实 HTTP 429 与 SSE 超时均以显式合法失败保留，不计入成功或 goodput。
+- 适用边界：历史报告没有被补造 manifest。该实现不覆盖 dot/KV 微基准的统一采集入口或跨源码、跨二进制的优化前后比较；这些工作仍属于 `PLAN-001` 的剩余范围。CPU 混合调度没有由此获得性能收益，原始负结果继续保留。
+
+## ENG-021：WSL 原生开发工具覆盖不完整
+
+- 状态：已解决，限定于工具安装与下述能力验证；GPU 计数器权限另见 `ENG-023`。
+- 影响：缺少专项原生工具时，即使 CPU 产品可运行，也无法直接执行 Linux CUDA 编译、原生 PowerShell 基准验收测试及 `perf` 性能采集。
+- 复现条件或证据：2026-09-22，Ubuntu 22.04.3 / WSL2 中 `command -v pwsh nvcc perf nsys ncu` 未找到对应工具；`build/wsl-cpu/CMakeCache.txt` 记录 `LLMSERVE_POWERSHELL:FILEPATH=LLMSERVE_POWERSHELL-NOTFOUND`，CTest 仅注册 `unit`、`gguf`。`nvidia-smi` 可识别 RTX 4070 Laptop GPU、8188 MiB 显存及驱动 591.74，但这不证明 Linux CUDA Toolkit 可用。
+- 原因：基础 CPU 开发工具与 PowerShell、Linux CUDA、性能采集工具是独立的安装项；Windows 的工具不能直接替代 Linux 原生编译和测试入口。
+- 解决方法：使用原生 PowerShell 7.6.6、CUDA Toolkit 12.8、LLVM 19 和可用于当前内核的 perf 5.15.209；CPU/CUDA 使用独立构建目录。Nsight Systems 版本要求见 `ENG-022`。不安装 WSL Linux 显示驱动，不放宽全局 perf 权限。
+- 验证：`benchmarks/results/wsl-environment/` 保留三份 3/3 通过的 CTest 报告，均包含 PowerShell fixture；CPU/CUDA HTTP 各 8/8 通过，临时服务已退出。两份模型通过大小与 SHA-256 校验；CUDA 冒烟的 1048593 个结果正确，Compute Sanitizer 为 0 错误、0 泄漏字节；perf 的用户态事件可读，457 个样本丢失 0，MiniLLM 符号可解析。
+- 适用边界：系统级 perf、全部 PMU 事件和 Unified Memory 跟踪未验收。`perf report` 仍输出 `(Cannot load tips.txt file, please install perf!)`，报告中的事件和样本可读，帮助资源未验收。该批环境报告中的完整模型失败见 `ENG-017`，不由工具链验收结论代替。
+
+## ENG-022：Nsight Systems 与驱动不兼容导致 GPU 时间线缺失
+
+- 状态：已解决，限定于当前设备的 CUDA kernel 与显式内存传输时间线。
+- 影响：采集进程返回 0 且存在 CUDA API 表，但没有 GPU kernel 和内存传输数据，不能用于 GPU 执行耗时归因。
+- 复现条件或证据：Nsight Systems 2024.6.2 配合驱动 591.74，使用 `nsys profile --trace=cuda,nvtx --sample=none --cpuctxsw=none` 运行 CUDA 向量程序。报告出现 `does not contain CUDA kernel data`；SQLite 诊断包含 `Installed CUDA driver version (13.1) is not supported by this build of Nsight Systems. CUDA trace will be collected using libraries for driver version 12.8`。证据见 `benchmarks/results/wsl-environment/nsys-2024-diagnostics.json`。
+- 原因：该 Nsight Systems 版本的采集库与当前驱动接口不兼容；CUDA Toolkit 能编译和执行程序，不代表随附 profiler 能采集当前驱动的 GPU 时间线。
+- 解决方法：使用官方固定版本 `nsight-systems-2026.1.3`，校验安装包 SHA-256，在用户目录安装并通过 `~/.local/bin/nsys` 使用。CUDA Toolkit 仍为 12.8，安装包身份见 `benchmarks/results/wsl-environment/environment.json`。
+- 验证：登录终端的 `nsys --version` 返回 `2026.1.3.425-261338342291v0`。`scripts/cuda_smoke.cu` 的报告包含全部 64 次 kernel、2 次 H2D 和 1 次 D2H；`nsys-validation.json` 对 SQLite 事件数完成校验，`nsys-stats.txt` 保留原始汇总。
+- 适用边界：仍有 `Unified Memory cannot be traced` 诊断；本项只验收显式分配与复制的时间线。GPU 硬件计数器由 `ENG-023` 独立验收，完整模型性能采集不在本项范围内。
+
+## ENG-023：WSL 内 Nsight Compute 无权访问 GPU 性能计数器
+
+- 状态：已解决，限定于当前 Windows/WSL、GPU 和工具版本组合的基础 kernel 指标采集。
+- 影响：缺少主机授权时，CUDA 编译、执行、内存检查和 Nsight Systems 时间线可用，但不能采集 Nsight Compute 所需的 GPU 性能计数器。
+- 复现条件或证据：`ncu --target-processes all --launch-count 1 --section LaunchStats .run/cuda-smoke` 返回 1，原始诊断为 `ERR_NVGPUCTRPERM - The user does not have permission to access NVIDIA GPU Performance Counters on the target device 0.`。完整输出见 `benchmarks/results/wsl-environment/ncu.txt`。
+- 原因：Windows NVIDIA 驱动未向当前用户开放 GPU 性能计数器；WSL 内 root 权限不能替代主机侧的访问控制。
+- 解决方法：在 Windows NVIDIA 控制面板启用开发者设置，并在“管理 GPU 性能计数器”中授权访问；WSL 中使用普通用户执行采集。参考 `https://developer.nvidia.com/ERR_NVGPUCTRPERM`，不更换 CUDA Toolkit、模型或数值阈值。
+- 验证：2026-09-22，主机授权有效时，相同 CUDA 冒烟二进制的 `--section LaunchStats` 和 `--set basic` 采集均返回 0，没有权限错误。程序的 64 次 kernel 执行与 1048593 个结果校验通过；基础采集包含 1 个 kernel、8 次 profiler replay，CSV 中的耗时、SM/DRAM 周期、占用率和吞吐指标为有效值。原始指标见 `benchmarks/results/wsl-environment/ncu-metrics.csv`，校验结果见 `ncu-validation.json`，采集日志见 `ncu-launch-capture.txt` 和 `ncu-basic-capture.txt`；`.ncu-rep` 的本地路径及 SHA-256 固定在环境元数据中。
+- 适用边界：这里只证明基础硬件指标可采集，不是完整模型或端到端性能基线。未授权时的失败证据保留，`ENG-017` 的完整模型验证失败不受本项结论影响。
+
+## ENG-024：clangd 未发现 WSL 编译数据库
+
+- 状态：已解决，限定于编译参数发现与目标文件诊断。
+- 影响：CMake 构建通过，但编辑器缺少项目头文件路径及 C++20 参数，产生大量无效诊断。
+- 复现条件或证据：没有根目录配置时，`clangd --check=src/minillm/runtime.cpp --log=error` 报告 `[pp_file_not_found] Line 1: 'minillm/runtime.h' file not found`；显式指定 `--compile-commands-dir=build/wsl-cpu` 可以读取构建参数。
+- 原因：编译数据库位于嵌套的 `build/wsl-cpu`，clangd 默认搜索路径没有选中该目录。
+- 解决方法：根目录 `.clangd` 将 `CompileFlags.CompilationDatabase` 指向 `build/wsl-cpu`，编辑前完成 CPU 配置与构建，不手工复制头文件路径或编译宏。
+- 验证：`benchmarks/results/wsl-environment/clangd-kernels.txt` 记录从实际编译数据库读取 C++20、头文件和 SIMD 参数，`kernels.cpp` 检查为 0 错误。`clangd-lsp.json` 记录 `runtime.cpp` 的 LSP 诊断为空且正常退出；该检查关闭后台索引。
+- 适用边界：对 `runtime.cpp` 执行完整 `clangd --check` 还会出现 `ExpandDeducedType`、`ExtractFunction` 的重构动作探针错误，不等同于 LSP 编译诊断。后台索引和全部重构功能不在本项验收范围内。
+
+## ENG-025：策略回放脚本的原生兼容性
+
+- 状态：已解决，限定于当前 WSL2、PowerShell 7.6.6 和 GCC/CUDA 产品的原生运行。
+- 影响：仅有验收器 fixture 通过，不能保证策略采集入口可解析、可启动服务或可读取源码身份。
+- 复现条件或证据：PowerShell AST 解析 `scripts/Benchmark-Policies.ps1` 的 `Read-CMakeSetValue` 时返回 `Unexpected token '(' in expression or statement.`；代码还依赖 `Get-NetTCPConnection`、`.exe` 和 `Start-Process -WindowStyle`。原生采集读取隐藏文件时，`Get-Item` 返回 `Could not find item /home/li/code/mini-llm-runtime/.gitattributes.`。
+- 原因：PowerShell 字符串错误地使用了 C++ 风格的引号转义；启动、端口和路径处理依赖 Windows；Linux 的隐藏文件需要显式 `-Force`。通过临时 bind 探测空闲端口还会把 TIME_WAIT 误当成活动监听。
+- 解决方法：使用合法的 PowerShell 正则字符串；通过 .NET 枚举活动监听，按平台选择产品目录、可执行文件和启动参数；按进程路径与启动时刻确认服务身份，使用平台路径比较；读取源码元数据时包含隐藏文件。采集前增量构建失败即终止。
+- 验证：原生 CPU 六轮策略回放及两类协议回放完成，服务均通过停止脚本退出；CPU/CUDA 的真实 HTTP 各 8/8 通过。基准 fixture 覆盖脚本解析和活动端口探测。原始回放、manifest 和服务回收记录见 `benchmarks/results/wsl-policy-validation/`、`benchmarks/results/wsl-protocol-validation/` 和 `benchmarks/results/validation/wsl-deterministic/`。
+- 适用边界：本次没有重跑 Windows 产品或远程 CI；现有 Windows 启动分支不等同于新的 Windows 实测证据。
+
+## ENG-026：CTest 归档格式与诊断分类
+
+- 状态：已解决，限定于证据格式识别及完整报告与诊断报告的分类。
+- 影响：CTest 返回成功后，归档校验器仍可能拒绝合法的基准套件输出；历史截断报告混入完整证据目录时会使默认归档门禁失败。
+- 复现条件或证据：`scripts/Test-CtestEvidence.ps1` 对含 `43/43 benchmark validation tests passed` 的报告返回 `Truncated or inconsistent test output`。三个环境报告使用旧标记 `benchmark validation fixtures passed`，没有单项数量。旧 WSL XML 明确包含 `[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]`。
+- 原因：归档校验器只接受 C++ 套件的计数格式，且假定所有 XML 都是完整的通过证据；旧 WSL 采集使用了 CTest 默认成功输出上限。
+- 解决方法：支持带数量的基准完成标记；仅对精确匹配的旧基准套件标记保留“数量未报告”状态，不推测单项数量。正式归档检查将 `diagnostics/` 单独列出；显式检查该诊断目录仍拒绝截断 XML。当前 CTest 使用 `--test-output-size-passed 65536`。
+- 验证：完整、旧格式、截断、失败标记、数量不一致和诊断分类均有回归。当前验证目录的三份报告、八次套件执行、251 次用例执行完整通过；这是重复执行数量，不是 251 个不同用例。默认全归档检查列出三个未提供数量的旧套件，并返回 `passed_with_unreported_case_counts`。`benchmarks/results/diagnostics/wsl-native-ctest-truncated.xml` 原始字节保留，SHA-256 仍为 `a94f68493e365823c29f46af9de7fa0a031e21a547cd53e06f3973bf758b7557`，不作为完整验证通过的依据。
+
+## ENG-027：Profile 预分配失败保留旧的成功状态
+
+- 状态：已解决，限定于 profile 预分配异常后的状态失效与复用。
+- 影响：重用曾成功的 `ForwardProfile` 时，如果阶段存储扩容失败，调用方可能读到旧的 `completed=true`；该状态不能代表本次 forward 完成。
+- 复现条件或证据：`ForwardScope` 在重置 profile 字段前调用 `vector::reserve`。`reserve` 抛出 `std::length_error` 或 `std::bad_alloc` 时，构造函数不会完成，析构函数也不会执行。对应源码快照保留在 `benchmarks/results/diagnostics/runtime-profile-preallocation/`；该次基准在首个进程完成前主动终止，采集状态为失败、完成报告数为 0，不作为性能证据。
+- 原因：预分配这一可能抛出异常的操作先于状态失效处理。
+- 解决方法：`ForwardProfile::reset` 先清空上次状态并保留 `batch_id` 及预留存储，再执行扩容；失败保留未完成、无计时状态。
+- 验证：`forward_profile_reserve_failure_clears_stale_success` 通过超过 `max_size()` 的请求确定性触发预分配异常，检查状态、标识及存储复用，在 CPU、CUDA 参照构建和 ASan/UBSan 核心构建中均通过。当前 CTest 为 4/4、4/4、3/3，共 358 次用例执行；CPU 1/8 线程和 CUDA 数值参照的模型检查各 12/12，包含 profiler 开关、KV 容量失败及恢复。原始结果与源码、模型、二进制身份见 `benchmarks/results/validation/wsl-runtime-profile/`；正式模型基准在独立目录完成 36 个进程、558 次测量验收，没有复用已中止采集作为性能证据。
+
+## ENG-028：在线 token 延迟缺少批次与模型阶段关联
+
+- 状态：已解决，限定于有界在线观测、SSE token 关联及完整性验收。
+- 影响：请求平均 TPOT 与单次 ITL 可能表现出不同方向；服务总批次计数和离线 Runtime 计时不足以确定某个输出经历了哪些在线 batch，也无法测量观测开关对组批的扰动。
+- 复现条件或证据：`ENG-008` 的历史 mixed/prefill-first 对照具有不同的平均 TPOT 和 P99 ITL；原 `Statistics` 只有累积 `batches`、`mixed_batches`，原 SSE `token_id` 没有对应 batch 标识。
+- 原因：Engine 的调度轮次、Runtime 阶段和客户端 token 时钟之间没有共同标识，也没有保存实际 batch 的请求与上下文信息。
+- 解决方法：`off / batches / stages` 三种模式使用启动时预分配的有界存储，停服后导出 JSONL；以 batch ID、请求创建顺序、输出序号关联 SSE。分别记录准入、调度、执行、物理 KV 和容量信用；后端未知指标为 `null`，丢记录和未完成 batch 不作为完整性能证据。到达缩放保留 trace 原始字节与摘要。
+- 验证：`benchmarks/results/validation/wsl-batch-telemetry/` 中 CPU/CUDA 参照构建的 CTest 均为 5/5，ASan/UBSan 核心为 4/4，合计 463 次用例执行。CPU 1/8 线程及 CUDA 数值参照的模型验证均为 13/13，三组 HTTP 均为 8/8；涵盖混合批、缓存复用、缓冲耗尽、异常、SSE 关联、阶段时间守恒及停服回收。在线验收器的 27 项用例拒绝缺失或伪造证据。
+- 回放证据：`benchmarks/results/wsl-batch-telemetry/` 的 42 份独立服务报告、594 个请求、9810 个输出 token 验收通过，28 份观测 JSONL 无丢记录；观测开销和 batch 组成变化均保留。目录迁移后重新验收通过，临时服务全部退出。
+- 适用边界：当前不含 sequence 生命周期事件与完整 token 输入，不能用于 Runtime replay；attention 页访问、QK/softmax/PV、worker 调度时间线尚未分离。`ENG-008`、`ENG-018` 的根因和优化收益不由本项观测能力直接证明。
+
+## ENG-029：派生归因表混用相对路径与绝对路径
+
+- 状态：已解决，限定于本地派生归因汇总的路径处理。
+- 影响：归因表生成中止；42 份原始服务报告及各自的在线验收已经完成，没有被修改或视为失败采集。
+- 复现条件或证据：绝对目录调用 `relative_to` 时传入相对基目录，原始诊断为 `ValueError: '/home/li/code/mini-llm-runtime/benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches' is not in the subpath of 'benchmarks/results/wsl-batch-telemetry' OR one path is relative and the other is absolute.`。
+- 原因：基目录从相对字符串构造，报告中的 `directory` 由采集器保存为绝对路径；两者没有统一形式。
+- 解决方法：派生分析先对目录和基目录执行 `Path.resolve()`，再提取相对证据路径。该本地辅助脚本属于 `.run/`，不作为产品或提交内容。
+- 验证：`benchmarks/results/wsl-batch-telemetry/hypothesis-table.json` 已生成，包含全部 28 份观测报告的调度占比、六份原始负载的最长停顿区间和六份上下文阶段汇总；原始报告摘要仍与采集验收记录一致。正式验收器的独立目录迁移检查也通过，结果见 `benchmarks/results/validation/wsl-batch-telemetry/relocation.json`。
+
+## ENG-030：GitHub 仓库可见性与发布授权不一致
+
+- 状态：已解决，限定于当前仓库设置和交付文档；不代表历史公开内容已从第三方副本中撤回。
+- 影响：仓库可见性和交付文档曾先后采用不同策略，可能导致阶段性成果未按所有者的当前发布决定同步。
+- 复现条件或证据：2026-09-23，远端曾返回 `"visibility":"PUBLIC"`，在按默认私有策略收敛后返回 `"visibility":"PRIVATE"`；随后仓库所有者明确要求上传当前阶段成果并公开仓库。
+- 原因：默认私有策略与后续的显式公开授权处于不同时间点，远端设置和交付文档需要以最新授权同步更新。
+- 解决方法：在检查待上传内容后，将 GitHub 仓库可见性设为公开；README 和版本控制文档统一描述当前公开状态，仍禁止提交凭据、模型权重、依赖 checkout、构建产物和本地运行状态。
+- 验证：执行 `gh repo view lilong555/mini-llm-runtime --json nameWithOwner,visibility,url,viewerPermission,defaultBranchRef`，返回仓库 `lilong555/mini-llm-runtime`、`"visibility":"PUBLIC"`、`"viewerPermission":"ADMIN"` 和默认分支 `main`。
+
+## ENG-031：WSL 仓库沿用 Windows 凭据助手路径
+
+- 状态：已解决，限定于当前 WSL 工作区的 GitHub 凭据助手配置。
+- 影响：`git fetch origin` 虽返回成功，仍报告 Windows GitHub CLI 路径不存在，凭据获取与保存阶段产生错误诊断。
+- 复现条件或证据：原始诊断包含 `C:/Program Files/GitHub CLI/gh.exe: not found`。`git config --show-origin --get-regexp '^credential\..*(helper|useHttpPath)$'` 显示 `.git/config` 将 GitHub 凭据助手设置为 Windows `gh.exe`，覆盖了用户配置中的 Linux `/usr/bin/gh`。
+- 原因：仓库本地配置保留跨平台迁移前的绝对可执行文件路径。
+- 解决方法：删除仓库本地的 `credential.https://github.com.helper` 覆盖项，使用已有用户配置中的 `!/usr/bin/gh auth git-credential`；凭据和本地配置不纳入提交。
+- 验证：`git config --show-origin --get-all credential.https://github.com.helper` 仅返回 `/home/li/.gitconfig` 中的 Linux 配置；重新执行 `git fetch origin` 返回 0，且无错误诊断。

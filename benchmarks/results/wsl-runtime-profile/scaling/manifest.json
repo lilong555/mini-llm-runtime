@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "benchmark": "minillm-runtime",
+  "run_id": "20260922T133003Z-a1fe5d327adb-2abe496a",
+  "created_at_utc": "2026-09-22T13:30:03.2160483Z",
+  "source": {
+    "git_sha": "a1fe5d327adb3f806c0dfa7042565e42fbaff0d5",
+    "git_dirty": true,
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "e3985ebd39e3670c5ccfed1defb94cff12f3d317b53be4784d55b589ce26b8dc",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "9b7f243855874a12fb5f42e6053cb3e3b5e205ffb53865e85f89df0b741d689c"
+    }
+  },
+  "binary": {
+    "path": "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/mini-runtime-bench",
+    "sha256": "86db69ca6a84fec8037183dc6ea64468bdd607e1a5f0d4a0914525fb99c11455"
+  },
+  "model": {
+    "path": "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "file": "Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "size_bytes": 639446688,
+    "provenance": {
+      "repository": "Qwen/Qwen3-0.6B-GGUF",
+      "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+      "file": "Qwen3-0.6B-Q8_0.gguf",
+      "size_bytes": 639446688,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+    }
+  },
+  "input": {
+    "path": "input.json",
+    "original_path": "/home/li/code/mini-llm-runtime/benchmarks/runtime-inputs/qwen3-scaling.json",
+    "sha256": "d259d7b0d8de13e80113a262e4e7057e4c5f976596f4c68c4c9e3c8d81384761"
+  },
+  "dependencies": {
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+  },
+  "build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "compiler": "/usr/bin/c++",
+    "compiler_id": "GNU",
+    "compiler_version": "11.4.0",
+    "cxx_flags": "",
+    "configuration_flags": "-O2 -g -DNDEBUG",
+    "linker_flags": "",
+    "configuration_linker_flags": "",
+    "cuda_enabled": "OFF"
+  },
+  "runtime": {
+    "context_tokens": 2048,
+    "page_tokens": 16,
+    "max_sequences": 4,
+    "batch_tokens": 128
+  },
+  "protocol": {
+    "threads": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "kernel": "auto",
+    "trials": 3,
+    "repeats": 3,
+    "warmup": 1,
+    "profiler_modes": [
+      "none",
+      "stages"
+    ],
+    "order": "alternating_processes_and_thread_order",
+    "setup": "pinned_prefix_share_reset",
+    "reference_model_resident": false,
+    "seed": null,
+    "allowed_changes": [
+      "threads",
+      "profiler"
+    ],
+    "sampling": "greedy_argmax_separate",
+    "activation_dtype": "F32",
+    "kv_dtype": "F16",
+    "logits_digest": "sha256_seq_i32le_length_u32le_logits_f32le"
+  },
+  "environment": {
+    "os": "Unix 5.15.167.4",
+    "machine": "LAPTOP-GBFPGV8B",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "logical_processors": 16,
+    "powershell": "7.6.6",
+    "frequency_control": "uncontrolled",
+    "affinity": "inherited",
+    "concurrent_load": "not_measured"
+  },
+  "reports": [
+    {
+      "file": "threads-1-none-0.json",
+      "threads": 1,
+      "profiler": "none",
+      "trial": 0,
+      "order": 0
+    },
+    {
+      "file": "threads-1-stages-0.json",
+      "threads": 1,
+      "profiler": "stages",
+      "trial": 0,
+      "order": 1
+    },
+    {
+      "file": "threads-2-none-0.json",
+      "threads": 2,
+      "profiler": "none",
+      "trial": 0,
+      "order": 2
+    },
+    {
+      "file": "threads-2-stages-0.json",
+      "threads": 2,
+      "profiler": "stages",
+      "trial": 0,
+      "order": 3
+    },
+    {
+      "file": "threads-4-none-0.json",
+      "threads": 4,
+      "profiler": "none",
+      "trial": 0,
+      "order": 4
+    },
+    {
+      "file": "threads-4-stages-0.json",
+      "threads": 4,
+      "profiler": "stages",
+      "trial": 0,
+      "order": 5
+    },
+    {
+      "file": "threads-8-none-0.json",
+      "threads": 8,
+      "profiler": "none",
+      "trial": 0,
+      "order": 6
+    },
+    {
+      "file": "threads-8-stages-0.json",
+      "threads": 8,
+      "profiler": "stages",
+      "trial": 0,
+      "order": 7
+    },
+    {
+      "file": "threads-16-none-0.json",
+      "threads": 16,
+      "profiler": "none",
+      "trial": 0,
+      "order": 8
+    },
+    {
+      "file": "threads-16-stages-0.json",
+      "threads": 16,
+      "profiler": "stages",
+      "trial": 0,
+      "order": 9
+    },
+    {
+      "file": "threads-16-stages-1.json",
+      "threads": 16,
+      "profiler": "stages",
+      "trial": 1,
+      "order": 10
+    },
+    {
+      "file": "threads-16-none-1.json",
+      "threads": 16,
+      "profiler": "none",
+      "trial": 1,
+      "order": 11
+    },
+    {
+      "file": "threads-8-stages-1.json",
+      "threads": 8,
+      "profiler": "stages",
+      "trial": 1,
+      "order": 12
+    },
+    {
+      "file": "threads-8-none-1.json",
+      "threads": 8,
+      "profiler": "none",
+      "trial": 1,
+      "order": 13
+    },
+    {
+      "file": "threads-4-stages-1.json",
+      "threads": 4,
+      "profiler": "stages",
+      "trial": 1,
+      "order": 14
+    },
+    {
+      "file": "threads-4-none-1.json",
+      "threads": 4,
+      "profiler": "none",
+      "trial": 1,
+      "order": 15
+    },
+    {
+      "file": "threads-2-stages-1.json",
+      "threads": 2,
+      "profiler": "stages",
+      "trial": 1,
+      "order": 16
+    },
+    {
+      "file": "threads-2-none-1.json",
+      "threads": 2,
+      "profiler": "none",
+      "trial": 1,
+      "order": 17
+    },
+    {
+      "file": "threads-1-stages-1.json",
+      "threads": 1,
+      "profiler": "stages",
+      "trial": 1,
+      "order": 18
+    },
+    {
+      "file": "threads-1-none-1.json",
+      "threads": 1,
+      "profiler": "none",
+      "trial": 1,
+      "order": 19
+    },
+    {
+      "file": "threads-1-none-2.json",
+      "threads": 1,
+      "profiler": "none",
+      "trial": 2,
+      "order": 20
+    },
+    {
+      "file": "threads-1-stages-2.json",
+      "threads": 1,
+      "profiler": "stages",
+      "trial": 2,
+      "order": 21
+    },
+    {
+      "file": "threads-2-none-2.json",
+      "threads": 2,
+      "profiler": "none",
+      "trial": 2,
+      "order": 22
+    },
+    {
+      "file": "threads-2-stages-2.json",
+      "threads": 2,
+      "profiler": "stages",
+      "trial": 2,
+      "order": 23
+    },
+    {
+      "file": "threads-4-none-2.json",
+      "threads": 4,
+      "profiler": "none",
+      "trial": 2,
+      "order": 24
+    },
+    {
+      "file": "threads-4-stages-2.json",
+      "threads": 4,
+      "profiler": "stages",
+      "trial": 2,
+      "order": 25
+    },
+    {
+      "file": "threads-8-none-2.json",
+      "threads": 8,
+      "profiler": "none",
+      "trial": 2,
+      "order": 26
+    },
+    {
+      "file": "threads-8-stages-2.json",
+      "threads": 8,
+      "profiler": "stages",
+      "trial": 2,
+      "order": 27
+    },
+    {
+      "file": "threads-16-none-2.json",
+      "threads": 16,
+      "profiler": "none",
+      "trial": 2,
+      "order": 28
+    },
+    {
+      "file": "threads-16-stages-2.json",
+      "threads": 16,
+      "profiler": "stages",
+      "trial": 2,
+      "order": 29
+    }
+  ]
+}

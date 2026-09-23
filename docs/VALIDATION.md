@@ -1,5 +1,23 @@
 # Validation And Evidence
 
+## 当前 WSL 验收
+
+2026-09-23 的 [在线观测验证](../benchmarks/results/validation/wsl-batch-telemetry/README.md) 记录 CPU/CUDA 参照构建各 5/5 CTest 套件、ASan/UBSan 核心 4/4，共 463 次用例执行；CPU 1/8 线程及 CUDA 数值参照的模型检查各 13/13，CPU off/stages 和 CUDA stages 的 HTTP 各 8/8。SSE token 关联、缓冲耗尽、异常、阶段时间守恒、KV 回收与目录迁移均通过。
+
+[在线 batch 基线](../benchmarks/results/wsl-batch-telemetry/README.md) 保留 42 个独立服务进程、594 个请求、9810 个输出 token，跨模式和策略的完整输出一致。原始负载三轮无观测的 mixed / prefill-first 中位吞吐为 18.41 / 18.66 token/s，P95 请求平均 TPOT 为 395.28 / 333.42 ms，P99 ITL 为 1224.77 / 2480.67 ms；各轮分位数取中位数，不混作合并分位数。报告保留阶段观测约 +1.82% / +5.82% 的全程耗时差异，以及低到达率的 batch 组成变化。该差异包含系统噪声及在线扰动，不是精确插桩成本或计算优化收益。
+
+2026-09-22 的 [Runtime profiler 验证](../benchmarks/results/validation/wsl-runtime-profile/README.md) 记录 CPU/CUDA 参照构建各 4/4 CTest 套件、ASan/UBSan 核心构建 3/3，共 358 次用例执行。CPU 1/8 线程和 CUDA 数值参照的三次模型检查各 12/12，两个 HTTP 后端各 8/8。profile 开关的逐字节 logits、续写、共享 KV、异常恢复与存储复用均有检查；源码、模型和二进制身份固定在该目录的 `evidence.json`。
+
+[Runtime 阶段基线](../benchmarks/results/wsl-runtime-profile/README.md) 包含 1/2/4/8/16 线程扩展和独立的 8 线程长上下文组，36 份报告、558 次测量全部通过输出与计时验收。8 线程 `prefill-128` 的矩阵投影占 profile forward 中位数约 96.16%，LM head 约 0.54%；16 线程的 prefill 更快，但单序列 decode 慢于 8 线程。长上下文组的 attention 从约 2.00 ms 增至 15.28 ms。原始开销、离群值和实验限制均保留；这些不是 Serving 或自研 CUDA 加速结论。
+
+此前的 [WSL 确定性混合批验证](../benchmarks/results/validation/wsl-deterministic/README.md) 保留 CPU/CUDA 各 3/3 套件、ASan/UBSan 核心构建 2/2 套件，以及 CPU 1、2、8 线程和 CUDA 参照共六次 10/10 模型检查。8 线程 CPU 连续三次通过，六份报告均形成确定的真实混合批；CPU/CUDA HTTP 各 8/8 通过。51 项基准与归档 fixture 检查不完整报告、身份差异、合法失败及诊断分类。
+
+[WSL 策略基线](../benchmarks/results/wsl-policy-validation/README.md) 保留六次独立服务回放、144 个成功请求、完整 token 对照、manifest 和源码快照。mixed / prefill-first 的中位吞吐为 18.98 / 19.30 token/s，P95 请求平均 TPOT 为 381.77 / 321.92 ms，goodput 均为 0；单次 ITL 的 P99 则为 1203.67 / 2436.45 ms。该结果不是优化收益证明，不与以下 Windows 历史基线直接计算加速比。
+
+[原生回放终态验证](../benchmarks/results/wsl-protocol-validation/README.md) 覆盖真实 HTTP 429 与 SSE 超时；失败请求保留，未计入成功或 goodput。完整协议见 [策略回放与验收](BENCHMARKS.md)。旧截断 XML 作为诊断保存，默认归档检查将 `diagnostics/` 单独列出，不把它算作完整通过证据；旧套件没有提供的用例数量不会被推测补齐。
+
+以下章节对应各自标明日期的历史环境与证据，不代替上述当前 WSL 验收。
+
 ## Scope
 
 The main implementation is C++20. The model is official Qwen3-0.6B Q8_0
