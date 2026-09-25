@@ -2,6 +2,8 @@
 
 ## 当前 WSL 验收
 
+[CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 记录四种构建共 31 次 CTest 套件、749 次用例执行，8 项 Runtime 检查、128 组 CPU/F32 logits 对照、六组 S=1/S=4 短金标准与三个 CLI 生成。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异。设备与完整模型 memcheck、Runtime racecheck/synccheck 均通过；CPU 模型 13/13、HTTP 8/8。该组验证完整 GPU 模型路径，但未完成长语料全契约、正式性能或 GPU Serving 门禁。
+
 [CUDA 连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 记录 7 项状态、FP16 RN-even、因果 GQA、NaN mask 与完整层测试，六组真实首层/末层对照，以及四种构建共 30 次 CTest 套件、741 次用例执行。CPU 模型 13/13、HTTP 8/8；设备和实模型层 memcheck、层 racecheck/synccheck 均通过。固定模型门槛与共享 Q/K/V 的算子门槛分别报告，FP16 边界导致的直接逐元素超差原件保留；不是完整 GPU 模型或性能验收。
 
 [CUDA 基础算子验收](../benchmarks/results/validation/cuda-ops/README.md) 记录 11 项 gather、分组 RMSNorm、RoPE、逐元素与 finite/argmax 检查，覆盖实际宽度、151936 词表、padding、非法输入、原地操作、有限极值与同 stream 组合执行。四种构建共 29 次 CTest 套件、733 次用例执行；CPU 模型 13/13、HTTP 8/8。memcheck、racecheck、synccheck 均通过；不构成完整 GPU 模型或性能证据。

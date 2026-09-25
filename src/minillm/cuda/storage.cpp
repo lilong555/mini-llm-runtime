@@ -6,6 +6,7 @@ extern "C" {
 
 #include <algorithm>
 #include <climits>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <iomanip>
@@ -211,6 +212,7 @@ void CudaStorage::initialize_rope() {
 }
 
 void CudaStorage::upload(const Qwen3Model& model) {
+    const auto started = std::chrono::steady_clock::now();
     std::vector<float> staging(weight_staging_bytes / sizeof(float));
     try {
         for (auto& w : plan_.weights) {
@@ -244,6 +246,8 @@ void CudaStorage::upload(const Qwen3Model& model) {
             w.effective_sha256 = digest(state);
         }
     } catch (...) { finish_noexcept(context_); throw; }
+    weight_decode_upload_ns_ = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now()-started).count());
 }
 
 DeviceTensorView<const float> CudaStorage::weight(const std::string& name) const {

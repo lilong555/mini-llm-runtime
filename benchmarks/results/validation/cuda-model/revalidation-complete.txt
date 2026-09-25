@@ -1,0 +1,10 @@
+
+Status             : passed
+Purpose            : archive_revalidation
+Artifacts          : 51
+SuiteExecutions    : 31
+CaseExecutions     : 749
+CompleteGpuModel   : True
+FullCorpusContract : False
+GpuServing         : False
+

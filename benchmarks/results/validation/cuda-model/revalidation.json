@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "case": "complete",
+      "exit_code": 0
+    },
+    {
+      "case": "missing",
+      "exit_code": 1
+    },
+    {
+      "case": "tampered",
+      "exit_code": 1
+    }
+  ],
+  "snapshot_tools_used": true,
+  "original_workspace_not_required": true
+}

@@ -418,3 +418,12 @@
 - 原因：V 投影的最大 FP32 差异为 `1.1444091796875e-05`，其中两个元素跨过 FP16 RN-even 的分界；context=1 的 attention 直接读取 V，差异成为 `0.001953125`，继续经过 output/FFN 投影。Q/K/V 的连续浮点误差与 FP16 离散化误差需要分别核对。
 - 解决方法或下一步：保留全部原始输入和独立整层对照，以预先固定的模型数值门槛检查真实层；额外使用实际 Q/K/V 作为共享输入，由独立 CPU FP64 计算 attention/FFN，以原 `atol=2e-4, rtol=2e-4` 检查该边界路径。受控 fixture、基础算子和 CPU 旧门槛不变，不修改产品数学实现来追逐某个舍入结果。
 - 验证：六组真实层的独立整层与共享 Q/K/V 对照均通过；基础算子和边界路径保持原容差。独立末层混合批最大绝对误差为 `0.12060546875`，最大 RMSE 为 `0.0033648982414092882`，满足固定模型门槛；三组末层不满足直接逐元素算子门槛的事实由 `max_unit_tolerance_ratio` 保留。四种构建共 741 次用例执行，设备与实模型层 memcheck 为 0 错误/0 泄漏，racecheck 为 0 hazards，synccheck 为 0 错误。完整 28 层及生成 token 仍需独立模型验证。
+
+## ENG-040：CUDA 模型元数据预分配缺少产品上界
+
+- 状态：已解决，限定于本阶段公开 CUDA 模型的 S/B 配置上界与初始化顺序。
+- 影响：公开模型配置若只限制 `batch_tokens <= INT_MAX`，五个 host metadata 数组会在 CUDA 显存计划检查前分配；极大参数可能耗尽 host 内存，不能依靠后续显存门禁保护。
+- 复现条件或证据：`CudaRuntime::Impl` 的 `ids/positions/slots/selected/output_ids` 成员先于 `CudaStorage` 构造。按 `INT_MAX` 个 I32、五个数组计算，请求约 40 GiB host 内存；本机 WSL 总内存约 7.4 GiB。该风险来自构造顺序复核，没有主动执行耗尽内存的试验。
+- 原因：设备矩阵维度的表示范围不等于本阶段公开模型的 batch 支持范围。
+- 解决方法：公开 `CudaRuntimeConfig` 明确 S<=4、B<=128；构造时先校验，再加载模型或分配 metadata。CLI 使用同一上界，不截断用户参数。内部矩阵和存储测试不据此缩小维度检查范围。
+- 验证：`runtime_initialization_failure_releases_resources` 使用不存在的模型路径和 B=129，首先得到配置 `std::invalid_argument`。8 项 Runtime 检查及其 memcheck/racecheck/synccheck 通过；四种构建共 749 次用例执行，S=1/S=4 的完整模型对照和 memcheck 通过。CLI 的 B=129 拒绝、设备预算拒绝及报告保护原始结果位于 `benchmarks/results/validation/cuda-model/`，没有执行 host 内存耗尽试验。

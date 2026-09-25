@@ -1,0 +1,245 @@
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+{
+  "schema_version": 1,
+  "status": "passed",
+  "backend": "minillm-cuda",
+  "execution": "项目 CUDA forward；cuBLAS GEMM；llama.cpp 仅提供词表",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "arithmetic": {
+    "source_weight_dtype": "Q8_0",
+    "source_tensor_counts": {
+      "Q8_0": 197,
+      "F32": 113
+    },
+    "device_weight_dtype": "F32",
+    "activation_dtype": "F32",
+    "kv_dtype": "F16",
+    "kv_rounding": "nearest_even",
+    "qk_pv_accumulation_dtype": "F32",
+    "softmax_exponential_dtype": "F32",
+    "softmax_denominator_dtype": "F64",
+    "gemm_compute": "CUBLAS_COMPUTE_32F_PEDANTIC",
+    "fast_math": false
+  },
+  "device": {
+    "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "uuid": "6384dbff-0d06-8bf5-2091-d53bc812d211",
+    "compute_capability": [
+      8,
+      9
+    ],
+    "driver_version": 13010,
+    "runtime_version": 12080,
+    "cublas_version": 120805
+  },
+  "kv_layout": "contiguous",
+  "streams": 1,
+  "limits": {
+    "max_sequences": 4,
+    "max_model_len": 2048,
+    "batch_tokens": 128,
+    "device_budget_bytes": 0
+  },
+  "input_token_ids": [
+    3966,
+    5519,
+    825,
+    16819
+  ],
+  "token_ids": [
+    825,
+    11,
+    825,
+    5519,
+    825,
+    16819,
+    1378,
+    13
+  ],
+  "text": " one, one plus one equals two.",
+  "prompt_tokens": 4,
+  "completion_tokens": 8,
+  "prefill_wall_ns": 51584221,
+  "generation_wall_ns": 142116653,
+  "forwards": [
+    {
+      "phase": "prefill",
+      "input_tokens": 4,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 51575855,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 16087207,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12268637,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12889721,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12243960,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12245883,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12197262,
+      "device_elapsed_ms": null
+    },
+    {
+      "phase": "decode",
+      "input_tokens": 1,
+      "logits_rows": 1,
+      "host_forward_to_token_ns": 12526665,
+      "device_elapsed_ms": null
+    }
+  ],
+  "before": {
+    "state": "ready",
+    "sequence_lengths": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "live_sequences": 0,
+    "live_kv_tokens": 0,
+    "kv_capacity_tokens": 8192,
+    "resident": {
+      "weights_bytes": 2384199680,
+      "workspace_bytes": 121311232,
+      "kv_bytes": 939524096,
+      "library_workspace_bytes": 4194304,
+      "activations_bytes": 8912896,
+      "attention_scratch_bytes": 33554432,
+      "logits_bytes": 77791232,
+      "metadata_bytes": 3608,
+      "rope_bytes": 1048576,
+      "padding_bytes": 488,
+      "total_owned_bytes": 3449229312
+    },
+    "weight_h2d_bytes": 2384199680,
+    "rope_h2d_bytes": 1048576,
+    "metadata_h2d_bytes": 0,
+    "token_d2h_bytes": 0,
+    "status_d2h_bytes": 0,
+    "debug_d2h_bytes": 0,
+    "intermediate_h2d_bytes": 0,
+    "intermediate_d2h_bytes": 0,
+    "owned_device_allocations": 4,
+    "owned_device_bytes": 3449229312,
+    "completed_forwards": 0,
+    "post_launch_failures": 0,
+    "model_load_ns": 225730233,
+    "storage_initialization_ns": 9829460434,
+    "weight_decode_upload_ns": 9504092827
+  },
+  "after": {
+    "state": "ready",
+    "sequence_lengths": [
+      11,
+      0,
+      0,
+      0
+    ],
+    "live_sequences": 1,
+    "live_kv_tokens": 11,
+    "kv_capacity_tokens": 8192,
+    "resident": {
+      "weights_bytes": 2384199680,
+      "workspace_bytes": 121311232,
+      "kv_bytes": 939524096,
+      "library_workspace_bytes": 4194304,
+      "activations_bytes": 8912896,
+      "attention_scratch_bytes": 33554432,
+      "logits_bytes": 77791232,
+      "metadata_bytes": 3608,
+      "rope_bytes": 1048576,
+      "padding_bytes": 488,
+      "total_owned_bytes": 3449229312
+    },
+    "weight_h2d_bytes": 2384199680,
+    "rope_h2d_bytes": 1048576,
+    "metadata_h2d_bytes": 164,
+    "token_d2h_bytes": 32,
+    "status_d2h_bytes": 64,
+    "debug_d2h_bytes": 0,
+    "intermediate_h2d_bytes": 0,
+    "intermediate_d2h_bytes": 0,
+    "owned_device_allocations": 4,
+    "owned_device_bytes": 3449229312,
+    "completed_forwards": 8,
+    "post_launch_failures": 0,
+    "model_load_ns": 225730233,
+    "storage_initialization_ns": 9829460434,
+    "weight_decode_upload_ns": 9504092827
+  },
+  "steady_project_allocation_calls": 0,
+  "steady_project_release_calls": 0,
+  "after_clear": {
+    "state": "ready",
+    "sequence_lengths": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "live_sequences": 0,
+    "live_kv_tokens": 0,
+    "kv_capacity_tokens": 8192,
+    "resident": {
+      "weights_bytes": 2384199680,
+      "workspace_bytes": 121311232,
+      "kv_bytes": 939524096,
+      "library_workspace_bytes": 4194304,
+      "activations_bytes": 8912896,
+      "attention_scratch_bytes": 33554432,
+      "logits_bytes": 77791232,
+      "metadata_bytes": 3608,
+      "rope_bytes": 1048576,
+      "padding_bytes": 488,
+      "total_owned_bytes": 3449229312
+    },
+    "weight_h2d_bytes": 2384199680,
+    "rope_h2d_bytes": 1048576,
+    "metadata_h2d_bytes": 164,
+    "token_d2h_bytes": 32,
+    "status_d2h_bytes": 64,
+    "debug_d2h_bytes": 0,
+    "intermediate_h2d_bytes": 0,
+    "intermediate_d2h_bytes": 0,
+    "owned_device_allocations": 4,
+    "owned_device_bytes": 3449229312,
+    "completed_forwards": 8,
+    "post_launch_failures": 0,
+    "model_load_ns": 225730233,
+    "storage_initialization_ns": 9829460434,
+    "weight_decode_upload_ns": 9504092827
+  },
+  "scope": "模型到 token CLI；不是 HTTP TTFT、GPU Serving 或性能基线"
+}

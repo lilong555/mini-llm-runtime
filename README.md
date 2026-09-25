@@ -1,4 +1,4 @@
-# Mini LLM Runtime: C++ + SIMD + GGUF
+# Mini LLM Runtime: C++20 + SIMD + CUDA
 
 一个从底层推理到在线服务的 C++20 项目。**MiniLLM** 独立执行 Qwen3 前向计算，**LLMServe** 在其上实现迭代级调度与流式服务；llama.cpp 提供格式解析、tokenizer 和可切换的 CPU/CUDA 参照后端。
 
@@ -19,7 +19,9 @@ HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
                          ModelRunner: MiniLLM | llama.cpp
 ```
 
-MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、attention 和物理 KV 页；llama.cpp 后端的 CUDA 算子与 GPU KV 存储属于上游能力。
+MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
+
+自有 CUDA CLI 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。它执行完整 Qwen3 模型，不调用上游模型 forward；当前尚未接入上述 Serving 路径。
 
 ## 能力边界
 
@@ -27,20 +29,20 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | --- | --- |
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
 | Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
-| 自有 CUDA 层执行 | 常驻 FP32 权重、cuBLAS GEMM、基础算子、连续 FP16 KV、因果 GQA 与完整 transformer 层 |
+| 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
-| 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
-| Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
+| CPU 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
+| Serving Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
 | 调度 | token budget、chunked prefill、优先级 aging、等待保护、保守容量预留 |
 | Prefix cache | token Trie、命名空间、完整块复用、LRU 淘汰；全命中时重算最后一块 |
 | 服务 | C++ HTTP/SSE、取消、超时、断连回收、慢消费者背压、严格参数校验 |
 | 实验 | scalar/SIMD 微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
 | 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
-支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。完整 MiniLLM 模型在 CPU 执行，完整 CUDA 模型执行通过 llama.cpp 后端提供。自有 CUDA 提供常驻权重、连续 KV 和完整层验证，尚无完整 GPU forward，见 [CUDA 层执行](docs/CUDA_RUNTIME.md)。
+支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 提供 CPU Runtime 与自有 CUDA Runtime/CLI；Serving 的 `mini` 后端仍为 CPU，`llama` 后端可使用上游 CPU/CUDA。自有 CUDA 支持最多 4 个独立序列、128 个 batch tokens，默认每序列 context=2048，见 [CUDA Runtime](docs/CUDA_RUNTIME.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自研 CUDA PagedAttention。自有 CPU paged attention 与上游 GPU attention 必须分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自有 GPU Serving、CUDA prefix sharing 或 PagedAttention。CPU 分页、自有 CUDA 连续 KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -58,6 +60,15 @@ bash scripts/dev.sh serve --port 8000
 ```
 
 完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
+
+### 自有 CUDA CLI
+
+```bash
+bash scripts/dev.sh own-cuda build
+bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
+```
+
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。完整模型的短语料与 S=1/S=4 验证见 [验收记录](benchmarks/results/validation/cuda-model/README.md)；长语料全量验证与正式性能基线尚未完成。
 
 ### Windows / PowerShell
 

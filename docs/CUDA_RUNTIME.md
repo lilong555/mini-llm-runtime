@@ -1,6 +1,6 @@
-# 自有 CUDA 运行基础
+# 自有 CUDA Runtime
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。当前提供设备资源所有权、常驻 FP32 有效权重、预分配 workspace、显存预算、基础算子、连续 FP16 KV、因果 GQA attention 和完整 transformer 层。完整 Qwen3 GPU forward、GPU token CLI、GPU Serving 和 GPU PagedAttention 尚未提供。实施阶段见 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。GPU Serving、prefix sharing 和 PagedAttention 尚未提供。短语料和 S=1/S=4 通过验证；全量长语料与正式性能基线仍在独立门禁内，见 [执行状态](EXECUTION_STATUS.md)。
 
 ## 构建与验收
 
@@ -9,16 +9,52 @@ WSL2、CUDA Toolkit >= 12.8、C++20 工具链和固定版本 llama.cpp 为构建
 ```bash
 bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda test
+bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
 bash scripts/dev.sh own-cuda memcheck
 bash scripts/dev.sh own-cuda storage-check
 bash scripts/dev.sh own-cuda storage-memcheck
 bash scripts/dev.sh own-cuda layer-check
 bash scripts/dev.sh own-cuda layer-memcheck
+python3 scripts/models.py --reference --converter build/wsl-own-cuda/bin/mini-llm
+bash scripts/dev.sh own-cuda model-check
+bash scripts/dev.sh own-cuda model-memcheck
 ```
 
 构建目录为 `build/wsl-own-cuda`，上游 CUDA 关闭。可通过 `CUDA_ARCHITECTURES` 指定目标架构。`minillm_cuda` 链接 CUDA Runtime 和 cuBLAS，CPU 产品不链接该 target；`.cu` 测试使用 CUDA C++20。关闭自有 CUDA 的构建不需要 CUDA Toolkit。自有 CUDA 开启、`LLMSERVE_WITH_LLAMA=OFF` 的组合在配置阶段明确拒绝。
 
-现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 支持 `build/test/memcheck/storage-check/storage-memcheck/layer-check/layer-memcheck`，没有可调用的完整模型或服务入口。`storage-*` 和 `layer-*` 命令需要固定 Q8_0 模型，默认使用带时间和进程号的新报告目录，也可显式指定尚不存在的目录；不会覆盖已有报告。
+现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 的 `generate` 调用 `mini-cuda-llm`，没有 `serve` 入口。`storage-*`、`layer-*`、`model-*` 验证命令需要固定模型，`model-*` 还需要 matched-weight F32 参照；默认使用带时间和进程号的新报告目录，也可指定尚不存在的目录，不覆盖已有报告。
+
+## 模型接口
+
+公开头文件为 `include/minillm/cuda/runtime.h`，C++20 调用方链接 `minillm_cuda`：
+
+- `CudaRuntimeConfig` 指定 model、device、S、Lmax、B 和可选设备预算；S 为 1–4，B 为 1–128，Lmax 不超过训练范围。默认 S=4、Lmax=2048、B=128，不自动缩小配置。
+- `forward(span<InputToken>, mode, device_timing)` 同步返回 `CudaForwardResult`。`InputToken` 的 token、position、sequence 与 CPU 接口相同，`logits` 选择需要输出的行；支持同一序列多 token 与交错序列。
+- `samples` 按原 batch 的 `input_index` 排序。默认 `greedy` 仅下载 token/status；显式 `debug_logits` 返回与 samples 对齐的全词表 `Logits`。没有输出行时仍完成 KV 写入与状态检查。
+- `clear_sequence` 只在 ready 完成点重置逻辑长度；`diagnostics` 返回已提交长度、常驻计划、计数与 ready/poisoned 状态。
+- `tokenize`、`token_piece`、`is_eog` 使用独立 vocab-only tokenizer；`weight_manifest` 提供唯一权重及别名的形状、源 dtype、设备偏移和有效权重摘要。
+
+执行顺序为 embedding gather → 全部 28 层 → final norm → selected-row gather → LM head → finite/argmax → token/status 下载 → checked completion → 提交长度。完整路径不构造 CPU Runtime，不调用 `llama_decode()`，不回退 CPU。
+
+单实例要求单调用者、不可重入。preflight 或输出容器准备失败发生在设备执行前，长度不变、实例仍可用。设备执行开始后，任何 CUDA/cuBLAS 错误或 nonfinite status 都自动使实例进入 poisoned，不返回本 batch 的结果、不提交长度，不能通过 clear 复用。异常路径在局部 debug 下载目标销毁前终结在途工作；这不是物理 KV 回滚，也不承诺 fatal device error 后的 context 可恢复。
+
+## CLI 与报告
+
+```bash
+build/wsl-own-cuda/bin/mini-cuda-llm \
+  --model models/Qwen3-0.6B-Q8_0.gguf \
+  --prompt "The capital of France is" --tokens 8 \
+  --context 2048 --sequences 4 --batch 128 --chunk 128 \
+  --device 0 --device-time --output .run/cuda-generate.json
+```
+
+`--output` 必须是新文件；报告也写入 stdout。CLI 只生成 sequence 0，支持 chunked prefill 和逐 token decode，默认遵守 EOG，`--ignore-eos` 可固定输出数量。实际 KV 上限检查为 `prompt_tokens + completion_tokens - 1 <= Lmax`，最后一个输出无需再作为输入写入 KV。多序列通过 C++ 接口使用。
+
+报告包含模型 SHA-256、实际 source/device dtype、设备和版本、S/L/B、输入与输出 token、文本、每次 forward 和清理前后的 diagnostics。`host_forward_to_token_ns` 包含预检、必要 copy、GPU 执行、argmax 与完成检查，不含模型加载；可选 `device_elapsed_ms` 使用预创建 CUDA events，关闭时为 null。`model_load_ns`、`storage_initialization_ns` 与其内部的 `weight_decode_upload_ns` 单列，后两者不是可相加的独立阶段。
+
+显式 copy 的累计计数区分权重、RoPE、metadata、token、status 和 debug logits。每个成功 batch 的 metadata 为 `4*(3*M+R)` 字节，token 为 `4*R` 字节，status 为 8 字节；M 是输入行数，R 是输出行数。debug 另下载 `4*R*vocabulary` 字节。这些计数不包含 kernel 参数或 NVIDIA 库内部传输。Runtime 不搬运中间激活，稳态不再上传权重或 RoPE。
+
+`owned_device_allocations/bytes` 表示当前 owner 的项目存储；实际热路径 allocation/free 调用另由 `allocation_stats()` 采样检查。CLI 计时不是 HTTP TTFT 或正式性能基线，不能据此得出加速比。
 
 ## 所有权与完成协议
 
@@ -69,7 +105,7 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 - `rope` 原地执行 NeoX 两半旋转。设备系数表为 `[L,D]`，前半 cosine、后半 sine，`D` 是显式 head_dim；初始化方提供系数表，算子不逐步调用 host 三角函数。
 - `residual_add` 和 `swiglu` 支持有 stride 的逐元素原地操作，部分重叠在 launch 前拒绝。
 - `argmax` 融合全部 logits 的 finite 检查；相等时选择最小 token ID，任意 NaN/Inf 使对应行返回 `-1`。
-- `status[1,2]` 保存错误位集合与首个错误输入行。每次执行开始调用 `reset_status`，之后各算子累计标记；预检失败不改写设备内容，设备错误标记不能视为有效生成结果。
+- `status[1,2]` 保存错误位集合与首个错误算子输入行。每次执行开始调用 `reset_status`，之后各算子累计标记；选中行的 LM head/argmax 行号不一定等于原 batch 下标。预检失败不改写设备内容，设备错误标记不能视为有效生成结果。
 
 11 项算子测试覆盖实际宽度、151936 词表、非整 warp 尾部、stride/padding、重复与越界索引、原地与部分重叠、FP64 对照及单 stream 组合执行。普通 CTest 与 memcheck、racecheck、synccheck 均通过；完整证据见 [基础算子验收](../benchmarks/results/validation/cuda-ops/README.md)。`check_finite` 可独立累计任意 activation 的非有限值错误。
 
@@ -88,6 +124,14 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 
 [连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 包含 7 项状态/数学测试、六组首层与末层真实权重对照、三种 sanitizer，以及四种构建共 741 次用例执行。基础算子与共享 Q/K/V 边界对照保持 `2e-4` 混合容差；独立真实整层使用固定模型门槛，FP16 舍入跨界的原始失败与较大误差保留在 `ENG-039` 和报告中。该证据不包含完整 28 层或实际生成 token。
 
+## 完整模型验证
+
+[完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 包含四种构建共 749 次用例执行、8 项 Runtime 检查、128 组 logits 对照、S=1/S=4 的六组 8-token 金标准和三个独立 CLI 生成。对照分别使用自有 Q8_0 CPU Runtime 与 matched-weight F32 llama.cpp CPU；两种参考与 GPU 顺序构造。最大 RMSE 为 `0.005696512`、最大绝对误差为 `0.024068833`，没有 argmax 差异。
+
+Runtime 测试覆盖无输出行、选中行顺序、事件计时开关位级一致、预检恢复、clear 后重用、预算拒绝、非有限输出和受控完成检查失败。普通完整模型和 memcheck 均通过，memcheck 为 0 错误/0 泄漏，Runtime racecheck/synccheck 均为零错误。受控同步失败由测试包装器在实际完成后注入，不是一次真实 illegal access 的恢复试验。
+
+该组覆盖短金标准、四类 33-token 语料、128-token prefill、16+2 mixed 和四序列交错。长度 256/1536、全部 chunk/sequence 组合、32-token 自然生成、CPU8/16 对照、A/A、完整模型 Nsight 与正式归档仍属于 Step 8–9，不能以当前记录关闭 V2-M1。
+
 ## 第三方边界
 
-设备资源封装、权重转换调度、存储布局、预算、基础算子、KV 状态、因果 attention 与层执行由本项目实现；内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供，block/warp 归约复用 Toolkit 的 CUB。当前 CUDA 12.8 安装包含 CUB 2.7.0。GGUF 解析与 SHA-256 库来自固定版本的 llama.cpp 依赖，其完整 GPU 模型执行归属不变。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html)、[CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html) 与 [CUB BlockReduce](https://nvidia.github.io/cccl/cub/api/classcub_1_1BlockReduce.html)。
+设备资源封装、权重转换调度、存储布局、预算、基础算子、KV 状态、因果 attention、完整 forward 与 greedy 由本项目实现；内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供，block/warp 归约复用 Toolkit 的 CUB。当前 CUDA 12.8 安装包含 CUB 2.7.0。GGUF、tokenizer 与 SHA-256 来自固定 llama.cpp 依赖，模型计算只在 tests/reference 路径调用上游 forward。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html)、[CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html) 与 [CUB BlockReduce](https://nvidia.github.io/cccl/cub/api/classcub_1_1BlockReduce.html)。

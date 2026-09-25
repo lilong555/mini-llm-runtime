@@ -50,3 +50,4 @@ benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/validation/cuda-ops/source-snapshot.zip
 !benchmarks/results/validation/cuda-layer/source-snapshot.zip
 !benchmarks/results/validation/cuda-layer/diagnostics/source-snapshot.zip
+!benchmarks/results/validation/cuda-model/source-snapshot.zip

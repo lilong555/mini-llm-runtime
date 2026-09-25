@@ -21,8 +21,8 @@ elif [[ ${1:-} == own-cuda ]]; then
   build=build/wsl-own-cuda
   own_cuda=ON
   case "${1:-help}" in
-    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|help) ;;
-    *) echo '自有 CUDA 提供 build/test/memcheck/storage-check/storage-memcheck/layer-check/layer-memcheck；完整模型和服务入口尚未交付。' >&2; exit 1 ;;
+    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-memcheck|generate|help) ;;
+    *) echo '自有 CUDA 提供 build/test/memcheck、storage/layer/model 验证和 generate；GPU Serving 尚未交付。' >&2; exit 1 ;;
   esac
 fi
 case "${1:-help}" in
@@ -46,6 +46,24 @@ case "${1:-help}" in
     compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-ops-tests"
     compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-storage-tests"
     compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-layer-tests"
+    compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-runtime-tests"
+    ;;
+  generate)
+    [[ $own_cuda == ON ]] || { echo '用法：bash scripts/dev.sh own-cuda generate [生成参数]' >&2; exit 1; }
+    shift
+    exec "$build/bin/mini-cuda-llm" --model "$model" "$@"
+    ;;
+  model-check|model-memcheck)
+    [[ $own_cuda == ON && $# -le 2 ]] || { echo '用法：bash scripts/dev.sh own-cuda model-check [新报告目录]' >&2; exit 1; }
+    model_output=${2:-".run/cuda-model-$(date -u +%Y%m%dT%H%M%S)-$$"}
+    model_command=("$build/bin/minillm-cuda-model-tests" --model "$model"
+      --reference-model models/Qwen3-0.6B-Q8_0-dequant-F32.gguf
+      --contract tests/data/qwen3_validation_cases.json --output "$model_output")
+    if [[ $1 == model-memcheck ]]; then
+      compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "${model_command[@]}"
+    else
+      "${model_command[@]}"
+    fi
     ;;
   layer-check|layer-memcheck)
     [[ $own_cuda == ON && $# -le 2 ]] || { echo '用法：bash scripts/dev.sh own-cuda layer-check [新报告目录]' >&2; exit 1; }
@@ -138,7 +156,7 @@ case "${1:-help}" in
     ;;
   *)
     echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
-    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck|storage-check [新报告目录]|storage-memcheck [新报告目录]|layer-check [新报告目录]|layer-memcheck [新报告目录]}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck|storage-check [新报告目录]|storage-memcheck [新报告目录]|layer-check [新报告目录]|layer-memcheck [新报告目录]|model-check [新报告目录]|model-memcheck [新报告目录]|generate [生成参数]}'
     [[ ${1:-help} == help ]]
     ;;
 esac

@@ -1,0 +1,5 @@
+Exception: /tmp/cuda-model-relocated-a076087ade5d42019a92b1e31eabebf0/tampered/verify.ps1:35
+Line |
+  35 |  … Length -ne $artifact.size_bytes) { throw "证据摘要不符：$($artifact.path)" }
+     |                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | 证据摘要不符：real-model/model-validation.json

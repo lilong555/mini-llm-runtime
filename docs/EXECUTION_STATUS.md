@@ -19,13 +19,16 @@
 | V2-M1 / Step 4 | 已验收 | 唯一 FP32 weight arena、8 MiB staging、workspace 与显存预算、310 个唯一 tensor 及 88 组真实矩阵检查 |
 | V2-M1 / Step 5 | 已验收 | gather、分组 RMSNorm、NeoX RoPE、residual、SwiGLU、finite/argmax；11 项算子检查与三类 sanitizer |
 | V2-M1 / Step 6 | 已验收 | 连续 KV 状态、FP16 store、causal GQA attention、完整层、preflight/poisoned 状态 |
-| V2-M1 / Step 7–9 | 未实施 | 完整 forward、真实 token、数值/性能/Profiler 证据 |
+| V2-M1 / Step 7 | 已验收 | 完整 28 层、selected-row LM head、greedy、真实 CLI；S=1/S=4、128 组 logits、六组短金标准 |
+| V2-M1 / Step 8–9 | 待实施 | 全量长语料与 chunk/batch、32-token 生成、CPU8/16/A/A、完整模型 Profiler 与性能交付 |
 | V2-M2 | 等待完整模型 gate | GPU Serving、HTTP/SSE 和生命周期验收 |
 | V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
 
-当前完整自有模型执行仍是 CPU。[Host Model](HOST_MODEL.md) 提供独立的只读 Qwen3 绑定与词表 owner，[CUDA 层执行](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、因果 GQA 与完整 transformer 层。完整 GPU 模型、GPU Serving 与 GPU PagedAttention 尚未提供。下一项为 Step 7 完整 28 层、final norm、选中行 LM head 与真实 token CLI，单层检查不能代替完整模型门禁。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为 Step 8 全量数值与性能对照，随后执行 Step 9 Profiler/完整包门禁；Step 7 不代表 V2-M1 整体完成。
 
 ## 可复核证据
+
+[CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 包含自有 CUDA 12/12、CPU 7/7、独立核心 5/5、上游 CUDA 7/7 CTest，共 749 次用例执行；8 项 Runtime 检查、128 组 CPU/F32 参照 logits、六组 S=1/S=4 短金标准和三个 CLI 通过。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异；完整模型 memcheck 为 0 错误/0 泄漏，Runtime racecheck/synccheck 均通过。CPU 模型 13/13、HTTP 8/8 单列，不代表 GPU Serving。稳态无权重/hidden 传输或项目设备分配，greedy 不下载全词表。全量长语料和性能门禁仍未完成。
 
 [CUDA 连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 包含自有 CUDA 11/11、CPU 7/7、独立核心 5/5、上游 CUDA 7/7 CTest，共 741 次用例执行；7 项层级用例、六组首层/末层真实权重对照、88 组矩阵回归、CPU 模型 13/13 和 HTTP 8/8 通过。设备与真实层 memcheck 为 0 错误/0 泄漏，racecheck 为 0 hazards，synccheck 为 0 错误。独立整层最大绝对误差 `0.12060546875`、FP16 舍入边界诊断和失败源码均保留；不能将共享 Q/K/V 对照冒充独立整层等价。尚无完整 GPU 模型或性能结论。
 

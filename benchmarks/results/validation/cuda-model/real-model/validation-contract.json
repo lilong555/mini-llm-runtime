@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "contract_id": "qwen3-cuda-numerical-v1",
+  "spec_id": "CUDA-VS-001",
+  "model": {
+    "manifest": "models/manifest.json",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "vocabulary": 151936
+  },
+  "reference": {
+    "manifest": "models/reference-manifest.json",
+    "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+    "source_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
+  },
+  "tokenizer": {
+    "provider": "llama.cpp-vocab-only",
+    "commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "add_special": true,
+    "parse_special": true
+  },
+  "arithmetic": {
+    "source_weight_dtype": "Q8_0",
+    "source_tensor_dtypes": [
+      "F32",
+      "Q8_0"
+    ],
+    "device_weight_dtype": "F32",
+    "activation_dtype": "F32",
+    "kv_dtype": "F16",
+    "kv_rounding": "nearest_even",
+    "qk_pv_accumulation_dtype": "F32",
+    "softmax_exponential_dtype": "F32",
+    "softmax_denominator_dtype": "F64",
+    "gemm_compute": "CUBLAS_COMPUTE_32F_PEDANTIC",
+    "fast_math": false,
+    "source_tensor_counts": {
+      "Q8_0": 197,
+      "F32": 113
+    }
+  },
+  "thresholds": {
+    "all_finite": true,
+    "rmse_exclusive": 0.05,
+    "max_absolute_exclusive": 0.5,
+    "cosine_min_inclusive": 0.9999,
+    "unit_atol": 0.0002,
+    "unit_rtol": 0.0002
+  },
+  "argmax": {
+    "tie_break": "lowest_token_id",
+    "require_equal_if": "reference_top1_minus_top2 > 2 * observed_max_absolute",
+    "otherwise": "record_near_tie_and_actual_argmax",
+    "nonfinite": "fail"
+  },
+  "teacher_forcing": {
+    "mode": "fixed_input_tokens",
+    "expansion": "repeat_seed_then_truncate",
+    "lengths": [
+      16,
+      33,
+      128,
+      256,
+      1536
+    ],
+    "positions": [
+      0,
+      1,
+      15,
+      16,
+      17,
+      32,
+      127,
+      128,
+      255,
+      1535
+    ],
+    "position_filter": "position < length",
+    "chunk_tokens": [
+      1,
+      16,
+      33,
+      128
+    ],
+    "sequence_counts": [
+      1,
+      2,
+      4
+    ]
+  },
+  "corpus": [
+    {
+      "id": "zh",
+      "text": "人工智能模型需要可靠的数值验证。",
+      "seed_token_ids": [
+        104455,
+        104949,
+        85106,
+        112559,
+        111944,
+        48927,
+        1773
+      ]
+    },
+    {
+      "id": "en",
+      "text": "The runtime keeps weights and attention state in memory.",
+      "seed_token_ids": [
+        785,
+        15592,
+        13598,
+        14324,
+        323,
+        6529,
+        1584,
+        304,
+        4938,
+        13
+      ]
+    },
+    {
+      "id": "repeated",
+      "text": "hello",
+      "seed_token_ids": [
+        14990
+      ]
+    },
+    {
+      "id": "special",
+      "text": "<|im_start|>user\n你好<|im_end|>\n<|im_start|>assistant\n",
+      "seed_token_ids": [
+        151644,
+        872,
+        198,
+        108386,
+        151645,
+        198,
+        151644,
+        77091,
+        198
+      ]
+    }
+  ],
+  "special_tokens": [
+    {
+      "id": 151644,
+      "text": "<|im_start|>",
+      "type": "CONTROL",
+      "semantics": "消息起始标记"
+    },
+    {
+      "id": 151645,
+      "text": "<|im_end|>",
+      "type": "CONTROL",
+      "semantics": "消息终止标记；作为固定输入，不提前停止 teacher forcing"
+    }
+  ],
+  "golden_source": {
+    "path": "tests/data/qwen3_greedy_reference.json",
+    "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+    "generation_tokens": 8,
+    "archive_origin": "benchmarks/results/validation/wsl-batch-telemetry/cpu-model-8.json"
+  },
+  "stable_greedy": [
+    {
+      "text": "The capital of France is",
+      "input_token_ids": [
+        785,
+        6722,
+        315,
+        9625,
+        374
+      ],
+      "expected_token_ids": [
+        12095,
+        13,
+        576,
+        6722,
+        315,
+        9625,
+        374,
+        1083
+      ]
+    },
+    {
+      "text": "One plus one equals",
+      "input_token_ids": [
+        3966,
+        5519,
+        825,
+        16819
+      ],
+      "expected_token_ids": [
+        825,
+        11,
+        825,
+        5519,
+        825,
+        16819,
+        1378,
+        13
+      ]
+    },
+    {
+      "text": "Memory is important because",
+      "input_token_ids": [
+        10642,
+        374,
+        2989,
+        1576
+      ],
+      "expected_token_ids": [
+        432,
+        6147,
+        601,
+        311,
+        3535,
+        279,
+        1879,
+        2163
+      ]
+    }
+  ],
+  "cpu_regression": {
+    "chunk_cow_rmse_exclusive": 1e-06,
+    "chunk_cow_max_absolute_exclusive": 1e-05,
+    "chunk_cow_cosine_min_inclusive": 0.9999999,
+    "profiling_on_off": "bitwise_equal",
+    "existing_tests": "tests/model_tests.cpp"
+  }
+}

@@ -20,7 +20,7 @@ public:
     std::string write(bool tied = true, const std::function<void(gguf_context*)>& metadata = {},
                       const std::string& bad_shape = {}, const std::string& missing = {},
                       ggml_type dtype = GGML_TYPE_F32, bool nonfinite = false,
-                      float nonfinite_value = std::numeric_limits<float>::infinity()) {
+                      float nonfinite_value = std::numeric_limits<float>::infinity(), float weight_scale = 1.0f) {
         CHECK(dtype == GGML_TYPE_F32 || dtype == GGML_TYPE_F16);
         std::unique_ptr<ggml_context, decltype(&ggml_free)> tensors(
             ggml_init({1024 * 1024, nullptr, false}), ggml_free);
@@ -46,7 +46,7 @@ public:
             ggml_set_name(tensor, name.c_str());
             for (std::int64_t i = 0; i < ggml_nelements(tensor); ++i) {
                 const float value = nonfinite && name == "blk.1.ffn_down.weight" && i == 0
-                    ? nonfinite_value : static_cast<float>(++index) / 16.0f;
+                    ? nonfinite_value : (static_cast<float>(++index) / 16.0f) * weight_scale;
                 if (dtype == GGML_TYPE_F32) { static_cast<float*>(tensor->data)[i] = value; }
                 else { static_cast<ggml_fp16_t*>(tensor->data)[i] = ggml_fp32_to_fp16(value); }
             }

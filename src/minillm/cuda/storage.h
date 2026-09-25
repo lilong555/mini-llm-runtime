@@ -69,6 +69,14 @@ public:
     std::size_t upload_chunks() const noexcept { return upload_chunks_; }
     std::size_t max_upload_chunk_bytes() const noexcept { return max_upload_chunk_bytes_; }
     std::size_t rope_uploaded_bytes() const noexcept { return rope_uploaded_bytes_; }
+    std::uint64_t weight_decode_upload_ns() const noexcept { return weight_decode_upload_ns_; }
+    std::size_t allocated_bytes() const noexcept {
+        return weights_.bytes() + workspace_.bytes() + kv_.bytes() + context_.workspace_bytes();
+    }
+    std::size_t allocations() const noexcept {
+        return std::size_t(weights_.size() != 0) + std::size_t(workspace_.size() != 0) +
+               std::size_t(kv_.size() != 0) + std::size_t(context_.workspace_bytes() != 0);
+    }
     DeviceTensorView<const float> weight(const std::string& name) const;
     const WorkspaceRegion& region(Workspace id) const;
     template<class T> DeviceTensorView<T> workspace(Workspace id, std::size_t rows) {
@@ -94,6 +102,7 @@ private:
     DeviceBuffer<std::byte> weights_, workspace_, kv_;
     std::size_t uploaded_bytes_ = 0, upload_chunks_ = 0, max_upload_chunk_bytes_ = 0;
     std::size_t rope_uploaded_bytes_ = 0;
+    std::uint64_t weight_decode_upload_ns_ = 0;
 };
 
 } // namespace minillm::cuda

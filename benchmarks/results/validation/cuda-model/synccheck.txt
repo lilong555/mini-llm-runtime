@@ -1,0 +1,11 @@
+========= COMPUTE-SANITIZER
+[PASS] runtime_manifest_tokenizer_and_memory
+[PASS] runtime_full_forward_matches_cpu_and_output_selection
+[PASS] runtime_no_logits_and_timing_equivalence
+[PASS] runtime_preflight_is_recoverable
+[PASS] runtime_context_clear_reuse_and_owner
+[PASS] runtime_nonfinite_is_fail_stop
+[PASS] runtime_initialization_failure_releases_resources
+[PASS] runtime_checked_completion_failure_is_fail_stop
+8/8 tests passed
+========= ERROR SUMMARY: 0 errors
