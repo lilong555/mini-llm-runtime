@@ -10,9 +10,6 @@ $Directory = (Resolve-Path -LiteralPath $Directory).Path
 if (-not $Manifest) { $Manifest = Join-Path $Directory 'manifest.json' }
 $validationPath = Join-Path $Directory 'validation-summary.json'
 $summaryPath = Join-Path $Directory 'summary.json'
-foreach ($path in @($validationPath, $summaryPath)) {
-    if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
-}
 $errors = [System.Collections.Generic.List[string]]::new()
 $checks = [System.Collections.Generic.List[string]]::new()
 $manifestHash = $null
@@ -87,6 +84,7 @@ function Median([object[]]$Values) {
 }
 
 try {
+    $null = Assert-EvidenceAvailable $Directory $Manifest
     $Manifest = (Resolve-Path -LiteralPath $Manifest).Path
     $manifestData = Get-Content -Raw -LiteralPath $Manifest | ConvertFrom-Json
     $manifestHash = Get-LowerSha256 $Manifest
@@ -520,16 +518,16 @@ try {
         requests_per_trial = $expectedRequests.Count
         policies = $policies
     }
-    Write-BenchmarkJson $summaryPath $summary
-    Write-BenchmarkJson $validationPath $validation
+    Publish-BenchmarkOutputs $Directory ([ordered]@{ 'summary.json' = $summary; 'validation-summary.json' = $validation })
+    $failurePath = Join-Path $Directory 'analysis-failure.json'
+    if (Test-Path -LiteralPath $failurePath) { Remove-Item -LiteralPath $failurePath }
     $summary | ConvertTo-Json -Depth 8
 } catch {
     if ($errors.Count -eq 0) { $errors.Add($_.Exception.Message) }
-    Write-BenchmarkJson $validationPath ([ordered]@{
+    Write-BenchmarkJson (Join-Path $Directory 'analysis-failure.json') ([ordered]@{
         schema_version = 1; run_id = $runId; valid = $false
         checked_at_utc = (Get-Date).ToUniversalTime().ToString('o')
         manifest_sha256 = $manifestHash; checks = @($checks); errors = @($errors)
     })
-    if (Test-Path -LiteralPath $summaryPath) { Remove-Item -LiteralPath $summaryPath }
     throw
 }

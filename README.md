@@ -204,11 +204,11 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-完整路线、任务依赖、基准矩阵与验收条件见 [项目计划](docs/PROJECT_PLAN.md)。主线是在可复现实验基础上解释并优化 CPU Runtime，再建立自研 CUDA 完整模型与分页 attention 路径。
+当前路线见 [PROJECT_PLAN_V2](docs/PROJECT_PLAN_V2.md)，实施规范见 [NEXT_SPEC](docs/NEXT_SPEC.md)，验收状态见 [执行状态](docs/EXECUTION_STATUS.md)。[原项目计划](docs/PROJECT_PLAN.md) 保留为历史参考。
 
-1. 统一实验身份与严格结果验收，扩展真实模型覆盖，建立分阶段 profiler、模型级 benchmark 和 batch telemetry。
-2. 根据热点完成一到两个 CPU 优化研究，分别报告 kernel、模型和 Serving 收益及退化。
-3. 打通物理 KV 观测，验证公平性与真实内存压力，按证据推进成本感知调度和可证明前进的增量准入。
-4. 建立权重常驻、连续 GPU KV 与自有 CUDA forward，接入 Serving 后再实现 GPU 分页 KV 和自研 PagedAttention。
+1. V2-M0：实验依赖可用性检查、完整证据包导出与固定数值验证契约。
+2. V2-M1：独立自有 CUDA 构建、常驻有效权重、连续 GPU KV、完整 Qwen3 模型与真实 token CLI。
+3. V2-M2：接入现有 Serving，验证 HTTP/SSE 与请求生命周期。
+4. V2-M4/M5：在连续 GPU 基线和压力证据上推进分页 attention、公平性与准入策略。
 
-`PLAN-002` 的离线模型级 profiler 与基准已验收，结果见 [WSL Runtime 阶段基线](benchmarks/results/wsl-runtime-profile/README.md)。`PLAN-003` 提供有界在线 batch/token 关联与阶段验收，近期主线是 attention/KV 成本细分，同时补齐 `PLAN-001` 剩余身份范围和 `PLAN-004` 数值覆盖；Radix/hash 索引、抢占和其他扩展以测量结果为进入条件。
+CPU 保持独立产品与数值参照；V2-M3 的两项有界研究按证据启动。CUDA 完整模型、GPU Serving 与 GPU PagedAttention 分别验收。

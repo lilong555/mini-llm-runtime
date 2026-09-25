@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "bundle": "benchmarks/results/evidence-m0/baseline-bundle.zip",
+  "bundle_sha256": "febbda291fae09ba5fe2a959fa40203f7695c785260581fb99e3951eba3e8e31",
+  "manifest_sha256": "a3f1d4d0eb3c6f07e2291d651c295ca95c55706108ae01e801a6e8f8a7b74313",
+  "analyzer_source": "bundled_verification_scripts",
+  "verification_entry": "verification/Analyze-Runtime.ps1",
+  "availability_exit_code": 0,
+  "analysis_exit_code": 0,
+  "availability_preserves_all_files": true,
+  "original_model_build_results_path_accesses": 0,
+  "file_access_trace": "runtime-file-access.txt.gz",
+  "file_access_trace_sha256": "156ba64b67320054c41ae5a82260516b0ea3cce2b03c258721964a8ddf029b99",
+  "file_access_trace_gzip_sha256": "e090337da0081fa6e225a2f4f036f4963748157071bfd3f7fac191de2b893d57",
+  "execution_dependencies_included": false,
+  "reports": 6,
+  "measured_forwards": 36
+}

@@ -40,3 +40,6 @@ CMakeUserPresets.json
 *.user
 gguf-test-*/
 benchmarks/results/**/source-snapshot.zip
+!benchmarks/results/wsl-runtime-profile/context/source-snapshot.zip
+!benchmarks/results/evidence-m0/baseline/source-snapshot.zip
+!benchmarks/results/validation/evidence-m0/source-snapshot.zip

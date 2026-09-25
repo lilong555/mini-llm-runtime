@@ -342,3 +342,41 @@
 - 原因：仓库本地配置保留跨平台迁移前的绝对可执行文件路径。
 - 解决方法：删除仓库本地的 `credential.https://github.com.helper` 覆盖项，使用已有用户配置中的 `!/usr/bin/gh auth git-credential`；凭据和本地配置不纳入提交。
 - 验证：`git config --show-origin --get-all credential.https://github.com.helper` 仅返回 `/home/li/.gitconfig` 中的 Linux 配置；重新执行 `git fetch origin` 返回 0，且无错误诊断。
+
+## ENG-032：实验源码快照未进入可独立获取的归档
+
+- 状态：部分解决；`wsl-runtime-profile/context` 的原始快照已核对，归档检查与导出门禁可用。其他历史目录不据此视为完整。
+- 影响：原报告虽记录过验收通过，独立 Git 检出缺少必需 ZIP 时无法重新检查源码身份；作者工作区中的文件存在不代表发布内容完整。
+- 复现条件或证据：审计基点 `68ac275913207975a88e2090c6617467e351301c` 的 `git archive` 副本中，`benchmarks/results/wsl-runtime-profile/context/manifest.json` 引用的 `source-snapshot.zip` 不存在。`historical-clean-availability.json` 记录 `ARCHIVE_INCOMPLETE`，具体证据位于 `benchmarks/results/validation/evidence-m0/`。
+- 原因：`.gitignore` 排除了所有实验源码 ZIP，原始分析器要求它们存在，但没有发布可用性门禁。
+- 解决方法或下一步：`Test-EvidenceAvailability.ps1` 检查必需文件、SHA-256 与 ZIP 内各源码；`Export-BenchmarkBundle.ps1` 在副本中执行严格验收、封包与迁移复验。`context` 的本机原 ZIP 与历史摘要 `9b7f243855874a12fb5f42e6053cb3e3b5e205ffb53865e85f89df0b741d689c` 一致，仅为该原件和新基线添加明确的 Git 路径例外。其他历史缺件必须逐一报告，不根据当前源码重建旧快照。
+- 验证：`historical-revalidation.json` 记录缺件拒绝、16 个既有文件字节不变，以及加入原件后的完整归档与独立包复验通过。历史 manifest、原始报告、源码状态及旧汇总不变。
+- 适用边界：导出用途为 `archive_revalidation`，不含模型权重、二进制或工具链；不能当作相同二进制已在另一台机器重跑的证明。
+
+## ENG-033：分析失败删除既有验收结果
+
+- 状态：已解决，限定于 Runtime 与 Serving 策略分析器的无损失败和发布异常恢复。
+- 影响：缺失源码 ZIP、损坏 manifest 或报告校验失败时，复验会先删除已有汇总，破坏旧证据；缺件与原测量失败也容易混淆。
+- 复现条件或证据：原 `Analyze-Runtime.ps1`、`Analyze-Benchmarks.ps1` 在读取 manifest 前执行 `Remove-Item`，异常路径再次删除汇总。`historical-clean-check.txt` 和两个基准 fixture 套件覆盖缺件与旧成功记录共存的情况。
+- 原因：输出清理先于输入与依赖验证，直接覆盖验收标记，没有区分本次失败与历史结果。
+- 解决方法：先检查依赖并完成严格校验；汇总序列化到同目录的临时区域，逐文件原子替换，最后发布成功标记；发布失败恢复原字节。失败诊断单独写入 `analysis-failure.json`。历史复验和导出使用临时副本，调用方以本次退出状态判断结果。
+- 验证：两套 fixture 对失败前后所有已有文件核对 SHA-256；缺 ZIP、损坏源码状态、篡改 ZIP 条目、旧成功汇总、跨目录迁移及导出反例通过。`atomic-publication-rollback` 用目标目录冲突触发中途发布错误，确认已替换的文件恢复原摘要。原始 CTest 证据见 `benchmarks/results/validation/evidence-m0/`。
+- 适用边界：同一归档目录仅允许单写者；文件级发布及异常恢复不等于跨文件系统事务或断电恢复协议。
+
+## ENG-034：PowerShell 将空备份路径转换为空字符串
+
+- 状态：已解决，限定于 JSON 原子替换和发布异常恢复。
+- 影响：首次写入成功，替换已存在的 JSON 时失败，妨碍正常采集与验收。
+- 复现条件或证据：`[IO.File]::Replace($temporary, $Path, $null)` 在当前 PowerShell/.NET 绑定中报告 `The value cannot be an empty string. (Parameter 'path')`；`runtime-benchmark-validation` 的已有输入文件替换触发该问题。
+- 原因：传入字符串形参的 PowerShell `$null` 被转换为空字符串，未满足 .NET 接口要求的空引用语义。
+- 解决方法：无备份路径时使用 `[NullString]::Value`；需要回滚的发布使用真实备份路径。
+- 验证：已有 JSON 替换、两种分析器重复验收与发布回滚 fixture 均通过；当前 WSL PowerShell 为 7.6.6。Windows 分支未在本机实测。
+
+## ENG-035：在线观测包重复发布派生汇总导致哈希不符
+
+- 状态：已解决，限定于单组在线观测归档的导出与独立复验。
+- 影响：原始报告和 JSONL 可以通过校验，但导出包的迁移复验失败，无法形成可交付文件。
+- 复现条件或证据：对 `wsl-batch-telemetry/context-256/trial-0-batches` 导出时，先显式运行 `Analyze-Benchmarks.ps1`，随后 `analyze_telemetry.py` 内部再次运行同一分析器，导出入口报告 `在线观测归档验收失败。`。
+- 原因：首次分析重新发布带当前时间戳的 `validation-summary.json`；再次进入 bundle preflight 时，派生文件字节不再匹配封包时的 SHA-256。归档副本可分析一次，不能在同一副本上交错使用旧包摘要与新派生结果。
+- 解决方法：观测组仅调用一次 Python 入口，由它完成策略和时间线验收；其他组直接调用对应 PowerShell 入口。每个包独立携带 `verification/` 脚本，包内工具身份与历史测量源码分别固定。
+- 验证：`benchmarks/results/evidence-m0/telemetry-bundle.zip` 的两份真实服务报告及对应 JSONL 完成导出、解压和包内工具复验；`telemetry-revalidation.json` 记录成功与文件访问跟踪，原历史目录无字节变化。该结果是历史数据复验，不是新的 Serving 性能采集。

@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "purpose": "archive_revalidation",
+  "run_id": "20260924T153032Z-68ac27591320-7e661c79",
+  "manifest_sha256": "a3f1d4d0eb3c6f07e2291d651c295ca95c55706108ae01e801a6e8f8a7b74313",
+  "status": "AVAILABLE",
+  "artifacts": [
+    {
+      "locator": "manifest.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "a3f1d4d0eb3c6f07e2291d651c295ca95c55706108ae01e801a6e8f8a7b74313",
+      "size_bytes": 4155,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "source-state.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "8f72892c7ea8cdfffbf387a78ede7ab1be79183eb2a44affbadb09875ce5438d",
+      "sha256": "8f72892c7ea8cdfffbf387a78ede7ab1be79183eb2a44affbadb09875ce5438d",
+      "size_bytes": 13169,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "source-snapshot.zip",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "78230958823955ecc15df899d5f7e6a3a5f3c24c75dc8342ad2a97cc33f25435",
+      "sha256": "78230958823955ecc15df899d5f7e6a3a5f3c24c75dc8342ad2a97cc33f25435",
+      "size_bytes": 161685,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "input.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0",
+      "sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0",
+      "size_bytes": 917,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-none-0.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "30d98f0a194ce19eb21a41c1fa4fd9bc15688fcc35dcccd65ca1b606eec67fba",
+      "size_bytes": 25566,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-stages-0.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "e8a1e9b8a05dbb8c44561672981370f02e925609c48715219214f86c756dc262",
+      "size_bytes": 964081,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-stages-1.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "5a751f2f59e10998482b6eaad196ffeb4eb4221feba2c4b007d02441cb10696d",
+      "size_bytes": 964503,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-none-1.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "f5a1861292337de7e7534744cc84035a5fa186f7d7692a69979007345731b090",
+      "size_bytes": 25567,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-none-2.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "6a6933d4d38ab356b243468aa7b913887d15f66c2553427a2a850ae85ba62163",
+      "size_bytes": 25565,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "threads-8-stages-2.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "a35dc50328d79ca7510efc9b3c4f8b72d5a3d44041b12544413e69f1aafe33c3",
+      "size_bytes": 964289,
+      "status": "AVAILABLE",
+      "error": null
+    },
+    {
+      "locator": "collection-status.json",
+      "mandatory": true,
+      "exists": true,
+      "expected_sha256": "",
+      "sha256": "9aeb20bfb7eda2d291ee28c9062dfc713e616cf595c19de42d68dbeb6ad45643",
+      "size_bytes": 94,
+      "status": "AVAILABLE",
+      "error": null
+    }
+  ],
+  "errors": []
+}

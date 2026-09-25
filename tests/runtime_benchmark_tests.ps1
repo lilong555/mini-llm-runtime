@@ -127,14 +127,20 @@ function Test-Fixture([string]$Name, [scriptblock]$Mutation, [string]$ErrorPatte
     Write-BenchmarkJson (Join-Path $fixture.directory 'none.json') $fixture.off
     Write-BenchmarkJson (Join-Path $fixture.directory 'stages.json') $fixture.on
     if ($AfterWrite) { & $AfterWrite $fixture.directory }
+    $before = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $fixture.directory -File -Recurse -Force) {
+        $before[$file.FullName] = Get-LowerSha256 $file.FullName
+    }
     $caught = ''
     try { & $Analyzer -Directory $fixture.directory *> $null } catch { $caught = $_.Exception.Message }
     if ($ErrorPattern) {
         if (-not $caught -or $caught -notlike "*$ErrorPattern*") { throw "$Name expected '$ErrorPattern', got '$caught'." }
-        $validation = Get-Content -Raw (Join-Path $fixture.directory 'validation-summary.json') | ConvertFrom-Json
+        $validation = Get-Content -Raw (Join-Path $fixture.directory 'analysis-failure.json') | ConvertFrom-Json
         if ($validation.status -cne 'failed') { throw "$Name left a passing validation." }
-        foreach ($file in @('runtime-prefill.json', 'runtime-decode.json', 'runtime-mixed.json', 'forward-stages.json', 'profiler-overhead.json')) {
-            if (Test-Path (Join-Path $fixture.directory $file)) { throw "$Name left stale summary $file." }
+        foreach ($path in $before.Keys) {
+            if (-not (Test-Path -LiteralPath $path) -or (Get-LowerSha256 $path) -cne $before[$path]) {
+                throw "$Name 修改了原归档文件：$path"
+            }
         }
     } elseif ($caught) { throw "$Name failed: $caught" }
     ++$script:passed
@@ -149,6 +155,48 @@ try {
     & $Analyzer -Directory $moved *> $null
     ++$passed
     Write-Host '[PASS] relocated'
+    $null = Test-Fixture 'missing-source-snapshot' -ErrorPattern 'ARCHIVE_INCOMPLETE' -AfterWrite {
+        param($dir)
+        & $Analyzer -Directory $dir *> $null
+        Remove-Item (Join-Path $dir 'source-snapshot.zip')
+    }
+    $null = Test-Fixture 'corrupt-source-state' -ErrorPattern 'source state' -AfterWrite {
+        param($dir)
+        & $Analyzer -Directory $dir *> $null
+        [IO.File]::AppendAllText((Join-Path $dir 'source-state.json'), 'corrupt')
+    }
+    $bundlePath = Join-Path $temporary 'fixture-bundle.zip'
+    $exporter = Join-Path (Split-Path -Parent $Analyzer) 'Export-BenchmarkBundle.ps1'
+    & $exporter -Directory $valid -Output $bundlePath *> $null
+    $bundleDir = Join-Path $temporary 'exported'
+    [IO.Compression.ZipFile]::ExtractToDirectory($bundlePath, $bundleDir)
+    & (Join-Path $bundleDir 'verification/Test-EvidenceAvailability.ps1') -Directory $bundleDir *> $null
+    & (Join-Path $bundleDir 'verification/Analyze-Runtime.ps1') -Directory $bundleDir *> $null
+    ++$passed
+    Write-Host '[PASS] bundle-export-relocation'
+    [IO.File]::AppendAllText((Join-Path $bundleDir 'none.json'), ' ')
+    $rejected = $false
+    try { $null = Assert-EvidenceAvailable $bundleDir } catch { $rejected = $true }
+    if (-not $rejected) { throw '被篡改的 bundle 未被拒绝。' }
+    ++$passed
+    Write-Host '[PASS] bundle-tamper'
+    $failedBundle = Join-Path $temporary 'incomplete.zip'
+    $rejected = $false
+    try { & $exporter -Directory (Join-Path $temporary 'missing-source-snapshot') -Output $failedBundle *> $null }
+    catch { $rejected = $true }
+    if (-not $rejected -or (Test-Path $failedBundle)) { throw '缺件归档不应产生导出包。' }
+    ++$passed
+    Write-Host '[PASS] bundle-missing-artifact'
+    $null = Test-Fixture 'snapshot-entry-tamper' {
+        param($m, $off, $on, $dir)
+        $statePath = Join-Path $dir 'source-state.json'
+        $state = Get-Content -Raw $statePath | ConvertFrom-Json
+        $state.files[0].sha256 = ('f' * 64)
+        Write-BenchmarkJson $statePath $state
+        $m.source.worktree_state_sha256 = Get-LowerSha256 $statePath
+    } 'source snapshot entry hash'
+    $null = Test-Fixture 'snapshot-empty-hash' { param($m) $m.source.snapshot.sha256 = '' } 'source snapshot hash'
+    $null = Test-Fixture 'artifact-traversal' { param($m) $m.source.snapshot.path = '../source.zip' } 'ARCHIVE_INCOMPLETE'
     $null = Test-Fixture 'missing-report' -ErrorPattern 'does not exist' -AfterWrite {
         param($dir) Remove-Item (Join-Path $dir 'stages.json')
     }

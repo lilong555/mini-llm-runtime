@@ -15,6 +15,7 @@ endif()
 option(LLMSERVE_WITH_LLAMA "Build the llama.cpp model backend" ON)
 option(LLMSERVE_CUDA "Enable llama.cpp CUDA execution" OFF)
 option(LLMSERVE_BUILD_TESTS "Build LLMServe tests" ON)
+option(LLMSERVE_REQUIRE_TEST_TOOLS "Require Python and PowerShell for complete test coverage" OFF)
 set(LLMSERVE_LLAMA_COMMIT "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb")
 
 find_package(Threads REQUIRED)
@@ -130,11 +131,17 @@ if(LLMSERVE_BUILD_TESTS)
     set_tests_properties(unit PROPERTIES TIMEOUT 30)
     find_package(Python3 COMPONENTS Interpreter QUIET)
     if(Python3_Interpreter_FOUND)
+        add_test(NAME validation-contract COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/validation_contract_tests.py")
+        set_tests_properties(validation-contract PROPERTIES TIMEOUT 30)
         add_test(NAME telemetry-validation COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_validation_tests.py")
         set_tests_properties(telemetry-validation PROPERTIES TIMEOUT 30)
     endif()
     find_program(LLMSERVE_POWERSHELL NAMES pwsh powershell)
+    if(LLMSERVE_REQUIRE_TEST_TOOLS AND (NOT Python3_Interpreter_FOUND OR NOT LLMSERVE_POWERSHELL))
+        message(FATAL_ERROR "完整测试需要 Python 3 与 PowerShell；不能省略验收套件。")
+    endif()
     if(LLMSERVE_POWERSHELL)
         add_test(NAME benchmark-validation
             COMMAND "${LLMSERVE_POWERSHELL}" -NoProfile -File

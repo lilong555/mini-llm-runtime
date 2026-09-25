@@ -24,9 +24,9 @@ jobs:
       - name: Validate archived CTest evidence
         shell: pwsh
         run: ./scripts/Test-CtestEvidence.ps1
-      - run: cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DCMAKE_BUILD_TYPE=Release
+      - run: cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel 4
-      - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - run: ctest --test-dir build -C Release --no-tests=error --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -47,9 +47,9 @@ jobs:
           ref: 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
           path: third_party/llama.cpp
           persist-credentials: false
-      - run: cmake -S . -B build -DLLMSERVE_CUDA=OFF -DCMAKE_BUILD_TYPE=Release
+      - run: cmake -S . -B build -DLLMSERVE_CUDA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release
       - run: cmake --build build --config Release --parallel 4
-      - run: ctest --test-dir build -C Release --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - run: ctest --test-dir build -C Release --no-tests=error --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -63,11 +63,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: >-
           cmake -S . -B build -G Ninja -DLLMSERVE_WITH_LLAMA=OFF
+          -DLLMSERVE_REQUIRE_TEST_TOOLS=ON
           -DCMAKE_BUILD_TYPE=Debug
           -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
           -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - run: cmake --build build --parallel 4
-      - run: ctest --test-dir build --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+      - run: ctest --test-dir build --no-tests=error --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:

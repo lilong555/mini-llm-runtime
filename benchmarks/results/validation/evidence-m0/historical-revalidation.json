@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "audit_head": "68ac275913207975a88e2090c6617467e351301c",
+  "archive": "benchmarks/results/wsl-runtime-profile/context",
+  "missing_snapshot_rejected": true,
+  "missing_snapshot_analysis_rejected": true,
+  "existing_files_byte_identical_on_failure": true,
+  "files_checked": 16,
+  "historical_snapshot_sha256": "9b7f243855874a12fb5f42e6053cb3e3b5e205ffb53865e85f89df0b741d689c",
+  "snapshot_origin": "existing_local_archive_matched_to_original_manifest",
+  "complete_archive_available": true,
+  "independent_bundle_revalidation": "passed",
+  "bundle_sha256": "ef7573779549ed6981b9f462c66d3fa41a17f1d364974950f534d59972dfe1da",
+  "original_manifest_sha256": "e3d456442ced255f5fb7c41d17d705a23b451e53cf393b8e47832adcfd0263c7"
+}

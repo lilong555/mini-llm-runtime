@@ -4,12 +4,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
 $Directory = (Resolve-Path -LiteralPath $Directory).Path
-$outputs = @('validation-summary.json', 'runtime-prefill.json', 'runtime-decode.json',
-    'runtime-mixed.json', 'forward-stages.json', 'profiler-overhead.json')
-foreach ($name in $outputs) {
-    $path = Join-Path $Directory $name
-    if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
-}
+$outputs = [ordered]@{}
 
 function Equal($Actual, $Expected, [string]$Label) {
     if ($null -eq $Actual -or $null -eq $Expected -or "$Actual" -cne "$Expected" -or
@@ -170,6 +165,7 @@ function Check-Profile($Profile, $Sample, $Contracts, [long]$Threads, $Work) {
 $runId = $null
 $manifestHash = $null
 try {
+    $null = Assert-EvidenceAvailable $Directory
     $manifestPath = Artifact 'manifest.json'
     $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
     $manifestHash = Get-LowerSha256 $manifestPath
@@ -432,29 +428,28 @@ try {
             parallel_wall_median_ns = Median $values.parallel_wall_ns }
     }
     foreach ($mode in @('prefill', 'decode', 'mixed')) {
-        Write-BenchmarkJson (Join-Path $Directory "runtime-$mode.json") ([ordered]@{
+        $outputs["runtime-$mode.json"] = [ordered]@{
             schema_version = 1; run_id = $runId; manifest_sha256 = $manifestHash; profiler = 'none'
-            results = @($modelRows | Where-Object mode -CEQ $mode) })
+            results = @($modelRows | Where-Object mode -CEQ $mode) }
     }
-    Write-BenchmarkJson (Join-Path $Directory 'profiler-overhead.json') ([ordered]@{
+    $outputs['profiler-overhead.json'] = [ordered]@{
         schema_version = 1; run_id = $runId; manifest_sha256 = $manifestHash
-        online_batch_perturbation = 'not_measured_offline_fixed_batches'; results = $overhead })
-    Write-BenchmarkJson (Join-Path $Directory 'forward-stages.json') ([ordered]@{
+        online_batch_perturbation = 'not_measured_offline_fixed_batches'; results = $overhead }
+    $outputs['forward-stages.json'] = [ordered]@{
         schema_version = 1; run_id = $runId; manifest_sha256 = $manifestHash
         worker_time_semantics = 'elapsed_consume_loop_including_dispatch_and_preemption_not_pure_cpu_work'
         caller_wait_semantics = 'elapsed_join_after_caller_consume_not_additive_with_worker_times'
-        results = $stages })
-    Write-BenchmarkJson (Join-Path $Directory 'validation-summary.json') ([ordered]@{
+        results = $stages }
+    $outputs['validation-summary.json'] = [ordered]@{
         status = 'passed'; run_id = $runId; manifest_sha256 = $manifestHash
         reports = $files.Count; measured_forwards = $rows.Count; profiled_forwards = @($rows | Where-Object profiler -CEQ 'stages').Count
-        fixed_input_outputs_equal = $true; stage_accounting = 'exact'; raw_reports = $reportHashes })
+        fixed_input_outputs_equal = $true; stage_accounting = 'exact'; raw_reports = $reportHashes }
+    Publish-BenchmarkOutputs $Directory $outputs
+    $failurePath = Join-Path $Directory 'analysis-failure.json'
+    if (Test-Path -LiteralPath $failurePath) { Remove-Item -LiteralPath $failurePath }
     Write-Host "Runtime validation passed: $($files.Count) reports, $($rows.Count) measured forwards."
 } catch {
-    foreach ($name in $outputs) {
-        $path = Join-Path $Directory $name
-        if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
-    }
-    Write-BenchmarkJson (Join-Path $Directory 'validation-summary.json') ([ordered]@{
+    Write-BenchmarkJson (Join-Path $Directory 'analysis-failure.json') ([ordered]@{
         status = 'failed'; run_id = $runId; manifest_sha256 = $manifestHash; error = $_.Exception.Message })
     throw
 }

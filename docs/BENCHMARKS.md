@@ -67,7 +67,26 @@ Windows 使用相同的 PowerShell 入口：
 
 吞吐、goodput、延迟分位数及完整回放时长均根据原始请求重新核对。TTFT 从客户端实际发送时刻开始；TPOT 是每请求平均 token 间隔，ITL 单独统计。单输出 token 的 TPOT 为 `null`，不作为零延迟样本。吞吐和 goodput 的分母包含整个回放时长，失败请求不从请求集合中删除。
 
-验收失败时保存 `valid=false` 的报告并移除旧 `summary.json`；原始报告不修改。已有历史报告缺少 manifest 时不能直接进入该验收链路，也不能通过补写猜测的摘要将其视为当前基线。
+验收失败时写入 `analysis-failure.json`，返回非零状态；原始文件与既有 `validation-summary.json`、统计汇总保持原字节。旧的成功记录只代表当时的验收，不能代替本次退出状态。成功时先完成所有验证和 JSON 序列化，再逐文件原子发布汇总，最后发布验收标记；发布异常恢复原文件。本接口不支持并发写同一归档目录。
+
+## 归档可用性与导出
+
+```bash
+pwsh -NoProfile -File scripts/Test-EvidenceAvailability.ps1 \
+  -Directory benchmarks/results/evidence-m0/baseline
+
+pwsh -NoProfile -File scripts/Export-BenchmarkBundle.ps1 \
+  -Directory benchmarks/results/evidence-m0/baseline \
+  -Output /tmp/runtime-evidence.zip
+```
+
+可用性检查只读输入，输出每项必需文件的 `locator / mandatory / exists / sha256 / status`。可选 `-Output` 必须指向新文件。缺失 ZIP、摘要不符、源码状态与 ZIP 内容不一致或未完成采集均返回 `ARCHIVE_INCOMPLETE`；文件齐全的 `AVAILABLE` 与严格数值、统计验收通过是不同结论。
+
+导出接受 Runtime 与单组 Serving 策略归档。它复制必需输入到临时目录，执行相应严格分析器，生成含逐文件 SHA-256 的 `bundle-manifest.json` 和可用性报告；ZIP 再解压到独立目录复验后发布，并提供 `.sha256`。包内 `verification/` 保存本次验收脚本，与原测量源码快照分别记录身份；`verification_entry` 指定复验入口。在线观测组包含 manifest 声明的 JSONL，并通过 `analyze_telemetry.py` 验收。跨组 `experiment.json` 的整体比较需要原在线观测入口单独处理。
+
+包的用途是 `archive_revalidation`：脱离采集机器的原绝对路径，重算归档的身份、结果与统计。模型权重、实测二进制和工具链不在包内，`execution_dependencies_included=false`；重新执行模型仍需取得 manifest 固定的模型与依赖、构建相应源码并建立新的实验身份。归档复验不等于原二进制重跑。
+
+历史归档和导出的包均在临时副本中复验。包中的文件哈希绑定导出时的字节，不能把重分析后改写的派生文件当作原包。缺少历史源码时不得依据当前源码重造同名 ZIP 或改写历史摘要；本机保留的原始 ZIP 也必须核对 manifest 和逐源码摘要后才能纳入交付。
 
 ## 覆盖范围
 

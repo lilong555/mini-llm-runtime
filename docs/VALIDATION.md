@@ -2,6 +2,10 @@
 
 ## 当前 WSL 验收
 
+2026-09-24 的 [M0 归档与验证契约验收](../benchmarks/results/validation/evidence-m0/README.md) 记录 CPU 产品 6/6、无 llama 依赖核心 5/5 CTest；CPU 实模型检查 13/13、HTTP 检查 8/8。反例覆盖缺 ZIP、源码与包内摘要篡改、路径迁移、失败时旧文件保留和发布回滚。三个短样例的 8-token 金标准及中文、英文、重复、特殊 token 的固定语料位于 `tests/data/qwen3_validation_cases.json`；GPU 数值与性能仍待真实 CUDA 模型实现后验收。
+
+[M0 CPU 归档基线](../benchmarks/results/evidence-m0/README.md) 保留 6 个进程、36 次测量和可独立复验的包。`wsl-runtime-profile/context` 的原始 ZIP 已按历史 manifest 核对；其他历史归档不能仅凭旧 `passed` 推断依赖完整。本机 CPU 检查不替代 Windows、远程 CI 或 GPU 模型验收。
+
 2026-09-23 的 [在线观测验证](../benchmarks/results/validation/wsl-batch-telemetry/README.md) 记录 CPU/CUDA 参照构建各 5/5 CTest 套件、ASan/UBSan 核心 4/4，共 463 次用例执行；CPU 1/8 线程及 CUDA 数值参照的模型检查各 13/13，CPU off/stages 和 CUDA stages 的 HTTP 各 8/8。SSE token 关联、缓冲耗尽、异常、阶段时间守恒、KV 回收与目录迁移均通过。
 
 [在线 batch 基线](../benchmarks/results/wsl-batch-telemetry/README.md) 保留 42 个独立服务进程、594 个请求、9810 个输出 token，跨模式和策略的完整输出一致。原始负载三轮无观测的 mixed / prefill-first 中位吞吐为 18.41 / 18.66 token/s，P95 请求平均 TPOT 为 395.28 / 333.42 ms，P99 ITL 为 1224.77 / 2480.67 ms；各轮分位数取中位数，不混作合并分位数。报告保留阶段观测约 +1.82% / +5.82% 的全程耗时差异，以及低到达率的 batch 组成变化。该差异包含系统噪声及在线扰动，不是精确插桩成本或计算优化收益。
