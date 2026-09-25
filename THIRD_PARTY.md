@@ -27,6 +27,12 @@ The same pinned checkout vendors:
 Upstream is compiled as C++17; project code is C++20. No generated upstream
 files are edited. CMake verifies the dependency commit.
 
+## NVIDIA CUDA 与 cuBLAS
+
+`MINILLM_ENABLE_CUDA=ON` 使用 CUDA Toolkit >= 12.8 的 CUDA Runtime 与 cuBLAS，遵循 NVIDIA 随 Toolkit 提供的许可条款。仓库不包含这些二进制库。
+
+`minillm_cuda` 的资源所有权、设备视图、矩阵布局检查和测试为项目代码；内存/stream API 和 FP32 GEMM 内核由 NVIDIA 提供。当前自有 CUDA 能力为资源与矩阵基础层，没有完整 GPU 模型执行或 GPU PagedAttention。具体边界见 `docs/CUDA_RUNTIME.md`。`LLMSERVE_CUDA` 仍单独控制上游 ggml CUDA 后端。
+
 ## Model
 
 - Repository: `Qwen/Qwen3-0.6B-GGUF`.

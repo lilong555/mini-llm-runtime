@@ -53,7 +53,7 @@ clangd --check=src/minillm/kernels.cpp
 clang-tidy -p build/wsl-cpu src/minillm/kernels.cpp
 ```
 
-`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。安装原生 `pwsh` 后重新运行 `build`，CTest 应包含 `unit`、`benchmark-validation`、`gguf` 三个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
+`build` 要求 Python 3 和 PowerShell，缺少完整测试工具时配置失败。`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。CPU CTest 包含 `unit`、`validation-contract`、`telemetry-validation`、`benchmark-validation`、`runtime-benchmark-validation`、`gguf` 六个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
 
 完整模型验证独立于 CTest。模型套件通过测试侧屏障构造真实 prefill/decode 混合批，保留数值、生成、前缀复用和 KV 回收检查。CPU 1、2、8 线程及 CUDA 参照的完整报告见 `benchmarks/results/validation/wsl-deterministic/`；原有时序问题及失败证据见 `ENG-017`。
 
@@ -86,6 +86,16 @@ bash scripts/dev.sh benchmark \
 ```
 
 该入口使用原生 PowerShell，核对源码和二进制身份，按轮次重启服务、交替策略并严格验收。输出目录必须为空；manifest、原始 trace、源码快照、全部请求结果和验收报告保存在同一目录。协议、压力实验终态和统计口径见 [策略回放与验收](BENCHMARKS.md)。
+
+## 自有 CUDA 基础层
+
+```bash
+bash scripts/dev.sh own-cuda build
+bash scripts/dev.sh own-cuda test
+bash scripts/dev.sh own-cuda memcheck
+```
+
+`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供单 stream、显存所有权与 FP32 GEMM 测试，未提供完整 GPU 模型或服务。构建与接口契约见 [CUDA 运行基础](CUDA_RUNTIME.md)。CPU 可执行文件不链接该 CUDA target。
 
 ## CUDA 参照后端
 

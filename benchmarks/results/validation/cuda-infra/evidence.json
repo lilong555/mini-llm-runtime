@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 2",
+  "status": "passed",
+  "collected_at_utc": "2026-09-25T16:16:12.063526+00:00",
+  "source": {
+    "git_sha": "e2fcb6d4d61b1c71a420bde0d79bb8fe4684737e",
+    "git_dirty": true,
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "97d56fde698aaacbab17a3380dbca0a48e59964538c979a4d4692c4a17386b03",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "d81c58e7aef7af578d8630f8882d53de54ecd475acc1adbafd3562a09e343302"
+    }
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "ctest": [
+    {
+      "path": "own-ctest.xml",
+      "suites": 7,
+      "cases": 183,
+      "results": [
+        {
+          "name": "cuda-unit",
+          "passed": 11
+        },
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        }
+      ]
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "suites": 6,
+      "cases": 172,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        }
+      ]
+    },
+    {
+      "path": "core-ctest.xml",
+      "suites": 5,
+      "cases": 167,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 41
+        }
+      ]
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "suites": 6,
+      "cases": 172,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        }
+      ]
+    }
+  ],
+  "cuda_unit_checks": 11,
+  "memcheck_errors": 0,
+  "memcheck_leaked_bytes": 0,
+  "cpu_model_checks": 13,
+  "cpu_http_checks": 8,
+  "own_cuda_model_validated": false,
+  "windows_or_remote_ci_executed": false,
+  "artifacts": [
+    {
+      "path": "build-boundaries.json",
+      "sha256": "36647f1857763dc74792d9985b436eef67f1a932be7ab57d6a07e25b94502fa0",
+      "size_bytes": 20561
+    },
+    {
+      "path": "build-core.txt.gz",
+      "sha256": "9d1c3c15d6ab3484122a3f344886bd6bd801d6c2c35778671c738444b163cbbf",
+      "size_bytes": 141
+    },
+    {
+      "path": "build-cpu.txt.gz",
+      "sha256": "40199309d540af755c29deddf4d945e1995b275523ce13ee6df8e487816f1dd7",
+      "size_bytes": 366
+    },
+    {
+      "path": "build-upstream.txt.gz",
+      "sha256": "39b7bd0a69875ea5fe6ed507f479da5be67dbf9649952768db8067cd750d90e1",
+      "size_bytes": 574
+    },
+    {
+      "path": "build.txt.gz",
+      "sha256": "13850ec6b93eb9f65372d33cb30cc44abba0b2638db25ac45b5e60f962442eda",
+      "size_bytes": 2068
+    },
+    {
+      "path": "core-ctest.xml",
+      "sha256": "da07b53360326e17dc190566073c5599f1af6a587d6c1ea20004ac98cf5296a3",
+      "size_bytes": 5980
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "sha256": "5e60cc0153efdab74c7b753b1b244e9837c185e516f319606c81053897899b6b",
+      "size_bytes": 6422
+    },
+    {
+      "path": "ctest-core.txt.gz",
+      "sha256": "6f35c8f53e29a3926e3dc32bdeae377139a93ef39de684c1af08ec6d0c507fde",
+      "size_bytes": 259
+    },
+    {
+      "path": "ctest-cpu.txt.gz",
+      "sha256": "cc05821f9fe922f668bcd39ed8d4ea7327169292c7fda928e9bd387930734f40",
+      "size_bytes": 277
+    },
+    {
+      "path": "ctest-own.txt.gz",
+      "sha256": "4e923742dcc6b32b96b8f12848aa0feaeaa3251a3226fd63226224bb12796637",
+      "size_bytes": 332
+    },
+    {
+      "path": "ctest-upstream.txt.gz",
+      "sha256": "b0d4a87b46bf89f61112c1a5f55ca890d951548fc4f5a666f982a0da35f94879",
+      "size_bytes": 277
+    },
+    {
+      "path": "environment.json",
+      "sha256": "7f434d03f66de97ab028a3b4e72ebab32c9925f66ed00ebd8c665bf7fadee183",
+      "size_bytes": 1159
+    },
+    {
+      "path": "http-cpu.json",
+      "sha256": "cc96aa5a3d7220913d2e6967e10df8eec39e2d878b09bb958290192d4d3f4dd0",
+      "size_bytes": 3843
+    },
+    {
+      "path": "http-cpu.txt.gz",
+      "sha256": "24153b867203298a96dc1b833fd8596149759833ab4d16da7aacbbc293b38322",
+      "size_bytes": 1069
+    },
+    {
+      "path": "memcheck.txt",
+      "sha256": "61a73df2c0d8db2c38f89db951678a88987d8f9359dea755466318e70cacb436",
+      "size_bytes": 685
+    },
+    {
+      "path": "model-cpu.json",
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+      "size_bytes": 3955
+    },
+    {
+      "path": "model-cpu.txt.gz",
+      "sha256": "ed2abcf1595799c662f0ad27f0c2a3434fd1264466a9cbefd144304137e0b5cf",
+      "size_bytes": 1207
+    },
+    {
+      "path": "own-ctest.xml",
+      "sha256": "033a48d7deb6bfa6bd5559eb2f37357982e5446906a431b1a719a3e818188062",
+      "size_bytes": 7187
+    },
+    {
+      "path": "rejected-no-llama.txt",
+      "sha256": "91a06a6c2503c80f013161ce731cc50ada7c95d10a7032a85fcfc4a67f1dca5b",
+      "size_bytes": 678
+    },
+    {
+      "path": "source-snapshot.zip",
+      "sha256": "d81c58e7aef7af578d8630f8882d53de54ecd475acc1adbafd3562a09e343302",
+      "size_bytes": 171933
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "97d56fde698aaacbab17a3380dbca0a48e59964538c979a4d4692c4a17386b03",
+      "size_bytes": 14353
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "sha256": "54da9c9ba5544660797af826d2ed1ad93c8d21b4e3ef862725f9c5362427e87b",
+      "size_bytes": 6422
+    }
+  ]
+}

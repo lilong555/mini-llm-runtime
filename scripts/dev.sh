@@ -7,6 +7,7 @@ model=models/Qwen3-0.6B-Q8_0.gguf
 backend=mini
 gpu_layers=0
 cuda=OFF
+own_cuda=OFF
 report_prefix=.run/wsl
 if [[ ${1:-} == cuda ]]; then
   shift
@@ -15,12 +16,21 @@ if [[ ${1:-} == cuda ]]; then
   gpu_layers=99
   cuda=ON
   report_prefix=.run/wsl-cuda
+elif [[ ${1:-} == own-cuda ]]; then
+  shift
+  build=build/wsl-own-cuda
+  own_cuda=ON
+  case "${1:-help}" in
+    build|test|memcheck|help) ;;
+    *) echo '自有 CUDA 当前提供 build/test/memcheck；完整模型和服务入口尚未交付。' >&2; exit 1 ;;
+  esac
 fi
 case "${1:-help}" in
   build)
     options=(-DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLMSERVE_WITH_LLAMA=ON
-      -DLLMSERVE_BUILD_TESTS=ON "-DLLMSERVE_CUDA=$cuda")
-    if [[ $cuda == ON ]]; then
+      -DLLMSERVE_BUILD_TESTS=ON "-DLLMSERVE_CUDA=$cuda" "-DMINILLM_ENABLE_CUDA=$own_cuda"
+      -DLLMSERVE_REQUIRE_TEST_TOOLS=ON)
+    if [[ $cuda == ON || $own_cuda == ON ]]; then
       options+=("-DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES:-89}")
     fi
     cmake -S . -B "$build" -G Ninja "${options[@]}"
@@ -29,6 +39,10 @@ case "${1:-help}" in
   test)
     ctest --test-dir "$build" --output-on-failure --no-tests=error \
       --test-output-size-passed 65536 --output-junit test-results.xml
+    ;;
+  memcheck)
+    [[ $own_cuda == ON ]] || { echo '用法：bash scripts/dev.sh own-cuda memcheck' >&2; exit 1; }
+    compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-unit-tests"
     ;;
   model)
     python3 scripts/models.py
@@ -99,6 +113,7 @@ case "${1:-help}" in
     ;;
   *)
     echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck}'
     [[ ${1:-help} == help ]]
     ;;
 esac

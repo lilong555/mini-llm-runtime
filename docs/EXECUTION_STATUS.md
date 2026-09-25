@@ -6,7 +6,7 @@
 
 - 审计基点：`68ac275913207975a88e2090c6617467e351301c`。
 - 本地原起点：`235c5c4`；与审计基点的 Git tree 相同，审计基点包含主分支合并记录。
-- 实施分支：`fix/evidence-bundle-completeness`，从审计基点建立。
+- 实施分支：`feat/own-cuda-vertical-slice`；V2-M0 提交为 `e2fcb6d`。
 - 顺序：V2-M0 → V2-M1 → V2-M2；CPU 有界研究、GPU 分页和 Serving 策略按 V2 依赖与进入条件推进。
 
 ## 阶段门禁
@@ -14,15 +14,17 @@
 | 阶段 | 状态 | 验收范围 |
 | --- | --- | --- |
 | V2-M0 / Step 1 | 已验收 | 非破坏性归档检查、严格分析、导出与独立目录复验；固定 CUDA 数值语料和性能协议 |
-| V2-M1 / Step 2 | 待实施 | `MINILLM_ENABLE_CUDA`、单 stream/cuBLAS、资源所有权与矩阵单测 |
-| V2-M1 / Step 3 | 等待 Step 2 | Immutable Qwen3 host model/tokenizer，保留 CPU 数学与行为契约 |
+| V2-M1 / Step 2 | 已验收 | 独立 CUDA target、资源所有权、单 stream/cuBLAS 与矩阵单测；memcheck 0 错误、0 泄漏 |
+| V2-M1 / Step 3 | 待实施 | Immutable Qwen3 host model/tokenizer，保留 CPU 数学与行为契约 |
 | V2-M1 / Step 4–9 | 未实施 | 常驻权重、完整 GPU forward、真实 token、数值/性能/Profiler 证据 |
 | V2-M2 | 等待完整模型 gate | GPU Serving、HTTP/SSE 和生命周期验收 |
 | V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
 
-当前自有模型执行仍是 CPU。cuBLAS/CUDA 资源基础、完整 GPU 模型、GPU Serving 与 GPU PagedAttention 的能力分别以实际代码和验收为准。
+当前自有模型执行仍是 CPU。[CUDA 基础层](CUDA_RUNTIME.md) 提供设备资源所有权和 cuBLAS FP32 矩阵接口；完整 GPU 模型、GPU Serving 与 GPU PagedAttention 尚未提供。
 
 ## 可复核证据
+
+[CUDA 基础验收](../benchmarks/results/validation/cuda-infra/README.md) 包含自有 CUDA 7/7、CPU 6/6、独立核心 5/5、上游 CUDA 6/6 CTest；设备单测 11/11、Compute Sanitizer 0 错误/0 泄漏、CPU 模型 13/13 与 HTTP 8/8。CPU 动态依赖和独立选项组合有实际检查。该记录不包含 GPU 模型或性能验收。
 
 [M0 验证记录](../benchmarks/results/validation/evidence-m0/README.md) 包含 CPU 6/6 与独立核心 5/5 CTest、CPU 13/13 模型检查、8/8 HTTP 检查，以及缺件/篡改/迁移/发布回滚反例。CI 配置要求 Python 3 和 PowerShell；缺少工具时配置失败。本次未运行 Windows 或远程 CI。
 
