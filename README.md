@@ -26,6 +26,8 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | 层次 | 已实现 |
 | --- | --- |
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
+| Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
+| 自有 CUDA 基础 | 独立构建开关、显存所有权、单 stream、cuBLAS FP32 GEMM 与设备单元测试 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
 | 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
@@ -36,7 +38,7 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | 实验 | scalar/SIMD 微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
 | 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
-支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 在 CPU 执行，CUDA 执行通过 llama.cpp 后端提供。
+支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 模型在 CPU 执行，完整 CUDA 模型执行通过 llama.cpp 后端提供。自有 CUDA 当前提供资源与矩阵基础层，见 [CUDA 运行基础](docs/CUDA_RUNTIME.md)。
 
 不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自研 CUDA PagedAttention。自有 CPU paged attention 与上游 GPU attention 必须分别评价。
 
@@ -194,7 +196,7 @@ tests/               单元、模型与在线验证
 benchmarks/          固定输入及实测报告
 ```
 
-依赖与贡献边界见 [THIRD_PARTY.md](THIRD_PARTY.md)；设计问题见 [PROBLEM_CHECKLIST.md](docs/PROBLEM_CHECKLIST.md)；论文与固定源码入口见 [REFERENCES.md](docs/REFERENCES.md)。
+模型所有权与分词接口见 [Host Model](docs/HOST_MODEL.md)；依赖与贡献边界见 [THIRD_PARTY.md](THIRD_PARTY.md)；设计问题见 [PROBLEM_CHECKLIST.md](docs/PROBLEM_CHECKLIST.md)；论文与固定源码入口见 [REFERENCES.md](docs/REFERENCES.md)。
 
 ## 版本与问题管理
 

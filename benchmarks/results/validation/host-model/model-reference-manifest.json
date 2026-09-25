@@ -1,0 +1,10 @@
+{
+  "file": "Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+  "source_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "converter": "llama.cpp",
+  "converter_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "conversion": "Q8_0 weights dequantized to F32; no original model weights restored",
+  "size_bytes": 2390150816,
+  "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "purpose": "Matched-weight numerical reference without activation quantization"
+}

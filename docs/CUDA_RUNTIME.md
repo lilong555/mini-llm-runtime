@@ -18,6 +18,8 @@ bash scripts/dev.sh own-cuda memcheck
 
 ## 所有权与完成协议
 
+完整模型路径可复用 [Qwen3 Host Model](HOST_MODEL.md) 的只读绑定与独立分词器，无需为加载权重或分词而创建 CPU Runtime。当前 CUDA target 尚未上传模型权重或执行模型 forward。
+
 - `DeviceBuffer<T>` 为不可复制、可移动的设备内存 owner；空 buffer 不分配，数量和字节范围在分配前检查。移动后源对象为空，清理不抛异常。
 - `CudaContext` 为单调用者、不可重入的 owner，持有 nonblocking stream、cuBLAS handle 和默认 4 MiB 的显式 workspace。先设置 stream，再绑定 workspace，避免 `cublasSetStream` 重置绑定。
 - 每个对象记录设备编号。设备操作临时选择该设备，随后恢复调用线程先前的设备。

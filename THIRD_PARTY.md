@@ -27,6 +27,8 @@ The same pinned checkout vendors:
 Upstream is compiled as C++17; project code is C++20. No generated upstream
 files are edited. CMake verifies the dependency commit.
 
+`minillm_model` 的 `Qwen3Model` 持有项目 GGUF 映射和只读模型绑定，`Tokenizer` 仅包装上述上游 vocab-only 模型；CPU `Runtime` 持有自己的 executor 和 paged KV。模型加载不构造 CPU executor、KV 或 llama 执行上下文，详见 `docs/HOST_MODEL.md`。
+
 ## NVIDIA CUDA 与 cuBLAS
 
 `MINILLM_ENABLE_CUDA=ON` 使用 CUDA Toolkit >= 12.8 的 CUDA Runtime 与 cuBLAS，遵循 NVIDIA 随 Toolkit 提供的许可条款。仓库不包含这些二进制库。

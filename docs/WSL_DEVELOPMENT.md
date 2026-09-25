@@ -53,7 +53,7 @@ clangd --check=src/minillm/kernels.cpp
 clang-tidy -p build/wsl-cpu src/minillm/kernels.cpp
 ```
 
-`build` 要求 Python 3 和 PowerShell，缺少完整测试工具时配置失败。`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。CPU CTest 包含 `unit`、`validation-contract`、`telemetry-validation`、`benchmark-validation`、`runtime-benchmark-validation`、`gguf` 六个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
+`build` 要求 Python 3 和 PowerShell，缺少完整测试工具时配置失败。`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。CPU CTest 包含 `unit`、`validation-contract`、`telemetry-validation`、`benchmark-validation`、`runtime-benchmark-validation`、`gguf`、`host-model` 七个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
 
 完整模型验证独立于 CTest。模型套件通过测试侧屏障构造真实 prefill/decode 混合批，保留数值、生成、前缀复用和 KV 回收检查。CPU 1、2、8 线程及 CUDA 参照的完整报告见 `benchmarks/results/validation/wsl-deterministic/`；原有时序问题及失败证据见 `ENG-017`。
 

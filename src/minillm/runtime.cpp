@@ -1,12 +1,11 @@
 #include "minillm/runtime.h"
 
-#include "minillm/gguf_model.h"
+#include "minillm/qwen3_model.h"
+#include "minillm/tokenizer.h"
 #include "minillm/paged_kv.h"
 #include "minillm/parallel.h"
-#include "llama.h"
 
 #include <algorithm>
-#include <array>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -85,39 +84,6 @@ private:
     ProfileClock::time_point started_{};
 };
 
-ModelDimensions load_dimensions(const GgufModel& model) {
-    if (model.string_value("general.architecture") != "qwen3") {
-        throw std::runtime_error("MiniLLM currently supports the dense Qwen3 architecture");
-    }
-    const auto integer = [&](const char* name) {
-        const auto value = model.integer_value(name);
-        if (value == 0 || value > 1000000) {
-            throw std::runtime_error(std::string("invalid model dimension: ") + name);
-        }
-        return static_cast<std::size_t>(value);
-    };
-    ModelDimensions dims{
-        integer("qwen3.embedding_length"), integer("qwen3.block_count"),
-        integer("qwen3.attention.head_count"), integer("qwen3.attention.head_count_kv"),
-        integer("qwen3.attention.key_length"), integer("qwen3.feed_forward_length"),
-        model.tensor("token_embd.weight").rows, integer("qwen3.context_length"),
-        model.float_value("qwen3.attention.layer_norm_rms_epsilon"),
-        model.float_value("qwen3.rope.freq_base")};
-    if (dims.heads % dims.kv_heads != 0 || dims.head_dim % 2 != 0 ||
-        dims.head_dim != integer("qwen3.attention.value_length") ||
-        (model.contains("qwen3.rope.dimension_count") &&
-         dims.head_dim != integer("qwen3.rope.dimension_count")) ||
-        !std::isfinite(dims.rms_epsilon) || dims.rms_epsilon <= 0 ||
-        !std::isfinite(dims.rope_base) || dims.rope_base <= 0) {
-        throw std::runtime_error("unsupported Qwen3 attention or normalization configuration");
-    }
-    if (model.contains("qwen3.rope.scaling.type") &&
-        model.string_value("qwen3.rope.scaling.type") != "none") {
-        throw std::runtime_error("RoPE scaling is not supported by MiniLLM");
-    }
-    return dims;
-}
-
 RuntimeConfig checked(RuntimeConfig config) {
     if (config.context_tokens == 0 || config.page_tokens == 0 ||
         config.context_tokens % config.page_tokens != 0 || config.max_sequences == 0 ||
@@ -128,89 +94,35 @@ RuntimeConfig checked(RuntimeConfig config) {
     return config;
 }
 
-TensorView matrix(const GgufModel& model, const std::string& name,
-                  std::size_t rows, std::size_t columns) {
-    const auto value = model.tensor(name);
-    if (value.rows != rows || value.columns != columns) {
-        throw std::runtime_error("unexpected GGUF tensor shape: " + name);
+const ModelDimensions& checked_dimensions(const RuntimeConfig& config, const Qwen3Model& model) {
+    if (config.context_tokens > model.dimensions().trained_context) {
+        throw std::invalid_argument("context_tokens exceeds the trained model context");
     }
-    return value;
-}
-
-std::vector<float> norm_weight(const GgufModel& model, const std::string& name, std::size_t size) {
-    return matrix(model, name, 1, size).vector();
+    return model.dimensions();
 }
 
 } // namespace
 
 struct Runtime::Impl {
-    struct Layer {
-        std::vector<float> attention_norm;
-        std::vector<float> query_norm;
-        std::vector<float> key_norm;
-        std::vector<float> ffn_norm;
-        TensorView query;
-        TensorView key;
-        TensorView value;
-        TensorView attention_output;
-        TensorView gate;
-        TensorView up;
-        TensorView down;
-    };
-
     RuntimeConfig config;
-    GgufModel weights;
-    ModelDimensions dims;
+    Qwen3Model model;
+    const ModelDimensions& dims;
     ParallelExecutor executor;
     PagedKV cache;
-    TensorView embeddings;
-    TensorView output;
-    std::vector<float> output_norm;
-    std::vector<Layer> layers;
-    std::unique_ptr<llama_model, decltype(&llama_model_free)> vocabulary_model{nullptr, llama_model_free};
-    const llama_vocab* vocab = nullptr;
+    const TensorView& embeddings;
+    const TensorView& output;
+    const std::vector<float>& output_norm;
+    const std::vector<Qwen3Layer>& layers;
+    Tokenizer tokenizer;
 
     explicit Impl(RuntimeConfig cfg)
-        : config(checked(std::move(cfg))), weights(config.model_path), dims(load_dimensions(weights)),
-          executor(config.threads),
+        : config(checked(std::move(cfg))), model(config.model_path),
+          dims(checked_dimensions(config, model)), executor(config.threads),
           cache({config.context_tokens / config.page_tokens, config.page_tokens, dims.layers,
                  dims.kv_heads * dims.head_dim, config.max_sequences}),
-          embeddings(matrix(weights, "token_embd.weight", dims.vocabulary, dims.embedding)),
-          output(weights.has_tensor("output.weight")
-              ? matrix(weights, "output.weight", dims.vocabulary, dims.embedding) : embeddings),
-          output_norm(norm_weight(weights, "output_norm.weight", dims.embedding)) {
-        if (config.context_tokens > dims.trained_context) {
-            throw std::invalid_argument("context_tokens exceeds the trained model context");
-        }
-        const auto q_width = dims.heads * dims.head_dim;
-        const auto kv_width = dims.kv_heads * dims.head_dim;
-        for (std::size_t i = 0; i < dims.layers; ++i) {
-            const auto prefix = "blk." + std::to_string(i) + ".";
-            layers.push_back({
-                norm_weight(weights, prefix + "attn_norm.weight", dims.embedding),
-                norm_weight(weights, prefix + "attn_q_norm.weight", dims.head_dim),
-                norm_weight(weights, prefix + "attn_k_norm.weight", dims.head_dim),
-                norm_weight(weights, prefix + "ffn_norm.weight", dims.embedding),
-                matrix(weights, prefix + "attn_q.weight", q_width, dims.embedding),
-                matrix(weights, prefix + "attn_k.weight", kv_width, dims.embedding),
-                matrix(weights, prefix + "attn_v.weight", kv_width, dims.embedding),
-                matrix(weights, prefix + "attn_output.weight", dims.embedding, q_width),
-                matrix(weights, prefix + "ffn_gate.weight", dims.feed_forward, dims.embedding),
-                matrix(weights, prefix + "ffn_up.weight", dims.feed_forward, dims.embedding),
-                matrix(weights, prefix + "ffn_down.weight", dims.embedding, dims.feed_forward)});
-        }
-        auto params = llama_model_default_params();
-        params.vocab_only = true;
-        params.n_gpu_layers = 0;
-        vocabulary_model.reset(llama_model_load_from_file(config.model_path.c_str(), params));
-        if (!vocabulary_model) {
-            throw std::runtime_error("cannot load the GGUF tokenizer");
-        }
-        vocab = llama_model_get_vocab(vocabulary_model.get());
-        if (static_cast<std::size_t>(llama_vocab_n_tokens(vocab)) != dims.vocabulary) {
-            throw std::runtime_error("tokenizer vocabulary does not match the embedding matrix");
-        }
-    }
+          embeddings(model.embeddings()), output(model.output()),
+          output_norm(model.output_norm()), layers(model.layers()),
+          tokenizer(config.model_path, dims.vocabulary) {}
 
     std::size_t profile_capacity() const noexcept {
         return 3 + layers.size() * 14 + config.batch_tokens * 2;
@@ -449,42 +361,12 @@ const ModelDimensions& Runtime::dimensions() const noexcept { return impl_->dims
 const RuntimeConfig& Runtime::config() const noexcept { return impl_->config; }
 
 std::vector<std::int32_t> Runtime::tokenize(std::string_view text) const {
-    if (text.size() > 262144) {
-        throw std::invalid_argument("prompt exceeds 256 KiB");
-    }
-    std::vector<std::int32_t> tokens(text.size() + 8);
-    auto count = llama_tokenize(impl_->vocab, text.data(), static_cast<std::int32_t>(text.size()),
-                                tokens.data(), static_cast<std::int32_t>(tokens.size()), true, true);
-    if (count < 0) {
-        tokens.resize(static_cast<std::size_t>(-count));
-        count = llama_tokenize(impl_->vocab, text.data(), static_cast<std::int32_t>(text.size()),
-                               tokens.data(), static_cast<std::int32_t>(tokens.size()), true, true);
-    }
-    if (count < 0) {
-        throw std::runtime_error("tokenization failed");
-    }
-    tokens.resize(static_cast<std::size_t>(count));
-    return tokens;
+    return impl_->tokenizer.tokenize(text);
 }
-
 std::string Runtime::token_piece(std::int32_t token) const {
-    std::array<char, 256> buffer{};
-    auto count = llama_token_to_piece(impl_->vocab, token, buffer.data(),
-                                      static_cast<std::int32_t>(buffer.size()), 0, false);
-    if (count >= 0) {
-        return {buffer.data(), static_cast<std::size_t>(count)};
-    }
-    std::string result(static_cast<std::size_t>(-count), '\0');
-    count = llama_token_to_piece(impl_->vocab, token, result.data(),
-                                 static_cast<std::int32_t>(result.size()), 0, false);
-    if (count < 0) {
-        throw std::runtime_error("detokenization failed");
-    }
-    result.resize(static_cast<std::size_t>(count));
-    return result;
+    return impl_->tokenizer.token_piece(token);
 }
-
-bool Runtime::is_eog(std::int32_t token) const { return llama_vocab_is_eog(impl_->vocab, token); }
+bool Runtime::is_eog(std::int32_t token) const { return impl_->tokenizer.is_eog(token); }
 ForwardProfile Runtime::make_profile() const {
     ForwardProfile result;
     result.stages.reserve(impl_->profile_capacity());

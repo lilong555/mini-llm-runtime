@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "checked_at_utc": "2026-09-25T16:42:44.600556+00:00",
+  "ctest": [
+    {
+      "path": "cpu-ctest.xml",
+      "suites": 7,
+      "cases": 178,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    },
+    {
+      "path": "own-ctest.xml",
+      "suites": 8,
+      "cases": 189,
+      "results": [
+        {
+          "name": "cuda-unit",
+          "passed": 11
+        },
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    },
+    {
+      "path": "core-ctest.xml",
+      "suites": 5,
+      "cases": 167,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 41
+        }
+      ]
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "suites": 7,
+      "cases": 178,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    }
+  ],
+  "host_model_real_checks": 8,
+  "model_checks": {
+    "cpu_reference": 13,
+    "cuda_reference": 13
+  },
+  "http_checks": {
+    "mini_cpu": 8,
+    "llama_cuda": 8
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "source_after_parent_commit": "ad8b45074830c66f9d46dcf4468662debc052098",
+  "source_after_dirty": true,
+  "windows_or_remote_ci_executed": false,
+  "own_cuda_model_validated": false
+}

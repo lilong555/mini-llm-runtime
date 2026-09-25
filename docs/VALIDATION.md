@@ -2,6 +2,8 @@
 
 ## 当前 WSL 验收
 
+[Host Model 验收](../benchmarks/results/validation/host-model/README.md) 记录 CPU 7/7、自有 CUDA 8/8、无 llama 核心 5/5、上游 CUDA 7/7 CTest；独立模型绑定/分词器实模型检查 8/8，CPU 和 CUDA 参照模型各 13/13，两个 HTTP 后端各 8/8。44 份固定输入报告的 792 次测量保留一致的完整 logits 摘要、greedy 和 KV 状态，36 对 profile 样本契约一致。12 个代表案例的中位退化均未超过预注册 A/A 阈值；正负波动和有限样本置信区间均保留，不作加速声明。
+
 [CUDA 基础层验收](../benchmarks/results/validation/cuda-infra/README.md) 记录独立 CUDA、CPU、无 llama 核心和上游 CUDA 四组 CTest；设备资源及矩阵 11/11、Compute Sanitizer 0 错误/0 泄漏，CPU 模型 13/13 和 HTTP 8/8。自有 CUDA 模型数值与性能尚未验收。
 
 2026-09-24 的 [M0 归档与验证契约验收](../benchmarks/results/validation/evidence-m0/README.md) 记录 CPU 产品 6/6、无 llama 依赖核心 5/5 CTest；CPU 实模型检查 13/13、HTTP 检查 8/8。反例覆盖缺 ZIP、源码与包内摘要篡改、路径迁移、失败时旧文件保留和发布回滚。三个短样例的 8-token 金标准及中文、英文、重复、特殊 token 的固定语料位于 `tests/data/qwen3_validation_cases.json`；GPU 数值与性能仍待真实 CUDA 模型实现后验收。

@@ -44,3 +44,5 @@ benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/evidence-m0/baseline/source-snapshot.zip
 !benchmarks/results/validation/evidence-m0/source-snapshot.zip
 !benchmarks/results/validation/cuda-infra/source-snapshot.zip
+!benchmarks/results/validation/host-model/before/source-snapshot.zip
+!benchmarks/results/validation/host-model/after/source-snapshot.zip

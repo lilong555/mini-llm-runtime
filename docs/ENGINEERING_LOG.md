@@ -146,9 +146,11 @@
 - 状态：待解决。
 - 影响：固定版本的分词器提示：token 128247，即 `</s>`，看起来像控制 token，但模型词表未将其声明为控制类型。
 - 复现条件：通过 CLI 或模型测试加载固定版本的官方 GGUF。
+- 原始诊断：`load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden`。
 - 原因：上游启发式规则与模型文件中的 token 元数据不一致；尚未确定应该修改模型文件还是启发式规则。
 - 当前行为：固定版本的分词器在加载时修正该 token 类型。MiniLLM 与数值参照共用此分词器；已有的数值、生成和 HTTP 检查通过，但不足以证明完整的特殊 token 兼容性。
-- 下一步：增加明确的词表与特殊 token 回归用例，并检查上游模型元数据问题报告；不擅自修改下载的模型文件或其 manifest 哈希。
+- 下一步：检查上游模型元数据问题报告；保留固定权重与词表语义，不修改下载的模型文件或其 manifest 哈希。
+- 词表验证：`tests/host_model_tests.cpp` 对 `tests/data/qwen3_validation_cases.json` 的 7 组中文、英文、重复、特殊 token 和生成输入核对 token IDs，并将全部 151936 个 token 的 piece/EOG 与固定上游 vocab-only 参照逐项比较，8/8 host-model 实模型检查通过。原始警告仍存在，见 `benchmarks/results/validation/host-model/host-real.txt`；该验证没有修复模型元数据问题，本项保持待解决。
 
 ## ENG-012：CTest 报告截断
 
