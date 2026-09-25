@@ -1,0 +1,11 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "test"
+  ],
+  "started_at_utc": "2026-09-25T23:17:17.6474835Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T23:17:28.5763938Z"
+}

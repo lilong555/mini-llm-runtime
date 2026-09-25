@@ -1,4 +1,5 @@
 #include "test_support.h"
+#include "cuda_validation_support.h"
 #include "../apps/cuda_reports.h"
 #include "../apps/options.h"
 #include "minillm/cuda/device_buffer.h"
@@ -16,6 +17,9 @@
 using namespace minillm;
 using namespace minillm::cuda;
 using cuda_reports::json;
+using cuda_validation::Reference;
+using cuda_validation::argmax;
+using cuda_validation::compare;
 
 namespace {
 using Batch = std::vector<InputToken>;
@@ -26,91 +30,6 @@ struct Scenario {
     std::vector<Batch> batches;
     Outputs cpu, reference;
 };
-
-class Reference {
-    struct Backend {
-        Backend() { ggml_backend_load_all(); llama_backend_init(); }
-        ~Backend() { llama_backend_free(); }
-    } backend_;
-    struct OwnedBatch {
-        llama_batch value = llama_batch_init(128,0,1);
-        ~OwnedBatch() { llama_batch_free(value); }
-    } batch_;
-public:
-    explicit Reference(const std::string& path) {
-        auto mp = llama_model_default_params(); mp.n_gpu_layers = 0;
-        model_.reset(llama_model_load_from_file(path.c_str(),mp));
-        if (!model_) { throw std::runtime_error("F32 参照模型加载失败"); }
-        auto cp = llama_context_default_params();
-        cp.n_ctx = 2048; cp.n_batch = 128; cp.n_ubatch = 128; cp.n_seq_max = 4;
-        cp.n_threads = 8; cp.n_threads_batch = 8; cp.kv_unified = true;
-        cp.type_k = GGML_TYPE_F16; cp.type_v = GGML_TYPE_F16;
-        cp.flash_attn_type = LLAMA_FLASH_ATTN_TYPE_ENABLED;
-        context_.reset(llama_init_from_model(model_.get(),cp));
-        if (!context_) { throw std::runtime_error("F32 参照 context 加载失败"); }
-        vocabulary_ = std::size_t(llama_vocab_n_tokens(llama_model_get_vocab(model_.get())));
-    }
-    void clear() {
-        llama_synchronize(context_.get());
-        llama_memory_clear(llama_get_memory(context_.get()),false);
-    }
-    std::vector<Logits> forward(const Batch& tokens) {
-        CHECK(!tokens.empty() && tokens.size() <= 128);
-        auto& batch = batch_.value;
-        batch.n_tokens = static_cast<std::int32_t>(tokens.size());
-        for (std::size_t i = 0; i < tokens.size(); ++i) {
-            batch.token[i] = tokens[i].token; batch.pos[i] = tokens[i].position;
-            batch.n_seq_id[i] = 1; batch.seq_id[i][0] = tokens[i].sequence;
-            batch.logits[i] = static_cast<std::int8_t>(tokens[i].logits);
-        }
-        CHECK(llama_decode(context_.get(),batch) == 0);
-        std::vector<Logits> result;
-        for (std::size_t i = 0; i < tokens.size(); ++i) {
-            if (!tokens[i].logits) { continue; }
-            const auto* values = llama_get_logits_ith(context_.get(),static_cast<std::int32_t>(i));
-            CHECK(values);
-            result.push_back({tokens[i].sequence,{values,values+vocabulary_}});
-        }
-        return result;
-    }
-private:
-    std::unique_ptr<llama_model,decltype(&llama_model_free)> model_{nullptr,llama_model_free};
-    std::unique_ptr<llama_context,decltype(&llama_free)> context_{nullptr,llama_free};
-    std::size_t vocabulary_ = 0;
-};
-
-std::int32_t argmax(const std::vector<float>& values) {
-    return static_cast<std::int32_t>(std::max_element(values.begin(),values.end())-values.begin());
-}
-json compare(const std::vector<float>& actual, const std::vector<float>& expected, const json& thresholds) {
-    static_assert(std::endian::native == std::endian::little && sizeof(float) == 4);
-    CHECK(actual.size() == expected.size() && actual.size() > 1);
-    double squared = 0, maximum = 0, dot = 0, a_norm = 0, e_norm = 0;
-    for (std::size_t i = 0; i < actual.size(); ++i) {
-        if (!std::isfinite(actual[i]) || !std::isfinite(expected[i])) {
-            return {{"passed",false},{"all_finite",false},{"first_nonfinite",i},{"argmax_equal",false}};
-        }
-        const double error = double(actual[i])-expected[i];
-        squared += error*error; maximum = std::max(maximum,std::abs(error));
-        dot += double(actual[i])*expected[i]; a_norm += double(actual[i])*actual[i]; e_norm += double(expected[i])*expected[i];
-    }
-    const double rmse = std::sqrt(squared/double(actual.size())), cosine = dot/std::sqrt(a_norm*e_norm);
-    const auto top = argmax(expected), token = argmax(actual);
-    float second = -std::numeric_limits<float>::infinity();
-    for (std::size_t i = 0; i < expected.size(); ++i) {
-        if (std::int32_t(i) != top) { second = std::max(second,expected[i]); }
-    }
-    const double gap = double(expected[std::size_t(top)])-second;
-    const bool near_tie = gap <= 2*maximum;
-    return {{"rmse",rmse},{"max_absolute",maximum},{"cosine",cosine},{"all_finite",true},
-        {"actual_sha256",hash_sha256_hex(actual.data(),actual.size()*sizeof(float))},
-        {"reference_sha256",hash_sha256_hex(expected.data(),expected.size()*sizeof(float))},
-        {"actual_argmax",token},{"reference_argmax",top},{"reference_margin",gap},
-        {"near_tie",near_tie},{"argmax_equal",token==top},
-        {"passed",rmse<thresholds.at("rmse_exclusive").get<double>() &&
-                  maximum<thresholds.at("max_absolute_exclusive").get<double>() &&
-                  cosine>=thresholds.at("cosine_min_inclusive").get<double>() && (near_tie || token==top)}};
-}
 
 std::vector<Scenario> scenarios(const json& contract) {
     std::set<std::int32_t> positions;
@@ -324,9 +243,9 @@ int main(int argc, char** argv) {
     std::filesystem::path output;
     bool owns_output = false;
     try {
-        Options options(argc,argv,{"--model","--reference-model","--contract","--output"});
+        Options options(argc,argv,{"--model","--reference-model","--contract","--output"},{"--help","--full"});
         if (options.has("--help")) {
-            std::cout << "minillm-cuda-model-tests --model MODEL --reference-model F32 --contract JSON --output NEW_DIRECTORY\n";
+            std::cout << "minillm-cuda-model-tests --model MODEL --reference-model F32 --contract JSON --output NEW_DIRECTORY [--full]\n";
             return 0;
         }
         for (const auto* name : {"--model","--reference-model","--contract","--output"}) {
@@ -347,6 +266,12 @@ int main(int argc, char** argv) {
         llama_log_set([](ggml_log_level level, const char* text, void*) {
             if (level >= GGML_LOG_LEVEL_WARN) { std::cerr << text; }
         },nullptr);
+        if (options.has("--full")) {
+            auto summary = cuda_validation::run_full_validation(options.get("--model"),options.get("--reference-model"),contract,output);
+            summary["model_sha256"] = model_sha; summary["reference_sha256"] = reference_sha;
+            cuda_reports::write(output/"validation-summary.json",summary);
+            return summary.at("passed").get<bool>() ? 0 : 1;
+        }
         Validation validation(options.get("--model"),options.get("--reference-model"),contract,output);
         validation.prepare_references();
         test::cases().push_back({"cuda_model_single_sequence",[&] { validation.run(1); }});

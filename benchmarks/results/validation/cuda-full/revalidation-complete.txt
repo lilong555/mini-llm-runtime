@@ -1,0 +1,13 @@
+
+Status                 : passed
+Purpose                : archive_revalidation
+Artifacts              : 769
+SuiteExecutions        : 36
+CaseExecutions         : 807
+TeacherCases           : 240
+TeacherComparisons     : 11760
+NaturalGenerationCases : 12
+FullCorpusContract     : True
+PerformanceBaseline    : False
+GpuServing             : False
+

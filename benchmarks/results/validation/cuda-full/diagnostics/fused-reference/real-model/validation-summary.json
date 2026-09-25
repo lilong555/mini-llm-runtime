@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 8 numerical",
+  "status": "failed",
+  "complete": true,
+  "passed": false,
+  "complete_gpu_model": false,
+  "full_corpus_contract": false,
+  "performance_baseline": false,
+  "gpu_serving": false,
+  "totals": {
+    "teacher_cases": 240,
+    "teacher_rows": 3920,
+    "teacher_comparisons": 11760,
+    "generation_comparisons": 768,
+    "numeric_failures": 2,
+    "argmax_divergences": 0,
+    "near_ties": 5
+  },
+  "extrema": {
+    "rmse_max": 0.04531060086197049,
+    "absolute_max": 0.24940204620361328,
+    "cosine_min": 0.999858573856455
+  },
+  "golden_cases": 6,
+  "generation_cases": 12,
+  "first_numeric_failure": {
+    "rmse": 0.03343284417287534,
+    "max_absolute": 0.1415548324584961,
+    "cosine": 0.999858573856455,
+    "all_finite": true,
+    "actual_sha256": "b4d4cf344b0a25c83791e16f02816be77bf5f6faa8e8845e0cbee217854103dc",
+    "reference_sha256": "b294cf99146f6ae349a38a9ebfdfd5cd68aa6b200c597bf883e1e15883349cec",
+    "actual_argmax": 264,
+    "reference_argmax": 264,
+    "reference_margin": 4.173549652099609,
+    "near_tie": false,
+    "argmax_equal": true,
+    "passed": false,
+    "case": "repeated-l1536-g32",
+    "reference": "llama_f32",
+    "step": 6,
+    "sequence": 0,
+    "position": 1541
+  },
+  "first_argmax_divergence": null,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+}

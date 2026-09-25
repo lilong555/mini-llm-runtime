@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "scope": "同输入、同产品源码的参照模式对照；不是性能结果",
+  "product_sources_equal": true,
+  "product_source_files": 65,
+  "dependency_commit_equal": true,
+  "contract_bytes_equal": true,
+  "input_bytes_equal": true,
+  "scores": {
+    "cpu": {
+      "rows": 140,
+      "bitwise_equal": 140,
+      "token_equal": 140
+    },
+    "cuda_canonical": {
+      "rows": 140,
+      "bitwise_equal": 140,
+      "token_equal": 140
+    },
+    "cuda_teacher": {
+      "rows": 3920,
+      "bitwise_equal": 3920,
+      "token_equal": 3920
+    },
+    "cuda_generation": {
+      "rows": 384,
+      "bitwise_equal": 384,
+      "token_equal": 384
+    },
+    "cpu_generation": {
+      "rows": 384,
+      "bitwise_equal": 384,
+      "token_equal": 384
+    }
+  },
+  "first_bitwise_difference": null,
+  "before_status": "failed",
+  "after_status": "passed",
+  "before_numeric_failures": 2,
+  "after_numeric_failures": 0
+}

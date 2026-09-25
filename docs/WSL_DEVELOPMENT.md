@@ -87,7 +87,7 @@ bash scripts/dev.sh benchmark \
 
 该入口使用原生 PowerShell，核对源码和二进制身份，按轮次重启服务、交替策略并严格验收。输出目录必须为空；manifest、原始 trace、源码快照、全部请求结果和验收报告保存在同一目录。协议、压力实验终态和统计口径见 [策略回放与验收](BENCHMARKS.md)。
 
-## 自有 CUDA 基础层
+## 自有 CUDA Runtime
 
 ```bash
 bash scripts/dev.sh own-cuda build
@@ -95,9 +95,12 @@ bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda memcheck
 bash scripts/dev.sh own-cuda storage-check
 bash scripts/dev.sh own-cuda storage-memcheck
+bash scripts/dev.sh own-cuda generate --tokens 8
+bash scripts/dev.sh own-cuda model-check
+bash scripts/dev.sh own-cuda model-full-check
 ```
 
-`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供常驻 FP32 有效权重、显存预算、预分配存储与真实形状 GEMM 测试，未提供完整 GPU 模型或服务。`storage-*` 使用固定模型，报告目录必须尚不存在；默认自动选择 `.run/` 下的新目录。构建与接口契约见 [CUDA 运行基础](CUDA_RUNTIME.md)。CPU 可执行文件不链接该 CUDA target。
+`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供常驻 FP32 有效权重、连续 FP16 KV、完整 Qwen3 forward 与 greedy CLI，尚未接入 GPU Serving。`storage-*`、`model-*` 使用固定模型，模型验证还需要 matched-weight F32 参照；报告目录必须尚不存在，默认自动选择 `.run/` 下的新目录。构建与接口契约见 [CUDA Runtime](CUDA_RUNTIME.md)，全量语料、参照配置和报告复核见 [CUDA 数值验证](CUDA_NUMERICS.md)。CPU 可执行文件不链接该 CUDA target。
 
 ## CUDA 参照后端
 
@@ -113,7 +116,7 @@ bash scripts/dev.sh cuda serve --port 8001
 
 其他架构通过 `CUDA_ARCHITECTURES=数字 bash scripts/dev.sh cuda build` 指定。CUDA 的报告为 `.run/wsl-cuda-model.json`、`.run/wsl-cuda-http.json` 和 `build/wsl-cuda/test-results.xml`，不覆盖 CPU 报告。`cuda validate` 中 MiniLLM 仍在 CPU 执行，只将 F32 数值参照放在 GPU。
 
-MiniLLM 没有自有 GPU forward；上游 CUDA 执行和下述向量冒烟检查均不代表自研 CUDA PagedAttention。
+上游 CUDA 参照、自有 CUDA 连续 KV Runtime 和下述向量冒烟检查是不同执行路径，均不能作为自有 GPU PagedAttention 的验收证据。
 
 ## 性能采集
 

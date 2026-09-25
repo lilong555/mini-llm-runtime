@@ -1,0 +1,20 @@
+{
+  "command": "cmake",
+  "arguments": [
+    "-S",
+    ".",
+    "-B",
+    "build/wsl-core",
+    "-G",
+    "Ninja",
+    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+    "-DLLMSERVE_WITH_LLAMA=OFF",
+    "-DMINILLM_ENABLE_CUDA=OFF",
+    "-DLLMSERVE_BUILD_TESTS=ON",
+    "-DLLMSERVE_REQUIRE_TEST_TOOLS=ON"
+  ],
+  "started_at_utc": "2026-09-25T22:55:00.7549408Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T22:55:01.7737615Z"
+}

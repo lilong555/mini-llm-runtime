@@ -1,0 +1,1 @@
+CUDA 模型验证失败：/home/li/code/mini-llm-runtime/tests/cuda_model_tests.cpp:263: contract.at("schema_version") == 1 && contract.at("model").at("sha256") == model_sha

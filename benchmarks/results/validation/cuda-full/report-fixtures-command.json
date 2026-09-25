@@ -1,0 +1,10 @@
+{
+  "command": "python3",
+  "arguments": [
+    "tests/cuda_validation_report_tests.py"
+  ],
+  "started_at_utc": "2026-09-25T22:55:00.8330585Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T22:55:01.9464633Z"
+}

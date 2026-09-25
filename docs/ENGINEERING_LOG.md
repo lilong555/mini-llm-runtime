@@ -427,3 +427,21 @@
 - 原因：设备矩阵维度的表示范围不等于本阶段公开模型的 batch 支持范围。
 - 解决方法：公开 `CudaRuntimeConfig` 明确 S<=4、B<=128；构造时先校验，再加载模型或分配 metadata。CLI 使用同一上界，不截断用户参数。内部矩阵和存储测试不据此缩小维度检查范围。
 - 验证：`runtime_initialization_failure_releases_resources` 使用不存在的模型路径和 B=129，首先得到配置 `std::invalid_argument`。8 项 Runtime 检查及其 memcheck/racecheck/synccheck 通过；四种构建共 749 次用例执行，S=1/S=4 的完整模型对照和 memcheck 通过。CLI 的 B=129 拒绝、设备预算拒绝及报告保护原始结果位于 `benchmarks/results/validation/cuda-model/`，没有执行 host 内存耗尽试验。
+
+## ENG-041：数值报告测试的参照参数与字段重名
+
+- 状态：已解决，限定于 Python 数值报告 fixture 的构造；不涉及 Runtime 或实模型数值。
+- 影响：前六项验证器检查通过后，自然生成 fixture 无法构造，不能据此验收输入漂移后的比较规则。
+- 复现条件或证据：`python3 tests/cuda_validation_report_tests.py` 返回 `TypeError: comparison() got multiple values for argument 'reference'`。原始输出、命令与失败 fixture 保留在 `benchmarks/results/validation/cuda-full/diagnostics/fused-reference/report-fixtures-initial.txt`、`report-fixtures-initial-command.json` 和 `fixture-reference-argument.py`。
+- 原因：fixture 的第二个位置参数名为 `reference`，报告身份字段也通过同名关键字传入，Python 在进入函数前拒绝重复赋值。
+- 解决方法：参照分数参数使用 `expected`，报告的 `reference` 字段继续表示 backend 身份。
+- 验证：`report-fixtures.txt` 记录 12/12 检查通过，包含自然生成首处分歧、历史输入漂移、伪造通过状态、精确门槛、传输计数和缺件不覆盖旧摘要；原始失败记录保留。
+
+## ENG-042：上游融合 attention 的 FP16 累加偏离数值参照精度
+
+- 状态：已解决，限定于全量数值参照的精度配置；原上游融合行为未修改，失败结果保留。
+- 影响：全部 11760 次 teacher-forcing 比较通过，但 1536 个重复 token 后的 32-token 续写有两处 F32 llama 参照 cosine 低于 `0.9999`；全量数值门禁返回失败。CPU、GPU 与该上游参照的输出 token 全部一致，不能用 token 一致掩盖 logits 超限。
+- 复现条件或证据：`repeated-l1536-g32` 的 step 6、position 1541，cosine 为 `0.999858573856455`；step 19、position 1554，cosine 为 `0.9998883358146589`。原始完整失败报告、源码、二进制身份和诊断位于 `benchmarks/results/validation/cuda-full/diagnostics/fused-reference/`，状态为 `completed_numeric_failure`。
+- 原因：固定 llama.cpp `911f6cdc8ab8a530b2bee09ee61471a6f3178eeb` 的 `ggml_compute_forward_flash_attn_ext_f16_one_chunk` 将 Q 转换为 FP16，并在 V 为 FP16 时使用 `VKQ16` 和 `ggml_vec_mad_f16` 累加。长上下文单 query 进入 split-KV 分支，调用同一实现；prefill 的 tiled 分支则使用 FP32 PV 缓冲。F32 权重或 graph 的 `GGML_PREC_F32` 标记不能保证该 CPU 分支实际采用 FP32 PV 累加。自有 CPU/CUDA 使用 FP32 累加，差异不应通过改变产品数学路径追随上游半精度累加。
+- 解决方法：全量测试的 F32 llama 参照显式关闭 FlashAttention，报告固定记录 attention 模式及 QK/PV 累加精度。checkpoint、FP16 KV、输入、线程和原有门槛不变；不修改上游源码。默认短模式保留已有参照配置，完整失败归档单独复核，不替换为成功记录。
+- 验证：诊断目录的 `reference-diagnostic/attention-reference.json` 固定重放同一 prompt 与续写输入，原 CPU、融合参照、GPU 的 96 个分数和摘要全部复现，仍出现原来的两处融合参照失败。仅切换上游 attention 模式后，32 步全部通过。主目录 `real-model/` 的独立全量采集完成 240 个组合和 12 组续写，12528 次比较全部通过，最小 cosine `0.9999865801437234`。`reference-mode-comparison.json` 确认 65 个产品源文件及冻结输入未变，两次采集的同一 GPU 路径 4444 个采样行、CPU 路径 524 个采样行摘要分别一致。四种构建共 807 次用例执行、CPU 模型 13/13 和 HTTP 8/8 通过；完整证据包与保留的失败包均在独立目录复核。

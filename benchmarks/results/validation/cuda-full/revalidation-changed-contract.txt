@@ -1,0 +1,6 @@
+CUDA 数值证据复核失败：数值契约与冻结版本不符
+Exception: /tmp/cuda-full-relocated-54a585d7e1834437ae4fd4596f0243a6/changed-contract/verify.ps1:94
+Line |
+  94 |  … LASTEXITCODE -ne 0) { $lines | Write-Output; throw '完整数值报告未通过独立复核。' }
+     |                                                 ~~~~~~~~~~~~~~~~~~~~~~
+     | 完整数值报告未通过独立复核。

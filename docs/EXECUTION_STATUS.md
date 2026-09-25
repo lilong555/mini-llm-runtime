@@ -20,15 +20,19 @@
 | V2-M1 / Step 5 | 已验收 | gather、分组 RMSNorm、NeoX RoPE、residual、SwiGLU、finite/argmax；11 项算子检查与三类 sanitizer |
 | V2-M1 / Step 6 | 已验收 | 连续 KV 状态、FP16 store、causal GQA attention、完整层、preflight/poisoned 状态 |
 | V2-M1 / Step 7 | 已验收 | 完整 28 层、selected-row LM head、greedy、真实 CLI；S=1/S=4、128 组 logits、六组短金标准 |
-| V2-M1 / Step 8–9 | 待实施 | 全量长语料与 chunk/batch、32-token 生成、CPU8/16/A/A、完整模型 Profiler 与性能交付 |
+| V2-M1 / Step 8 数值 | 已验收 | 240 个组合、11760 次固定输入与 768 次生成比较；长语料、独立 KV、32-token 续写、计时开关与容量边界 |
+| V2-M1 / Step 8 性能 | 待实施 | CPU8/16 与 GPU 的 micro/model 基线、A/A、平衡顺序、原始样本与统计验收 |
+| V2-M1 / Step 9 | 待实施 | 完整模型 Nsight、选定 kernel 的 NCU、完整性能证据包及独立复验 |
 | V2-M2 | 等待完整模型 gate | GPU Serving、HTTP/SSE 和生命周期验收 |
 | V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为 Step 8 全量数值与性能对照，随后执行 Step 9 Profiler/完整包门禁；Step 7 不代表 V2-M1 整体完成。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为 Step 8 性能对照，随后执行 Step 9 Profiler/完整性能包门禁；当前不代表 V2-M1 整体完成。
 
 ## 可复核证据
 
-[CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 包含自有 CUDA 12/12、CPU 7/7、独立核心 5/5、上游 CUDA 7/7 CTest，共 749 次用例执行；8 项 Runtime 检查、128 组 CPU/F32 参照 logits、六组 S=1/S=4 短金标准和三个 CLI 通过。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异；完整模型 memcheck 为 0 错误/0 泄漏，Runtime racecheck/synccheck 均通过。CPU 模型 13/13、HTTP 8/8 单列，不代表 GPU Serving。稳态无权重/hidden 传输或项目设备分配，greedy 不下载全词表。全量长语料和性能门禁仍未完成。
+[CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 包含自有 CUDA 14/14、CPU 8/8、独立核心 6/6、上游 CUDA 8/8 CTest，共 807 次用例执行；CPU 模型 13/13、HTTP 8/8 和默认短模式通过。240 个组合及 12 组 32-token 续写共 12528 次比较通过，最大 RMSE `0.019126342`、最大绝对误差 `0.072307349`、最小 cosine `0.999986580`，无 argmax 差异或 near-tie。S=4 的 1536-token 计时开关与 2048-token 边界通过；783 个产物独立目录复验通过，12 项归档反例被拒绝。上游 CPU 融合 attention 的两处 cosine 超限与固定输入诊断完整保留，参照配置见 `ENG-042`。本组没有性能或 GPU Serving 结论。
+
+[CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 包含自有 CUDA 12/12、CPU 7/7、独立核心 5/5、上游 CUDA 7/7 CTest，共 749 次用例执行；8 项 Runtime 检查、128 组 CPU/F32 参照 logits、六组 S=1/S=4 短金标准和三个 CLI 通过。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异；完整模型 memcheck 为 0 错误/0 泄漏，Runtime racecheck/synccheck 均通过。CPU 模型 13/13、HTTP 8/8 单列，不代表 GPU Serving。稳态无权重/hidden 传输或项目设备分配，greedy 不下载全词表。该组不包含全量长语料或正式性能验收。
 
 [CUDA 连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 包含自有 CUDA 11/11、CPU 7/7、独立核心 5/5、上游 CUDA 7/7 CTest，共 741 次用例执行；7 项层级用例、六组首层/末层真实权重对照、88 组矩阵回归、CPU 模型 13/13 和 HTTP 8/8 通过。设备与真实层 memcheck 为 0 错误/0 泄漏，racecheck 为 0 hazards，synccheck 为 0 错误。独立整层最大绝对误差 `0.12060546875`、FP16 舍入边界诊断和失败源码均保留；不能将共享 Q/K/V 对照冒充独立整层等价。尚无完整 GPU 模型或性能结论。
 
@@ -50,4 +54,4 @@
 
 - `tests/data/qwen3_validation_cases.json`：Q8_0/F32 参照 SHA-256、源 tensor dtype、数值模式、四类固定 token 语料、长度 16/33/128/256/1536、采样位置、near-tie 公式与三个短样例的 8-token 金标准。
 - `benchmarks/runtime-inputs/qwen3-cuda-v0.json`：S=4、Lmax=2048、B=128、CPU 8/16 线程、5 个独立 trial、A/A 噪声规则及稳态数据路径门禁。
-- 语料与性能协议的固定不表示 GPU 数值或性能已验收；GPU oracle 和测量由后续模型路径执行。
+- 全量数值语料已有独立验收；冻结性能协议仍需实际采集和统计门禁，不能据数值通过宣称加速或关闭整个 Step 8。

@@ -1,0 +1,12 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "own-cuda",
+    "build"
+  ],
+  "started_at_utc": "2026-09-25T23:17:16.2635315Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T23:17:25.1851078Z"
+}

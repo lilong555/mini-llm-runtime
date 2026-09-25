@@ -1,0 +1,10 @@
+固定输入重放：自有 CPU
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+固定输入重放：F32 llama，FlashAttention=ON
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+...........................................................................
+固定输入重放：F32 llama，FlashAttention=OFF
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+...........................................................................
+固定输入重放：自有 CUDA
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden

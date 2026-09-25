@@ -1,6 +1,6 @@
 # 自有 CUDA Runtime
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。GPU Serving、prefix sharing 和 PagedAttention 尚未提供。短语料和 S=1/S=4 通过验证；全量长语料与正式性能基线仍在独立门禁内，见 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。GPU Serving、prefix sharing 和 PagedAttention 尚未提供。全量固定语料、S=1/2/4、chunk/长度组合与 32-token 续写通过验证，入口见 [CUDA 数值验证](CUDA_NUMERICS.md)；正式性能基线仍在独立门禁内，见 [执行状态](EXECUTION_STATUS.md)。
 
 ## 构建与验收
 
@@ -17,6 +17,7 @@ bash scripts/dev.sh own-cuda layer-check
 bash scripts/dev.sh own-cuda layer-memcheck
 python3 scripts/models.py --reference --converter build/wsl-own-cuda/bin/mini-llm
 bash scripts/dev.sh own-cuda model-check
+bash scripts/dev.sh own-cuda model-full-check
 bash scripts/dev.sh own-cuda model-memcheck
 ```
 
@@ -130,7 +131,9 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 
 Runtime 测试覆盖无输出行、选中行顺序、事件计时开关位级一致、预检恢复、clear 后重用、预算拒绝、非有限输出和受控完成检查失败。普通完整模型和 memcheck 均通过，memcheck 为 0 错误/0 泄漏，Runtime racecheck/synccheck 均为零错误。受控同步失败由测试包装器在实际完成后注入，不是一次真实 illegal access 的恢复试验。
 
-该组覆盖短金标准、四类 33-token 语料、128-token prefill、16+2 mixed 和四序列交错。长度 256/1536、全部 chunk/sequence 组合、32-token 自然生成、CPU8/16 对照、A/A、完整模型 Nsight 与正式归档仍属于 Step 8–9，不能以当前记录关闭 V2-M1。
+默认短模式覆盖短金标准、四类 33-token 语料、128-token prefill、16+2 mixed 和四序列交错。[全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 覆盖长度 16/33/128/256/1536、chunk 1/16/33/128、S=1/2/4，共 240 个组合与 12 组 32-token 续写；12528 次比较全部通过。S=4、1536-token 的计时开关保持 40 个采样行位级一致，slot 3 的 2048-token 上界拒绝与 clear 复用通过。
+
+全量 F32 llama 参照显式采用非融合 attention。上游 CPU 融合实现的 FP16 PV 累加及两处原始 cosine 失败完整保留，见 `ENG-042`；checkpoint、FP16 KV、输入和门槛不变。运行时及设备代码未改变，sanitizer 证据保持上述已有范围，本组不宣称重跑了全部长语料的 sanitizer。CPU8/16 性能、A/A、microbenchmark、完整模型 Nsight 与性能包仍属于 Step 8–9，不能以数值通过关闭 V2-M1。
 
 ## 第三方边界
 

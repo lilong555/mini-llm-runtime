@@ -68,7 +68,7 @@ bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。完整模型的短语料与 S=1/S=4 验证见 [验收记录](benchmarks/results/validation/cuda-model/README.md)；长语料全量验证与正式性能基线尚未完成。
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值验收](benchmarks/results/validation/cuda-full/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。正式性能基线与 GPU Serving 尚未验收。
 
 ### Windows / PowerShell
 

@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "backend": "llama_f32",
+  "corpus": 3,
+  "prompt_tokens": 16,
+  "output_tokens": 32,
+  "final_kv_tokens": 47,
+  "samples": [
+    {
+      "token": 198,
+      "margin": 14.398773193359375,
+      "sha256": "56b4ec20cfbd5801013b14181d243103b311fe2a9b417c7fb0155de6a8a7d7c8"
+    },
+    {
+      "token": 151667,
+      "margin": 3.212953567504883,
+      "sha256": "d0ad0e518d4561ecc33eb0a1cfb12de2e86e2579d1d4651cb00037f9f42f6ab8"
+    },
+    {
+      "token": 198,
+      "margin": 15.111597061157227,
+      "sha256": "14abd4c14a716eee9b397779a6ca99f989909b53272d3d3bd40cc3142ac2ba46"
+    },
+    {
+      "token": 99692,
+      "margin": 1.3439006805419922,
+      "sha256": "e60ca83855325f1038ed4ffbadd79a0382ce1e5b5fd7d7da9fbd2695a29dddb3"
+    },
+    {
+      "token": 3837,
+      "margin": 6.30103874206543,
+      "sha256": "4a9786bc2663ecaf659980628dc03a3e2c16401b3178d98fd432f80c77b1d786"
+    },
+    {
+      "token": 20002,
+      "margin": 2.1195621490478516,
+      "sha256": "6b94b50bc9afe07fc2c069e1ee0f4bd8ac1044728acd6f515162f973b1ea389e"
+    },
+    {
+      "token": 28291,
+      "margin": 2.7348670959472656,
+      "sha256": "35901d49e2e191df841ff73bf31cdc3319087ed60ccf21b437b5b636d913b767"
+    },
+    {
+      "token": 36407,
+      "margin": 1.053567886352539,
+      "sha256": "c987669d94746c30fd650130542bf6ba6bcedea6be0cf683525f7ce204ac2e7e"
+    },
+    {
+      "token": 99593,
+      "margin": 1.1522789001464844,
+      "sha256": "9c32fd4342b2f31ecaaf0d0d1085351d2b6fc9d90b55c354e550302c7fa0cb37"
+    },
+    {
+      "token": 38989,
+      "margin": 1.8590984344482422,
+      "sha256": "fe9cf2b1485392b6411dcfb75886a4b4156687ad74654871046bb1bf55f31439"
+    },
+    {
+      "token": 64205,
+      "margin": 0.9025363922119141,
+      "sha256": "3b2bd3f22ec132c4ce9ce4e06516dd1154b68cf9ae9e92afdd3d25c18d06341e"
+    },
+    {
+      "token": 36987,
+      "margin": 0.6974411010742188,
+      "sha256": "e01f00e547e282052a89419044b29dab7663afbced519bd3b2baf3965c88a61f"
+    },
+    {
+      "token": 108386,
+      "margin": 7.54583740234375,
+      "sha256": "2f5cc1657673465640b647a3ccf843d3e8a3069a1402cda7cbc7d58ccdb58dfb"
+    },
+    {
+      "token": 55807,
+      "margin": 2.7931060791015625,
+      "sha256": "4ebd236cc16ae9ded2919ff8cff2c590c8fd13a2605eb26d323e3c228cc7255c"
+    },
+    {
+      "token": 35946,
+      "margin": 1.421875,
+      "sha256": "9209879889036bc6bf1c7c3070b3d64daf79ba7f0181353b9bc4219d544ad30e"
+    },
+    {
+      "token": 85106,
+      "margin": 4.750455856323242,
+      "sha256": "b37142849a7841b3f7f34a2485b20c82a0423331ec68e78e54b6afa1faaf5b8f"
+    },
+    {
+      "token": 60726,
+      "margin": 0.6340808868408203,
+      "sha256": "fba626a68351590fa0297874c09ebb1b620d379dbb5fbded0345cfc90cd2a973"
+    },
+    {
+      "token": 81167,
+      "margin": 2.1901588439941406,
+      "sha256": "ea3fd77431fbe87ecff7f83435743a4af40752bc9fe61cc63e0c0d7eabc8ee6e"
+    },
+    {
+      "token": 20002,
+      "margin": 1.5173454284667969,
+      "sha256": "5ee4d33e7807a6c506325e1f509bbcb3cf5894af601f9f2c669e003314a304b8"
+    },
+    {
+      "token": 64471,
+      "margin": 0.08383750915527344,
+      "sha256": "ffd257b57e3b3d2c7e570e6af72df8a91ce17fbdae40b5686d11a055f3b75fad"
+    },
+    {
+      "token": 18493,
+      "margin": 1.6236915588378906,
+      "sha256": "854828c6bd11350548b880f3c26a9a9c0beb3e389386b752c39440c38e341b6c"
+    },
+    {
+      "token": 81705,
+      "margin": 2.641752243041992,
+      "sha256": "8ed50a47400e98938eddec97ef99ab8a806b8a7a16127ebb6ec0eaf43b2b1b8c"
+    },
+    {
+      "token": 97611,
+      "margin": 1.2022686004638672,
+      "sha256": "4938555da839db436826769050356221aad208741d962bc5661c57a29e9b13ca"
+    },
+    {
+      "token": 104175,
+      "margin": 3.156841278076172,
+      "sha256": "81cbb7b2f1b75e433206fb990a165d0793151200f4019e14814d8736d334ea53"
+    },
+    {
+      "token": 3837,
+      "margin": 2.514986038208008,
+      "sha256": "a0036b680e6dddcb8a7fb808e02b5c8b0d43d057e5384a4b6ccf6922001d9194"
+    },
+    {
+      "token": 100631,
+      "margin": 2.817913055419922,
+      "sha256": "568d4b95dfdef61261cd4cae3bb36b5fe5f284b69d6b6b3f69c59ed992a63dba"
+    },
+    {
+      "token": 100009,
+      "margin": 1.7825508117675781,
+      "sha256": "1a490e567ed6ceac6b146cf3fce28bbbce660e65aef8ad6dc1fe70340b0c0030"
+    },
+    {
+      "token": 100714,
+      "margin": 0.7653217315673828,
+      "sha256": "abb1c558341748fbbcdd7eca142fb01424b10f29371e86ed2b7e3f33acdd4ea1"
+    },
+    {
+      "token": 113940,
+      "margin": 2.459707260131836,
+      "sha256": "e7c6e9239f13ec5e2204ddd536e828eded293e9b9ebf3f334d59da7880260467"
+    },
+    {
+      "token": 1773,
+      "margin": 3.5113143920898438,
+      "sha256": "f96a00860c1cf9e015db77a37788ddd850f2dd5b737703d558ab277b7fb64ae0"
+    },
+    {
+      "token": 101140,
+      "margin": 0.05925750732421875,
+      "sha256": "18aa78032822b9fde9ab67e2208c1135b7a8cbc6c877e50068313613ee3da6ea"
+    },
+    {
+      "token": 3837,
+      "margin": 4.013238906860352,
+      "sha256": "60d5c5f2de0590f8610830e7f80e9b3ec30389d95edf276aca43e2bbb79c00ed"
+    }
+  ]
+}

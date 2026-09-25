@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "existing_directory": {
+    "exit_code": 1,
+    "unchanged": true,
+    "checked_files": 342
+  },
+  "wrong_checkpoint": {
+    "exit_code": 1,
+    "report": {
+      "status": "failed",
+      "passed": false
+    }
+  }
+}
