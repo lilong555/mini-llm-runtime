@@ -7,6 +7,13 @@
 
 namespace minillm::cuda {
 
+// 进程累计值，仅统计项目 DeviceMemory 包装器，不包含 CUDA/cuBLAS 内部分配。
+// 调用方须保证采样区间没有其他线程分配或释放，才能用于单个 owner 的计数。
+struct AllocationStats {
+    std::size_t allocation_calls = 0, allocations = 0, release_calls = 0, releases = 0, allocated_bytes = 0;
+};
+AllocationStats allocation_stats() noexcept;
+
 struct DeviceMemory {
     static void* allocate(std::size_t bytes, int device);
     static void release(void* pointer, int device) noexcept;

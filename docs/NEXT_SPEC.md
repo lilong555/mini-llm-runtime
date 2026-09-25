@@ -6,7 +6,7 @@
 - 对应 milestone：`PROJECT_PLAN_V2.md / V2-M1`；Step 1 含 V2-M0 的必要证据补丁。
 - Audit HEAD：`68ac275913207975a88e2090c6617467e351301c`
 - Audit Date：2026-09-23，Asia/Tokyo。
-- 状态：拟实施。本文中的 CudaRuntime、DeviceBuffer、新 targets 和文件均非当前已实现能力。
+- 状态：执行中，Step 1–4 已验收；当前可用接口见 `CUDA_RUNTIME.md`，阶段门禁见 `EXECUTION_STATUS.md`。下文的完整 CudaRuntime、token CLI 和模型性能目标仍为后续规范，不代表已经交付。
 - 推荐主分支：`feat/own-cuda-vertical-slice`；证据补丁可先独立 `fix/evidence-bundle-completeness`。
 - 目标平台：本机 WSL2 Ubuntu，RTX 4070 Laptop，CUDA 12.8；现有 Windows/MSVC 与 Linux CPU 构建必须保留。
 - 本阶段终点是完整模型产生真实 token 的 CLI/model path；GPU HTTP/LLMServe 接入属于紧随其后的 V2-M2，不得在本阶段提前宣称已完成。

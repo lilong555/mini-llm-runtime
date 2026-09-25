@@ -382,3 +382,21 @@
 - 原因：首次分析重新发布带当前时间戳的 `validation-summary.json`；再次进入 bundle preflight 时，派生文件字节不再匹配封包时的 SHA-256。归档副本可分析一次，不能在同一副本上交错使用旧包摘要与新派生结果。
 - 解决方法：观测组仅调用一次 Python 入口，由它完成策略和时间线验收；其他组直接调用对应 PowerShell 入口。每个包独立携带 `verification/` 脚本，包内工具身份与历史测量源码分别固定。
 - 验证：`benchmarks/results/evidence-m0/telemetry-bundle.zip` 的两份真实服务报告及对应 JSONL 完成导出、解压和包内工具复验；`telemetry-revalidation.json` 记录成功与文件访问跟踪，原历史目录无字节变化。该结果是历史数据复验，不是新的 Serving 性能采集。
+
+## ENG-036：CUDA 存储验证的旧成功摘要残留
+
+- 状态：已解决，限定于存储验证入口的报告目录和失败状态。
+- 影响：复用曾成功的报告目录时，后续验证中途失败可能留下旧的 `passed=true`，不能据此判断当前模型或矩阵通过。
+- 复现条件或证据：存储验证入口使用 `create_directories` 接受已存在的目录，只在全部检查结束后写入成功摘要。目录复用反例及逐文件摘要检查见 `benchmarks/results/validation/cuda-storage/negative-checks.json`；错误 checkpoint 的真实失败输出保留在 `rejected-model.txt`。
+- 原因：报告目录缺少单次执行的独占约束，验证开始时没有使旧状态失效。
+- 解决方法：显式输出目录必须尚不存在；默认命令选择带 UTC 时间和进程号的新目录。新报告先写入 `incomplete`，全部检查通过才写入 `passed`，失败写入 `failed`。固定数值契约的模型 SHA-256 在实模型存储构造前检查，不按文件名或形状近似接受 checkpoint。
+- 验证：目录复用命令返回 1，已有文件 SHA-256 不变；将 matched-weight F32 reference 当成 Q8_0 输入时返回 1，报告为 `failed` 且 `passed=false`。10 项存储单测及另含实模型的一组 11/11 检查通过，普通执行与 Compute Sanitizer 的报告一致。进程中断时的 `incomplete` 不能视为成功；本项不代表完整 GPU 模型已验收。
+
+## ENG-037：PowerShell 有序字典的属性汇总失败
+
+- 状态：已解决，限定于本地证据汇总；产品执行与原始测试报告不受影响。
+- 影响：CUDA 存储验证全部结束后，辅助归档脚本在汇总 CTest 用例数时退出，无法发布完整的身份与复核记录。
+- 复现条件或证据：PowerShell 7.6.6、`Set-StrictMode -Version Latest` 下执行 `@([ordered]@{passed=11}) | Measure-Object -Property passed -Sum`，返回 `Cannot process argument because the value of argument "passed" is not valid. Change the value of the "passed" argument and run the operation again.`。原始复现输出位于 `benchmarks/results/validation/cuda-storage/diagnostics/collection-error.txt`。
+- 原因：`OrderedDictionary` 的键访问与对象属性不是同一种管道契约；`Measure-Object -Property` 不能按所需方式取得字典中的计数字段。
+- 解决方法：汇总记录使用 `[pscustomobject][ordered]@{...}`，按对象属性求和。辅助脚本位于 `.run/`，不属于产品；归档携带独立 `verify.ps1`，复用源码快照中的既有 CTest 和源码校验工具。
+- 验证：四种构建的 28 次 CTest 套件、722 次用例执行与原始 XML 一致；完整归档在独立目录通过复核，缺少源码 ZIP 和矩阵报告篡改的反例均返回 1，原件摘要不变。结果见同目录的 `revalidation.json`，初次汇总失败没有被当作模型或性能失败。

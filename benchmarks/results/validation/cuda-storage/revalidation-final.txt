@@ -1,0 +1,10 @@
+
+Status            : passed
+Artifacts         : 50
+SuiteExecutions   : 28
+CaseExecutions    : 722
+UniqueTensors     : 310
+MatrixCasesPerRun : 88
+CompleteGpuModel  : False
+Purpose           : archive_revalidation
+

@@ -1,0 +1,5 @@
+Exception: /tmp/cuda-storage-evidence-9eac4281b7ab4629a16a87f6e3accdcf/tampered-matrix/verify.ps1:7
+Line |
+   7 |      if (-not $Condition) { throw $Message }
+     |                             ~~~~~~~~~~~~~~
+     | 证据摘要或尺寸不符：real/matrix-validation.json

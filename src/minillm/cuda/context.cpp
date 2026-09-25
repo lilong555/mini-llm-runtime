@@ -1,9 +1,17 @@
 #include "minillm/cuda/context.h"
 
+#include <atomic>
 #include <cstdio>
 #include <limits>
 
 namespace minillm::cuda {
+namespace {
+std::atomic<std::size_t> allocation_calls{0}, allocations{0}, release_calls{0}, releases{0}, allocated_bytes{0};
+}
+
+AllocationStats allocation_stats() noexcept {
+    return {allocation_calls.load(), allocations.load(), release_calls.load(), releases.load(), allocated_bytes.load()};
+}
 
 void check_cuda(cudaError_t status, const char* operation) {
     if (status != cudaSuccess) {
@@ -55,7 +63,10 @@ void* DeviceMemory::allocate(std::size_t bytes, int device) {
     }
     DeviceScope scope(device);
     void* pointer = nullptr;
+    ++allocation_calls;
     check_cuda(cudaMalloc(&pointer, bytes), "cudaMalloc");
+    ++allocations;
+    allocated_bytes += bytes;
     return pointer;
 }
 
@@ -63,7 +74,10 @@ void DeviceMemory::release(void* pointer, int device) noexcept {
     if (!pointer) { return; }
     try {
         DeviceScope scope(device);
-        report_cuda(cudaFree(pointer), "cudaFree");
+        ++release_calls;
+        const auto result = cudaFree(pointer);
+        if (result == cudaSuccess) { ++releases; }
+        report_cuda(result, "cudaFree");
     } catch (const std::exception& error) {
         std::fprintf(stderr, "CUDA buffer 清理无法选择设备：%s\n", error.what());
     }

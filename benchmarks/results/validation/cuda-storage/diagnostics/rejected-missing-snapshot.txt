@@ -1,0 +1,6 @@
+Get-FileHash: /tmp/cuda-storage-evidence-7abde6f1075d4859b0de1ad5b0c35b71/missing-snapshot/verify.ps1:18
+Line |
+  18 |  Require ((Get-FileHash -LiteralPath $snapshot -Algorithm SHA256).Hash …
+     |            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Could not find file
+     | '/tmp/cuda-storage-evidence-7abde6f1075d4859b0de1ad5b0c35b71/missing-snapshot/source-snapshot.zip'.

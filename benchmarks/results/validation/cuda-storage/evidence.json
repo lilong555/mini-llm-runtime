@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 4",
+  "status": "passed",
+  "collected_at_utc": "2026-09-25T18:57:27.929347Z",
+  "source": {
+    "git_sha": "c5583b0a1d4f93bfa240b49ec036833e1802985f",
+    "git_dirty": true,
+    "git_status": [
+      " M .gitignore",
+      " M CMakeLists.txt",
+      " M README.md",
+      " M THIRD_PARTY.md",
+      " M docs/CUDA_RUNTIME.md",
+      " M docs/EXECUTION_STATUS.md",
+      " M docs/NEXT_SPEC.md",
+      " M docs/VALIDATION.md",
+      " M docs/WSL_DEVELOPMENT.md",
+      " M include/minillm/cuda/device_buffer.h",
+      " M scripts/dev.sh",
+      " M src/minillm/cuda/context.cpp",
+      " M tests/host_model_tests.cpp",
+      "?? benchmarks/results/validation/cuda-storage/",
+      "?? src/minillm/cuda/storage.cpp",
+      "?? src/minillm/cuda/storage.h",
+      "?? tests/cuda_storage_tests.cpp",
+      "?? tests/qwen3_fixture.h"
+    ],
+    "scope": [
+      "CMakeLists.txt",
+      "AGENTS.md",
+      ".gitattributes",
+      ".gitignore",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "34c4ef1463e75908d62497824453b0b8d7272d2938c48f1f13b8775d3b47a8c6",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "55c9df269e533fab7c8e78ef12380817891d7a191b337a0f096c02b6352dabb6"
+    }
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "ctest": [
+    {
+      "path": "own-ctest.xml",
+      "suites": 9,
+      "case_executions": 199.0,
+      "results": [
+        {
+          "name": "cuda-unit",
+          "passed": 11
+        },
+        {
+          "name": "cuda-storage",
+          "passed": 10
+        },
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "suites": 7,
+      "case_executions": 178.0,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    },
+    {
+      "path": "core-ctest.xml",
+      "suites": 5,
+      "case_executions": 167.0,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 41
+        }
+      ]
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "suites": 7,
+      "case_executions": 178.0,
+      "results": [
+        {
+          "name": "unit",
+          "passed": 35
+        },
+        {
+          "name": "validation-contract",
+          "passed": 4
+        },
+        {
+          "name": "telemetry-validation",
+          "passed": 27
+        },
+        {
+          "name": "benchmark-validation",
+          "passed": 60
+        },
+        {
+          "name": "runtime-benchmark-validation",
+          "passed": 42
+        },
+        {
+          "name": "gguf",
+          "passed": 4
+        },
+        {
+          "name": "host-model",
+          "passed": 6
+        }
+      ]
+    }
+  ],
+  "complete_gpu_model": false,
+  "performance_measured": false,
+  "windows_or_remote_ci_executed": false,
+  "artifacts": [
+    {
+      "path": ".gitattributes",
+      "sha256": "8f3cbcd6fb3b094277ccc2c9ee3d3eecce3a51e04fdb36f57d535d22c3d60d51",
+      "size_bytes": 126
+    },
+    {
+      "path": "build-boundaries.json",
+      "sha256": "7a207d6342eee5f3b7347b0b02e08a2fcc44aa4024e984aa03fec5607bfa5eec",
+      "size_bytes": 29391
+    },
+    {
+      "path": "build-core.txt",
+      "sha256": "b43af90e02b425fe49677f23fba260f0b6cdc86681b37763f2f65440f8fa227c",
+      "size_bytes": 184
+    },
+    {
+      "path": "build-cpu.txt",
+      "sha256": "bd08306e01ad62de8826b261970b336a7433303dacea536e856246845df74c53",
+      "size_bytes": 641
+    },
+    {
+      "path": "build-own.txt",
+      "sha256": "e55d423111dfea32570f0db0ff9ce3543a93a5d9c8be6ec4929b0257ed155786",
+      "size_bytes": 1271
+    },
+    {
+      "path": "build-upstream.txt",
+      "sha256": "d54e22a15b10341aabdc8cc8e0381dbc11955139a20de09638212f8268478218",
+      "size_bytes": 1029
+    },
+    {
+      "path": "commands.json",
+      "sha256": "952a12f3091781a001b3ddccdd100ac5d789c264046dca307b0a03d410a189b0",
+      "size_bytes": 1097
+    },
+    {
+      "path": "core-ctest.xml",
+      "sha256": "150d8bf12dece5e7e3bba1d490da5f6c668a3235b3c958965a97a853111f21ff",
+      "size_bytes": 5980
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "sha256": "96f98b268cbb94544f0d083e2a1b170afdfa00b2b30c6a761f4d8925126f5bf3",
+      "size_bytes": 7204
+    },
+    {
+      "path": "ctest-core.txt",
+      "sha256": "43048b74d04bbb6cbc3e802efb04cc21e4d5e5cb36152adecce83c588bfd3edd",
+      "size_bytes": 630
+    },
+    {
+      "path": "ctest-cpu.txt",
+      "sha256": "7ccc2caa81d0eb8ce666ee53b8b064ef6ef98ef9655219575a3bda186d00622e",
+      "size_bytes": 809
+    },
+    {
+      "path": "ctest-own.txt",
+      "sha256": "529534783b92df0713b92a4c15fe7229e5796bb72ba57a898597873cc15926e8",
+      "size_bytes": 1058
+    },
+    {
+      "path": "ctest-upstream.txt",
+      "sha256": "b7a63d89a085b68fbff80d40dff68c0d5d1dd3fa2a959eabdc7cc4aca5768c25",
+      "size_bytes": 810
+    },
+    {
+      "path": "diagnostics/collection-error.txt",
+      "sha256": "6558172eee16547d152ef2f6e32336133a00e1237dc7b36714a5aa20bb23c4ce",
+      "size_bytes": 323
+    },
+    {
+      "path": "diagnostics/rejected-missing-snapshot-final.txt",
+      "sha256": "b61a4daba62f624c00646727b802616cb329a661129b1c8c03d3cc618fd59fcb",
+      "size_bytes": 400
+    },
+    {
+      "path": "diagnostics/rejected-missing-snapshot.txt",
+      "sha256": "663ef95687629baf50c41c04283e5d859ee6ad1a3d6902d450d1a4e1c3262a27",
+      "size_bytes": 400
+    },
+    {
+      "path": "diagnostics/rejected-tampered-matrix-final.txt",
+      "sha256": "35ec5ca5dc2d46ab0e9bb3f41d90d91d131397bfe64b868b902e289bf78867c8",
+      "size_bytes": 274
+    },
+    {
+      "path": "diagnostics/rejected-tampered-matrix.txt",
+      "sha256": "994892d7f699bb9e885c8039c7c45ce94021e09a7274472566abd840b6340dfd",
+      "size_bytes": 274
+    },
+    {
+      "path": "diagnostics/wrong-model/validation-summary.json",
+      "sha256": "dfc8041dc873c23ff7478ff8f64c59fb8415512791c38e83b02b03f4d385e134",
+      "size_bytes": 98
+    },
+    {
+      "path": "http-cpu.json",
+      "sha256": "6d22ca744605edd12ca995e695d27ae53d5acd138cb9ac50fa691070ddf300f9",
+      "size_bytes": 3843
+    },
+    {
+      "path": "http-cpu.txt",
+      "sha256": "6d22ca744605edd12ca995e695d27ae53d5acd138cb9ac50fa691070ddf300f9",
+      "size_bytes": 3843
+    },
+    {
+      "path": "memcheck-real.txt",
+      "sha256": "2abb9a60c870abbdb941f7d5af65a3c2ba5edcdb9b00e803aad885c032b46888",
+      "size_bytes": 962
+    },
+    {
+      "path": "memcheck-unit.txt",
+      "sha256": "61a73df2c0d8db2c38f89db951678a88987d8f9359dea755466318e70cacb436",
+      "size_bytes": 685
+    },
+    {
+      "path": "memcheck/copy-allocation-summary.json",
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64",
+      "size_bytes": 444
+    },
+    {
+      "path": "memcheck/environment.json",
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de",
+      "size_bytes": 720
+    },
+    {
+      "path": "memcheck/matrix-validation.json",
+      "sha256": "846d9bd990ef8cfdd3d9e3eeac543bed0969c430927fb28e2f766e7d9f78add2",
+      "size_bytes": 28082
+    },
+    {
+      "path": "memcheck/memory-plan.json",
+      "sha256": "3c3d4e8fdce25714acda21b58be225ce998bb4ec98ca2789c76ee373c2e60c92",
+      "size_bytes": 3833
+    },
+    {
+      "path": "memcheck/validation-contract.json",
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923",
+      "size_bytes": 4764
+    },
+    {
+      "path": "memcheck/validation-summary.json",
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825",
+      "size_bytes": 265
+    },
+    {
+      "path": "memcheck/weight-plan.json",
+      "sha256": "10544ff3efe678ea9fed9b3c0ef80554b5484dd0cd8dbfd100591e136738f6cc",
+      "size_bytes": 102357
+    },
+    {
+      "path": "model-cpu.json",
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+      "size_bytes": 3955
+    },
+    {
+      "path": "model-cpu.txt",
+      "sha256": "a741b0da5022ffc9fd57e45637c3442414eb3d114d107f00c28ab0c491103fb2",
+      "size_bytes": 5018
+    },
+    {
+      "path": "negative-checks.json",
+      "sha256": "6f2c97b50f80ef1fe2357fe85293207401234aa3fa73a9eadb877203f1e1a01c",
+      "size_bytes": 272
+    },
+    {
+      "path": "own-ctest.xml",
+      "sha256": "427b67eca6635574e07d7d02e0dc0ad09819909534e7b4d51ad7dccf52580d10",
+      "size_bytes": 8722
+    },
+    {
+      "path": "real.txt",
+      "sha256": "e9dee591023902c55762d6889037d8cbe7cf1632efb4a3abe8c5c28ae381387c",
+      "size_bytes": 844
+    },
+    {
+      "path": "real/copy-allocation-summary.json",
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64",
+      "size_bytes": 444
+    },
+    {
+      "path": "real/environment.json",
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de",
+      "size_bytes": 720
+    },
+    {
+      "path": "real/matrix-validation.json",
+      "sha256": "846d9bd990ef8cfdd3d9e3eeac543bed0969c430927fb28e2f766e7d9f78add2",
+      "size_bytes": 28082
+    },
+    {
+      "path": "real/memory-plan.json",
+      "sha256": "9e2df8c16fc5258799d92bafa97007cf68373459557a0b29aa2063d03833c0e4",
+      "size_bytes": 3833
+    },
+    {
+      "path": "real/validation-contract.json",
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923",
+      "size_bytes": 4764
+    },
+    {
+      "path": "real/validation-summary.json",
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825",
+      "size_bytes": 265
+    },
+    {
+      "path": "real/weight-plan.json",
+      "sha256": "10544ff3efe678ea9fed9b3c0ef80554b5484dd0cd8dbfd100591e136738f6cc",
+      "size_bytes": 102357
+    },
+    {
+      "path": "rejected-existing-output.txt",
+      "sha256": "44b3d95928d440f034e46b8bb381987ce0147bc6d9f8427b5eb05378b67bf04e",
+      "size_bytes": 134
+    },
+    {
+      "path": "rejected-model.txt",
+      "sha256": "3c8294814a1db6a6594841488fa88973fea3a91de84926b10d0ce37053974a59",
+      "size_bytes": 778
+    },
+    {
+      "path": "rejected-no-llama.txt",
+      "sha256": "555820c10242a95a74563ac70d59ff721f7b01becaf16eb6514b2b90c6f01405",
+      "size_bytes": 173
+    },
+    {
+      "path": "revalidation-final.json",
+      "sha256": "f4549c589a00094eebfe4787b8f8cee06442a5af97e7e6a5c08d29044381ff12",
+      "size_bytes": 273
+    },
+    {
+      "path": "revalidation-final.txt",
+      "sha256": "7b1f8faaa90caf29b6fe40267dfdf4a6ebdc76a12f41b64536ac95c6db5ba5b8",
+      "size_bytes": 213
+    },
+    {
+      "path": "revalidation.json",
+      "sha256": "f4549c589a00094eebfe4787b8f8cee06442a5af97e7e6a5c08d29044381ff12",
+      "size_bytes": 273
+    },
+    {
+      "path": "revalidation.txt",
+      "sha256": "7c89d211ea07d55be9ee09c458be2bee0fbe22044d8badc27bbe9cf84d25c972",
+      "size_bytes": 213
+    },
+    {
+      "path": "source-snapshot.zip",
+      "sha256": "55c9df269e533fab7c8e78ef12380817891d7a191b337a0f096c02b6352dabb6",
+      "size_bytes": 194220
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "34c4ef1463e75908d62497824453b0b8d7272d2938c48f1f13b8775d3b47a8c6",
+      "size_bytes": 16353
+    },
+    {
+      "path": "toolchain.json",
+      "sha256": "d98e8768793ff154373859b28f061c00b534da248329be92fb1fa1d6e9550f5a",
+      "size_bytes": 1203
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "sha256": "5e1dee465a77562f8e61972997ef3e5677f8a5a0bcb342dcd89ab74a10ce33e1",
+      "size_bytes": 7201
+    },
+    {
+      "path": "verify.ps1",
+      "sha256": "d433e7a0658cb044f455b2600b59649821bf4d9b7ed2f39d4713a2626ce51e82",
+      "size_bytes": 6644
+    }
+  ]
+}

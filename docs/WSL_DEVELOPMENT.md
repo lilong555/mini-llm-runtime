@@ -93,9 +93,11 @@ bash scripts/dev.sh benchmark \
 bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda memcheck
+bash scripts/dev.sh own-cuda storage-check
+bash scripts/dev.sh own-cuda storage-memcheck
 ```
 
-`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供单 stream、显存所有权与 FP32 GEMM 测试，未提供完整 GPU 模型或服务。构建与接口契约见 [CUDA 运行基础](CUDA_RUNTIME.md)。CPU 可执行文件不链接该 CUDA target。
+`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供常驻 FP32 有效权重、显存预算、预分配存储与真实形状 GEMM 测试，未提供完整 GPU 模型或服务。`storage-*` 使用固定模型，报告目录必须尚不存在；默认自动选择 `.run/` 下的新目录。构建与接口契约见 [CUDA 运行基础](CUDA_RUNTIME.md)。CPU 可执行文件不链接该 CUDA target。
 
 ## CUDA 参照后端
 

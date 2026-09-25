@@ -1,0 +1,6 @@
+CMake Error at CMakeLists.txt:24 (message):
+  MINILLM_ENABLE_CUDA 需要 LLMSERVE_WITH_LLAMA=ON 提供
+  GGUF/parser/tokenizer
+
+
+-- Configuring incomplete, errors occurred!

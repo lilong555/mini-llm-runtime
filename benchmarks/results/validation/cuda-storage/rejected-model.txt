@@ -1,0 +1,12 @@
+[PASS] storage_report_rejects_reuse_without_modification
+[PASS] storage_model_identity_precedes_device_allocation
+[PASS] storage_plan_alignment_alias_and_untied
+[PASS] storage_limits_and_budget_boundaries
+[PASS] storage_budget_failure_has_no_arena_allocation
+[PASS] storage_allocation_failures_release_partial_owners
+[PASS] storage_f32_f16_tied_and_untied_upload
+[PASS] storage_nonfinite_failure_cleanup_and_recovery
+[PASS] storage_workspace_types_bounds_initialization_and_owner
+[PASS] storage_repeated_gemm_reuses_workspace
+[FAIL] storage_real_qwen3_weights_and_matrices: 模型 SHA-256 不符合固定契约：expected=9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031 actual=bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80
+10/11 tests passed
