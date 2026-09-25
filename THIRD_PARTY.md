@@ -35,6 +35,8 @@ files are edited. CMake verifies the dependency commit.
 
 `minillm_cuda` 的资源所有权、常驻权重、显存预算、workspace 布局、设备视图、矩阵检查和测试为项目代码；内存/stream API 和 FP32 GEMM 内核由 NVIDIA 提供。GGUF 解析及有效权重摘要使用固定 llama.cpp 依赖中的解析器与 `vendor/hash` SHA-256 实现。当前自有 CUDA 没有完整 GPU 模型执行或 GPU PagedAttention。具体边界见 `docs/CUDA_RUNTIME.md`。`LLMSERVE_CUDA` 仍单独控制上游 ggml CUDA 后端。
 
+基础 CUDA 算子的 gather、归一化、NeoX RoPE、residual、SwiGLU 和 finite/argmax 数学由本项目实现；block 归约使用 Toolkit 随附的 CUB `BlockReduce`。当前验收环境为 CUB 2.7.0，遵循其 BSD-3-Clause 许可；仓库不复制 CUB 源码。CUB 提供归约原语，不提供本项目的完整模型或 KV 执行。
+
 ## Model
 
 - Repository: `Qwen/Qwen3-0.6B-GGUF`.

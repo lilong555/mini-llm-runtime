@@ -43,6 +43,7 @@ case "${1:-help}" in
   memcheck)
     [[ $own_cuda == ON ]] || { echo '用法：bash scripts/dev.sh own-cuda memcheck' >&2; exit 1; }
     compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-unit-tests"
+    compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-ops-tests"
     compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "$build/bin/minillm-cuda-storage-tests"
     ;;
   storage-check|storage-memcheck)

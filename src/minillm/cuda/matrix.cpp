@@ -1,43 +1,10 @@
 #include "minillm/cuda/matrix.h"
-
-#include <cstdint>
-#include <limits>
+#include "tensor_validation.h"
 
 namespace minillm::cuda {
-namespace {
-
-int as_int(std::size_t value) {
-    if (value == 0 || value > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
-        throw std::invalid_argument("cuBLAS 维度和 leading dimension 必须位于 [1, INT_MAX]");
-    }
-    return static_cast<int>(value);
-}
-
-struct Range { std::uintptr_t begin; std::uintptr_t end; };
-
-template<class T>
-Range validate(DeviceTensorView<T> view, int device) {
-    as_int(view.rows);
-    as_int(view.columns);
-    as_int(view.stride);
-    if (!view.data || view.device != device || view.stride < view.columns) {
-        throw std::invalid_argument("CUDA 矩阵指针、设备或 stride 无效");
-    }
-    const auto preceding = checked_product(view.rows - 1, view.stride);
-    if (preceding > view.capacity || view.columns > view.capacity - preceding) {
-        throw std::invalid_argument("CUDA 矩阵超出 buffer 容量");
-    }
-    const auto bytes = checked_product(preceding + view.columns, sizeof(T));
-    const auto address = reinterpret_cast<std::uintptr_t>(view.data);
-    if (address % alignof(T) != 0 || address > std::numeric_limits<std::uintptr_t>::max() - bytes) {
-        throw std::invalid_argument("CUDA 矩阵地址范围无效");
-    }
-    return {address, address + bytes};
-}
-
-bool overlaps(Range a, Range b) { return a.begin < b.end && b.begin < a.end; }
-
-} // namespace
+using detail::as_int;
+using detail::overlaps;
+using detail::validate;
 
 void matrix_multiply(const CudaContext& context, DeviceTensorView<const float> x,
                      DeviceTensorView<const float> weights, DeviceTensorView<float> output) {

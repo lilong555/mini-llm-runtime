@@ -1,6 +1,6 @@
 # 自有 CUDA 运行基础
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。当前提供设备资源所有权、单 stream、常驻 FP32 有效权重、预分配 workspace、显存预算及 cuBLAS FP32 矩阵接口。完整 Qwen3 GPU forward、GPU token CLI、GPU Serving 和 GPU PagedAttention 尚未提供。实施阶段见 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。当前提供设备资源所有权、常驻 FP32 有效权重、预分配 workspace、显存预算、cuBLAS 矩阵接口与单 stream 基础 CUDA 算子。完整 Qwen3 GPU forward、GPU token CLI、GPU Serving 和 GPU PagedAttention 尚未提供。实施阶段见 [执行状态](EXECUTION_STATUS.md)。
 
 ## 构建与验收
 
@@ -58,6 +58,19 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 
 [权重与存储验收](../benchmarks/results/validation/cuda-storage/README.md) 提供 310 个唯一 tensor 的全量逐字节回读、tied/untied 及 F32/F16 fixture、预算与初始化失败、88 组真实权重矩阵检查。M=1/2/4/8/16/18/32/64/128 使用稀疏四点输入，M=1/2 另有稠密输入，全部输出对照 CPU FP64。重复 GEMM 阶段项目分配/释放调用为零；这不是完整 forward 的稳态验收。实模型验证和资源测试在 Compute Sanitizer 下为 0 错误、0 泄漏。
 
+## 基础算子
+
+内部接口位于 `src/minillm/cuda/ops.h`，所有操作只向现有 context 的 stream 入队，不分配设备内存或在算子内部同步。调用方必须保证 view 指向有效分配，并在完成检查前保持其 owner 存活。
+
+- `gather_rows` 支持 embedding 和选中 hidden 行的采集；索引可重复，非法设备索引先屏蔽读取，再写入 NaN 与错误标记。
+- `rms_norm` 按 weight 宽度分组，覆盖 hidden norm 和 Q/K head norm；支持完全相同布局的原地输出。输入最大绝对值与 `sqrt(epsilon)` 共同决定缩放因子，归约和激活仍为 FP32，避免极值平方或方差加法溢出。
+- `rope` 原地执行 NeoX 两半旋转。设备系数表为 `[L,D]`，前半 cosine、后半 sine，`D` 是显式 head_dim；初始化方提供系数表，算子不逐步调用 host 三角函数。
+- `residual_add` 和 `swiglu` 支持有 stride 的逐元素原地操作，部分重叠在 launch 前拒绝。
+- `argmax` 融合全部 logits 的 finite 检查；相等时选择最小 token ID，任意 NaN/Inf 使对应行返回 `-1`。
+- `status[1,2]` 保存错误位集合与首个错误输入行。每次执行开始调用 `reset_status`，之后各算子累计标记；预检失败不改写设备内容，设备错误标记不能视为有效生成结果。
+
+11 项算子测试覆盖实际宽度、151936 词表、非整 warp 尾部、stride/padding、重复与越界索引、原地与部分重叠、FP64 对照及单 stream 组合执行。普通 CTest 与 memcheck、racecheck、synccheck 均通过；完整证据见 [基础算子验收](../benchmarks/results/validation/cuda-ops/README.md)。这些接口不等同于完整 transformer layer，KV 状态与 attention 仍需独立验收。
+
 ## 第三方边界
 
-设备资源封装、权重转换调度、存储布局、预算、矩阵描述符、边界检查和测试由本项目实现；设备内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供。GGUF 解析与 SHA-256 库来自固定版本的 llama.cpp 依赖，其完整 GPU 模型执行归属不变。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html) 和 [CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html)。
+设备资源封装、权重转换调度、存储布局、预算、基础算子数学与边界检查由本项目实现；内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供，block 归约复用 Toolkit 的 CUB。当前 CUDA 12.8 安装包含 CUB 2.7.0。GGUF 解析与 SHA-256 库来自固定版本的 llama.cpp 依赖，其完整 GPU 模型执行归属不变。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html)、[CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html) 与 [CUB BlockReduce](https://nvidia.github.io/cccl/cub/api/classcub_1_1BlockReduce.html)。

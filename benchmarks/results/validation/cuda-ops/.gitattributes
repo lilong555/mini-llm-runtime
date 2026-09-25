@@ -1,0 +1,2 @@
+# 原始工具输出保留字节、行尾和尾部空白。
+*.txt -text whitespace=-blank-at-eol,-blank-at-eof

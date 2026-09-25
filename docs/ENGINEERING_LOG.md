@@ -400,3 +400,12 @@
 - 原因：`OrderedDictionary` 的键访问与对象属性不是同一种管道契约；`Measure-Object -Property` 不能按所需方式取得字典中的计数字段。
 - 解决方法：汇总记录使用 `[pscustomobject][ordered]@{...}`，按对象属性求和。辅助脚本位于 `.run/`，不属于产品；归档携带独立 `verify.ps1`，复用源码快照中的既有 CTest 和源码校验工具。
 - 验证：四种构建的 28 次 CTest 套件、722 次用例执行与原始 XML 一致；完整归档在独立目录通过复核，缺少源码 ZIP 和矩阵报告篡改的反例均返回 1，原件摘要不变。结果见同目录的 `revalidation.json`，初次汇总失败没有被当作模型或性能失败。
+
+## ENG-038：RMSNorm 有限输入的中间量溢出
+
+- 状态：已解决，限定于自有 CUDA 基础算子的有限极值处理；CPU 数学路径保持原有实现。
+- 影响：直接在 FP32 中计算 `x*x`、平方和或 `variance + epsilon` 时，即使输入和 epsilon 有限，中间量仍可能溢出为 Inf，输出错误地退化为零或非有限值。
+- 复现条件或证据：`ops_rms_norm_finite_extremes_and_epsilon` 包含幅值 `1e30`、`FLT_MAX`，以及从最小正 subnormal 到 `FLT_MAX` 的 epsilon。`(1e30)^2` 已超过 FP32 最大有限值，按未缩放公式执行不能满足该用例的 FP64 对照。
+- 原因：输出尺度可表示不意味着平方或方差中间量可表示；只缩放输入而直接计算 `epsilon / max_abs / max_abs` 还可能在极小输入时溢出。
+- 解决方法：使用 `max(max_abs, sqrt(epsilon))` 作为共同缩放因子，在 FP32 中归约缩放后的平方和并计算缩放后的 epsilon。NaN/Inf 输入保留为 NaN，不允许通过 norm 掩盖后成为有效 token。
+- 验证：上述极值、普通宽度、多 head、原地与 padding 用例满足固定 `atol=2e-4, rtol=2e-4`；`ops_rms_norm_nonfinite_cannot_become_valid_token` 验证错误行返回 `-1`。11 项算子检查及 memcheck/racecheck/synccheck 均通过，见 `benchmarks/results/validation/cuda-ops/`。此项不表示完整 GPU 模型数值已通过。

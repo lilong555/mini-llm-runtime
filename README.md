@@ -27,7 +27,7 @@ MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、
 | --- | --- |
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
 | Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
-| 自有 CUDA 基础 | 独立构建、常驻 FP32 有效权重、有界上传、预分配 workspace、显存预算与 cuBLAS GEMM |
+| 自有 CUDA 基础 | 常驻 FP32 权重、显存预算、cuBLAS GEMM、自有 gather/RMSNorm/RoPE/SwiGLU/greedy 算子 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
 | 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |

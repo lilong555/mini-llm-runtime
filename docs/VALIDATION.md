@@ -2,6 +2,8 @@
 
 ## 当前 WSL 验收
 
+[CUDA 基础算子验收](../benchmarks/results/validation/cuda-ops/README.md) 记录 11 项 gather、分组 RMSNorm、RoPE、逐元素与 finite/argmax 检查，覆盖实际宽度、151936 词表、padding、非法输入、原地操作、有限极值与同 stream 组合执行。四种构建共 29 次 CTest 套件、733 次用例执行；CPU 模型 13/13、HTTP 8/8。memcheck、racecheck、synccheck 均通过；不构成完整 GPU 模型或性能证据。
+
 [CUDA 权重与存储验收](../benchmarks/results/validation/cuda-storage/README.md) 记录自有 CUDA 9/9、CPU 7/7、无 llama 核心 5/5、上游 CUDA 7/7 CTest，共 722 次用例执行；CPU 实模型 13/13、HTTP 8/8。固定 Q8_0 模型的 310 个唯一 tensor 全量回读通过，88 组真实形状 GEMM 满足预注册单元容差，S=4/Lmax=2048/B=128 的内存计划与自有分配一致。Compute Sanitizer 为 0 错误、0 泄漏；此项不证明完整 GPU 模型或性能。
 
 [Host Model 验收](../benchmarks/results/validation/host-model/README.md) 记录 CPU 7/7、自有 CUDA 8/8、无 llama 核心 5/5、上游 CUDA 7/7 CTest；独立模型绑定/分词器实模型检查 8/8，CPU 和 CUDA 参照模型各 13/13，两个 HTTP 后端各 8/8。44 份固定输入报告的 792 次测量保留一致的完整 logits 摘要、greedy 和 KV 状态，36 对 profile 样本契约一致。12 个代表案例的中位退化均未超过预注册 A/A 阈值；正负波动和有限样本置信区间均保留，不作加速声明。

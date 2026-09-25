@@ -1,0 +1,14 @@
+========= COMPUTE-SANITIZER
+[PASS] ops_gather_strides_duplicates_and_real_width
+[PASS] ops_gather_masks_invalid_indices_and_accumulates_status
+[PASS] ops_rms_norm_groups_tails_and_exact_inplace
+[PASS] ops_rms_norm_finite_extremes_and_epsilon
+[PASS] ops_rms_norm_nonfinite_cannot_become_valid_token
+[PASS] ops_rope_neox_positions_heads_and_padding
+[PASS] ops_rope_invalid_positions_are_masked
+[PASS] ops_residual_swiglu_strides_tails_and_extreme_gates
+[PASS] ops_argmax_ties_nonfinite_and_real_vocabulary
+[PASS] ops_preflight_rejects_descriptors_before_any_write
+[PASS] ops_composed_device_pipeline_reuses_stream_and_buffers
+11/11 tests passed
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)

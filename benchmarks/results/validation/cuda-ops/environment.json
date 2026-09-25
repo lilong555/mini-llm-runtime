@@ -1,0 +1,9 @@
+{
+  "collected_at_utc": "2026-09-25T19:46:50.7548985Z",
+  "compiler": "g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
+  "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+  "sanitizer": "NVIDIA (R) Compute Sanitizer\nCopyright (c) 2020-2025 NVIDIA Corporation\nVersion 2025.1.0.0 (build 35583870) (public-release)",
+  "gpu": "name, uuid, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 4070 Laptop GPU, GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 8188 MiB",
+  "powershell": "7.6.6",
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+}
