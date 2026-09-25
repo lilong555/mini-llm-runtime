@@ -26,7 +26,7 @@ struct WeightRecord {
 enum class Workspace {
     hidden, normalized, query, key, value, attention, projected, gate, up, down,
     selected_hidden, scores, probabilities, logits, tokens, positions, slots,
-    selected_rows, pending_lengths, samples, status
+    selected_rows, pending_lengths, samples, status, rope_coefficients
 };
 enum class StorageType { f32, i32 };
 struct WorkspaceRegion {
@@ -38,11 +38,12 @@ struct WorkspaceRegion {
 
 struct MemoryPlan {
     StorageLimits limits;
+    ModelDimensions dimensions{};
     std::vector<WeightRecord> weights;
     std::vector<WorkspaceRegion> regions;
     std::size_t weight_payload = 0, weight_bytes = 0;
     std::size_t activation_bytes = 0, attention_bytes = 0, logits_bytes = 0, metadata_bytes = 0;
-    std::size_t workspace_bytes = 0, kv_bytes = 0;
+    std::size_t workspace_bytes = 0, kv_bytes = 0, rope_bytes = 0;
     std::size_t cublas_bytes = CudaContext::default_workspace_bytes;
     std::size_t padding_bytes = 0, total_bytes = 0;
     std::string describe() const;
@@ -67,6 +68,7 @@ public:
     std::size_t uploaded_bytes() const noexcept { return uploaded_bytes_; }
     std::size_t upload_chunks() const noexcept { return upload_chunks_; }
     std::size_t max_upload_chunk_bytes() const noexcept { return max_upload_chunk_bytes_; }
+    std::size_t rope_uploaded_bytes() const noexcept { return rope_uploaded_bytes_; }
     DeviceTensorView<const float> weight(const std::string& name) const;
     const WorkspaceRegion& region(Workspace id) const;
     template<class T> DeviceTensorView<T> workspace(Workspace id, std::size_t rows) {
@@ -80,15 +82,18 @@ public:
                 r.columns, r.bytes / sizeof(T), context_.device()};
     }
     const void* kv_reservation() const noexcept { return kv_.data(); }
+    DeviceTensorView<std::uint16_t> kv_view() noexcept;
 
 private:
     void upload(const Qwen3Model& model);
+    void initialize_rope();
     // context 先构造、最后析构；本类析构及构造失败路径先完成在途工作。
     MemoryPlan plan_;
     CudaContext context_;
     MemoryInfo available_{};
     DeviceBuffer<std::byte> weights_, workspace_, kv_;
     std::size_t uploaded_bytes_ = 0, upload_chunks_ = 0, max_upload_chunk_bytes_ = 0;
+    std::size_t rope_uploaded_bytes_ = 0;
 };
 
 } // namespace minillm::cuda

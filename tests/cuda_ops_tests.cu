@@ -195,6 +195,8 @@ TEST(ops_rms_norm_nonfinite_cannot_become_valid_token) {
     reset_status(context, matrix_view(status, 1, 2));
     rms_norm(context, read_only(matrix_view(x, rows, width)), read_only(matrix_view(w, 1, width)),
              matrix_view(x, rows, width), 1e-6f);
+    check_finite(context, read_only(matrix_view(x, rows, width)), matrix_view(status, 1, 2));
+    check_status(context, status, int(DeviceError::nonfinite), 1);
     argmax(context, read_only(matrix_view(x, rows, width)), matrix_view(tokens, rows, 1), matrix_view(status, 1, 2));
     CHECK(download(context, tokens) == (std::vector<std::int32_t>{0, -1, -1, -1}));
     check_status(context, status, int(DeviceError::nonfinite), 1);
@@ -353,6 +355,9 @@ TEST(ops_preflight_rejects_descriptors_before_any_write) {
     test::throws<std::invalid_argument>([&] { residual_add(context, overlap, a); });
     test::throws<std::invalid_argument>([&] { swiglu(context, out, read_only(matrix_view(x, 1, 33))); });
     test::throws<std::invalid_argument>([&] { argmax(context, a, matrix_view(status, 2, 1), error); });
+    test::throws<std::invalid_argument>([&] {
+        check_finite(context, {reinterpret_cast<const float*>(status.data()), 1, 2, 2, 2, status.device()}, error);
+    });
     test::throws<std::invalid_argument>([&] { reset_status(context, matrix_view(status, 2, 1)); });
     CHECK(download(context, y) == std::vector<float>(256, guard_value));
     check_status(context, status);

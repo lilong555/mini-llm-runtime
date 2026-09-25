@@ -53,4 +53,10 @@ inline void require(bool condition, const char* message) {
     if (!condition) { throw std::invalid_argument(message); }
 }
 
+inline Range status_range(DeviceTensorView<std::int32_t> status, int device) {
+    const auto range = validate(status, device);
+    require(status.rows == 1 && status.columns == 2, "CUDA status 形状必须为 [1,2]");
+    return range;
+}
+
 }

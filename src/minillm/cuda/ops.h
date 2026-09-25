@@ -9,6 +9,8 @@ enum class DeviceError : std::int32_t { nonfinite = 1, invalid_index = 2, invali
 // status 为 [1,2] 的 I32：错误位集合、首个错误输入行；只在一次执行开始时重置。
 // 所有接口仅向 context 的 stream 入队，借用视图不转移所有权。
 void reset_status(const CudaContext& context, DeviceTensorView<std::int32_t> status);
+void check_finite(const CudaContext& context, DeviceTensorView<const float> input,
+                  DeviceTensorView<std::int32_t> status);
 
 // source[N,D]、indices[M,1]、output[M,D]，允许重复索引，不允许输出与输入重叠。
 // 设备索引非法时先屏蔽读取，再将对应输出行写为 NaN 并记录错误。

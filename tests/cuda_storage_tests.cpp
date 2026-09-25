@@ -164,7 +164,7 @@ void check_layout(const MemoryPlan& p) {
         workspace_payload += r.bytes;
     }
     CHECK(end <= p.workspace_bytes && p.workspace_bytes % 256 == 0);
-    CHECK(workspace_payload == p.activation_bytes + p.attention_bytes + p.logits_bytes + p.metadata_bytes);
+    CHECK(workspace_payload == p.activation_bytes + p.attention_bytes + p.logits_bytes + p.metadata_bytes + p.rope_bytes);
     CHECK(p.padding_bytes == p.weight_bytes - payload + p.workspace_bytes - workspace_payload);
     CHECK(p.total_bytes == payload + workspace_payload + p.padding_bytes + p.kv_bytes + p.cublas_bytes);
 }
@@ -332,6 +332,26 @@ TEST(storage_workspace_types_bounds_initialization_and_owner) {
     CHECK(first == 1.0f / 16.0f);
 }
 
+TEST(storage_rope_coefficients_match_host_formula) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    CudaStorage storage(model, small);
+    const auto& d = model.dimensions();
+    const auto view = storage.workspace<float>(Workspace::rope_coefficients, small.max_model_len);
+    std::vector<float> actual(view.capacity);
+    download(storage.context(), actual.data(), view.data, actual.size() * sizeof(float));
+    for (std::size_t p = 0; p < small.max_model_len; ++p) {
+        for (std::size_t i = 0; i < d.head_dim / 2; ++i) {
+            const float angle = float(p) * std::pow(d.rope_base, -2.0f * float(i) / float(d.head_dim));
+            CHECK(actual[p * d.head_dim + i] == std::cos(angle));
+            CHECK(actual[p * d.head_dim + i + d.head_dim / 2] == std::sin(angle));
+        }
+    }
+    CHECK(storage.rope_uploaded_bytes() == storage.plan().rope_bytes);
+    CHECK(storage.plan().rope_bytes == small.max_model_len * d.head_dim * sizeof(float));
+    CHECK(storage.kv_view().capacity * sizeof(std::uint16_t) == storage.plan().kv_bytes);
+}
+
 namespace {
 struct Role { const char* name; const char* tensor; Workspace input, output; };
 const std::array<Role, 8> roles{{
@@ -448,6 +468,7 @@ void real_model(const std::string& path, const std::string& contract_path, const
             {"user_budget_bytes", p.limits.device_budget_bytes}, {"weight_payload_bytes", p.weight_payload},
             {"weight_arena_bytes", p.weight_bytes}, {"activation_bytes", p.activation_bytes},
             {"attention_bytes", p.attention_bytes}, {"logits_bytes", p.logits_bytes}, {"metadata_bytes", p.metadata_bytes},
+            {"rope_bytes", p.rope_bytes},
             {"padding_bytes", p.padding_bytes}, {"workspace_arena_bytes", p.workspace_bytes},
             {"kv_reservation_bytes", p.kv_bytes}, {"cublas_workspace_bytes", p.cublas_bytes}, {"total_bytes", p.total_bytes},
             {"free_at_gate_bytes", storage.available_at_gate().free_bytes},
@@ -466,6 +487,7 @@ void real_model(const std::string& path, const std::string& contract_path, const
             {"scope", "项目 DeviceMemory 包装器；不统计 CUDA/cuBLAS 内部资源"},
             {"initialization_allocation_count", 4}, {"initialization_allocated_bytes", p.total_bytes},
             {"weight_upload_bytes", storage.uploaded_bytes()}, {"weight_upload_chunks", storage.upload_chunks()},
+            {"rope_upload_bytes", storage.rope_uploaded_bytes()},
             {"host_upload_staging_limit_bytes", weight_staging_bytes},
             {"max_upload_chunk_bytes", storage.max_upload_chunk_bytes()},
             {"matrix_case_count", cases.size()}, {"gemm_calls", cases.size() * 2},

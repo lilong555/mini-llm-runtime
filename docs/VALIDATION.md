@@ -2,6 +2,8 @@
 
 ## 当前 WSL 验收
 
+[CUDA 连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 记录 7 项状态、FP16 RN-even、因果 GQA、NaN mask 与完整层测试，六组真实首层/末层对照，以及四种构建共 30 次 CTest 套件、741 次用例执行。CPU 模型 13/13、HTTP 8/8；设备和实模型层 memcheck、层 racecheck/synccheck 均通过。固定模型门槛与共享 Q/K/V 的算子门槛分别报告，FP16 边界导致的直接逐元素超差原件保留；不是完整 GPU 模型或性能验收。
+
 [CUDA 基础算子验收](../benchmarks/results/validation/cuda-ops/README.md) 记录 11 项 gather、分组 RMSNorm、RoPE、逐元素与 finite/argmax 检查，覆盖实际宽度、151936 词表、padding、非法输入、原地操作、有限极值与同 stream 组合执行。四种构建共 29 次 CTest 套件、733 次用例执行；CPU 模型 13/13、HTTP 8/8。memcheck、racecheck、synccheck 均通过；不构成完整 GPU 模型或性能证据。
 
 [CUDA 权重与存储验收](../benchmarks/results/validation/cuda-storage/README.md) 记录自有 CUDA 9/9、CPU 7/7、无 llama 核心 5/5、上游 CUDA 7/7 CTest，共 722 次用例执行；CPU 实模型 13/13、HTTP 8/8。固定 Q8_0 模型的 310 个唯一 tensor 全量回读通过，88 组真实形状 GEMM 满足预注册单元容差，S=4/Lmax=2048/B=128 的内存计划与自有分配一致。Compute Sanitizer 为 0 错误、0 泄漏；此项不证明完整 GPU 模型或性能。

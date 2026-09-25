@@ -1,0 +1,67 @@
+[PASS] batch_state_prepare_commit_clear_and_preflight_failure
+[PASS] batch_state_random_append_clear_and_poison_is_terminal
+[PASS] kv_store_round_to_even_layers_slots_and_guards
+[PASS] kv_store_device_failure_keeps_logical_lengths_uncommitted
+[PASS] attention_causal_gqa_nonwarp_and_long_context
+[PASS] attention_invalid_metadata_nonfinite_and_preflight
+[PASS] layer_real_execution_interleaved_append_and_clear
+{
+  "layer": 27,
+  "tokens": 2,
+  "max_context": 1,
+  "rmse": 0.0002094027128162679,
+  "max_absolute": 0.0018310546875,
+  "max_unit_tolerance_ratio": 1.5282615624115314,
+  "stages": [
+    {
+      "stage": "query",
+      "max_absolute": 3.814697265625e-06,
+      "rmse": 2.4970543871740467e-07,
+      "fp16_rounding_differences": 4
+    },
+    {
+      "stage": "key",
+      "max_absolute": 2.86102294921875e-06,
+      "rmse": 2.7856454883181304e-07,
+      "fp16_rounding_differences": 0
+    },
+    {
+      "stage": "value",
+      "max_absolute": 1.1444091796875e-05,
+      "rmse": 2.0187978009039837e-06,
+      "fp16_rounding_differences": 2
+    },
+    {
+      "stage": "attention",
+      "max_absolute": 0.001953125,
+      "rmse": 4.315870214615342e-05,
+      "fp16_rounding_differences": 4
+    },
+    {
+      "stage": "projected",
+      "max_absolute": 0.000278472900390625,
+      "rmse": 5.579105484933738e-05,
+      "fp16_rounding_differences": 39
+    },
+    {
+      "stage": "gate",
+      "max_absolute": 0.0068359375,
+      "rmse": 0.00014074520371828072,
+      "fp16_rounding_differences": 182
+    },
+    {
+      "stage": "up",
+      "max_absolute": 8.463859558105469e-05,
+      "rmse": 1.4520489268436531e-05,
+      "fp16_rounding_differences": 97
+    },
+    {
+      "stage": "down",
+      "max_absolute": 0.0018310546875,
+      "rmse": 0.00020138118389266394,
+      "fp16_rounding_differences": 22
+    }
+  ]
+}
+[FAIL] layer_qwen3_matched_weights: 真实层输出超出基础算子逐元素容差
+7/8 tests passed

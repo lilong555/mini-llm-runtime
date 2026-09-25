@@ -1,0 +1,430 @@
+{
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "thresholds": {
+    "all_finite": true,
+    "rmse_exclusive": 0.05,
+    "max_absolute_exclusive": 0.5,
+    "cosine_min_inclusive": 0.9999,
+    "unit_atol": 0.0002,
+    "unit_rtol": 0.0002
+  },
+  "oracle": "CPU FP64；算子边界为 FP32，KV 为 FP16",
+  "cases": [
+    {
+      "layer": 0,
+      "tokens": 2,
+      "max_context": 1,
+      "rmse": 5.399947302963432e-06,
+      "max_absolute": 3.325939178466797e-05,
+      "cosine": 0.9999999998739448,
+      "max_unit_tolerance_ratio": 0.13034892800389863,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 3.814697265625e-06,
+          "rmse": 2.712054317584944e-07,
+          "fp16_rounding_differences": 6
+        },
+        {
+          "stage": "key",
+          "max_absolute": 3.0517578125e-05,
+          "rmse": 1.6344580564429799e-06,
+          "fp16_rounding_differences": 3
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.7881393432617188e-07,
+          "rmse": 2.228820253532966e-08,
+          "fp16_rounding_differences": 8
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 0.0001220703125,
+          "rmse": 3.015898601837705e-06,
+          "fp16_rounding_differences": 16
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 2.466142177581787e-05,
+          "rmse": 4.05164238814405e-06,
+          "fp16_rounding_differences": 113
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 3.337860107421875e-05,
+          "rmse": 2.227419809105776e-06,
+          "fp16_rounding_differences": 508
+        },
+        {
+          "stage": "up",
+          "max_absolute": 3.801286220550537e-05,
+          "rmse": 6.531743050662037e-06,
+          "fp16_rounding_differences": 319
+        },
+        {
+          "stage": "down",
+          "max_absolute": 1.5482306480407715e-05,
+          "rmse": 3.323477805475355e-06,
+          "fp16_rounding_differences": 112
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 4.76837158203125e-07,
+        "rmse": 4.4232031365879464e-08,
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "layer": 0,
+      "tokens": 18,
+      "max_context": 16,
+      "rmse": 1.5249322208438754e-06,
+      "max_absolute": 2.2649765014648438e-05,
+      "cosine": 0.999999999988461,
+      "max_unit_tolerance_ratio": 0.08592195190770896,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 1.1444091796875e-05,
+          "rmse": 5.661171899643781e-07,
+          "fp16_rounding_differences": 86
+        },
+        {
+          "stage": "key",
+          "max_absolute": 0.000152587890625,
+          "rmse": 5.346680555704269e-06,
+          "fp16_rounding_differences": 28
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.7881393432617188e-07,
+          "rmse": 3.290474340875704e-08,
+          "fp16_rounding_differences": 19
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 5.4895877838134766e-05,
+          "rmse": 1.1243406540493664e-06,
+          "fp16_rounding_differences": 153
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 1.990795135498047e-05,
+          "rmse": 1.1989650964709403e-06,
+          "fp16_rounding_differences": 315
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 2.4706125259399414e-05,
+          "rmse": 7.795296611991183e-07,
+          "fp16_rounding_differences": 1270
+        },
+        {
+          "stage": "up",
+          "max_absolute": 3.2067298889160156e-05,
+          "rmse": 2.2428905167642313e-06,
+          "fp16_rounding_differences": 842
+        },
+        {
+          "stage": "down",
+          "max_absolute": 1.677870750427246e-05,
+          "rmse": 1.177462536324218e-06,
+          "fp16_rounding_differences": 379
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 7.152557373046875e-07,
+        "rmse": 1.120466876528523e-07,
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "layer": 0,
+      "tokens": 4,
+      "max_context": 17,
+      "rmse": 5.760756242562922e-07,
+      "max_absolute": 3.4570693969726563e-06,
+      "cosine": 0.9999999999972163,
+      "max_unit_tolerance_ratio": 0.015161093686448605,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 7.62939453125e-06,
+          "rmse": 2.736944181889431e-07,
+          "fp16_rounding_differences": 6
+        },
+        {
+          "stage": "key",
+          "max_absolute": 6.103515625e-05,
+          "rmse": 1.673992483058268e-06,
+          "fp16_rounding_differences": 1
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.1920928955078125e-07,
+          "rmse": 1.9089432564239045e-08,
+          "fp16_rounding_differences": 10
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 1.8582679331302643e-05,
+          "rmse": 4.0195248688029195e-07,
+          "fp16_rounding_differences": 44
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 3.2782554626464844e-06,
+          "rmse": 4.425722170776311e-07,
+          "fp16_rounding_differences": 54
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 4.023313522338867e-06,
+          "rmse": 3.0729919560223656e-07,
+          "fp16_rounding_differences": 246
+        },
+        {
+          "stage": "up",
+          "max_absolute": 9.018927812576294e-06,
+          "rmse": 9.682503353345234e-07,
+          "fp16_rounding_differences": 182
+        },
+        {
+          "stage": "down",
+          "max_absolute": 4.0531158447265625e-06,
+          "rmse": 4.762508322068491e-07,
+          "fp16_rounding_differences": 50
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 4.76837158203125e-07,
+        "rmse": 4.962922705048667e-08,
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "layer": 27,
+      "tokens": 2,
+      "max_context": 1,
+      "rmse": 0.0002094027128162679,
+      "max_absolute": 0.0018310546875,
+      "cosine": 0.9999999999977187,
+      "max_unit_tolerance_ratio": 1.5282615624115314,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 3.814697265625e-06,
+          "rmse": 2.4970543871740467e-07,
+          "fp16_rounding_differences": 4
+        },
+        {
+          "stage": "key",
+          "max_absolute": 2.86102294921875e-06,
+          "rmse": 2.7856454883181304e-07,
+          "fp16_rounding_differences": 0
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.1444091796875e-05,
+          "rmse": 2.0187978009039837e-06,
+          "fp16_rounding_differences": 2
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 0.001953125,
+          "rmse": 4.315870214615342e-05,
+          "fp16_rounding_differences": 4
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 0.000278472900390625,
+          "rmse": 5.579105484933738e-05,
+          "fp16_rounding_differences": 39
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 0.0068359375,
+          "rmse": 0.00014074520371828072,
+          "fp16_rounding_differences": 182
+        },
+        {
+          "stage": "up",
+          "max_absolute": 8.463859558105469e-05,
+          "rmse": 1.4520489268436531e-05,
+          "fp16_rounding_differences": 97
+        },
+        {
+          "stage": "down",
+          "max_absolute": 0.0018310546875,
+          "rmse": 0.00020138118389266394,
+          "fp16_rounding_differences": 22
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 0.0003662109375,
+        "rmse": 1.806692502021326e-05,
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "layer": 27,
+      "tokens": 18,
+      "max_context": 16,
+      "rmse": 0.0033648982414092882,
+      "max_absolute": 0.12060546875,
+      "cosine": 0.9999999998930127,
+      "max_unit_tolerance_ratio": 27.736344599531055,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 6.67572021484375e-06,
+          "rmse": 3.4846827336124217e-07,
+          "fp16_rounding_differences": 46
+        },
+        {
+          "stage": "key",
+          "max_absolute": 5.7220458984375e-06,
+          "rmse": 4.1336076517029413e-07,
+          "fp16_rounding_differences": 31
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.33514404296875e-05,
+          "rmse": 3.1694772494893282e-06,
+          "fp16_rounding_differences": 28
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 0.015625,
+          "rmse": 0.0002933298512939062,
+          "fp16_rounding_differences": 160
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 0.0020437240600585938,
+          "rmse": 0.00035420362645107627,
+          "fp16_rounding_differences": 1738
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 0.17578125,
+          "rmse": 0.0022494238080151534,
+          "fp16_rounding_differences": 8128
+        },
+        {
+          "stage": "up",
+          "max_absolute": 0.001190185546875,
+          "rmse": 8.990733002470544e-05,
+          "fp16_rounding_differences": 4769
+        },
+        {
+          "stage": "down",
+          "max_absolute": 0.1201171875,
+          "rmse": 0.0033510816650705027,
+          "fp16_rounding_differences": 1749
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 0.0029296875,
+        "rmse": 8.524378650212775e-05,
+        "passed": true
+      },
+      "passed": true
+    },
+    {
+      "layer": 27,
+      "tokens": 4,
+      "max_context": 17,
+      "rmse": 0.001184375641975007,
+      "max_absolute": 0.02264404296875,
+      "cosine": 0.9999999999261447,
+      "max_unit_tolerance_ratio": 17.622372192740464,
+      "project_allocation_calls": 0,
+      "project_release_calls": 0,
+      "stages": [
+        {
+          "stage": "query",
+          "max_absolute": 3.814697265625e-06,
+          "rmse": 2.512836502397513e-07,
+          "fp16_rounding_differences": 10
+        },
+        {
+          "stage": "key",
+          "max_absolute": 5.7220458984375e-06,
+          "rmse": 3.165358041750922e-07,
+          "fp16_rounding_differences": 4
+        },
+        {
+          "stage": "value",
+          "max_absolute": 1.1444091796875e-05,
+          "rmse": 1.7223345978443307e-06,
+          "fp16_rounding_differences": 1
+        },
+        {
+          "stage": "attention",
+          "max_absolute": 0.009881973266601563,
+          "rmse": 0.00013595536661052435,
+          "fp16_rounding_differences": 53
+        },
+        {
+          "stage": "projected",
+          "max_absolute": 0.0014019012451171875,
+          "rmse": 0.00017882282703416246,
+          "fp16_rounding_differences": 144
+        },
+        {
+          "stage": "gate",
+          "max_absolute": 0.0614013671875,
+          "rmse": 0.0008049909512197402,
+          "fp16_rounding_differences": 751
+        },
+        {
+          "stage": "up",
+          "max_absolute": 0.001453399658203125,
+          "rmse": 5.419965303404088e-05,
+          "fp16_rounding_differences": 450
+        },
+        {
+          "stage": "down",
+          "max_absolute": 0.02294921875,
+          "rmse": 0.0011751385384970049,
+          "fp16_rounding_differences": 209
+        }
+      ],
+      "shared_qkv": {
+        "atol": 0.0002,
+        "rtol": 0.0002,
+        "max_absolute": 0.0009765625,
+        "rmse": 1.9894243578544416e-05,
+        "passed": true
+      },
+      "passed": true
+    }
+  ],
+  "boundary_oracle": "实际 Q/K/V 共享输入，CPU FP64 attention/FFN；固定 unit_atol/unit_rtol",
+  "scope": "首层与末层使用真实权重及受控输入；不是完整模型验证"
+}

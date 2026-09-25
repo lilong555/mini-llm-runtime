@@ -1,0 +1,10 @@
+========= COMPUTE-SANITIZER
+[PASS] batch_state_prepare_commit_clear_and_preflight_failure
+[PASS] batch_state_random_append_clear_and_poison_is_terminal
+[PASS] kv_store_round_to_even_layers_slots_and_guards
+[PASS] kv_store_device_failure_keeps_logical_lengths_uncommitted
+[PASS] attention_causal_gqa_nonwarp_and_long_context
+[PASS] attention_invalid_metadata_nonfinite_and_preflight
+[PASS] layer_real_execution_interleaved_append_and_clear
+7/7 tests passed
+========= ERROR SUMMARY: 0 errors

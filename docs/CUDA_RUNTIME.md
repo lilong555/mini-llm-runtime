@@ -1,6 +1,6 @@
 # 自有 CUDA 运行基础
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。当前提供设备资源所有权、常驻 FP32 有效权重、预分配 workspace、显存预算、cuBLAS 矩阵接口与单 stream 基础 CUDA 算子。完整 Qwen3 GPU forward、GPU token CLI、GPU Serving 和 GPU PagedAttention 尚未提供。实施阶段见 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。当前提供设备资源所有权、常驻 FP32 有效权重、预分配 workspace、显存预算、基础算子、连续 FP16 KV、因果 GQA attention 和完整 transformer 层。完整 Qwen3 GPU forward、GPU token CLI、GPU Serving 和 GPU PagedAttention 尚未提供。实施阶段见 [执行状态](EXECUTION_STATUS.md)。
 
 ## 构建与验收
 
@@ -12,11 +12,13 @@ bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda memcheck
 bash scripts/dev.sh own-cuda storage-check
 bash scripts/dev.sh own-cuda storage-memcheck
+bash scripts/dev.sh own-cuda layer-check
+bash scripts/dev.sh own-cuda layer-memcheck
 ```
 
 构建目录为 `build/wsl-own-cuda`，上游 CUDA 关闭。可通过 `CUDA_ARCHITECTURES` 指定目标架构。`minillm_cuda` 链接 CUDA Runtime 和 cuBLAS，CPU 产品不链接该 target；`.cu` 测试使用 CUDA C++20。关闭自有 CUDA 的构建不需要 CUDA Toolkit。自有 CUDA 开启、`LLMSERVE_WITH_LLAMA=OFF` 的组合在配置阶段明确拒绝。
 
-现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 支持 `build/test/memcheck/storage-check/storage-memcheck`，没有可调用的模型或服务入口。两种 `storage-*` 命令需要固定 Q8_0 模型，默认使用带时间和进程号的新报告目录，也可显式指定尚不存在的目录；不会覆盖已有报告。
+现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 支持 `build/test/memcheck/storage-check/storage-memcheck/layer-check/layer-memcheck`，没有可调用的完整模型或服务入口。`storage-*` 和 `layer-*` 命令需要固定 Q8_0 模型，默认使用带时间和进程号的新报告目录，也可显式指定尚不存在的目录；不会覆盖已有报告。
 
 ## 所有权与完成协议
 
@@ -34,17 +36,17 @@ bash scripts/dev.sh own-cuda storage-memcheck
 
 每个唯一 tensor 由既有 `decode_row` 转成 FP32；8 MiB host staging 按完整行分块，每块完成上传后才复用。非有限有效权重导致初始化失败。源模型的 Q8_0 量化并未恢复到量化前权重，也没有 Q8 CUDA GEMM。每个 tensor 记录源 dtype、形状、256-byte 对齐偏移、字节数、别名和有效权重 SHA-256。
 
-workspace 包含 hidden、normalized、Q/K/V、attention、投影、gate/up/down、选中行、scores/probabilities、logits 和整数 metadata/status/sample 区域。各层复用固定区域，类型和行数在返回 view 前检查。KV 仅为 `[sequence][layer][K_or_V][position][kv_head * head_dim]` 的容量预留，未提供 append、逻辑长度或 attention；未使用区域初始化为 FP16 NaN。
+workspace 包含 hidden、normalized、Q/K/V、attention、投影、gate/up/down、选中行、scores/probabilities、logits、RoPE 表和整数 metadata/status/sample 区域。各层复用固定区域，类型和行数在返回 view 前检查。KV 布局为 `[sequence][layer][K_or_V][position][kv_head * head_dim]`；未使用区域初始化为 FP16 NaN。RoPE 表按 CPU 原公式初始化一次，有独立上传计数，不在层执行中上传。
 
 目标模型在 S=4、Lmax=2048、B=128 下的计划与实际项目分配一致：
 
 | 项目 | 字节 |
 | --- | ---: |
 | 唯一 FP32 权重 | 2,384,199,680 |
-| workspace，含对齐 | 120,262,656 |
+| workspace，含 RoPE 表与对齐 | 121,311,232 |
 | 连续 FP16 KV 预留 | 939,524,096 |
 | 显式 cuBLAS workspace | 4,194,304 |
-| 自有分配总量 | 3,448,180,736 |
+| 自有分配总量 | 3,449,229,312 |
 
 context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80% 和 `free - 512 MiB` 中的最小值；用户上限为 0 时只应用后两项。当前 context 已分配的显式 cuBLAS workspace 仍计入完整计划比较，属于额外保守预留。预算不够时在分配三个 arena 前拒绝；不会缩短配置或回退 CPU。外部显存竞争仍可能使后续实际分配失败，错误保留 CUDA 诊断并清理已创建的资源。
 
@@ -69,8 +71,23 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 - `argmax` 融合全部 logits 的 finite 检查；相等时选择最小 token ID，任意 NaN/Inf 使对应行返回 `-1`。
 - `status[1,2]` 保存错误位集合与首个错误输入行。每次执行开始调用 `reset_status`，之后各算子累计标记；预检失败不改写设备内容，设备错误标记不能视为有效生成结果。
 
-11 项算子测试覆盖实际宽度、151936 词表、非整 warp 尾部、stride/padding、重复与越界索引、原地与部分重叠、FP64 对照及单 stream 组合执行。普通 CTest 与 memcheck、racecheck、synccheck 均通过；完整证据见 [基础算子验收](../benchmarks/results/validation/cuda-ops/README.md)。这些接口不等同于完整 transformer layer，KV 状态与 attention 仍需独立验收。
+11 项算子测试覆盖实际宽度、151936 词表、非整 warp 尾部、stride/padding、重复与越界索引、原地与部分重叠、FP64 对照及单 stream 组合执行。普通 CTest 与 memcheck、racecheck、synccheck 均通过；完整证据见 [基础算子验收](../benchmarks/results/validation/cuda-ops/README.md)。`check_finite` 可独立累计任意 activation 的非有限值错误。
+
+## 连续 KV 与层
+
+内部 `BatchState` 仅管理逻辑长度，`CudaStorage` 拥有实际设备 KV。sequence ID 直接对应固定 slot，每序列有独立 Lmax；不支持分页、alias 或 COW。状态按 `ready → prepared → executing → ready` 运行：
+
+- `prepare` 在首个设备写入前校验所有 token、sequence、连续 position 和 batch/context 上限，只准备 pending lengths。
+- 预检失败不修改已提交长度，仍可继续使用；未启动的准备状态可以丢弃。
+- 调用方在 checked completion 和设备 status 均通过后才能 `commit`。执行后失败必须 `poison`，不能 clear 或再次准备；这是 fail-stop，不是物理回滚。
+- clear 仅在 ready 完成点重置逻辑长度；重用 slot 时从 position=0 开始覆盖，旧数据不得被新 query 读取。
+
+`store_kv` 使用 `__float2half_rn` 写入 K/V，非法 metadata 在访问前屏蔽，转换后非有限值累计错误。`causal_attention` 使用显式 QK → softmax → PV：GQA 映射为 `query_head / (Hq/Hkv)`，每个 query 只读自己的 `position+1`，max_context 仅约束 launch 上界。QK/PV 为 FP32，softmax 指数为 FP32、分母为 FP64；不宣称 FlashAttention。
+
+`LayerExecutor` 缓存同一 storage 的权重 views，在单 stream 串接 norm、Q/K/V、Q/K norm、RoPE、KV store、attention、output/residual、FFN 和 finite-check。调用方准备 hidden/metadata 并重置 status；层本身不 reset status、不同步、不提交长度、不分配设备内存。
+
+[连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 包含 7 项状态/数学测试、六组首层与末层真实权重对照、三种 sanitizer，以及四种构建共 741 次用例执行。基础算子与共享 Q/K/V 边界对照保持 `2e-4` 混合容差；独立真实整层使用固定模型门槛，FP16 舍入跨界的原始失败与较大误差保留在 `ENG-039` 和报告中。该证据不包含完整 28 层或实际生成 token。
 
 ## 第三方边界
 
-设备资源封装、权重转换调度、存储布局、预算、基础算子数学与边界检查由本项目实现；内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供，block 归约复用 Toolkit 的 CUB。当前 CUDA 12.8 安装包含 CUB 2.7.0。GGUF 解析与 SHA-256 库来自固定版本的 llama.cpp 依赖，其完整 GPU 模型执行归属不变。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html)、[CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html) 与 [CUB BlockReduce](https://nvidia.github.io/cccl/cub/api/classcub_1_1BlockReduce.html)。
+设备资源封装、权重转换调度、存储布局、预算、基础算子、KV 状态、因果 attention 与层执行由本项目实现；内存及 stream 由 NVIDIA CUDA Runtime 提供，矩阵内核由 NVIDIA cuBLAS 提供，block/warp 归约复用 Toolkit 的 CUB。当前 CUDA 12.8 安装包含 CUB 2.7.0。GGUF 解析与 SHA-256 库来自固定版本的 llama.cpp 依赖，其完整 GPU 模型执行归属不变。接口契约依据 [cuBLAS 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cublas/index.html)、[CUDA Runtime 12.8.1](https://docs.nvidia.com/cuda/archive/12.8.1/cuda-runtime-api/group__CUDART__MEMORY.html) 与 [CUB BlockReduce](https://nvidia.github.io/cccl/cub/api/classcub_1_1BlockReduce.html)。

@@ -409,3 +409,12 @@
 - 原因：输出尺度可表示不意味着平方或方差中间量可表示；只缩放输入而直接计算 `epsilon / max_abs / max_abs` 还可能在极小输入时溢出。
 - 解决方法：使用 `max(max_abs, sqrt(epsilon))` 作为共同缩放因子，在 FP32 中归约缩放后的平方和并计算缩放后的 epsilon。NaN/Inf 输入保留为 NaN，不允许通过 norm 掩盖后成为有效 token。
 - 验证：上述极值、普通宽度、多 head、原地与 padding 用例满足固定 `atol=2e-4, rtol=2e-4`；`ops_rms_norm_nonfinite_cannot_become_valid_token` 验证错误行返回 `-1`。11 项算子检查及 memcheck/racecheck/synccheck 均通过，见 `benchmarks/results/validation/cuda-ops/`。此项不表示完整 GPU 模型数值已通过。
+
+## ENG-039：FP16 舍入边界放大真实层的跨后端误差
+
+- 状态：已解决，限定于层级验证中连续误差与 FP16 边界误差的分离；不代表跨后端逐元素等价。
+- 影响：把受控算子的逐元素容差直接用于包含独立 GEMM、FP16 舍入和 FFN 的真实整层，会把舍入边界传播与算子实现错误混为一类；该测试失败不能被隐藏或视为整模型已通过。
+- 复现条件或证据：第 27 层、2 个 token、context=1，独立 CPU FP64 对照的最大误差为 `0.0018310546875`，RMSE 为 `0.0002094027128162679`。首个逐元素诊断为 `actual=0.43371963501 expected=0.434062957764 absolute=0.000343322753906 limit=0.000286812591553`。失败输出、实际源码快照和二进制身份保留在 `benchmarks/results/validation/cuda-layer/diagnostics/`。
+- 原因：V 投影的最大 FP32 差异为 `1.1444091796875e-05`，其中两个元素跨过 FP16 RN-even 的分界；context=1 的 attention 直接读取 V，差异成为 `0.001953125`，继续经过 output/FFN 投影。Q/K/V 的连续浮点误差与 FP16 离散化误差需要分别核对。
+- 解决方法或下一步：保留全部原始输入和独立整层对照，以预先固定的模型数值门槛检查真实层；额外使用实际 Q/K/V 作为共享输入，由独立 CPU FP64 计算 attention/FFN，以原 `atol=2e-4, rtol=2e-4` 检查该边界路径。受控 fixture、基础算子和 CPU 旧门槛不变，不修改产品数学实现来追逐某个舍入结果。
+- 验证：六组真实层的独立整层与共享 Q/K/V 对照均通过；基础算子和边界路径保持原容差。独立末层混合批最大绝对误差为 `0.12060546875`，最大 RMSE 为 `0.0033648982414092882`，满足固定模型门槛；三组末层不满足直接逐元素算子门槛的事实由 `max_unit_tolerance_ratio` 保留。四种构建共 741 次用例执行，设备与实模型层 memcheck 为 0 错误/0 泄漏，racecheck 为 0 hazards，synccheck 为 0 错误。完整 28 层及生成 token 仍需独立模型验证。

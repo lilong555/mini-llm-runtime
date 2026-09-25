@@ -1,0 +1,21 @@
+[PASS] storage_report_rejects_reuse_without_modification
+[PASS] storage_model_identity_precedes_device_allocation
+[PASS] storage_plan_alignment_alias_and_untied
+[PASS] storage_limits_and_budget_boundaries
+[PASS] storage_budget_failure_has_no_arena_allocation
+[PASS] storage_allocation_failures_release_partial_owners
+[PASS] storage_f32_f16_tied_and_untied_upload
+[PASS] storage_nonfinite_failure_cleanup_and_recovery
+[PASS] storage_workspace_types_bounds_initialization_and_owner
+[PASS] storage_rope_coefficients_match_host_formula
+[PASS] storage_repeated_gemm_reuses_workspace
+[PASS] real GEMM Q 11 cases
+[PASS] real GEMM K 11 cases
+[PASS] real GEMM V 11 cases
+[PASS] real GEMM attention_output 11 cases
+[PASS] real GEMM gate 11 cases
+[PASS] real GEMM up 11 cases
+[PASS] real GEMM down 11 cases
+[PASS] real GEMM LM_head 11 cases
+[PASS] storage_real_qwen3_weights_and_matrices
+12/12 tests passed

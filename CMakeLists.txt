@@ -30,6 +30,9 @@ if(MINILLM_ENABLE_CUDA)
         src/minillm/cuda/matrix.cpp
         src/minillm/cuda/storage.cpp
         src/minillm/cuda/ops.cu
+        src/minillm/cuda/batch_state.cpp
+        src/minillm/cuda/attention.cu
+        src/minillm/cuda/layer.cpp
     )
     target_include_directories(minillm_cuda PUBLIC include)
     target_link_libraries(minillm_cuda PUBLIC CUDA::cudart CUDA::cublas)
@@ -188,6 +191,11 @@ if(LLMSERVE_BUILD_TESTS)
         endif()
         add_test(NAME cuda-storage COMMAND minillm-cuda-storage-tests)
         set_tests_properties(cuda-storage PROPERTIES TIMEOUT 120 LABELS "cuda")
+        add_executable(minillm-cuda-layer-tests tests/cuda_layer_tests.cpp)
+        target_include_directories(minillm-cuda-layer-tests PRIVATE src/minillm/cuda)
+        target_link_libraries(minillm-cuda-layer-tests PRIVATE minillm_cuda minillm_model llama vendor::hash vendor::nlohmann)
+        add_test(NAME cuda-layer COMMAND minillm-cuda-layer-tests)
+        set_tests_properties(cuda-layer PROPERTIES TIMEOUT 180 LABELS "cuda")
     endif()
     add_executable(llmserve-unit-tests tests/core_tests.cpp)
     target_link_libraries(llmserve-unit-tests PRIVATE llmserve_core minillm_compute)

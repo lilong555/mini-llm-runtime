@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "existing_directory": {
+    "exit_code": 1,
+    "original_hashes_unchanged": true,
+    "files": 3
+  },
+  "wrong_model": {
+    "exit_code": 1,
+    "status": "failed",
+    "passed": false
+  }
+}

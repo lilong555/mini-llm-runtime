@@ -1,4 +1,5 @@
 #include "ops.h"
+#include "device_helpers.cuh"
 #include "tensor_validation.h"
 
 #include <cub/block/block_reduce.cuh>
@@ -16,26 +17,28 @@ using detail::as_int;
 using detail::overlaps;
 using detail::require;
 using detail::same_layout;
+using detail::status_range;
 using detail::validate;
-
-detail::Range status_range(DeviceTensorView<std::int32_t> status, int device) {
-    const auto range = validate(status, device);
-    require(status.rows == 1 && status.columns == 2, "CUDA status 形状必须为 [1,2]");
-    return range;
-}
+using detail::record_error;
 
 unsigned grid_for(std::size_t count) {
     return static_cast<unsigned>(std::min<std::size_t>((count - 1) / threads + 1, 65535));
 }
 
-__device__ void record_error(std::int32_t* status, DeviceError code, int row) {
-    atomicOr(status, static_cast<int>(code));
-    atomicMin(status + 1, row);
-}
-
 __global__ void reset_kernel(std::int32_t* status) {
     status[0] = 0;
     status[1] = INT_MAX;
+}
+
+__global__ void finite_kernel(DeviceTensorView<const float> input, std::int32_t* status) {
+    const auto count = input.rows * input.columns;
+    for (std::size_t i = std::size_t(blockIdx.x) * blockDim.x + threadIdx.x; i < count;
+         i += std::size_t(blockDim.x) * gridDim.x) {
+        const auto row = i / input.columns, column = i % input.columns;
+        if (!isfinite(input.data[row * input.stride + column])) {
+            record_error(status, DeviceError::nonfinite, static_cast<int>(row));
+        }
+    }
 }
 
 __global__ void gather_kernel(DeviceTensorView<const float> source,
@@ -193,6 +196,16 @@ void reset_status(const CudaContext& context, DeviceTensorView<std::int32_t> sta
     DeviceScope scope(context.device());
     reset_kernel<<<1, 1, 0, context.stream()>>>(status.data);
     check_cuda(cudaGetLastError(), "status reset kernel");
+}
+
+void check_finite(const CudaContext& context, DeviceTensorView<const float> input,
+                  DeviceTensorView<std::int32_t> status) {
+    const auto x = validate(input, context.device()), error = status_range(status, context.device());
+    require(!overlaps(x, error), "CUDA finite-check 输入与 status 重叠");
+    const auto count = checked_product(input.rows, input.columns);
+    DeviceScope scope(context.device());
+    finite_kernel<<<grid_for(count), threads, 0, context.stream()>>>(input, status.data);
+    check_cuda(cudaGetLastError(), "finite-check kernel");
 }
 
 void gather_rows(const CudaContext& context, DeviceTensorView<const float> source,

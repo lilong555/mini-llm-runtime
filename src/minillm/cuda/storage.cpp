@@ -45,6 +45,7 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     }
     MemoryPlan p;
     p.limits = limits;
+    p.dimensions = d;
     const auto weight = [&](const std::string& name) {
         const auto t = model.source().tensor(name);
         dimension(t.rows); dimension(t.columns);
@@ -107,14 +108,16 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     region(Workspace::slots, "slots", b, 1, StorageType::i32, p.metadata_bytes);
     region(Workspace::selected_rows, "selected_rows", b, 1, StorageType::i32, p.metadata_bytes);
     region(Workspace::pending_lengths, "pending_lengths", limits.max_sequences, 1, StorageType::i32, p.metadata_bytes);
-    // samples 每行依次存 sequence、input_index、token；status 为 nonfinite、first_bad_row。
+    // samples 每行依次存 sequence、input_index、token；status 为错误位集合、first_bad_row。
     region(Workspace::samples, "samples", b, 3, StorageType::i32, p.metadata_bytes);
     region(Workspace::status, "status", 1, 2, StorageType::i32, p.metadata_bytes);
+    region(Workspace::rope_coefficients, "rope_coefficients", limits.max_model_len, d.head_dim,
+           StorageType::f32, p.rope_bytes);
     p.workspace_bytes = align(p.workspace_bytes);
     // [sequence][layer][K_or_V][position][kv_head * head_dim]，物理元素为 FP16。
     p.kv_bytes = checked_product(checked_product(checked_product(limits.max_sequences, d.layers), 2),
                                 checked_product(checked_product(limits.max_model_len, kv), 2));
-    const auto payload = add(add(p.activation_bytes, p.attention_bytes), add(p.logits_bytes, p.metadata_bytes));
+    const auto payload = add(add(p.activation_bytes, p.attention_bytes), add(add(p.logits_bytes, p.metadata_bytes), p.rope_bytes));
     p.padding_bytes = add(p.weight_bytes - p.weight_payload, p.workspace_bytes - payload);
     p.total_bytes = add(add(p.weight_bytes, p.workspace_bytes), add(p.kv_bytes, p.cublas_bytes));
     if (p.total_bytes > static_cast<std::size_t>(PTRDIFF_MAX)) { throw std::length_error("CUDA 内存计划超过 PTRDIFF_MAX"); }
@@ -126,7 +129,7 @@ std::string MemoryPlan::describe() const {
     s << "S=" << limits.max_sequences << " L=" << limits.max_model_len << " B=" << limits.max_batch_tokens
       << " user_budget=" << limits.device_budget_bytes << " weight_payload=" << weight_payload
       << " weight_arena=" << weight_bytes << " activation=" << activation_bytes << " attention=" << attention_bytes
-      << " logits=" << logits_bytes << " metadata=" << metadata_bytes << " padding=" << padding_bytes
+      << " logits=" << logits_bytes << " metadata=" << metadata_bytes << " rope=" << rope_bytes << " padding=" << padding_bytes
       << " workspace_arena=" << workspace_bytes << " KV=" << kv_bytes << " cuBLAS=" << cublas_bytes << " total=" << total_bytes;
     for (const auto& w : weights) { s << "\nweight " << w.name << " " << w.rows << "x" << w.columns << " offset=" << w.offset << " bytes=" << w.bytes << " alias=" << w.alias_of; }
     for (const auto& r : regions) { s << "\nworkspace " << r.name << " " << r.rows << "x" << r.columns << " offset=" << r.offset << " bytes=" << r.bytes; }
@@ -162,6 +165,7 @@ CudaStorage::CudaStorage(const Qwen3Model& model, StorageLimits limits, int devi
         // 未使用 KV 填充为 FP16 NaN，后续 attention 必须先检查有效位置。
         check_cuda(cudaMemsetAsync(kv_.data(), 0xff, kv_.bytes(), context_.stream()), "初始化 KV 预留");
         upload(model);
+        initialize_rope();
         context_.synchronize();
     } catch (const Error& error) {
         finish_noexcept(context_);
@@ -169,6 +173,42 @@ CudaStorage::CudaStorage(const Qwen3Model& model, StorageLimits limits, int devi
     } catch (...) { finish_noexcept(context_); throw; }
 }
 CudaStorage::~CudaStorage() { finish_noexcept(context_); }
+
+DeviceTensorView<std::uint16_t> CudaStorage::kv_view() noexcept {
+    const auto& d = plan_.dimensions;
+    const auto rows = plan_.limits.max_sequences * d.layers * 2 * plan_.limits.max_model_len;
+    const auto width = d.kv_heads * d.head_dim;
+    return {reinterpret_cast<std::uint16_t*>(kv_.data()), rows, width, width,
+            plan_.kv_bytes / sizeof(std::uint16_t), context_.device()};
+}
+
+void CudaStorage::initialize_rope() {
+    const auto& d = plan_.dimensions;
+    const auto view = workspace<float>(Workspace::rope_coefficients, plan_.limits.max_model_len);
+    std::vector<float> staging(weight_staging_bytes / sizeof(float));
+    const auto rows_per_chunk = staging.size() / d.head_dim;
+    try {
+        for (std::size_t first = 0; first < view.rows; first += rows_per_chunk) {
+            const auto rows = std::min(rows_per_chunk, view.rows - first);
+            for (std::size_t row = 0; row < rows; ++row) {
+                for (std::size_t j = 0; j < d.head_dim / 2; ++j) {
+                    const float frequency = std::pow(d.rope_base, -2.0f * static_cast<float>(j) /
+                                                                  static_cast<float>(d.head_dim));
+                    const float angle = static_cast<float>(first + row) * frequency;
+                    const float cosine = std::cos(angle), sine = std::sin(angle);
+                    if (!std::isfinite(cosine) || !std::isfinite(sine)) { throw Error("RoPE 系数不是有限值"); }
+                    staging[row * d.head_dim + j] = cosine;
+                    staging[row * d.head_dim + j + d.head_dim / 2] = sine;
+                }
+            }
+            const auto bytes = rows * d.head_dim * sizeof(float);
+            check_cuda(cudaMemcpyAsync(view.data + first * d.head_dim, staging.data(), bytes,
+                cudaMemcpyHostToDevice, context_.stream()), "上传 RoPE 系数");
+            context_.synchronize();
+            rope_uploaded_bytes_ += bytes;
+        }
+    } catch (...) { finish_noexcept(context_); throw; }
+}
 
 void CudaStorage::upload(const Qwen3Model& model) {
     std::vector<float> staging(weight_staging_bytes / sizeof(float));
