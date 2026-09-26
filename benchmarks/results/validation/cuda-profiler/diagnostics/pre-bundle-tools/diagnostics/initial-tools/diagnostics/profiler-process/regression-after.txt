@@ -1,0 +1,3 @@
+[PASS] process_result_streams_and_environment
+[PASS] existing_process_output_is_preserved
+2/2 tests passed

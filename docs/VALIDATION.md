@@ -2,9 +2,13 @@
 
 ## 当前 WSL 验收
 
+[CUDA Profiler 与证据工具验收](../benchmarks/results/validation/cuda-profiler/README.md) 记录四种构建共 62 项 CTest、1034 次用例执行，CPU 模型 13/13、HTTP 8/8；完整数值的 12528 次比较按相同 Runtime 源码与二进制继承，没有虚称重跑。236 个产物包含当前验证、原始失败和诊断；独立目录复核及三项反例通过。
+
+[正式模型基线](../benchmarks/results/cuda-model-baseline/README.md) 的 70 个独立进程、40950 次 forward、2520 次 measured repetition 完成，输出一致、稳态数据路径通过。24 项比较有 14 项为 `faster`、10 项为 `measurement_inconclusive`，不作统一加速或无退化声明。[完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 的五进程诊断、585 次完整模型时间线、指定 PV kernel 硬件指标和 42 个必需原始产物通过；迁移与三项反例通过。软件插桩、回放开销及平台限制单列，不替代无 Profiler 基线，也不证明 GPU Serving。
+
 [CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 记录四种构建共 50 项 CTest、926 次用例执行，CPU 模型 13/13、HTTP 8/8，以及 CUDA 层级 memcheck/racecheck/synccheck 通过。当前模型测试二进制完成 12528 次全量数值比较，无数值失败、argmax 分歧或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307348`、最小 cosine `0.999986580`。415 个产物独立目录复核通过，六项缺件或语义反例被拒绝；已有目录、未完成模型基准及错误数值编译身份的拒绝检查保持原文件不变。
 
-[CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 保留五个独立进程、375 个用例、9375 个原始样本和 5625 个测量样本。跨进程输出一致，固定 FP64 容差、显式传输和设备分配检查通过；27 个必需原始产物迁移复核通过，另有六项归档反例。小矩阵的正序/逆序差异及 48 个相对 MAD 超过 10% 的用例未被删除，原因待 Profiler 归因。该组没有模型加速或 A/A 噪声结论，正式 70 进程模型对照、Profiler 和 GPU Serving 仍待各自门禁。
+[CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 保留五个独立进程、375 个用例、9375 个原始样本和 5625 个测量样本。跨进程输出一致，固定 FP64 容差、显式传输和设备分配检查通过；27 个必需原始产物迁移复核通过，另有六项归档反例。小矩阵的正序/逆序差异及 48 个相对 MAD 超过 10% 的用例未被删除，现有模型时间线不直接证明其根因。该组没有模型加速或 A/A 噪声结论，模型与 Profiler 使用独立证据，GPU Serving 尚未验收。
 
 [CUDA 模型基准工具验收](../benchmarks/results/validation/cuda-benchmark/README.md) 记录四种构建共 43 次 CTest 套件、875 次用例执行，CPU 模型 13/13、HTTP 8/8 和 CUDA 短模型回归。四个真实进程各覆盖 12 个固定 workload，共 2340 次 forward，全部 token 一致；独立前缀重建、计时边界、传输/分配、完整数值编译身份、A/A 统计与发布回滚均有检查。100 个产物在独立目录复核通过，五项缺件或语义反例被拒绝。该组为工具与功能验收，保留全部单进程计时，但未执行完整 70 进程 A/A 基线、microbenchmark 或 Profiler。
 

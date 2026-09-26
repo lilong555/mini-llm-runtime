@@ -1,0 +1,163 @@
+{
+  "checks": [
+    "health_and_model_identity",
+    "stream_nonstream_text_tokens_and_usage_match",
+    "strict_input_and_context_validation",
+    "eight_concurrent_requests",
+    "explicit_live_stream_cancellation",
+    "stream_disconnect_reclaims_kv",
+    "nonstream_disconnect_reclaims_kv",
+    "deadline_returns_408"
+  ],
+  "passed": 8,
+  "sample": {
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "text": " Paris. The capital of France is also"
+      }
+    ],
+    "created": 1790407862,
+    "id": "cmpl-1",
+    "model": "Qwen3-0.6B-Q8_0",
+    "object": "text_completion",
+    "timings": {
+      "queue_ms": 0.118715,
+      "total_ms": 408.484106,
+      "ttft_ms": 102.394941
+    },
+    "token_ids": [
+      12095,
+      13,
+      576,
+      6722,
+      315,
+      9625,
+      374,
+      1083
+    ],
+    "usage": {
+      "completion_tokens": 8,
+      "prompt_tokens": 5,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 13
+    }
+  },
+  "server_after": {
+    "accepted": 14,
+    "active_requests": 0,
+    "admission_reserve_ms": 2000,
+    "aging_ms": 250,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 28,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 3,
+    "completed": 10,
+    "context_tokens": 8192,
+    "decode_tokens": 41,
+    "device": "CPU/avx2-fma-f16c",
+    "event_buffer_size": 128,
+    "failed": 0,
+    "generated_tokens": 51,
+    "gpu": false,
+    "gpu_layers": 0,
+    "kernel_mode": "auto",
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 8,
+    "max_batch_sequences": 8,
+    "max_batch_tokens": 50,
+    "max_model_len": 2048,
+    "mixed_batches": 1,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 32,
+    "prefill_tokens": 83,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": true,
+    "prefix_cache_entries": 4,
+    "prefix_cache_tokens": 2048,
+    "queue_capacity": 64,
+    "ready": true,
+    "rejected": 1,
+    "telemetry_capacity": 1024,
+    "telemetry_mode": "off",
+    "threads": 8,
+    "timed_out": 1,
+    "waiting_requests": 0
+  },
+  "server_before": {
+    "accepted": 0,
+    "active_requests": 0,
+    "admission_reserve_ms": 2000,
+    "aging_ms": 250,
+    "backend": "minillm",
+    "batch_tokens": 256,
+    "batches": 0,
+    "cache_evictions": 0,
+    "cache_hits": 0,
+    "cached_tokens": 0,
+    "cancelled": 0,
+    "completed": 0,
+    "context_tokens": 8192,
+    "decode_tokens": 0,
+    "device": "CPU/avx2-fma-f16c",
+    "event_buffer_size": 128,
+    "failed": 0,
+    "generated_tokens": 0,
+    "gpu": false,
+    "gpu_layers": 0,
+    "kernel_mode": "auto",
+    "kv_credits": {
+      "active_unique_blocks": 0,
+      "block_size": 16,
+      "reserved_unique_blocks": 0,
+      "total_blocks": 512
+    },
+    "last_error": "",
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+    "max_active": 8,
+    "max_batch_sequences": 0,
+    "max_batch_tokens": 0,
+    "max_model_len": 2048,
+    "mixed_batches": 0,
+    "model": "Qwen3-0.6B-Q8_0",
+    "outstanding_requests": 0,
+    "policy": "mixed",
+    "prefill_chunk": 32,
+    "prefill_tokens": 0,
+    "prefix_cache": {
+      "entries": 0,
+      "tokens": 0
+    },
+    "prefix_cache_enabled": true,
+    "prefix_cache_entries": 4,
+    "prefix_cache_tokens": 2048,
+    "queue_capacity": 64,
+    "ready": true,
+    "rejected": 0,
+    "telemetry_capacity": 1024,
+    "telemetry_mode": "off",
+    "threads": 8,
+    "timed_out": 0,
+    "waiting_requests": 0
+  },
+  "status": "passed"
+}

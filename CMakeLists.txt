@@ -249,6 +249,12 @@ if(LLMSERVE_BUILD_TESTS)
         add_test(NAME cuda-micro-validation COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/cuda_micro_validation_tests.py" ${CUDA_MICRO_TEST_ARGS})
         set_tests_properties(cuda-micro-validation PROPERTIES TIMEOUT 120)
+        add_test(NAME cuda-profiler-validation COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/cuda_profiler_validation_tests.py")
+        set_tests_properties(cuda-profiler-validation PROPERTIES TIMEOUT 60)
+        add_test(NAME cuda-bundle-validation COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/cuda_bundle_validation_tests.py")
+        set_tests_properties(cuda-bundle-validation PROPERTIES TIMEOUT 120)
         add_test(NAME telemetry-validation COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/telemetry_validation_tests.py")
         set_tests_properties(telemetry-validation PROPERTIES TIMEOUT 30)
@@ -258,6 +264,10 @@ if(LLMSERVE_BUILD_TESTS)
         message(FATAL_ERROR "完整测试需要 Python 3 与 PowerShell；不能省略验收套件。")
     endif()
     if(LLMSERVE_POWERSHELL)
+        add_test(NAME cuda-profiler-process
+            COMMAND "${LLMSERVE_POWERSHELL}" -NoProfile -File
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/cuda_profiler_process_tests.ps1")
+        set_tests_properties(cuda-profiler-process PROPERTIES TIMEOUT 30)
         add_test(NAME benchmark-validation
             COMMAND "${LLMSERVE_POWERSHELL}" -NoProfile -File
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/benchmark_validation_tests.ps1"

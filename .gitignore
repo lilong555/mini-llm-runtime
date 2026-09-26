@@ -60,3 +60,11 @@ benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/validation/cuda-micro/source-snapshot.zip
 !benchmarks/results/validation/cuda-micro/model-preflight/source-snapshot.zip
 !benchmarks/results/cuda-micro-baseline/source-snapshot.zip
+!benchmarks/results/cuda-model-baseline/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/source-snapshot.zip
+!benchmarks/results/cuda-model-profiler/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/diagnostics/initial-tools/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/diagnostics/ncu-symbol-profiler/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/source-snapshot.zip
+!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/source-snapshot.zip

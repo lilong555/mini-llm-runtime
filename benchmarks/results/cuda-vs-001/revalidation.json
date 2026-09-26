@@ -1,0 +1,96 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "archive_sha256": "a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c",
+  "negatives": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-full-relocation-apo9v2b4/missing-source/verify.py",
+        "--directory",
+        "/tmp/cuda-full-relocation-apo9v2b4/missing-source"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 完整证据包复核失败：缺少证据：source-snapshot.zip\n",
+      "name": "missing-source",
+      "outer_hashes_updated": true,
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-full-relocation-apo9v2b4/missing-component/verify.py",
+        "--directory",
+        "/tmp/cuda-full-relocation-apo9v2b4/missing-component"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 完整证据包复核失败：完整包缺少阶段：profiler\n",
+      "name": "missing-component",
+      "outer_hashes_updated": true,
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-full-relocation-apo9v2b4/model-aa/verify.py",
+        "--directory",
+        "/tmp/cuda-full-relocation-apo9v2b4/model-aa"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 完整证据包复核失败：同一 backend 的跨进程输出不同：cpu8/prefill-16，报告 cpu8-aa_cpu8-t0-p1.json\n",
+      "name": "model-aa",
+      "outer_hashes_updated": true,
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-full-relocation-apo9v2b4/ncu-units/verify.py",
+        "--directory",
+        "/tmp/cuda-full-relocation-apo9v2b4/ncu-units"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 完整证据包复核失败：NCU 指标单位不符：gpu__time_duration.sum\n",
+      "name": "ncu-units",
+      "outer_hashes_updated": true,
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-full-relocation-apo9v2b4/derived-summary/verify.py",
+        "--directory",
+        "/tmp/cuda-full-relocation-apo9v2b4/derived-summary"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 完整证据包复核失败：模型摘要与原始样本的重新计算结果不同\n",
+      "name": "derived-summary",
+      "outer_hashes_updated": true,
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/tmp/cuda-full-relocation-apo9v2b4/relocated/verify.py",
+      "--directory",
+      "/tmp/cuda-full-relocation-apo9v2b4/relocated"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"passed\",\n  \"spec_id\": \"CUDA-VS-001\",\n  \"model_performance_status\": \"measurement_inconclusive\",\n  \"model_reports\": 70,\n  \"model_measured_repetitions\": 2520,\n  \"micro_cases\": 375,\n  \"micro_trials\": 5,\n  \"full_numeric_comparisons\": 12528,\n  \"profiler_forwards\": 585,\n  \"ncu_kernels\": 1,\n  \"numerical_archive_verification\": {\n    \"exit_code\": 0,\n    \"output\": \"\\nStatus                 : passed\\nPurpose                : archive_revalidation\\nArtifacts              : 415\\nSuiteExecutions        : 50\\nCaseExecutions         : 926\\nMicroFunctionalCases   : 375\\nFullNumericComparisons : 12528\\nPerformanceBaseline    : False\\nGpuServing             : False\\n\\n\"\n  },\n  \"tool_archive_verification\": {\n    \"exit_code\": 0,\n    \"output\": \"\\nStatus                          : passed\\nPurpose                         : archive_revalidation\\nArtifacts                       : 236\\nSuiteExecutions                 : 62\\nCaseExecutions                  : 1034\\nCpuModelChecks                  : 13\\nCpuHttpChecks                   : 8\\nFullNumericComparisonsInherited : 12528\\nGpuServing                      : False\\n\\n\"\n  },\n  \"mandatory_data_path_gates\": \"passed\",\n  \"gpu_serving\": false,\n  \"gpu_paged_attention\": false,\n  \"positive_performance_is_not_a_completion_requirement\": true,\n  \"decision\": \"V2-M1 的证据门禁完成；下一阶段为 V2-M2，性能不确定项继续保留\",\n  \"artifact_count\": 1050\n}\n",
+    "stderr": ""
+  },
+  "artifact_count": 1050,
+  "original_archive_unchanged": true
+}

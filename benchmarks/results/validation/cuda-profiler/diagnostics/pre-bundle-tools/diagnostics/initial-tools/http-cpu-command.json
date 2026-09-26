@@ -1,0 +1,13 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "check-http",
+    "43471"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T07:31:01.9261169Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T07:31:04.9881455Z"
+}

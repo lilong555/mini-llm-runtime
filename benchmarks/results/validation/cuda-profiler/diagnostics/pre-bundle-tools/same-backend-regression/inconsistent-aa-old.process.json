@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa/verify.py",
+    "--directory",
+    "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa"
+  ],
+  "exit_code": 0
+}

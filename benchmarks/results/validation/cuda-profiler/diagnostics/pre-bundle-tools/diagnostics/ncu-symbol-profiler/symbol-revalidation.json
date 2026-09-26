@@ -1,0 +1,40 @@
+{
+  "status": "passed",
+  "purpose": "raw_symbol_export_diagnostic",
+  "gpu_reexecuted": false,
+  "nsys_forwards": 585,
+  "nsys_kernels": 368610,
+  "nsys_project_streams": 1,
+  "original_csv_rejection": "NCU 结果不是选定的项目 PV kernel",
+  "mangled_kernel_name": "_ZN7minillm4cuda45_GLOBAL__N__404290e7_12_attention_cu_166305bf9pv_kernelENS0_16DeviceTensorViewIKtEENS0_7KvShapeEmmNS2_IKiEES7_mNS2_IfEES8_Pi",
+  "ncu_metrics": {
+    "gpu__time_duration.sum": {
+      "value": 970208.0,
+      "unit": "ns"
+    },
+    "sm__cycles_active.avg": {
+      "value": 2253368.53,
+      "unit": "cycle"
+    },
+    "dram__cycles_active.avg": {
+      "value": 478132.0,
+      "unit": "cycle"
+    },
+    "sm__warps_active.avg.pct_of_peak_sustained_active": {
+      "value": 69.69,
+      "unit": "%"
+    },
+    "gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 6.17,
+      "unit": "%"
+    },
+    "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 79.63,
+      "unit": "%"
+    },
+    "profiler__replayer_passes": {
+      "value": 8.0,
+      "unit": "pass"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+==WARNING== Note: Running with uncontrolled GPU caches. Profiling results may be inconsistent.
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 1220291 (/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/mini-cuda-runtime-bench)
+==PROF== Profiling "pv_kernel": 0%....50%....100% - 8 passes
+cuda: prefill-16 通过
+cuda: prefill-128 通过
+cuda: chunked-prefill-256 通过
+cuda: chunked-prefill-1536 通过
+cuda: decode-16 通过
+cuda: decode-256 通过
+cuda: decode-1536 通过
+cuda: batch-2 通过
+cuda: batch-4 通过
+cuda: mixed-16-2 通过
+cuda: generate-16-32 通过
+cuda: generate-128-32 通过
+==PROF== Disconnected from process 1220291
+==PROF== Report: /home/li/code/mini-llm-runtime/.run/cuda-profiler-20260926T074302Z-0754722511b9-39994130/ncu.ncu-rep

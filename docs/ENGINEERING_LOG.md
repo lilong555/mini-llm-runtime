@@ -39,6 +39,14 @@
 | ENG-029 | 已解决 | 派生分析 | 相对路径与绝对路径混用导致归因汇总失败 |
 | ENG-030 | 已解决 | 版本管理 | GitHub 仓库可见性与发布授权不一致 |
 | ENG-031 | 已解决 | 版本管理 | WSL 仓库沿用 Windows 凭据助手路径 |
+| ENG-049 | 已解决 | 模型基准 | 同后端 A/A 与跨 trial 输出一致性遗漏 |
+| ENG-050 | 已解决 | Profiler | SQLite 传输枚举与真实导出不匹配 |
+| ENG-051 | 已记录 | 性能 | 部分正式模型 A/A 噪声超过门槛 |
+| ENG-052 | 已解决 | 辅助查询 | Python 时间戳解析不兼容高精度 UTC 格式 |
+| ENG-053 | 已解决 | 进程封装 | 异步任务结果污染 PowerShell 返回记录 |
+| ENG-054 | 已解决 | Profiler | NCU 名称简化丢失匿名命名空间前缀 |
+| ENG-055 | 已解决 | 交付文档 | 完整包导出示例遗漏必需目录参数 |
+| ENG-056 | 已解决 | 证据封包 | 归档白名单遗漏 Git 字节保护元数据 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -257,7 +265,7 @@
 - 原因：该 Nsight Systems 版本的采集库与当前驱动接口不兼容；CUDA Toolkit 能编译和执行程序，不代表随附 profiler 能采集当前驱动的 GPU 时间线。
 - 解决方法：使用官方固定版本 `nsight-systems-2026.1.3`，校验安装包 SHA-256，在用户目录安装并通过 `~/.local/bin/nsys` 使用。CUDA Toolkit 仍为 12.8，安装包身份见 `benchmarks/results/wsl-environment/environment.json`。
 - 验证：登录终端的 `nsys --version` 返回 `2026.1.3.425-261338342291v0`。`scripts/cuda_smoke.cu` 的报告包含全部 64 次 kernel、2 次 H2D 和 1 次 D2H；`nsys-validation.json` 对 SQLite 事件数完成校验，`nsys-stats.txt` 保留原始汇总。
-- 适用边界：仍有 `Unified Memory cannot be traced` 诊断；本项只验收显式分配与复制的时间线。GPU 硬件计数器由 `ENG-023` 独立验收，完整模型性能采集不在本项范围内。
+- 适用边界：仍有 `Unified Memory cannot be traced` 诊断；本项只验收显式分配与复制的时间线。GPU 硬件计数器由 `ENG-023` 独立验收。当前 `benchmarks/results/cuda-model-profiler/nsys-summary.json` 还保留 `CUDA hardware tracing is not supported on this system. A legacy (software instrumented) trace was collected instead.`；完整模型的 585 次 forward 和预期操作可复核，不代表 Unified Memory 或硬件 tracing 模式已验收。
 
 ## ENG-023：WSL 内 Nsight Compute 无权访问 GPU 性能计数器
 
@@ -493,9 +501,81 @@
 
 ## ENG-048：微基准存在顺序相关差异与离散长样本
 
-- 状态：已记录，待 Step 9 Profiler 归因；不作为已解决的性能问题。
+- 状态：已记录，受控归因尚未完成；不作为已解决的性能问题。
 - 影响：仅以单轮或最短区间描述小算子延迟会明显偏乐观；微基准不能据此证明模型加速、测量稳定或没有退化。
 - 复现条件或证据：`benchmarks/results/cuda-micro-baseline/summary.json` 中，`matrix-Q-m1` 的五个独立 trial device 区间均摊值依次为 `37.664/10.240/37.369/10.656/37.792` 微秒；三个正序 trial 与两个逆序 trial 分组一致。`rope-query-m1-p1535` 的 trial 值为 `6.275/6.457/6.912/16.960/6.937` 微秒。375 个用例中有 48 个用例的相对 MAD 超过 10%；该统计不是模型 A/A 协议的噪声带。
 - 原因：尚未确定。当前区间包含 host 提交空隙，未锁频、未固定 affinity，且只有进程边界环境；现有证据不能区分热状态、库内部执行选择与提交间隙。
-- 解决方法或下一步：保留五轮全部 warmup、测量、初始化和验证记录，不修改冻结的重复次数或筛除慢样本。Step 9 结合完整模型 Nsight 与选定 kernel 检查设备执行、提交间隙和热状态；模型 A/A 继续使用独立的 70 进程协议。
-- 验证：五个独立进程的 9375 个样本均通过数值、输出一致性和传输/分配检查，375 个用例全部保留。Q 投影的区间差异和 RoPE 长样本仍存在，未宣称性能问题已消失。
+- 解决方法或下一步：保留五轮全部 warmup、测量、初始化和验证记录，不修改冻结的重复次数或筛除慢样本。完整模型 Nsight 与选定 kernel 的 NCU 已提供执行诊断；若继续研究此问题，须单独控制顺序、提交间隙和热状态，不能用单次 Profiler 替代模型 A/A 的独立 70 进程协议。
+- 验证：五个独立进程的 9375 个样本均通过数值、输出一致性和传输/分配检查，375 个用例全部保留。`benchmarks/results/cuda-model-profiler/` 通过完整模型时间线与选定 PV kernel 检查，但未隔离 Q 投影顺序效应或 RoPE 长样本的原因，未宣称性能问题已消失。
+
+## ENG-049：模型基准遗漏同后端 A/A 与跨 trial 输出一致性
+
+- 状态：已解决，限定于同后端、同 workload 的全部进程输出门禁。
+- 影响：单进程内部一致、局部异构配对一致，不能保证 A/A 与不同 trial 的同后端输出一致；错误输出可能进入统计分析。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/same-backend-regression/` 使用真实 70 进程归档副本，将 `prefill-16` 的输出 `37852` 改为 `37853`，同步修改每次 repetition 的 sample 和 token 数组，并更新报告摘要。分别改变一个 A/A 进程，以及同一异构 trial 的四个进程，旧分析器均返回 0。
+- 原因：`analyze_pairs` 只核对单进程重复与同一异构 trial 的两个同后端进程，没有统一覆盖全部 A/A、trial 和对照组。
+- 解决方法：按 `(backend, workload)` 约束全部 audited reports 的 token 数组一致；跨后端差异继续保留 `correctness_followup_required`，不改变统计公式、容差或原始采集身份。
+- 验证：带真实 executable 的 16/16 分析器检查通过；上述两类真实归档反例被当前分析器以同后端输出不一致拒绝，退出码均为 1。原始 70 份报告通过新检查，统计仍为 `measurement_inconclusive`，原始文件与副本已有文件均未被分析器改写。原 `verify.py` 和源码 ZIP 保留，独立复核使用当前分析器。
+
+## ENG-050：Profiler 草稿使用了不匹配的传输枚举名称
+
+- 状态：已解决，限定于 Nsight SQLite 传输枚举及完整模型数据路径复核。
+- 影响：使用 `HtoD`、`DtoH` 识别 Nsight SQLite 传输类型，会拒绝真实导出；使用同样缩写的合成 fixture 不能发现这一格式错误。
+- 复现条件或证据：只读查询既有 `.run/nsys-cuda.sqlite` 的 `ENUM_CUDA_MEMCPY_OPER`，id=1 为 `Host-to-Device`，id=2 为 `Device-to-Host`；初始临时草稿使用缩写。该发现发生于正式工具采集前。
+- 原因：合成 fixture 和实现共享了未经真实 schema 核对的枚举假设。
+- 解决方法或下一步：分析器及 fixture 使用真实标签，必需表检查包含枚举表；对完整模型的实际 SQLite 再核对传输、全部 28 层和 585 次 forward。
+- 验证：Profiler 的 14/14 确定性测试通过。`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/symbol-revalidation.json` 对真实 SQLite 完成 585 次 forward、368610 次 kernel、单项目 stream 的检查，各 forward 的传输和 28 层顺序均满足契约。该初始采集的 NCU 名称问题单独记录于 `ENG-054`，不将单项格式验证冒充完整包已通过。
+
+## ENG-051：正式模型基线的部分 A/A 噪声超过门槛
+
+- 状态：已记录，测量不确定项保留。
+- 影响：24 项 CPU/CUDA 比较中有 10 项的噪声带超过 10%，不能对这些用例宣称加速或没有退化，也不能将整轮统一标为稳定性能验收。
+- 复现条件或证据：`benchmarks/results/cuda-model-baseline/summary.json`、`analysis.md` 保留完整 70 进程和五个独立 trial。CPU8 对照有 3 项、CPU16 对照有 7 项为 `measurement_inconclusive`；CPU16 的 `prefill-16` 噪声约 23.06%，`prefill-128` 的比较噪声约 18.83%。其余 14 项按冻结规则判为 `faster`，没有删除不确定项。
+- 原因：尚未确定；未锁频、未固定 affinity，现有环境记录只有进程边界。不能仅凭时间差将波动归因于某一种硬件或提交机制。
+- 解决方法或下一步：保留本轮全部原始样本与噪声判定，正确性和数据路径单独验收；外部 Profiler 仅作诊断，不替换无 Profiler 基线或事后改变门槛。
+- 验证：70 个进程退出码均为 0，289 个必需原始产物通过复核；同后端 token 一致性及传输、分配、内存门禁通过。整体状态保持 `measurement_inconclusive`，不将测量不确定写成已解决。
+
+## ENG-052：辅助进度查询不兼容高精度 UTC 时间戳
+
+- 状态：已解决，限定于只读进度估算；不涉及模型报告或正式统计。
+- 影响：辅助查询无法计算剩余墙钟时间；采集进程、原始时间戳和模型主指标不受影响。
+- 复现条件或证据：Python 3.10 的 `datetime.fromisoformat` 读取进程记录时报告 `ValueError: Invalid isoformat string: '2026-09-26T03:01:20.6366121Z'`；时间戳来自 PowerShell/.NET 的 UTC round-trip 格式。
+- 原因：辅助查询采用的 Python 接口不能直接接受该高精度 `Z` 格式，没有沿用采集工具的日期解析接口。
+- 解决方法：只读进度查询使用 PowerShell 的 `[datetimeoffset]::Parse`；正式性能统计继续读取原有整数纳秒字段，不转换或改写原始时间戳。
+- 验证：2026-09-26 12:39 的查询返回 `collecting`、23 个完成进程、失败 0，分组计数 CPU8=7、CPU16=8、CUDA=8，与采集状态一致。辅助墙钟估算不作为性能验收数据。
+
+## ENG-053：异步输出复制的返回值污染 PowerShell 进程记录
+
+- 状态：已解决，限定于 Profiler 子进程包装函数的单一返回记录和输出保护。
+- 影响：Profiler 预检无法取得工具版本进程的 `exit_code`，GPU 采集尚未启动；既有模型基线和 CPU 回归不受影响。
+- 复现条件或证据：初次预检报告 `The property 'exit_code' cannot be found on this object. Verify that the property exists.`。`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/profiler-process/` 保留旧采集脚本、实际工具输出及进程 JSON；两个进程记录均为两个空对象加一份有效字典。新测试加载旧包装函数时稳定报告“进程包装函数必须只返回一份记录，实际返回 3 个对象。”
+- 原因：PowerShell 动态调用 `CopyToAsync(...).GetAwaiter().GetResult()` 时，返回的空任务结果进入函数输出管道，与末尾进程字典合并为数组。
+- 解决方法：显式丢弃两次等待操作的返回值，只返回进程字典。`cuda-profiler-process` 直接加载包装函数，检查非零退出码、两路大于管道缓冲区的完整输出、环境白名单及已有文件保护，不启动模型或 NVIDIA 工具。
+- 验证：旧函数在同一回归中返回 1，当前函数 2/2 检查通过；第二次真实 Profiler 预检通过，Nsight Systems 为 `2026.1.3.425`、Nsight Compute 为 `2025.1.1.0`。完整模型 Profiler 的验收仍单列。
+
+## ENG-054：NCU 名称简化丢失匿名命名空间前缀
+
+- 状态：已解决，限定于 NCU 原始符号输出与 NSys kernel 身份关联；新采集的完整包验收单列。
+- 影响：五个完整模型诊断进程均正常结束，但初次归档复核报告 `NCU 结果不是选定的项目 PV kernel`，不能发布 Profiler 通过摘要。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/` 保留 run `20260926T074302Z-0754722511b9-39994130` 的原始报告、源码、命令、时间线和失败输出。NCU CSV 将名称显示为 `unnamed>::pv_kernel(DeviceTensorView<const unsigned short>, KvShape, unsigned long, unsigned long, DeviceTensorView<const int>, DeviceTensorView<const int>, unsigned long, DeviceTensorView<float>, DeviceTensorView<float>, int *)`，而 NSys 保留完整的 `minillm::cuda::<unnamed>::pv_kernel` 名称。
+- 原因：NCU 默认启用 demangled name 简化；`--kernel-name-base` 控制匹配规则，不控制输出，单独改变该选项不能恢复显示身份。
+- 解决方法：采集时关闭自动重命名，导出使用 `--print-kernel-base mangled --rename-kernels 0`。分析器要求 CSV 中的原始符号与 NSys 选定项目 PV kernel 的 `mangledName` 精确相等，并继续检查设备、launch 形状、调用序号和单位，不使用宽松后缀匹配。
+- 验证：同一原始 `ncu.ncu-rep` 的受控重导出通过原始符号关联，旧简化名称仍被拒绝；`symbol-revalidation.json` 记录没有重新执行 GPU。14/14 Profiler 测试通过，包含简化名称和错误 kernel 拒绝。初次采集保持独立身份，当前采集入口和复核器使用同一固定符号协议。
+
+## ENG-055：完整包导出示例遗漏必需目录参数
+
+- 状态：已解决，限定于完整包导出示例及五组件参数完整性。
+- 影响：仅传入 `--export` 的示例无法执行导出；参数检查发生在文件生成前，未覆盖现有证据。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/export-missing-arguments.txt` 保留 `导出必须指定 model、micro、numerical、profiler、validation 目录` 诊断。
+- 原因：文档示例将组件定位误当默认参数；实际接口要求调用者显式选择五类证据来源。
+- 解决方法：示例和调用均列出五个组件目录，不修改导出器的必需参数规则。
+- 验证：`benchmarks/results/cuda-vs-001/export.json` 记录五组件完整包成功导出，独立目录复验退出码为 0；ZIP 为 56872322 字节、1050 个文件，SHA-256 为 `a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c`。`revalidation.json` 记录迁移通过、五项反例拒绝和原 ZIP 不变。
+
+## ENG-056：完整包白名单遗漏 Git 字节保护元数据
+
+- 状态：已解决，限定于精确文件白名单及完整包工具身份绑定。
+- 影响：微基准和数值归档中的 `.gitattributes` 被拒绝，阻止完整封包；该文件用于保护原始文本字节，不是模型、编译产物或凭据。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/export-attributes-rejected.txt` 保留 `.gitattributes` 未登记类型诊断；文件内容为 `*.txt -text whitespace=-blank-at-eol,-blank-at-eof`。
+- 原因：文件闭合检查仅按扩展名列举允许类型，未包含这一无扩展名的 Git 元数据；完整包工具身份原先还与 Profiler 采集时的工具副本耦合。
+- 解决方法：精确允许 `.gitattributes` 文件名，模型权重、二进制和符号链接继续拒绝。完整包工具由独立工具验收源码绑定，Profiler 仍由其自身采集源码绑定，旧源码、样本和报告不改写。
+- 验证：回归覆盖 `.gitattributes` 保留和禁用类型拒绝；最新四构建共 62 套 CTest、1034 次用例执行通过。`benchmarks/results/cuda-vs-001/export.json` 与 `revalidation.json` 记录完整包导出和迁移通过，五项缺件或语义反例均被拒绝；原始组件文件和完整 ZIP 不变。

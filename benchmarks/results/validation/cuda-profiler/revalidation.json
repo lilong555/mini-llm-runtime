@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "negatives": [
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-component-relocation-adftrlnq/missing-source/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-component-relocation-adftrlnq/missing-source"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Get-FileHash: /tmp/cuda-component-relocation-adftrlnq/missing-source/verify.ps1:18\nLine |\n  18 |      if ((Get-FileHash -LiteralPath $snapshot -Algorithm SHA256).Hash. …\n     |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | Could not find file\n     | '/tmp/cuda-component-relocation-adftrlnq/missing-source/source-snapshot.zip'.\n",
+      "name": "missing-source",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-component-relocation-adftrlnq/ctest-failure/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-component-relocation-adftrlnq/ctest-failure"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Exception: /tmp/cuda-profiler-checks-fe2db5b5726c40e5867d370c3d839d81/Test-CtestEvidence.ps1:27\nLine |\n  27 |          throw \"Incomplete or failed CTest report: $($file.FullName)\"\n     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | Incomplete or failed CTest report:\n     | /tmp/cuda-component-relocation-adftrlnq/ctest-failure/own-ctest.xml\n",
+      "name": "ctest-failure",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-component-relocation-adftrlnq/numeric-binary/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-component-relocation-adftrlnq/numeric-binary"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Exception: /tmp/cuda-component-relocation-adftrlnq/numeric-binary/verify.ps1:80\nLine |\n  80 |          throw '完整数值门禁的源码或编译继承不符。'\n     |          ~~~~~~~~~~~~~~~~~~~~~~~~~\n     | 完整数值门禁的源码或编译继承不符。\n",
+      "name": "numeric-binary",
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "pwsh",
+      "-NoProfile",
+      "-File",
+      "/tmp/cuda-component-relocation-adftrlnq/relocated/verify.ps1",
+      "-Directory",
+      "/tmp/cuda-component-relocation-adftrlnq/relocated"
+    ],
+    "exit_code": 0,
+    "stdout": "\nStatus                          : passed\nPurpose                         : archive_revalidation\nArtifacts                       : 236\nSuiteExecutions                 : 62\nCaseExecutions                  : 1034\nCpuModelChecks                  : 13\nCpuHttpChecks                   : 8\nFullNumericComparisonsInherited : 12528\nGpuServing                      : False\n\n",
+    "stderr": ""
+  },
+  "original_files_unchanged": true,
+  "checked_original_files": 237
+}

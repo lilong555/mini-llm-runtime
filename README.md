@@ -68,7 +68,7 @@ bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值复验](benchmarks/results/validation/cuda-micro/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md) 保留五轮原始样本及测量波动；正式模型性能基线与 GPU Serving 尚未验收。
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值复验](benchmarks/results/validation/cuda-micro/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md) 和 [70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 保留全部原始样本；24 项模型比较有 14 项判为更快、10 项测量不确定。[完整模型 Profiler](docs/CUDA_PROFILING.md) 单独提供时间线和硬件指标，不替代无 Profiler 基线。GPU Serving 尚未交付。
 
 ### Windows / PowerShell
 

@@ -2,7 +2,7 @@
 
 `mini-cuda-runtime-bench` 在同一可执行文件中选择自有 CPU8、CPU16 或 CUDA Runtime，每个进程只构造一个后端。固定协议为 `benchmarks/runtime-inputs/qwen3-cuda-v0.json`，模型为固定 Q8_0 checkpoint；CUDA 使用常驻 FP32 有效权重、FP16 连续 KV 和 cuBLAS pedantic FP32，CPU 使用 auto SIMD 与 FP16 paged KV。
 
-当前提供模型层的采集、严格复核和配对统计工具。[真实形状微基准](CUDA_MICROBENCHMARKS.md) 使用独立协议与归档。单进程检查、合成报告 fixture 和数值验收均不能替代完整 A/A 性能基线；Profiler 和 GPU Serving 仍有各自的阶段门禁。
+当前提供模型层的采集、严格复核和配对统计工具。[正式模型基线](../benchmarks/results/cuda-model-baseline/README.md) 包含完整 70 进程，正确性与数据路径通过，性能整体为 `measurement_inconclusive`。[真实形状微基准](CUDA_MICROBENCHMARKS.md) 使用独立协议与归档。单进程检查、合成报告 fixture 和数值验收均不能替代完整 A/A 性能基线；Profiler 和 GPU Serving 仍有各自的阶段门禁。
 
 ## 运行入口
 
@@ -15,10 +15,10 @@ bash scripts/dev.sh own-cuda runtime-benchmark \
   -PreflightOnly -OutputDirectory .run/cuda-benchmark-preflight
 
 bash scripts/dev.sh own-cuda runtime-benchmark \
-  -OutputDirectory benchmarks/results/cuda-model-baseline
+  -OutputDirectory benchmarks/results/cuda-model-new-run
 
 pwsh -NoProfile -File scripts/Analyze-CudaRuntime.ps1 \
-  -Directory benchmarks/results/cuda-model-baseline
+  -Directory benchmarks/results/cuda-model-new-run
 ```
 
 输出目录必须为空。`PreflightOnly` 检查模型、冻结输入、源码继承、依赖、构建和可获取环境信息，只生成预检证据，不执行性能采样；正式采集使用另一个新目录。`BinaryDirectory`、`Model`、`NumericalDirectory` 可指定路径，但不能改变模型摘要、工作区、构建开关或冻结参数。
@@ -58,7 +58,7 @@ python3 scripts/analyze_cuda_benchmark.py \
 - 差异为 `100*(B/A-1)`，B 为 CUDA；负值表示 CUDA 延迟更低。统计单位始终是 5 个独立 trial，不把进程内重复扩充为更多 trial。
 - 各 backend/case 的 A/A 噪声为 `max(5, abs(median(d_AA)) + 2*MAD(d_AA))`。异构比较取 CPU、CUDA 两个噪声带的较大值，超过 10% 时为 `measurement_inconclusive`。
 - 95% 区间使用全部 `5^5=3125` 个成对 trial 重采样的 percentile bootstrap。仅有 5 个 trial，区间稳定性有限。差异落入噪声带或区间跨零时为 `inconclusive`；有效负结果保留为 `slower`。
-- 跨后端 token 不同会保留逐 trial 序列，并标为 `correctness_followup_required`，不发布加速结论。相同后端重复输出不一致直接拒绝验收。
+- 跨后端 token 不同会保留逐 trial 序列，并标为 `correctness_followup_required`，不发布加速结论。同一后端、同一 workload 在全部 A/A、trial 和对照组中的输出必须一致，否则直接拒绝验收。
 
 温度、时钟、功耗、显存与背景负载在进程边界采集，可用性及原始输出一并保留。未锁频，未固定 affinity，也不是连续硬件遥测。
 
@@ -75,5 +75,7 @@ python3 scripts/analyze_cuda_benchmark.py \
 ```bash
 python3 /path/to/bundle/verify.py --directory /path/to/bundle
 ```
+
+已提供的 `cuda-model-baseline` 以 `revalidate.py` 为当前复核入口，`verify.py` 保留采集源码身份；两者摘要及独立目录复核结果见归档的 `revalidation.json`。
 
 模型权重、二进制、依赖 checkout 和完整数值归档不重复装入该模型性能包。数值摘要只在 `include/minillm/`、`src/minillm/` 文件集合和摘要一致，且重新构建的 `minillm-cuda-model-tests` 与完整数值验收的二进制 SHA-256 一致时继承；编译身份不同须在当前构建下重新进行数值验收。默认数值归档为 `benchmarks/results/validation/cuda-micro`；`NumericalDirectory` 指定其他归档时，manifest 记录其实际相对位置。原有 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 保持独立身份。归档复核不是原二进制重跑，也不是可信执行证明。Step 8 的 microbenchmark 与 Step 9 的完整 Profiler/交付门禁不由本报告替代。

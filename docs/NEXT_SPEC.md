@@ -6,7 +6,7 @@
 - 对应 milestone：`PROJECT_PLAN_V2.md / V2-M1`；Step 1 含 V2-M0 的必要证据补丁。
 - Audit HEAD：`68ac275913207975a88e2090c6617467e351301c`
 - Audit Date：2026-09-23，Asia/Tokyo。
-- 状态：执行中，Step 1–7、Step 8 数值门禁、真实形状微基准与模型基准工具已有验收；完整 CudaRuntime 与 token CLI 可用，接口见 `CUDA_RUNTIME.md`，数值入口见 `CUDA_NUMERICS.md`，微基准见 `CUDA_MICROBENCHMARKS.md`，模型对照工具见 `CUDA_BENCHMARKS.md`，阶段门禁见 `EXECUTION_STATUS.md`。微基准保留顺序相关差异和离散样本，不构成模型加速结论。正式 CPU8/16、GPU 性能对照、A/A、Profiler 和完整性能包仍待 Step 8–9；当前不代表 V2-M1 整体完成。
+- 状态：已验收，Step 1 至 Step 9 的正确性、资源、数据路径和证据门禁完成；完整 CudaRuntime 与 token CLI 可用，接口见 `CUDA_RUNTIME.md`，数值入口见 `CUDA_NUMERICS.md`，微基准见 `CUDA_MICROBENCHMARKS.md`，模型对照见 `CUDA_BENCHMARKS.md`，Profiler 见 `CUDA_PROFILING.md`，完整包见 `../benchmarks/results/cuda-vs-001/README.md`，阶段门禁见 `EXECUTION_STATUS.md`。正式 70 进程模型基线的 24 项比较中，14 项为 `faster`、10 项为 `measurement_inconclusive`；保留微基准顺序差异、全部慢样本和诊断限制，不作统一加速或无退化声明。下一阶段为 V2-M2，尚未实施 GPU Serving。
 - 推荐主分支：`feat/own-cuda-vertical-slice`；证据补丁可先独立 `fix/evidence-bundle-completeness`。
 - 目标平台：本机 WSL2 Ubuntu，RTX 4070 Laptop，CUDA 12.8；现有 Windows/MSVC 与 Linux CPU 构建必须保留。
 - 本阶段终点是完整模型产生真实 token 的 CLI/model path；GPU HTTP/LLMServe 接入属于紧随其后的 V2-M2，不得在本阶段提前宣称已完成。
@@ -672,22 +672,24 @@ CLI支持明确model/limit参数及report。GGML_CUDA关闭组合完成真实生
 
 以下全部满足为 Done：
 
-- [ ] Audit HEAD到开发HEAD的差异已复核；未执行无关scope扩展。
-- [ ] 现有core/CPU构建与必需CTest/HTTP/模型回归通过。
-- [ ] source-state、binary、model、input与工具配置完整可获取；缺artifact的旧归档不再冒充完整。
-- [ ] independent own-CUDA flag生效；GGML_CUDA关闭组合实际生成token。
-- [ ] Qwen3 host validation/tokenizer ownership明确，CPU行为保持原契约。
-- [ ] device weights为一次性转换上传的FP32有效权重，source/device dtype均正确报告。
-- [ ] 完整模型在GPU执行，连续FP16 KV、causal/GQA/RoPE与argmax正确。
-- [ ] S=1与S=4目标配置有验证；B/context上界与失败行为明确。
-- [ ] preflight错误不污染状态；post-launch错误进入poisoned，不发布本次结果。
-- [ ] 正常与受控异常资源路径通过对应sanitizer/owner测试。
-- [ ] kernel与model数值门槛通过；稳定短golden序列严格一致；新语料near-tie按预注册规则披露。
-- [ ] 正式steady-state没有逐层weight/hidden传输、没有自有device allocation、没有全logits下载作为greedy路径。
-- [ ] 全部预注册性能case有结果或明确失败；没有选择性删除慢case/失败case。
-- [ ] NSys证据来自完整模型，时钟、logical bytes与硬件metrics分开解释。
-- [ ] 完整bundle在独立目录复验；大artifact可获取性与hash清楚。
-- [ ] 交付文档明确：GPU Serving、GPU paging、custom PagedAttention本阶段仍未交付。
+- [x] Audit HEAD到开发HEAD的差异已复核；未执行无关scope扩展。
+- [x] 现有core/CPU构建与必需CTest/HTTP/模型回归通过。
+- [x] source-state、binary、model、input与工具配置完整可获取；缺artifact的旧归档不再冒充完整。
+- [x] independent own-CUDA flag生效；GGML_CUDA关闭组合实际生成token。
+- [x] Qwen3 host validation/tokenizer ownership明确，CPU行为保持原契约。
+- [x] device weights为一次性转换上传的FP32有效权重，source/device dtype均正确报告。
+- [x] 完整模型在GPU执行，连续FP16 KV、causal/GQA/RoPE与argmax正确。
+- [x] S=1与S=4目标配置有验证；B/context上界与失败行为明确。
+- [x] preflight错误不污染状态；post-launch错误进入poisoned，不发布本次结果。
+- [x] 正常与受控异常资源路径通过对应sanitizer/owner测试。
+- [x] kernel与model数值门槛通过；稳定短golden序列严格一致；新语料near-tie按预注册规则披露。
+- [x] 正式steady-state没有逐层weight/hidden传输、没有自有device allocation、没有全logits下载作为greedy路径。
+- [x] 全部预注册性能case有结果或明确失败；没有选择性删除慢case/失败case。
+- [x] NSys证据来自完整模型，时钟、logical bytes与硬件metrics分开解释。
+- [x] 完整bundle在独立目录复验；大artifact可获取性与hash清楚。
+- [x] 交付文档明确：GPU Serving、GPU paging、custom PagedAttention本阶段仍未交付。
+
+验收入口为 `EXECUTION_STATUS.md` 与 `benchmarks/results/cuda-vs-001/README.md`。完整包独立目录复验通过，1050 个文件保持闭合；五项语义反例被拒绝。最新四种构建的 62 套 CTest 共执行 1034 次用例，CPU 模型 13/13、HTTP 8/8；12528 次完整数值比较按相同源码和二进制继承，未在工具封包阶段重跑全量数值或 sanitizer。模型与编译依赖通过固定来源和身份另行取得，不装入证据 ZIP；离线复核不是原二进制重跑。
 
 正性能结果不是强制项；真实完整路径、correctness和资源/证据门禁是强制项。只做完DeviceBuffer、RMSNorm或单层时，结论必须是 Not Done，而不是“CUDA Runtime已完成”。
 

@@ -1,0 +1,12 @@
+cpu8: prefill-16 通过
+cpu8: prefill-128 通过
+cpu8: chunked-prefill-256 通过
+cpu8: chunked-prefill-1536 通过
+cpu8: decode-16 通过
+cpu8: decode-256 通过
+cpu8: decode-1536 通过
+cpu8: batch-2 通过
+cpu8: batch-4 通过
+cpu8: mixed-16-2 通过
+cpu8: generate-16-32 通过
+cpu8: generate-128-32 通过

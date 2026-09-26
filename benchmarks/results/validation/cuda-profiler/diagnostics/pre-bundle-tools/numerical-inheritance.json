@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "runtime_source_equal": true,
+  "validation_binary_sha256": "fb9dc71c05a44f19eec764ada02d9a9a6918c89327dd65228ce268f23b213f34",
+  "numeric_comparisons": 12528,
+  "rerun_full_numeric": false,
+  "numerical_source_state_sha256": "ef819201b390cfa46677983e3291202cafec51757d857c183028aaa9b887832b",
+  "numerical_summary_sha256": "6deecc26fdc699c905641da59c8a4938ecdf461bc261d73165894bb598f98fa3",
+  "runtime_source_file_count": 37
+}

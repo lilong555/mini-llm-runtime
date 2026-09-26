@@ -1,0 +1,1 @@
+CUDA 性能证据复核失败：同一 backend 的跨进程输出不同：cpu8/prefill-16，报告 cpu8-aa_cpu8-t0-p1.json

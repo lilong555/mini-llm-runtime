@@ -37,6 +37,12 @@ files are edited. CMake verifies the dependency commit.
 
 基础 CUDA 算子的 gather、归一化、NeoX RoPE、residual、SwiGLU 和 finite/argmax，以及连续 KV、causal GQA 与层串接由本项目实现；block/warp 归约使用 Toolkit 随附的 CUB `BlockReduce` / `WarpReduce`。当前验收环境为 CUB 2.7.0，遵循其 BSD-3-Clause 许可；仓库不复制 CUB 源码。FP16 RN-even 使用 CUDA `__float2half_rn`；CUB 提供归约原语，不提供本项目的模型或 KV 执行。
 
+## NVIDIA Nsight
+
+完整模型诊断使用 NVIDIA Nsight Systems `2026.1.3.425` 和 Nsight Compute `2025.1.1.0`，遵循 NVIDIA 随工具提供的许可。仓库保存项目运行产生的原始报告、SQLite/CSV、命令和摘要，不分发工具二进制。
+
+GPU 时间线和硬件计数器由 Nsight 采集；协议、进程隔离、报告复核和证据封包由项目实现。cuBLAS kernel 仍归 NVIDIA，不以 Profiler 结果宣称其为自研 GEMM。参考入口为 [Nsight Systems 文档](https://docs.nvidia.com/nsight-systems/2026.1/UserGuide/index.html) 与 [Nsight Compute CLI](https://docs.nvidia.com/nsight-compute/2025.1/NsightComputeCli/index.html)；本机实际工具版本、完整参数和原始符号输出见 `benchmarks/results/cuda-model-profiler/`。
+
 ## Model
 
 - Repository: `Qwen/Qwen3-0.6B-GGUF`.

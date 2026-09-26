@@ -1,0 +1,1 @@
+CUDA 完整证据包复核失败：完整包不接受模型、二进制或其他未登记类型：/home/li/code/mini-llm-runtime/benchmarks/results/cuda-micro-baseline/.gitattributes

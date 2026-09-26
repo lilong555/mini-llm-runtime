@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "negatives": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-component-relocation-7t95a68o/missing-raw/verify.py",
+        "--directory",
+        "/tmp/cuda-component-relocation-7t95a68o/missing-raw"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA Profiler 证据复核失败：缺少证据：profiler-raw.zip\n",
+      "name": "missing-raw",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-component-relocation-7t95a68o/ncu-units/verify.py",
+        "--directory",
+        "/tmp/cuda-component-relocation-7t95a68o/ncu-units"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA Profiler 证据复核失败：NCU 指标单位不符：gpu__time_duration.sum\n",
+      "name": "ncu-units",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-component-relocation-7t95a68o/selector/verify.py",
+        "--directory",
+        "/tmp/cuda-component-relocation-7t95a68o/selector"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA Profiler 证据复核失败：Profiler 协议或进程计划不符\n",
+      "name": "selector",
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/tmp/cuda-component-relocation-7t95a68o/relocated/verify.py",
+      "--directory",
+      "/tmp/cuda-component-relocation-7t95a68o/relocated"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"passed\",\n  \"model_forwards\": 585,\n  \"ncu_kernels\": 1,\n  \"artifacts\": 42\n}\n",
+    "stderr": ""
+  },
+  "original_files_unchanged": true,
+  "checked_original_files": 48
+}

@@ -306,12 +306,40 @@ def trial_medians_not_inner_repeats_are_statistical_units():
         invalid(lambda: audit.analyze_pairs(changed, SPEC))
 
 
-def cross_backend_generation_difference_is_not_hidden():
+def paired_token_reports():
     reports = []
     for slot in audit.schedule():
         reports.append(dict(process=slot, mock=dict(cases={
-            w["name"]: dict(samples=[100] * 3, median_ns=100, token_ids=[43 if slot["backend"] == "cuda" else 42])
+            w["name"]: dict(samples=[100] * 3, median_ns=100, token_ids=[42])
             for w in SPEC["workloads"]})))
+    return reports
+
+
+def same_backend_aa_output_difference_is_rejected():
+    for backend in audit.BACKENDS:
+        reports = paired_token_reports()
+        changed = next(report for report in reports if report["process"]["group"] == f"aa_{backend}")
+        changed["mock"]["cases"]["prefill-16"]["token_ids"] = [43]
+        with patch.object(audit, "validate_report", side_effect=lambda r, _: r["mock"]):
+            invalid(lambda: audit.analyze_pairs(reports, SPEC))
+
+
+def same_backend_cross_trial_output_difference_is_rejected():
+    for cpu in audit.BACKENDS[:2]:
+        reports = paired_token_reports()
+        for report in reports:
+            if report["process"]["group"] == f"{cpu}_cuda" and report["process"]["trial"] == 1:
+                report["mock"]["cases"]["prefill-16"]["token_ids"] = [43]
+        with patch.object(audit, "validate_report", side_effect=lambda r, _: r["mock"]):
+            invalid(lambda: audit.analyze_pairs(reports, SPEC))
+
+
+def cross_backend_generation_difference_is_not_hidden():
+    reports = paired_token_reports()
+    for report in reports:
+        if report["process"]["backend"] == "cuda":
+            for case in report["mock"]["cases"].values():
+                case["token_ids"] = [43]
     with patch.object(audit, "validate_report", side_effect=lambda r, _: r["mock"]):
         summary = audit.analyze_pairs(reports, SPEC)
         assert summary["status"] == "correctness_followup_required"
@@ -479,6 +507,7 @@ if __name__ == "__main__":
              no_boolean_nonfinite_or_excluded_sampling_time, wrong_kv_and_device_allocation_are_rejected,
              cuda_transfer_memory_and_weights_are_recomputed,
              exact_noise_boundaries_and_negative_results, trial_medians_not_inner_repeats_are_statistical_units,
+             same_backend_aa_output_difference_is_rejected, same_backend_cross_trial_output_difference_is_rejected,
              cross_backend_generation_difference_is_not_hidden, duplicates_and_path_escapes_are_rejected,
              preflight_and_publication_failure_preserve_previous_outputs,
              portable_full_bundle_revalidation_and_tamper_rejection]

@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/tmp/cuda-token-regression-wfe_ajop/cross-trial-difference/verify.py",
+    "--directory",
+    "/tmp/cuda-token-regression-wfe_ajop/cross-trial-difference"
+  ],
+  "exit_code": 0
+}

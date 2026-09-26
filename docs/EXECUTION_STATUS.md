@@ -1,6 +1,6 @@
 # 项目执行状态
 
-决策入口为 [PROJECT_PLAN_V2](PROJECT_PLAN_V2.md)，立即实施规范为 [CUDA-VS-001](NEXT_SPEC.md)。旧 `PROJECT_PLAN.md` 保留为历史参考。
+决策入口为 [PROJECT_PLAN_V2](PROJECT_PLAN_V2.md)，已验收的自有 CUDA 模型规范为 [CUDA-VS-001](NEXT_SPEC.md)。旧 `PROJECT_PLAN.md` 保留为历史参考。
 
 ## 基点与依赖
 
@@ -21,14 +21,22 @@
 | V2-M1 / Step 6 | 已验收 | 连续 KV 状态、FP16 store、causal GQA attention、完整层、preflight/poisoned 状态 |
 | V2-M1 / Step 7 | 已验收 | 完整 28 层、selected-row LM head、greedy、真实 CLI；S=1/S=4、128 组 logits、六组短金标准 |
 | V2-M1 / Step 8 数值 | 已验收 | 240 个组合、11760 次固定输入与 768 次生成比较；长语料、独立 KV、32-token 续写、计时开关与容量边界 |
-| V2-M1 / Step 8 性能 | 实施中 | 375 项微基准、五个独立 trial 与严格复核完成；顺序相关差异和离散样本保留，正式 70 进程模型 A/A/异构基线待采集 |
-| V2-M1 / Step 9 | 待实施 | 完整模型 Nsight、选定 kernel 的 NCU、完整性能证据包及独立复验 |
-| V2-M2 | 等待完整模型 gate | GPU Serving、HTTP/SSE 和生命周期验收 |
+| V2-M1 / Step 8 性能 | 已验收，测量不确定项保留 | 375 项微基准与正式 70 进程模型基线；正确性、数据路径和跨进程输出一致性通过，24 项比较中 10 项为 `measurement_inconclusive` |
+| V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
+| V2-M2 | 下一阶段，尚未实施 | 完整模型前置门禁已完成；待接入 GPU Serving 并验收 HTTP/SSE 和生命周期 |
 | V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成，[真实形状微基准](CUDA_MICROBENCHMARKS.md) 覆盖矩阵、RMSNorm、RoPE、softmax 与 attention，[模型性能对照](CUDA_BENCHMARKS.md) 提供独立 KV 重建、A/A 采集计划和统计复核。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为正式 70 进程模型对照，随后执行 Step 9 Profiler/完整性能包门禁；当前不代表 V2-M1 整体完成。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成，[真实形状微基准](CUDA_MICROBENCHMARKS.md) 覆盖矩阵、RMSNorm、RoPE、softmax 与 attention，[模型性能对照](CUDA_BENCHMARKS.md) 提供独立 KV 重建、完整 A/A 基线和统计复核，[完整模型 Profiler](CUDA_PROFILING.md) 提供实际时间线与选定 kernel 的硬件指标。V2-M1 的正确性、资源、数据路径和证据门禁已完成，不等于所有性能比较均有确定加速。下一阶段为 V2-M2；GPU Serving 与 GPU PagedAttention 尚未提供。
 
 ## 可复核证据
+
+[CUDA-VS-001 完整证据包](../benchmarks/results/cuda-vs-001/README.md) 包含模型基线、微基准、数值验收、Profiler 和工具回归五个独立组件，ZIP 为 56872322 字节、1050 个文件。独立目录复验通过，缺源码、缺组件、同后端输出变化、NCU 单位错误及派生摘要伪造五项反例均被拒绝，原 ZIP 不变。包内保留各阶段的真实采集身份，不含模型权重、编译产物或依赖 checkout。
+
+[完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 包含五个独立诊断进程，每个进程均执行 585 次 forward。NSys 记录 368610 次 kernel，验证每次 forward 的 28 层、单项目 stream 和显式传输；NCU 选定 forward 55、第 27 层 PV，原始符号与 NSys 精确一致。42 个必需原始产物及三个原始 Profiler 文件可获取，迁移和三项反例通过。legacy software-instrumented trace、未验收的 Unified Memory 跟踪和诊断开销明确保留，不替代正式无 Profiler 基线。
+
+[Profiler 与证据工具验收](../benchmarks/results/validation/cuda-profiler/README.md) 包含自有 CUDA 21/21、CPU 15/15、独立核心 11/11、上游 CUDA 15/15 CTest，共 1034 次用例执行；CPU 模型 13/13、HTTP 8/8。12528 次完整数值比较按相同 Runtime 源码与二进制继承，本组没有重跑全量数值或 sanitizer。236 个登记产物可独立复核，237 个既有文件在迁移检查中不变，三项反例被拒绝。CPU HTTP 不代表 GPU Serving。
+
+[正式 CUDA 模型基线](../benchmarks/results/cuda-model-baseline/README.md) 包含 70 个独立进程、40950 次 forward 和 2520 次 measured repetition；全部进程正常退出，同后端及跨后端 token 一致，稳态数据路径门禁通过。24 项比较中 14 项为 `faster`、10 项因噪声超过 10% 为 `measurement_inconclusive`；不作统一加速或无退化声明。289 个必需原始产物可独立获取，当前复核入口为 `revalidate.py`，295 个既有文件在迁移与五项反例检查中保持不变；见 `ENG-049`、`ENG-051`。
 
 [CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 包含自有 CUDA 18/18、CPU 12/12、独立核心 8/8、上游 CUDA 12/12 CTest，共 926 次用例执行；CPU 模型 13/13、HTTP 8/8 和 CUDA 层级三种 sanitizer 通过。当前二进制的 12528 次完整数值比较通过，最大 RMSE `0.019126342`、最小 cosine `0.999986580`，无 argmax 分歧或 near-tie；415 个产物在独立目录复核，六项归档反例被拒绝。模型基准预检绑定当前源码与数值测试二进制，没有继承旧编译身份。
 
@@ -61,4 +69,4 @@
 - `tests/data/qwen3_validation_cases.json`：Q8_0/F32 参照 SHA-256、源 tensor dtype、数值模式、四类固定 token 语料、长度 16/33/128/256/1536、采样位置、near-tie 公式与三个短样例的 8-token 金标准。
 - `benchmarks/runtime-inputs/qwen3-cuda-v0.json`：S=4、Lmax=2048、B=128、CPU 8/16 线程、5 个独立 trial、A/A 噪声规则及稳态数据路径门禁。
 - `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json`：375 个真实形状、五个独立 trial、每样本 32 次 API 调用、FP64 对照与计时边界。
-- 全量数值、微基准与模型基准工具已有独立验收；冻结模型性能协议仍需完整 A/A/异构采集，不能据数值或微基准宣称模型加速或关闭整个 Step 8。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收；测量不确定项保留。V2-M1 已完成，V2-M2 尚未实施。
