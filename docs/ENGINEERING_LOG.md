@@ -47,8 +47,8 @@
 | ENG-054 | 已解决 | Profiler | NCU 名称简化丢失匿名命名空间前缀 |
 | ENG-055 | 已解决 | 交付文档 | 完整包导出示例遗漏必需目录参数 |
 | ENG-056 | 已解决 | 证据封包 | 归档白名单遗漏 Git 字节保护元数据 |
-| ENG-057 | 待验证 | 跨平台测试 | 中文子进程诊断依赖主机默认编码 |
-| ENG-058 | 待验证 | Windows 构建 | CPU Runtime 缺少直接包含的 array 头文件 |
+| ENG-057 | 已解决 | 跨平台测试 | 中文子进程诊断依赖主机默认编码 |
+| ENG-058 | 已解决 | Windows 构建 | CPU Runtime 缺少直接包含的 array 头文件 |
 | ENG-059 | 已记录 | 本机 Windows 验证 | 非提权进程不能创建测试所需的符号链接 |
 
 ## ENG-001：MSVC 本地化头文件输出
@@ -585,21 +585,21 @@
 
 ## ENG-057：中文子进程诊断依赖主机默认编码
 
-- 状态：待验证，已在 Windows 原生 Python 与 WSL 受控编码环境复现。
+- 状态：已解决，限定于测试对子进程输出的 UTF-8 契约。
 - 影响：Windows CI 的 `cuda-validation-report` 与 `cuda-benchmark-validation` 失败；缺件本身被正确拒绝，但测试不能准确读取中文诊断。
 - 复现条件或证据：提交 `5a4508d` 的 GitHub Actions run `36231354762`，`unit (windows-2025)` 的这两个测试在断言 `"缺少证据" in result.stderr` 时报告 `AssertionError`。设置 `PYTHONIOENCODING=cp1252:backslashreplace` 后，WSL 和 Windows 原生 Python 均复现同一断言失败。
 - 原因：Python 子进程的标准错误编码与父进程 `subprocess.run(text=True)` 的默认解码均受主机环境影响；非 UTF-8 编码会将中文转义或错误解码。CUDA 可执行文件输出 UTF-8 时也不能由父进程默认区域编码解码。
 - 解决方法：测试只对子 Python 进程指定 `PYTHONIOENCODING=utf-8`，读取端显式严格使用 `encoding="utf-8"`；同类微基准和 CUDA CLI 测试沿用同一字节契约。不改变父进程环境、错误判定、数值门槛或统计协议。
-- 验证：WSL 的 `cp1252` 环境下三个相关 CTest 全部通过，共 37 次用例执行；四构建 CTest 共 62 套、1034 次用例执行通过。原生 Windows 的数值报告 13/13、微基准 9/9 在默认编码与 `cp1252` 下均通过，模型基准的目标编码断言两种环境均通过；本机完整模型基准套件受 `ENG-059` 限制，不计为通过。远端 Windows CI 待修复提交复验，旧归档及采集身份保持不变。
+- 验证：WSL 的 `cp1252` 环境下三个相关 CTest 全部通过，共 37 次用例执行；四构建 CTest 共 62 套、1034 次用例执行通过。原生 Windows 的数值报告 13/13、微基准 9/9 在默认编码与 `cp1252` 下均通过，模型基准的目标编码断言两种环境均通过；本机完整模型基准套件受 `ENG-059` 限制，不计为通过。提交 `a0a6214` 的 CI run `36232341864` 全部五个任务通过，包含 Windows 完整基准套件；五份原始 JUnit 共 63 套、1185 次用例执行，位于 `benchmarks/results/ci/a0a6214/`。本机结果和原始失败记录位于 `benchmarks/results/validation/windows-ci/`，旧模型归档及采集身份保持不变。
 
 ## ENG-058：CPU Runtime 缺少直接包含的 array 头文件
 
-- 状态：待验证，Windows CI 的产品构建失败。
+- 状态：已解决，限定于 MSVC 所需的标准头文件完整性。
 - 影响：Windows 的 `minillm_runtime` 无法编译，产品 CTest 尚未执行；Linux 构建通过不能替代此项兼容性验收。
 - 复现条件或证据：提交 `5a4508d` 的 GitHub Actions run `36231354762`，`cpu-product (windows-2025)` 在 `src/minillm/runtime.cpp:182` 报告 `error C2079: 'seen' uses undefined class 'std::array<bool,256>'`，随后出现两条 `error C2109: subscript requires array or pointer type`。
 - 原因：`Runtime::Impl::forward` 使用 `std::array`，实现文件未直接包含 `<array>`；GCC 环境的传递包含不能保证 MSVC 也提供完整定义。
 - 解决方法：在 `src/minillm/runtime.cpp` 直接包含 `<array>`，不改动模型数学、KV 状态或执行流程。
-- 验证：四种本地构建及其 62 套 CTest 全部通过；CPU 实模型 13/13、HTTP 8/8 通过，HTTP 检查结束时活动与等待请求均为 0，临时服务已退出。Windows 产品构建待修复提交的 CI 复验；不将旧二进制的性能或完整 CUDA 数值记录重新归属于本次源码。
+- 验证：四种本地构建及其 62 套 CTest 全部通过；CPU 实模型 13/13、HTTP 8/8 通过，HTTP 检查结束时活动与等待请求均为 0，临时服务已退出。提交 `a0a6214` 的 CI run `36232341864` 中，Windows 产品编译与 15/15 CTest 通过，完整五任务均通过；原始记录位于 `benchmarks/results/ci/a0a6214/`。本地源码快照的 144 个文件与该提交一致，但仍保留采集时的 `5a4508d` dirty 身份；不将旧二进制的性能或完整 CUDA 数值记录重新归属于本次源码。
 
 ## ENG-059：本机 Windows 进程不能创建测试所需的符号链接
 
@@ -608,4 +608,4 @@
 - 复现条件或证据：Windows Python `3.10.11` 执行 `tests/cuda_benchmark_validation_tests.py`，`duplicates_and_path_escapes_are_rejected` 的 `Path.symlink_to` 报告 `OSError: [WinError 1314] 客户端没有所需的特权。`。默认编码和 `cp1252` 运行均遇到相同权限限制。
 - 原因：当前 Windows 进程没有创建符号链接所需的权限；该限制发生在编码断言之前，与归档验证器拒绝符号链接的行为不同。
 - 解决方法或下一步：保留完整测试与失败记录，不跳过符号链接门禁，不自行修改主机权限。编码修复使用原生 Windows 的定向函数检查；完整套件继续在已有权限的 Windows CI 中执行。
-- 验证：本机定向调用 `preflight_and_publication_failure_preserve_previous_outputs` 在两种编码环境均通过；原提交的 Windows CI 已执行到后续编码断言，证明该 CI 环境可以通过符号链接反例。本机权限问题仍未标为已解决。
+- 验证：本机定向调用 `preflight_and_publication_failure_preserve_previous_outputs` 在两种编码环境均通过；CI run `36232341864` 的 Windows 两个任务均完成完整套件，符号链接反例没有被跳过。本机失败输出与定向结果保留在 `benchmarks/results/validation/windows-ci/native-windows/`，本机权限问题仍未标为已解决。

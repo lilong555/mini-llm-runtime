@@ -1,0 +1,708 @@
+﻿2026-09-26T08:58:13.9480952Z Current runner version: '2.337.0'
+2026-09-26T08:58:13.9513412Z ##[group]Runner Image Provisioner
+2026-09-26T08:58:13.9514213Z Hosted Compute Agent
+2026-09-26T08:58:13.9514829Z Version: 20260828.587
+2026-09-26T08:58:13.9515553Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-26T08:58:13.9516242Z Build Date: 2026-08-28T16:44:25Z
+2026-09-26T08:58:13.9516906Z Worker ID: {1a44c0e1-24ca-4f05-b923-7860370f4cf4}
+2026-09-26T08:58:13.9517570Z Azure Region: westus
+2026-09-26T08:58:13.9518100Z ##[endgroup]
+2026-09-26T08:58:13.9519730Z ##[group]Operating System
+2026-09-26T08:58:13.9520523Z Microsoft Windows Server 2025
+2026-09-26T08:58:13.9521135Z 10.0.26100
+2026-09-26T08:58:13.9521606Z Datacenter
+2026-09-26T08:58:13.9522125Z ##[endgroup]
+2026-09-26T08:58:13.9522626Z ##[group]Runner Image
+2026-09-26T08:58:13.9523179Z Image: windows-2025-vs2026
+2026-09-26T08:58:13.9523748Z Version: 20260922.246.2
+2026-09-26T08:58:13.9525287Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260922.246/images/windows/Windows2025-VS2026-Readme.md
+2026-09-26T08:58:13.9527008Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260922.246
+2026-09-26T08:58:13.9527939Z ##[endgroup]
+2026-09-26T08:58:13.9529055Z ##[group]GITHUB_TOKEN Permissions
+2026-09-26T08:58:13.9530930Z Contents: read
+2026-09-26T08:58:13.9531539Z Metadata: read
+2026-09-26T08:58:13.9532356Z ##[endgroup]
+2026-09-26T08:58:13.9534556Z Secret source: Actions
+2026-09-26T08:58:13.9535466Z Cache mode: write
+2026-09-26T08:58:13.9536157Z Prepare workflow directory
+2026-09-26T08:58:13.9907334Z Prepare all required actions
+2026-09-26T08:58:13.9956505Z Getting action download info
+2026-09-26T08:58:14.3170572Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-26T08:58:14.4575043Z Download action repository 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a' (SHA:043fb46d1a93c77aae656e7c1c64a875d1fc6a0a)
+2026-09-26T08:58:14.6883376Z Complete job name: cpu-product (windows-2025)
+2026-09-26T08:58:14.8262931Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-09-26T08:58:14.8264292Z with:
+2026-09-26T08:58:14.8264783Z   repository: lilong555/mini-llm-runtime
+2026-09-26T08:58:14.8268837Z   token: ***
+2026-09-26T08:58:14.8269287Z   ssh-strict: true
+2026-09-26T08:58:14.8269742Z   ssh-user: git
+2026-09-26T08:58:14.8270201Z   persist-credentials: true
+2026-09-26T08:58:14.8270700Z   clean: true
+2026-09-26T08:58:14.8271148Z   sparse-checkout-cone-mode: true
+2026-09-26T08:58:14.8271683Z   fetch-depth: 1
+2026-09-26T08:58:14.8272129Z   fetch-tags: false
+2026-09-26T08:58:14.8272584Z   show-progress: true
+2026-09-26T08:58:14.8273051Z   lfs: false
+2026-09-26T08:58:14.8273466Z   submodules: false
+2026-09-26T08:58:14.8273919Z   set-safe-directory: true
+2026-09-26T08:58:14.8274451Z   allow-unsafe-pr-checkout: false
+2026-09-26T08:58:14.8275243Z ##[endgroup]
+2026-09-26T08:58:14.9894426Z Syncing repository: lilong555/mini-llm-runtime
+2026-09-26T08:58:14.9898623Z ##[group]Getting Git version info
+2026-09-26T08:58:14.9899744Z Working directory is 'D:\a\mini-llm-runtime\mini-llm-runtime'
+2026-09-26T08:58:15.1034067Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T08:58:15.4941749Z git version 2.55.0.windows.5
+2026-09-26T08:58:15.4997177Z ##[endgroup]
+2026-09-26T08:58:15.5015017Z Temporarily overriding HOME='D:\a\_temp\e3dc1e8d-4092-450c-a436-097bf0fcccd6' before making global git config changes
+2026-09-26T08:58:15.5016883Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T08:58:15.5025557Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T08:58:15.5604483Z Deleting the contents of 'D:\a\mini-llm-runtime\mini-llm-runtime'
+2026-09-26T08:58:15.5610690Z ##[group]Determining repository object format
+2026-09-26T08:58:15.5613736Z ##[endgroup]
+2026-09-26T08:58:15.5618131Z ##[group]Initializing the repository
+2026-09-26T08:58:15.5623416Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T08:58:15.6430892Z Initialized empty Git repository in D:/a/mini-llm-runtime/mini-llm-runtime/.git/
+2026-09-26T08:58:15.6477012Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/lilong555/mini-llm-runtime
+2026-09-26T08:58:15.7059624Z ##[endgroup]
+2026-09-26T08:58:15.7061133Z ##[group]Disabling automatic garbage collection
+2026-09-26T08:58:15.7068198Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-09-26T08:58:15.7373489Z ##[endgroup]
+2026-09-26T08:58:15.7375930Z ##[group]Setting up auth
+2026-09-26T08:58:15.7377698Z Removing SSH command configuration
+2026-09-26T08:58:15.7385529Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T08:58:15.7692340Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T08:58:17.1422622Z Removing HTTP extra header
+2026-09-26T08:58:17.1432066Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T08:58:17.1738124Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T08:58:17.7032324Z Removing includeIf entries pointing to credentials config files
+2026-09-26T08:58:17.7046602Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T08:58:17.7370115Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T08:58:18.3031673Z [command]"C:\Program Files\Git\bin\git.exe" config --file D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-09-26T08:58:18.3359398Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T08:58:18.3669695Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T08:58:18.4029768Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T08:58:18.4435250Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T08:58:18.4745380Z ##[endgroup]
+2026-09-26T08:58:18.4746463Z ##[group]Fetching the repository
+2026-09-26T08:58:18.4759577Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5a4508d6ace7777e39460675de9ed770fcb66d43:refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:22.8708116Z From https://github.com/lilong555/mini-llm-runtime
+2026-09-26T08:58:22.8708918Z  * [new ref]         5a4508d6ace7777e39460675de9ed770fcb66d43 -> origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:22.8761569Z [command]"C:\Program Files\Git\bin\git.exe" branch --list --remote origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:22.9130056Z   origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:22.9175735Z [command]"C:\Program Files\Git\bin\git.exe" rev-parse refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:22.9441640Z 5a4508d6ace7777e39460675de9ed770fcb66d43
+2026-09-26T08:58:22.9472647Z ##[endgroup]
+2026-09-26T08:58:22.9473045Z ##[group]Determining the checkout info
+2026-09-26T08:58:22.9473691Z ##[endgroup]
+2026-09-26T08:58:22.9481849Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-09-26T08:58:22.9902298Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-09-26T08:58:23.0198536Z ##[group]Checking out the ref
+2026-09-26T08:58:23.0207452Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B feat/own-cuda-vertical-slice refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:24.1714681Z Updating files:  72% (2153/2958)
+2026-09-26T08:58:24.1788430Z Updating files:  73% (2160/2958)
+2026-09-26T08:58:24.1862818Z Updating files:  74% (2189/2958)
+2026-09-26T08:58:24.1946953Z Updating files:  75% (2219/2958)
+2026-09-26T08:58:24.2025430Z Updating files:  76% (2249/2958)
+2026-09-26T08:58:24.2116934Z Updating files:  77% (2278/2958)
+2026-09-26T08:58:24.2229725Z Updating files:  78% (2308/2958)
+2026-09-26T08:58:24.2334658Z Updating files:  79% (2337/2958)
+2026-09-26T08:58:24.2410280Z Updating files:  80% (2367/2958)
+2026-09-26T08:58:24.2895845Z Updating files:  81% (2396/2958)
+2026-09-26T08:58:24.2979163Z Updating files:  82% (2426/2958)
+2026-09-26T08:58:24.3049083Z Updating files:  83% (2456/2958)
+2026-09-26T08:58:24.3197738Z Updating files:  84% (2485/2958)
+2026-09-26T08:58:24.3289895Z Updating files:  85% (2515/2958)
+2026-09-26T08:58:24.3385080Z Updating files:  86% (2544/2958)
+2026-09-26T08:58:24.3567316Z Updating files:  87% (2574/2958)
+2026-09-26T08:58:24.3689583Z Updating files:  88% (2604/2958)
+2026-09-26T08:58:24.3821448Z Updating files:  89% (2633/2958)
+2026-09-26T08:58:24.3931500Z Updating files:  90% (2663/2958)
+2026-09-26T08:58:24.4004548Z Updating files:  91% (2692/2958)
+2026-09-26T08:58:24.4088737Z Updating files:  92% (2722/2958)
+2026-09-26T08:58:24.4456422Z Updating files:  93% (2751/2958)
+2026-09-26T08:58:24.5127984Z Updating files:  94% (2781/2958)
+2026-09-26T08:58:24.5220386Z Updating files:  95% (2811/2958)
+2026-09-26T08:58:24.5300066Z Updating files:  96% (2840/2958)
+2026-09-26T08:58:24.5383569Z Updating files:  97% (2870/2958)
+2026-09-26T08:58:24.5466539Z Updating files:  98% (2899/2958)
+2026-09-26T08:58:24.5553166Z Updating files:  99% (2929/2958)
+2026-09-26T08:58:24.5553824Z Updating files: 100% (2958/2958)
+2026-09-26T08:58:24.5554389Z Updating files: 100% (2958/2958), done.
+2026-09-26T08:58:24.5977635Z Switched to a new branch 'feat/own-cuda-vertical-slice'
+2026-09-26T08:58:24.6066743Z branch 'feat/own-cuda-vertical-slice' set up to track 'origin/feat/own-cuda-vertical-slice'.
+2026-09-26T08:58:24.6272715Z ##[endgroup]
+2026-09-26T08:58:24.6706525Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-09-26T08:58:24.6993295Z 5a4508d6ace7777e39460675de9ed770fcb66d43
+2026-09-26T08:58:24.7540164Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-09-26T08:58:24.7540615Z with:
+2026-09-26T08:58:24.7540827Z   repository: ggml-org/llama.cpp
+2026-09-26T08:58:24.7541108Z   ref: 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+2026-09-26T08:58:24.7541410Z   path: third_party/llama.cpp
+2026-09-26T08:58:24.7541646Z   persist-credentials: false
+2026-09-26T08:58:24.7544120Z   token: ***
+2026-09-26T08:58:24.7544318Z   ssh-strict: true
+2026-09-26T08:58:24.7544512Z   ssh-user: git
+2026-09-26T08:58:24.7544689Z   clean: true
+2026-09-26T08:58:24.7544887Z   sparse-checkout-cone-mode: true
+2026-09-26T08:58:24.7545141Z   fetch-depth: 1
+2026-09-26T08:58:24.7545325Z   fetch-tags: false
+2026-09-26T08:58:24.7545518Z   show-progress: true
+2026-09-26T08:58:24.7545711Z   lfs: false
+2026-09-26T08:58:24.7545888Z   submodules: false
+2026-09-26T08:58:24.7546091Z   set-safe-directory: true
+2026-09-26T08:58:24.7546323Z   allow-unsafe-pr-checkout: false
+2026-09-26T08:58:24.7546605Z ##[endgroup]
+2026-09-26T08:58:24.8715492Z Syncing repository: ggml-org/llama.cpp
+2026-09-26T08:58:24.8725012Z ##[group]Getting Git version info
+2026-09-26T08:58:24.8725566Z Working directory is 'D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp'
+2026-09-26T08:58:24.9665232Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T08:58:24.9948061Z git version 2.55.0.windows.5
+2026-09-26T08:58:24.9997949Z ##[endgroup]
+2026-09-26T08:58:25.0013669Z Temporarily overriding HOME='D:\a\_temp\43a56b9e-2a62-40c7-b4b3-0f2babe49b15' before making global git config changes
+2026-09-26T08:58:25.0014412Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T08:58:25.0024881Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp
+2026-09-26T08:58:25.0349952Z ##[group]Determining repository object format
+2026-09-26T08:58:25.0352551Z ##[endgroup]
+2026-09-26T08:58:25.0353150Z ##[group]Initializing the repository
+2026-09-26T08:58:25.0363469Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp
+2026-09-26T08:58:25.0751254Z Initialized empty Git repository in D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git/
+2026-09-26T08:58:25.0805188Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/ggml-org/llama.cpp
+2026-09-26T08:58:25.1152091Z ##[endgroup]
+2026-09-26T08:58:25.1152760Z ##[group]Disabling automatic garbage collection
+2026-09-26T08:58:25.1162945Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-09-26T08:58:25.1552453Z ##[endgroup]
+2026-09-26T08:58:25.1553081Z ##[group]Setting up auth
+2026-09-26T08:58:25.1553805Z Removing SSH command configuration
+2026-09-26T08:58:25.1565515Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T08:58:25.1902530Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T08:58:25.7595895Z Removing HTTP extra header
+2026-09-26T08:58:25.7611239Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T08:58:25.7938515Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T08:58:26.3303732Z Removing includeIf entries pointing to credentials config files
+2026-09-26T08:58:26.3314053Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T08:58:26.3618305Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T08:58:26.9453629Z [command]"C:\Program Files\Git\bin\git.exe" config --file D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-09-26T08:58:26.9763978Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git.path D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:27.0071741Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git/worktrees/*.path D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:27.0381873Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/third_party/llama.cpp/.git.path /github/runner_temp/git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:27.0697439Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/third_party/llama.cpp/.git/worktrees/*.path /github/runner_temp/git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:27.1061387Z ##[endgroup]
+2026-09-26T08:58:27.1061955Z ##[group]Fetching the repository
+2026-09-26T08:58:27.1070832Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+2026-09-26T08:58:29.9009231Z From https://github.com/ggml-org/llama.cpp
+2026-09-26T08:58:29.9010600Z  * branch            911f6cdc8ab8a530b2bee09ee61471a6f3178eeb -> FETCH_HEAD
+2026-09-26T08:58:29.9058240Z [command]"C:\Program Files\Git\bin\git.exe" rev-parse --verify --quiet 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb^{object}
+2026-09-26T08:58:29.9332328Z 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+2026-09-26T08:58:29.9364960Z ##[endgroup]
+2026-09-26T08:58:29.9365551Z ##[group]Determining the checkout info
+2026-09-26T08:58:29.9366321Z ##[endgroup]
+2026-09-26T08:58:29.9376134Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-09-26T08:58:29.9732425Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-09-26T08:58:30.0038164Z ##[group]Checking out the ref
+2026-09-26T08:58:30.0046426Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+2026-09-26T08:58:31.1746327Z Updating files:  57% (2070/3602)
+2026-09-26T08:58:31.1838292Z Updating files:  58% (2090/3602)
+2026-09-26T08:58:31.1932371Z Updating files:  59% (2126/3602)
+2026-09-26T08:58:31.2021958Z Updating files:  60% (2162/3602)
+2026-09-26T08:58:31.2131902Z Updating files:  61% (2198/3602)
+2026-09-26T08:58:31.2253035Z Updating files:  62% (2234/3602)
+2026-09-26T08:58:31.2378509Z Updating files:  63% (2270/3602)
+2026-09-26T08:58:31.2489022Z Updating files:  64% (2306/3602)
+2026-09-26T08:58:31.2590922Z Updating files:  65% (2342/3602)
+2026-09-26T08:58:31.2699572Z Updating files:  66% (2378/3602)
+2026-09-26T08:58:31.2791888Z Updating files:  67% (2414/3602)
+2026-09-26T08:58:31.2903168Z Updating files:  68% (2450/3602)
+2026-09-26T08:58:31.3094026Z Updating files:  69% (2486/3602)
+2026-09-26T08:58:31.3197441Z Updating files:  70% (2522/3602)
+2026-09-26T08:58:31.3299201Z Updating files:  71% (2558/3602)
+2026-09-26T08:58:31.3427185Z Updating files:  72% (2594/3602)
+2026-09-26T08:58:31.3515205Z Updating files:  73% (2630/3602)
+2026-09-26T08:58:31.3686045Z Updating files:  74% (2666/3602)
+2026-09-26T08:58:31.3814741Z Updating files:  75% (2702/3602)
+2026-09-26T08:58:31.3911397Z Updating files:  76% (2738/3602)
+2026-09-26T08:58:31.4031634Z Updating files:  77% (2774/3602)
+2026-09-26T08:58:31.4127798Z Updating files:  78% (2810/3602)
+2026-09-26T08:58:31.4226065Z Updating files:  79% (2846/3602)
+2026-09-26T08:58:31.4331965Z Updating files:  80% (2882/3602)
+2026-09-26T08:58:31.4431263Z Updating files:  81% (2918/3602)
+2026-09-26T08:58:31.4522156Z Updating files:  82% (2954/3602)
+2026-09-26T08:58:31.4613372Z Updating files:  83% (2990/3602)
+2026-09-26T08:58:31.4710729Z Updating files:  84% (3026/3602)
+2026-09-26T08:58:31.4796725Z Updating files:  85% (3062/3602)
+2026-09-26T08:58:31.4876108Z Updating files:  86% (3098/3602)
+2026-09-26T08:58:31.4964056Z Updating files:  87% (3134/3602)
+2026-09-26T08:58:31.5038544Z Updating files:  88% (3170/3602)
+2026-09-26T08:58:31.5118686Z Updating files:  89% (3206/3602)
+2026-09-26T08:58:31.5242534Z Updating files:  90% (3242/3602)
+2026-09-26T08:58:31.5340157Z Updating files:  91% (3278/3602)
+2026-09-26T08:58:31.5448798Z Updating files:  92% (3314/3602)
+2026-09-26T08:58:31.5532957Z Updating files:  93% (3350/3602)
+2026-09-26T08:58:31.5613528Z Updating files:  94% (3386/3602)
+2026-09-26T08:58:31.5790485Z Updating files:  95% (3422/3602)
+2026-09-26T08:58:31.5885971Z Updating files:  96% (3458/3602)
+2026-09-26T08:58:31.6026760Z Updating files:  97% (3494/3602)
+2026-09-26T08:58:31.6110665Z Updating files:  98% (3530/3602)
+2026-09-26T08:58:31.6546572Z Updating files:  99% (3566/3602)
+2026-09-26T08:58:31.6547086Z Updating files: 100% (3602/3602)
+2026-09-26T08:58:31.6547432Z Updating files: 100% (3602/3602), done.
+2026-09-26T08:58:31.6681547Z Note: switching to '911f6cdc8ab8a530b2bee09ee61471a6f3178eeb'.
+2026-09-26T08:58:31.6682071Z 
+2026-09-26T08:58:31.6682394Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-26T08:58:31.6683167Z changes and commit them, and you can discard any commits you make in this
+2026-09-26T08:58:31.6683861Z state without impacting any branches by switching back to a branch.
+2026-09-26T08:58:31.6684267Z 
+2026-09-26T08:58:31.6684566Z If you want to create a new branch to retain commits you create, you may
+2026-09-26T08:58:31.6685071Z do so (now or later) by using -c with the switch command. Example:
+2026-09-26T08:58:31.6685349Z 
+2026-09-26T08:58:31.6685509Z   git switch -c <new-branch-name>
+2026-09-26T08:58:31.6685714Z 
+2026-09-26T08:58:31.6685811Z Or undo this operation with:
+2026-09-26T08:58:31.6685986Z 
+2026-09-26T08:58:31.6686069Z   git switch -
+2026-09-26T08:58:31.6686198Z 
+2026-09-26T08:58:31.6686424Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-26T08:58:31.6686765Z 
+2026-09-26T08:58:31.6686982Z HEAD is now at 911f6cd ggml : handle graph buffer reservation failure (#26070)
+2026-09-26T08:58:31.6795938Z ##[endgroup]
+2026-09-26T08:58:31.7123406Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-09-26T08:58:31.7403941Z 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
+2026-09-26T08:58:31.7444941Z ##[group]Removing auth
+2026-09-26T08:58:31.7445356Z Removing SSH command configuration
+2026-09-26T08:58:31.7454028Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T08:58:31.7764303Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T08:58:32.3157215Z Removing HTTP extra header
+2026-09-26T08:58:32.3167563Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T08:58:32.3477642Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T08:58:32.9007765Z Removing includeIf entries pointing to credentials config files
+2026-09-26T08:58:32.9018482Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T08:58:32.9298389Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git.path
+2026-09-26T08:58:32.9299597Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git/worktrees/*.path
+2026-09-26T08:58:32.9300234Z includeif.gitdir:/github/workspace/third_party/llama.cpp/.git.path
+2026-09-26T08:58:32.9301096Z includeif.gitdir:/github/workspace/third_party/llama.cpp/.git/worktrees/*.path
+2026-09-26T08:58:32.9342940Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git.path
+2026-09-26T08:58:32.9645800Z D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:32.9698999Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git.path D\:\\a\\_temp\\git\-credentials\-0bac92e3\-b839\-4e85\-baa6\-d316f54adb2c\.config
+2026-09-26T08:58:33.0096339Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git/worktrees/*.path
+2026-09-26T08:58:33.0389054Z D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:33.0438108Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/.git/worktrees/*.path D\:\\a\\_temp\\git\-credentials\-0bac92e3\-b839\-4e85\-baa6\-d316f54adb2c\.config
+2026-09-26T08:58:33.0780036Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/third_party/llama.cpp/.git.path
+2026-09-26T08:58:33.1047401Z /github/runner_temp/git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:33.1088522Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/third_party/llama.cpp/.git.path \/github\/runner_temp\/git\-credentials\-0bac92e3\-b839\-4e85\-baa6\-d316f54adb2c\.config
+2026-09-26T08:58:33.1398073Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/third_party/llama.cpp/.git/worktrees/*.path
+2026-09-26T08:58:33.1669220Z /github/runner_temp/git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config
+2026-09-26T08:58:33.1712189Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/third_party/llama.cpp/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-0bac92e3\-b839\-4e85\-baa6\-d316f54adb2c\.config
+2026-09-26T08:58:33.2031747Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T08:58:33.7372226Z Removing credentials config 'D:\a\_temp\git-credentials-0bac92e3-b839-4e85-baa6-d316f54adb2c.config'
+2026-09-26T08:58:33.7384172Z ##[endgroup]
+2026-09-26T08:58:33.7690681Z ##[group]Run cmake -S . -B build -DLLMSERVE_CUDA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release
+2026-09-26T08:58:33.7691563Z [36;1mcmake -S . -B build -DLLMSERVE_CUDA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release[0m
+2026-09-26T08:58:33.8488006Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:58:33.8488464Z ##[endgroup]
+2026-09-26T08:58:43.9865319Z -- Building for: Visual Studio 18 2026
+2026-09-26T08:58:43.9865932Z -- The C compiler identification is MSVC 19.51.36257.0
+2026-09-26T08:58:45.3976621Z -- The CXX compiler identification is MSVC 19.51.36257.0
+2026-09-26T08:58:45.5116215Z -- Detecting C compiler ABI info
+2026-09-26T08:58:46.5489408Z -- Detecting C compiler ABI info - done
+2026-09-26T08:58:46.5860592Z -- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+2026-09-26T08:58:46.5871915Z -- Detecting C compile features
+2026-09-26T08:58:46.5887805Z -- Detecting C compile features - done
+2026-09-26T08:58:46.6565406Z -- Detecting CXX compiler ABI info
+2026-09-26T08:58:47.3910583Z -- Detecting CXX compiler ABI info - done
+2026-09-26T08:58:47.4101810Z -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+2026-09-26T08:58:47.4107312Z -- Detecting CXX compile features
+2026-09-26T08:58:47.4116305Z -- Detecting CXX compile features - done
+2026-09-26T08:58:47.4475403Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+2026-09-26T08:58:48.6975202Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+2026-09-26T08:58:48.6975903Z -- Looking for pthread_create in pthreads
+2026-09-26T08:58:49.2924862Z -- Looking for pthread_create in pthreads - not found
+2026-09-26T08:58:49.2925601Z -- Looking for pthread_create in pthread
+2026-09-26T08:58:49.8748912Z -- Looking for pthread_create in pthread - not found
+2026-09-26T08:58:49.8849688Z -- Found Threads: TRUE
+2026-09-26T08:58:49.9341984Z -- Found Git: C:/Program Files/Git/bin/git.exe (found version "2.55.0.windows.5")
+2026-09-26T08:58:49.9663111Z -- llama.cpp version: 0.4.1-dev
+2026-09-26T08:58:49.9663445Z CMAKE_BUILD_TYPE=Release
+2026-09-26T08:58:50.2669781Z -- The ASM compiler identification is MSVC
+2026-09-26T08:58:50.2671108Z CMake Warning (policy) at C:/Program Files/CMake/share/cmake-4.4/Modules/CMakeDetermineASMCompiler.cmake:237 (cmake_policy):
+2026-09-26T08:58:50.2672355Z   Policy CMP0194 is not set: MSVC is not an assembler for language ASM.  Run
+2026-09-26T08:58:50.2673257Z   "cmake --help-policy CMP0194" for policy details.  Use the cmake_policy
+2026-09-26T08:58:50.2674006Z   command to set the policy and suppress this warning.
+2026-09-26T08:58:50.2674571Z Call Stack (most recent call first):
+2026-09-26T08:58:50.2675110Z   third_party/llama.cpp/ggml/CMakeLists.txt:3 (project)
+2026-09-26T08:58:50.2675924Z This warning is for project developers.  Use -Wno-author or -Wno-policy to
+2026-09-26T08:58:50.2676582Z suppress it.
+2026-09-26T08:58:50.2676762Z 
+2026-09-26T08:58:50.2722239Z -- Found assembler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe
+2026-09-26T08:58:50.4047841Z -- ccache found, compilation results will be cached. Disable with GGML_CCACHE=OFF.
+2026-09-26T08:58:50.4206002Z -- CMAKE_SYSTEM_PROCESSOR: AMD64
+2026-09-26T08:58:50.4206336Z -- CMAKE_GENERATOR_PLATFORM: 
+2026-09-26T08:58:50.4206707Z -- GGML_SYSTEM_ARCH: x86
+2026-09-26T08:58:53.1646071Z -- Found OpenMP_C: -openmp (found version "2.0")
+2026-09-26T08:58:54.7294399Z -- Found OpenMP_CXX: -openmp (found version "2.0")
+2026-09-26T08:58:54.7300064Z -- Found OpenMP: TRUE (found version "2.0")
+2026-09-26T08:58:54.7611236Z -- Including CPU backend
+2026-09-26T08:58:54.8136587Z -- x86 detected
+2026-09-26T08:58:54.8696899Z -- Performing Test HAS_AVX_1
+2026-09-26T08:58:56.3672086Z -- Performing Test HAS_AVX_1 - Success
+2026-09-26T08:58:56.3678732Z -- Performing Test HAS_AVX2_1
+2026-09-26T08:58:57.1612814Z -- Performing Test HAS_AVX2_1 - Success
+2026-09-26T08:58:57.1616007Z -- Performing Test HAS_FMA_1
+2026-09-26T08:58:57.9311802Z -- Performing Test HAS_FMA_1 - Success
+2026-09-26T08:58:57.9314877Z -- Performing Test HAS_AVX512_1
+2026-09-26T08:58:58.7547583Z -- Performing Test HAS_AVX512_1 - Failed
+2026-09-26T08:58:58.7551044Z -- Performing Test HAS_AVX512_2
+2026-09-26T08:58:59.5517970Z -- Performing Test HAS_AVX512_2 - Failed
+2026-09-26T08:58:59.5520842Z -- Adding CPU backend variant ggml-cpu: /arch:AVX2 GGML_AVX2;GGML_FMA;GGML_F16C
+2026-09-26T08:58:59.5696518Z -- ggml version: 0.24.0
+2026-09-26T08:58:59.5697014Z -- ggml commit:  911f6cd
+2026-09-26T08:59:06.9696975Z -- Configuring done (32.1s)
+2026-09-26T08:59:07.3992681Z -- Generating done (0.4s)
+2026-09-26T08:59:07.4006554Z -- Build files have been written to: D:/a/mini-llm-runtime/mini-llm-runtime/build
+2026-09-26T08:59:07.5438034Z ##[group]Run cmake --build build --config Release --parallel 4
+2026-09-26T08:59:07.5438547Z [36;1mcmake --build build --config Release --parallel 4[0m
+2026-09-26T08:59:07.5514105Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:59:07.5514650Z ##[endgroup]
+2026-09-26T08:59:08.0110652Z MSBuild version 18.10.1-1.26427.6+3cd27c13e for .NET Framework
+2026-09-26T08:59:08.0582508Z 
+2026-09-26T08:59:08.3832017Z   1>Checking Build System
+2026-09-26T08:59:08.9129833Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/ggml/src/CMakeLists.txt
+2026-09-26T08:59:09.3727783Z   ggml.c
+2026-09-26T08:59:09.4085481Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:09.4521482Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:09.6046818Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:09.7627664Z   httplib.cpp
+2026-09-26T08:59:09.9155699Z   kernels.cpp
+2026-09-26T08:59:10.0616639Z   config.cpp
+2026-09-26T08:59:10.1757951Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/vendor/hash/CMakeLists.txt
+2026-09-26T08:59:10.2582421Z   hash.cpp
+2026-09-26T08:59:11.3290130Z   paged_kv.cpp
+2026-09-26T08:59:11.5474799Z   block_pool.cpp
+2026-09-26T08:59:12.0731732Z cl : command line  warning D9025: overriding '/W1' with '/w' [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\vendor\hash\vendor-hash.vcxproj]
+2026-09-26T08:59:12.1390306Z   xxhash.c
+2026-09-26T08:59:12.1655438Z   sha256.c
+2026-09-26T08:59:12.1819561Z   Generating Code...
+2026-09-26T08:59:12.5313452Z   ggml.cpp
+2026-09-26T08:59:13.1123340Z   parallel.cpp
+2026-09-26T08:59:13.1984085Z   prefix_index.cpp
+2026-09-26T08:59:13.7139640Z   ggml-alloc.c
+2026-09-26T08:59:13.8177757Z   ggml-quants.c
+2026-09-26T08:59:13.8732251Z cl : command line  warning D9025: overriding '/W1' with '/w' [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\vendor\hash\vendor-hash.vcxproj]
+2026-09-26T08:59:13.8897542Z   sha1.c
+2026-09-26T08:59:14.1012711Z   Generating Code...
+2026-09-26T08:59:15.1593476Z D:\a\mini-llm-runtime\mini-llm-runtime\include\minillm\parallel.h(31,5): warning C4324: 'minillm::ParallelExecutor::WorkerProfile': structure was padded due to alignment specifier [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_compute.vcxproj]
+2026-09-26T08:59:15.1929030Z   (compiling source file '../src/minillm/parallel.cpp')
+2026-09-26T08:59:15.2254090Z   
+2026-09-26T08:59:15.7468203Z   vendor-hash.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\vendor\hash\Release\vendor-hash.lib
+2026-09-26T08:59:16.1076074Z   scheduler.cpp
+2026-09-26T08:59:18.2002634Z   utf8.cpp
+2026-09-26T08:59:18.3879707Z   Generating Code...
+2026-09-26T08:59:19.1734519Z   ggml-backend.cpp
+2026-09-26T08:59:19.3380706Z   kernels_avx2.cpp
+2026-09-26T08:59:19.3508099Z   engine.cpp
+2026-09-26T08:59:20.1059659Z   minillm_compute.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\minillm_compute.lib
+2026-09-26T08:59:20.2335646Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:20.2336693Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:20.3097252Z   ggml-backend-meta.cpp
+2026-09-26T08:59:20.3877773Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:20.3916491Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:22.5935126Z   ggml-opt.cpp
+2026-09-26T08:59:23.6767858Z   cuda_micro_tests.cpp
+2026-09-26T08:59:23.7535764Z   kv_cache_bench.cpp
+2026-09-26T08:59:24.6464942Z   cuda_benchmark_tests.cpp
+2026-09-26T08:59:24.8089263Z   ggml-threading.cpp
+2026-09-26T08:59:26.2698537Z   gguf.cpp
+2026-09-26T08:59:26.5945066Z   Generating Code...
+2026-09-26T08:59:29.9767694Z   Generating Code...
+2026-09-26T08:59:37.4792253Z   kernel_bench.cpp
+2026-09-26T08:59:46.5105537Z   llmserve_core.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\llmserve_core.lib
+2026-09-26T08:59:46.6339531Z   ggml-base.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\ggml\src\Release\ggml-base.lib
+2026-09-26T08:59:48.6346158Z   mini-kv-cache-bench.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\mini-kv-cache-bench.exe
+2026-09-26T08:59:49.2858136Z   llmserve_http_vendor.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\llmserve_http_vendor.lib
+2026-09-26T08:59:49.7323794Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/ggml/src/CMakeLists.txt
+2026-09-26T08:59:49.8922624Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:49.9128034Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:49.9524889Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:50.0559732Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:50.1911958Z   http_tests.cpp
+2026-09-26T08:59:50.2554498Z   http_server.cpp
+2026-09-26T08:59:50.3638303Z   core_tests.cpp
+2026-09-26T08:59:50.7095988Z   minillm-cuda-micro-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\minillm-cuda-micro-tests.exe
+2026-09-26T08:59:54.8298490Z   bench_main.cpp
+2026-09-26T08:59:54.8897816Z   mini-kernel-bench.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\mini-kernel-bench.exe
+2026-09-26T08:59:56.2727386Z   minillm-cuda-benchmark-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\minillm-cuda-benchmark-tests.exe
+2026-09-26T08:59:56.4116113Z   ggml-cpu.c
+2026-09-26T08:59:58.4761131Z   ggml-cpu.cpp
+2026-09-26T09:00:01.0022171Z   repack.cpp
+2026-09-26T09:00:01.2676030Z   llmserve-unit-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\llmserve-unit-tests.exe
+2026-09-26T09:00:07.3005305Z   iqp.cpp
+2026-09-26T09:00:08.8058938Z   hbm.cpp
+2026-09-26T09:00:09.0440038Z   traits.cpp
+2026-09-26T09:00:10.6408862Z   amx.cpp
+2026-09-26T09:00:12.4044940Z   mmq.cpp
+2026-09-26T09:00:14.0223666Z   binary-ops.cpp
+2026-09-26T09:00:15.3439436Z   unary-ops.cpp
+2026-09-26T09:00:16.2999541Z   llmserve_http.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\llmserve_http.lib
+2026-09-26T09:00:16.3121065Z   vec.cpp
+2026-09-26T09:00:16.8426274Z   ops.cpp
+2026-09-26T09:00:17.1216518Z   llmserve-http-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\llmserve-http-tests.exe
+2026-09-26T09:00:17.4503874Z   sgemm.cpp
+2026-09-26T09:00:17.8206018Z   Generating Code...
+2026-09-26T09:00:18.1075978Z   llmserve-bench.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\llmserve-bench.exe
+2026-09-26T09:00:22.7702460Z   quants.c
+2026-09-26T09:00:23.4437099Z   quants.c
+2026-09-26T09:00:23.8807505Z   repack.cpp
+2026-09-26T09:00:25.1096188Z   ggml-cpu.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\ggml\src\Release\ggml-cpu.lib
+2026-09-26T09:00:25.1681265Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/ggml/src/CMakeLists.txt
+2026-09-26T09:00:25.2452933Z   ggml-backend-dl.cpp
+2026-09-26T09:00:26.2841781Z   ggml-backend-reg.cpp
+2026-09-26T09:00:27.4421539Z   Generating Code...
+2026-09-26T09:00:28.2338970Z   ggml.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\ggml\src\Release\ggml.lib
+2026-09-26T09:00:28.2885455Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/third_party/llama.cpp/src/CMakeLists.txt
+2026-09-26T09:00:28.3347217Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(1151,5): warning MSB8027: Two or more files with the name of llama.cpp will produce outputs to the same location. This can lead to an incorrect build result.  The files involved are D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama.cpp, D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\models\llama.cpp. [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:00:28.4324475Z   unity_9_cxx.cxx
+2026-09-26T09:00:29.3931639Z   unity_8_cxx.cxx
+2026-09-26T09:00:30.6873823Z   unity_7_cxx.cxx
+2026-09-26T09:00:31.7023416Z   unity_6_cxx.cxx
+2026-09-26T09:00:32.6925341Z   unity_5_cxx.cxx
+2026-09-26T09:00:33.9087215Z   unity_4_cxx.cxx
+2026-09-26T09:00:35.1136754Z   unity_3_cxx.cxx
+2026-09-26T09:00:36.5126809Z   unity_2_cxx.cxx
+2026-09-26T09:00:37.5043024Z   unity_1_cxx.cxx
+2026-09-26T09:00:38.8110424Z   unity_0_cxx.cxx
+2026-09-26T09:00:39.8369371Z   llama.cpp
+2026-09-26T09:00:40.5306727Z D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama.cpp(75,5): warning C4297: 'llama_load_mode_from_str': function assumed not to throw an exception but does [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:00:40.5334661Z       D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama.cpp(75,5):
+2026-09-26T09:00:40.5335952Z       __declspec(nothrow), throw(), noexcept(true), or noexcept was specified on the function
+2026-09-26T09:00:40.5337512Z   
+2026-09-26T09:00:40.7228498Z   llama-adapter.cpp
+2026-09-26T09:00:41.7620854Z   llama-arch.cpp
+2026-09-26T09:00:42.4362248Z   llama-batch.cpp
+2026-09-26T09:00:43.4728222Z   llama-chat.cpp
+2026-09-26T09:00:44.2096863Z   llama-context.cpp
+2026-09-26T09:00:45.4402808Z   llama-cparams.cpp
+2026-09-26T09:00:45.6876442Z   llama-grammar.cpp
+2026-09-26T09:00:46.9207923Z   llama-graph.cpp
+2026-09-26T09:00:47.8645086Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\memory(3666,56): warning C4244: 'argument': conversion from 'const int64_t' to 'uint32_t', possible loss of data [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:00:47.8647209Z   (compiling source file '../../../../third_party/llama.cpp/src/llama-graph.cpp')
+2026-09-26T09:00:47.8648336Z       C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\memory(3666,56):
+2026-09-26T09:00:47.8649380Z       the template instantiation context (the oldest one first) is
+2026-09-26T09:00:47.8650355Z           D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-graph.cpp(2484,21):
+2026-09-26T09:00:47.8653020Z           see reference to function template instantiation 'std::unique_ptr<llm_graph_input_out_ids,std::default_delete<llm_graph_input_out_ids>> std::make_unique<llm_graph_input_out_ids,const llama_hparams&,const llama_cparams&,const int64_t&,0>(const llama_hparams &,const llama_cparams &,const int64_t &)' being compiled
+2026-09-26T09:00:47.8655244Z   
+2026-09-26T09:00:48.3513949Z   llama-hparams.cpp
+2026-09-26T09:00:48.7262946Z   Generating Code...
+2026-09-26T09:01:04.6988279Z   Compiling...
+2026-09-26T09:01:04.6988668Z   llama-impl.cpp
+2026-09-26T09:01:05.2754506Z   llama-io.cpp
+2026-09-26T09:01:05.6210916Z   llama-kv-cache.cpp
+2026-09-26T09:01:07.0769131Z   llama-kv-cache-iswa.cpp
+2026-09-26T09:01:07.9998415Z   llama-kv-cache-dsa.cpp
+2026-09-26T09:01:08.9106221Z   llama-kv-cache-dsa-iswa.cpp
+2026-09-26T09:01:09.8405580Z   llama-kv-cache-msa.cpp
+2026-09-26T09:01:10.7852192Z   llama-kv-cache-dsv4.cpp
+2026-09-26T09:01:12.2923088Z   llama-memory.cpp
+2026-09-26T09:01:12.8814079Z   llama-memory-hybrid.cpp
+2026-09-26T09:01:13.8470053Z   llama-memory-hybrid-iswa.cpp
+2026-09-26T09:01:14.8012050Z   llama-memory-hybrid-idx.cpp
+2026-09-26T09:01:15.8264818Z   llama-memory-recurrent.cpp
+2026-09-26T09:01:16.7706037Z   llama-mmap.cpp
+2026-09-26T09:01:17.4243690Z   llama-model-loader.cpp
+2026-09-26T09:01:19.1638955Z   llama-model-saver.cpp
+2026-09-26T09:01:19.9369085Z   llama-model.cpp
+2026-09-26T09:01:21.1627970Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244: 'initializing': conversion from '_Ty' to '_Ty2', possible loss of data [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1634342Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         with [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1637672Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         [ [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1640302Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:             _Ty=int64_t [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1642622Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         ] [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1645099Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         and [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1648740Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         [ [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1651703Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:             _Ty2=uint32_t [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1654232Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         ] [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1655902Z   (compiling source file '../../../../third_party/llama.cpp/src/llama-model.cpp')
+2026-09-26T09:01:21.1657011Z       C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54):
+2026-09-26T09:01:21.1658002Z       the template instantiation context (the oldest one first) is
+2026-09-26T09:01:21.1658910Z           D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-model.cpp(642,29):
+2026-09-26T09:01:21.1660435Z           see reference to function template instantiation 'std::pair<int64_t,uint32_t>::pair<const int64_t&,int64_t,0>(_Other1,_Other2 &&) noexcept' being compiled
+2026-09-26T09:01:21.1661590Z           with
+2026-09-26T09:01:21.1661883Z           [
+2026-09-26T09:01:21.1662212Z               _Other1=const int64_t &,
+2026-09-26T09:01:21.1662647Z               _Other2=int64_t
+2026-09-26T09:01:21.1663013Z           ]
+2026-09-26T09:01:21.1663664Z               D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-model.cpp(642,21):
+2026-09-26T09:01:21.1665212Z               see the first reference to 'std::pair<int64_t,uint32_t>::pair' in 'llama_meta_device_get_split_state::<lambda_9670eb0e917f58d92edfb4312e9b3b24>::operator ()'
+2026-09-26T09:01:21.1666377Z   
+2026-09-26T09:01:21.1668113Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244: 'initializing': conversion from 'const int64_t' to '_Ty2', possible loss of data [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1671839Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         with [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1674444Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         [ [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1677014Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:             _Ty2=uint32_t [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1679628Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54): warning C4244:         ] [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:21.1681378Z   (compiling source file '../../../../third_party/llama.cpp/src/llama-model.cpp')
+2026-09-26T09:01:21.1682496Z       C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\utility(277,54):
+2026-09-26T09:01:21.1683513Z       the template instantiation context (the oldest one first) is
+2026-09-26T09:01:21.1684451Z           D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-model.cpp(645,29):
+2026-09-26T09:01:21.1685917Z           see reference to function template instantiation 'std::pair<int64_t,uint32_t>::pair<const int64_t&,const int64_t&,0>(_Other1,_Other2) noexcept' being compiled
+2026-09-26T09:01:21.1687453Z           with
+2026-09-26T09:01:21.1689091Z           [
+2026-09-26T09:01:21.1689477Z               _Other1=const int64_t &,
+2026-09-26T09:01:21.1689934Z               _Other2=const int64_t &
+2026-09-26T09:01:21.1690344Z           ]
+2026-09-26T09:01:21.1691004Z               D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-model.cpp(645,21):
+2026-09-26T09:01:21.1693011Z               see the first reference to 'std::pair<int64_t,uint32_t>::pair' in 'llama_meta_device_get_split_state::<lambda_9670eb0e917f58d92edfb4312e9b3b24>::operator ()'
+2026-09-26T09:01:21.1694175Z   
+2026-09-26T09:01:22.1920828Z   llama-quant.cpp
+2026-09-26T09:01:23.7450519Z C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\type_traits(1811,98): warning C4244: 'argument': conversion from 'unsigned __int64' to 'int', possible loss of data [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:23.7452690Z   (compiling source file '../../../../third_party/llama.cpp/src/llama-quant.cpp')
+2026-09-26T09:01:23.7453619Z       C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\type_traits(1811,98):
+2026-09-26T09:01:23.7454524Z       the template instantiation context (the oldest one first) is
+2026-09-26T09:01:23.7455256Z           D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-quant.cpp(275,17):
+2026-09-26T09:01:23.7457432Z           see reference to function template instantiation 'std::thread &std::vector<std::thread,std::allocator<std::thread>>::emplace_back<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,const uint8_t*,float*,size_t&>(llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &,ggml_type &,const uint8_t *&&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7459559Z               D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-quant.cpp(275,29):
+2026-09-26T09:01:23.7464417Z               see the first reference to 'std::vector<std::thread,std::allocator<std::thread>>::emplace_back' in 'llama_tensor_dequantize_impl'
+2026-09-26T09:01:23.7465862Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\vector(927,24):
+2026-09-26T09:01:23.7468907Z           see reference to function template instantiation '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,const unsigned char*,float*,size_t&>(llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &,ggml_type &,const unsigned char *&&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7470476Z           with
+2026-09-26T09:01:23.7470720Z           [
+2026-09-26T09:01:23.7470946Z               _Ty=std::thread
+2026-09-26T09:01:23.7471230Z           ]
+2026-09-26T09:01:23.7471678Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\vector(847,20):
+2026-09-26T09:01:23.7473468Z           see reference to function template instantiation '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_back_with_unused_capacity<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,const unsigned char*,float*,size_t&>(llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &,ggml_type &,const unsigned char *&&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7474968Z           with
+2026-09-26T09:01:23.7475211Z           [
+2026-09-26T09:01:23.7475457Z               _Ty=std::thread
+2026-09-26T09:01:23.7475735Z           ]
+2026-09-26T09:01:23.7476273Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\vector(865,27):
+2026-09-26T09:01:23.7478082Z           see reference to function template instantiation 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,const unsigned char*,float*,size_t&>(_Alloc &,_Objty *const ,llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &,ggml_type &,const unsigned char *&&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7479802Z           with
+2026-09-26T09:01:23.7480114Z           [
+2026-09-26T09:01:23.7480532Z               _Alloc=std::allocator<std::thread>,
+2026-09-26T09:01:23.7480888Z               _Ty=std::thread,
+2026-09-26T09:01:23.7481193Z               _Objty=std::thread
+2026-09-26T09:01:23.7481478Z           ]
+2026-09-26T09:01:23.7481988Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\xmemory(732,82):
+2026-09-26T09:01:23.7483194Z           see reference to function template instantiation 'std::thread::thread<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,_Ty,float*,size_t&,0>(_Fn,ggml_type &,_Ty &&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7484158Z           with
+2026-09-26T09:01:23.7484385Z           [
+2026-09-26T09:01:23.7484626Z               _Ty=const uint8_t *,
+2026-09-26T09:01:23.7485294Z               _Fn=llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &
+2026-09-26T09:01:23.7485758Z           ]
+2026-09-26T09:01:23.7486244Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\thread(93,9):
+2026-09-26T09:01:23.7487467Z           see reference to function template instantiation 'void std::thread::_Start<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>&,ggml_type&,_Ty,float*,size_t&>(_Fn,ggml_type &,_Ty &&,float *&&,size_t &)' being compiled
+2026-09-26T09:01:23.7488441Z           with
+2026-09-26T09:01:23.7488678Z           [
+2026-09-26T09:01:23.7488924Z               _Ty=const uint8_t *,
+2026-09-26T09:01:23.7489356Z               _Fn=llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f> &
+2026-09-26T09:01:23.7489808Z           ]
+2026-09-26T09:01:23.7490259Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\thread(76,40):
+2026-09-26T09:01:23.7491411Z           see reference to function template instantiation 'unsigned int (__cdecl *std::thread::_Get_invoke<std::thread::_Start::_Tuple,0,1,2,3,4>(std::integer_sequence<size_t,0,1,2,3,4>) noexcept)(void *) noexcept' being compiled
+2026-09-26T09:01:23.7492512Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\thread(67,17):
+2026-09-26T09:01:23.7493468Z           see reference to function template instantiation 'unsigned int std::thread::_Invoke<_Tuple,0,1,2,3,4>(void *) noexcept' being compiled
+2026-09-26T09:01:23.7494117Z           with
+2026-09-26T09:01:23.7494365Z           [
+2026-09-26T09:01:23.7494628Z               _Tuple=std::thread::_Start::_Tuple
+2026-09-26T09:01:23.7494990Z           ]
+2026-09-26T09:01:23.7495451Z           C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Tools\MSVC\14.51.36231\include\thread(60,14):
+2026-09-26T09:01:23.7496819Z           see reference to function template instantiation 'void std::invoke<llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>,ggml_type,const uint8_t*,_Ty*,unsigned __int64>(_Callable &&,_Ty1 &&,const uint8_t *&&,_Ty *&&,unsigned __int64 &&) noexcept(false)' being compiled
+2026-09-26T09:01:23.7497937Z           with
+2026-09-26T09:01:23.7498173Z           [
+2026-09-26T09:01:23.7498407Z               _Ty=float,
+2026-09-26T09:01:23.7498855Z               _Callable=llama_tensor_dequantize_impl::<lambda_121cf0dbfedb4a0daa40ff737e80b57f>,
+2026-09-26T09:01:23.7499374Z               _Ty1=ggml_type
+2026-09-26T09:01:23.7499645Z           ]
+2026-09-26T09:01:23.7499877Z   
+2026-09-26T09:01:23.8601694Z   llama-sampler.cpp
+2026-09-26T09:01:24.5234916Z D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-sampler.cpp(1165,13): warning C4834: discarding return value of function with [[nodiscard]] attribute [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:24.5261027Z D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp\src\llama-sampler.cpp(1380,9): warning C4834: discarding return value of function with [[nodiscard]] attribute [D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\llama.vcxproj]
+2026-09-26T09:01:25.3187851Z   llama-vocab.cpp
+2026-09-26T09:01:26.6044246Z   Generating Code...
+2026-09-26T09:01:48.2515742Z   Compiling...
+2026-09-26T09:01:48.2516832Z   unicode-data.cpp
+2026-09-26T09:01:49.1456169Z   unicode.cpp
+2026-09-26T09:01:50.4277207Z   Generating Code...
+2026-09-26T09:02:09.4565670Z   llama.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\third_party\llama.cpp\src\Release\llama.lib
+2026-09-26T09:02:09.5297510Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T09:02:09.5298750Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T09:02:10.1446130Z   llama_runner.cpp
+2026-09-26T09:02:10.1446659Z   gguf_model.cpp
+2026-09-26T09:02:12.5208473Z   qwen3_model.cpp
+2026-09-26T09:02:13.0414417Z   llmserve_llama.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\llmserve_llama.lib
+2026-09-26T09:02:13.3938430Z   tokenizer.cpp
+2026-09-26T09:02:14.0437121Z   Generating Code...
+2026-09-26T09:02:14.9496658Z   minillm_model.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\minillm_model.lib
+2026-09-26T09:02:15.0222224Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T09:02:15.0228205Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T09:02:15.6135509Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T09:02:15.7125951Z   gguf_tests.cpp
+2026-09-26T09:02:15.7139924Z   runtime.cpp
+2026-09-26T09:02:15.7302421Z   host_model_tests.cpp
+2026-09-26T09:02:16.8119522Z D:\a\mini-llm-runtime\mini-llm-runtime\include\minillm\parallel.h(31,5): warning C4324: 'minillm::ParallelExecutor::WorkerProfile': structure was padded due to alignment specifier [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_runtime.vcxproj]
+2026-09-26T09:02:16.8124492Z   (compiling source file '../src/minillm/runtime.cpp')
+2026-09-26T09:02:16.8125380Z   
+2026-09-26T09:02:17.7295612Z D:\a\mini-llm-runtime\mini-llm-runtime\src\minillm\runtime.cpp(182,35): error C2079: 'seen' uses undefined class 'std::array<bool,256>' [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_runtime.vcxproj]
+2026-09-26T09:02:17.7299068Z D:\a\mini-llm-runtime\mini-llm-runtime\src\minillm\runtime.cpp(186,35): error C2109: subscript requires array or pointer type [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_runtime.vcxproj]
+2026-09-26T09:02:17.7301848Z D:\a\mini-llm-runtime\mini-llm-runtime\src\minillm\runtime.cpp(187,34): error C2109: subscript requires array or pointer type [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_runtime.vcxproj]
+2026-09-26T09:02:19.4239318Z   llmserve-gguf-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\llmserve-gguf-tests.exe
+2026-09-26T09:02:23.1022186Z   minillm-host-model-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\minillm-host-model-tests.exe
+2026-09-26T09:02:23.2732729Z ##[error]Process completed with exit code 1.
+2026-09-26T09:02:23.2992367Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+2026-09-26T09:02:23.2992940Z with:
+2026-09-26T09:02:23.2993210Z   name: cpu-product-windows-2025
+2026-09-26T09:02:23.2993536Z   path: build/test-results.xml
+2026-09-26T09:02:23.2993839Z   if-no-files-found: error
+2026-09-26T09:02:23.2994127Z   compression-level: 6
+2026-09-26T09:02:23.2994443Z   overwrite: false
+2026-09-26T09:02:23.2994722Z   include-hidden-files: false
+2026-09-26T09:02:23.2995017Z   archive: true
+2026-09-26T09:02:23.2995472Z ##[endgroup]
+2026-09-26T09:02:23.4796567Z ##[error]No files were found with the provided path: build/test-results.xml. No artifacts will be uploaded.
+2026-09-26T09:02:23.5150659Z Post job cleanup.
+2026-09-26T09:02:23.7284990Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T09:02:23.7569618Z git version 2.55.0.windows.5
+2026-09-26T09:02:23.7641591Z Temporarily overriding HOME='D:\a\_temp\82bc4984-7b52-4d3b-b2b5-fa6c51fd2af1' before making global git config changes
+2026-09-26T09:02:23.7642487Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T09:02:23.7653980Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime\third_party\llama.cpp
+2026-09-26T09:02:23.7972901Z Removing SSH command configuration
+2026-09-26T09:02:23.7990131Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T09:02:23.8374666Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T09:02:24.4805321Z Removing HTTP extra header
+2026-09-26T09:02:24.4815724Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T09:02:24.5169849Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T09:02:25.1918609Z Removing includeIf entries pointing to credentials config files
+2026-09-26T09:02:25.1930218Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T09:02:25.2236240Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T09:02:25.8922418Z Post job cleanup.
+2026-09-26T09:02:26.1224291Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T09:02:26.1525912Z git version 2.55.0.windows.5
+2026-09-26T09:02:26.1596312Z Temporarily overriding HOME='D:\a\_temp\2b79fa50-95ab-400b-a3e6-334ba04e843b' before making global git config changes
+2026-09-26T09:02:26.1597491Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T09:02:26.1609303Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T09:02:26.1926398Z Removing SSH command configuration
+2026-09-26T09:02:26.1937694Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T09:02:26.2231257Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T09:02:27.2504440Z Removing HTTP extra header
+2026-09-26T09:02:27.2514959Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T09:02:27.2808496Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T09:02:27.8560417Z Removing includeIf entries pointing to credentials config files
+2026-09-26T09:02:27.8561040Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T09:02:27.8816011Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path
+2026-09-26T09:02:27.8816943Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path
+2026-09-26T09:02:27.8817866Z includeif.gitdir:/github/workspace/.git.path
+2026-09-26T09:02:27.8818272Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-26T09:02:27.8857979Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path
+2026-09-26T09:02:27.9112512Z D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T09:02:27.9153659Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path D\:\\a\\_temp\\git\-credentials\-1d99b4b4\-c5c8\-4167\-be0d\-9442b2af4eee\.config
+2026-09-26T09:02:27.9498899Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path
+2026-09-26T09:02:27.9752065Z D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T09:02:27.9789221Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path D\:\\a\\_temp\\git\-credentials\-1d99b4b4\-c5c8\-4167\-be0d\-9442b2af4eee\.config
+2026-09-26T09:02:28.0080475Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-26T09:02:28.0331254Z /github/runner_temp/git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T09:02:28.0368638Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-1d99b4b4\-c5c8\-4167\-be0d\-9442b2af4eee\.config
+2026-09-26T09:02:28.0654564Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-26T09:02:28.0921685Z /github/runner_temp/git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config
+2026-09-26T09:02:28.0973910Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-1d99b4b4\-c5c8\-4167\-be0d\-9442b2af4eee\.config
+2026-09-26T09:02:28.1269251Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T09:02:29.1371736Z Removing credentials config 'D:\a\_temp\git-credentials-1d99b4b4-c5c8-4167-be0d-9442b2af4eee.config'
+2026-09-26T09:02:29.1565204Z Cleaning up orphan processes
+2026-09-26T09:02:29.1828544Z Terminate orphan process: pid (7260) (vctip)
+2026-09-26T09:02:29.1894323Z Terminate orphan process: pid (8388) (MSBuild)
+2026-09-26T09:02:29.2008438Z Terminate orphan process: pid (8300) (MSBuild)
+2026-09-26T09:02:29.2072174Z Terminate orphan process: pid (5812) (MSBuild)
+2026-09-26T09:02:29.2128510Z Terminate orphan process: pid (5444) (conhost)

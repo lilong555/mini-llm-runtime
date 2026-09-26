@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "scope": "Windows/Linux C++ build and test process encoding",
+  "status": "passed_with_local_permission_limitation",
+  "source": {
+    "status": "passed",
+    "matched_commit": "a0a62146ec0cb26ef8c548ad7104884892adbed6",
+    "recorded_parent": "5a4508d6ace7777e39460675de9ed770fcb66d43",
+    "recorded_dirty": true,
+    "source_files": 144,
+    "source_snapshot_sha256": "e7c0c5112d88b169fb0feac0c2c467bb9c905926a813241f9e22801eaab9bd9a"
+  },
+  "ctest": {
+    "base_suites": 62,
+    "base_cases": 1034,
+    "cp1252_suites": 3,
+    "cp1252_cases": 37
+  },
+  "cpu_model_checks": 13,
+  "cpu_http_checks": 8,
+  "native_windows": {
+    "full_suite_processes": 6,
+    "passed": 4,
+    "blocked_by_symlink_privilege": 2,
+    "targeted_processes": 2,
+    "targeted_passed": 2
+  },
+  "remote_ci": {
+    "run_id": 36232341864,
+    "commit": "a0a62146ec0cb26ef8c548ad7104884892adbed6",
+    "repository_path": "benchmarks/results/ci/a0a6214",
+    "run_sha256": "2fa8070cd7194ba7d36df77ffef1ee6126aceeda713babddd9f0f207f62dded5",
+    "artifacts_sha256": "14e55696b594e3ac839aed7715f2d229d417c39aff7d811a98f3bcd57561ca49"
+  },
+  "limitations": {
+    "full_cuda_numeric_rerun": false,
+    "cuda_model_performance_rerun": false,
+    "profiler_rerun": false,
+    "windows_cuda_validated": false,
+    "gpu_serving": false
+  },
+  "independent_directory_revalidation": {
+    "local": {
+      "status": "passed",
+      "existing_files_unchanged": true,
+      "ctest": {
+        "Reports": 5,
+        "SuiteExecutions": 65,
+        "CaseExecutions": 1071,
+        "SuitesWithoutCaseCounts": 0,
+        "DiagnosticReports": [],
+        "Status": "passed"
+      }
+    },
+    "remote": {
+      "status": "passed",
+      "existing_files_unchanged": true,
+      "ctest": {
+        "Reports": 5,
+        "SuiteExecutions": 63,
+        "CaseExecutions": 1185,
+        "SuitesWithoutCaseCounts": 0,
+        "DiagnosticReports": [],
+        "Status": "passed"
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "path": ".gitattributes",
+      "sha256": "b33889c0c39996d11a0654c53e7bf2886a3e2e5985c0d9f1ccc5abf6de00d880",
+      "size_bytes": 184
+    },
+    {
+      "path": "README.md",
+      "sha256": "ca02280e689c71ccce25080c567fa46646ed703e228de1ccbb95860d5cf11617",
+      "size_bytes": 2784
+    },
+    {
+      "path": "commands.json",
+      "sha256": "15c3ef5e199b32a12d570a080963e8479fd0345d92d381ec09366a5f0d39d368",
+      "size_bytes": 3472
+    },
+    {
+      "path": "cpu-http.json",
+      "sha256": "99c24a9d0308ee05a4da083ba236e4b03aabbd68b91b644584d83adb70f7a018",
+      "size_bytes": 3843
+    },
+    {
+      "path": "cpu-model.json",
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+      "size_bytes": 3955
+    },
+    {
+      "path": "ctest-core.txt",
+      "sha256": "edf1206f7f914eba39aa220e1c9021b8d8e36a06ee387632dd910a154dbbca54",
+      "size_bytes": 1330
+    },
+    {
+      "path": "ctest-core.xml",
+      "sha256": "5e711f3ee5d98510a64c3a17f7fc981e583f6e1035e55edadec93568786326b8",
+      "size_bytes": 10351
+    },
+    {
+      "path": "ctest-cp1252.xml",
+      "sha256": "7baf99929c92d8d7f98bbd01976280b8cc5ebb28bdc292633cffa834e70b3ad8",
+      "size_bytes": 2701
+    },
+    {
+      "path": "ctest-cpu.txt",
+      "sha256": "b3cca4fef392bac0473786941d1fb16c8d5101207ad42408485f17f5db606294",
+      "size_bytes": 1743
+    },
+    {
+      "path": "ctest-cpu.xml",
+      "sha256": "d72863d9e5227ce46e2965851aa21d52d53c2989a0723346bed441b1e6503cf0",
+      "size_bytes": 12455
+    },
+    {
+      "path": "ctest-own.txt",
+      "sha256": "2a12017eae66a9b318a8c7ce08b09d00558f849a31ee4ad4da447397a273e94d",
+      "size_bytes": 2405
+    },
+    {
+      "path": "ctest-own.xml",
+      "sha256": "ab13ccb3d694cc754f46473a1f5036b8bab1f7b96347f1f66018fa53dc47f53e",
+      "size_bytes": 16828
+    },
+    {
+      "path": "ctest-upstream.txt",
+      "sha256": "a19cdc974cfc643c614dd582fee028aa35e57974d1d8c08053e02bdf18cd5129",
+      "size_bytes": 1744
+    },
+    {
+      "path": "ctest-upstream.xml",
+      "sha256": "ef5783973b2c8f59fd4a5f6db8ba53464f1c9e6453c753d10678230c26c2b7d5",
+      "size_bytes": 12455
+    },
+    {
+      "path": "diagnostics/before-cuda_benchmark_validation_tests.json",
+      "sha256": "4087714975c044e7586d7a1d8490ad745ddb152bb9dacc078d6235bc0a636734",
+      "size_bytes": 194
+    },
+    {
+      "path": "diagnostics/before-cuda_benchmark_validation_tests.stderr.txt",
+      "sha256": "071d110d94cfc13bff214ae9720ddc380b254cfe13e94bf5cd7bf90f9b15bc51",
+      "size_bytes": 402
+    },
+    {
+      "path": "diagnostics/before-cuda_benchmark_validation_tests.stdout.txt",
+      "sha256": "6386457c942db9ec1180efdb66b211d185a6d5b45105151ba49d8e147d7185d2",
+      "size_bytes": 704
+    },
+    {
+      "path": "diagnostics/before-cuda_validation_report_tests.json",
+      "sha256": "61594b892015f3c3403059c898776d2421c76ddaad8f2f5aa379763ecb81b305",
+      "size_bytes": 191
+    },
+    {
+      "path": "diagnostics/before-cuda_validation_report_tests.stderr.txt",
+      "sha256": "e8129c9c1c42a6aa38429eeb2f245075b9e37bafa608f00eb1a818ae5e79b9f7",
+      "size_bytes": 388
+    },
+    {
+      "path": "diagnostics/before-cuda_validation_report_tests.stdout.txt",
+      "sha256": "7df1bdce64285eb5cecabd41db6ea765e09242a4429371b25b8c95b01d35e42c",
+      "size_bytes": 528
+    },
+    {
+      "path": "diagnostics/original-ci-run.json",
+      "sha256": "ac868c9247143b09fbd5a5f1af37f6a5c94d85f7bd3c440bf69746847b832079",
+      "size_bytes": 11157
+    },
+    {
+      "path": "diagnostics/windows-product-original.txt",
+      "sha256": "fdb4241ee04ec67b3c4c5ba4809c81001330a08451ef85166bbb1b7f4985c734",
+      "size_bytes": 68539
+    },
+    {
+      "path": "diagnostics/windows-unit-original.txt",
+      "sha256": "54195f3e301c554cc455bb6df636eb8b7281dd9aa6b8e67b6347925e8488ec33",
+      "size_bytes": 31515
+    },
+    {
+      "path": "environment.json",
+      "sha256": "1e0750497c70ccf6939916f5dcdc2f29c7ed350941e2dd93eb3936c65b0eae50",
+      "size_bytes": 1384
+    },
+    {
+      "path": "native-windows/cp1252-benchmark-targeted.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/cp1252-benchmark-targeted.stdout.txt",
+      "sha256": "b58229ff2d106d25776f58d0d46c22d997125f456571233eeb6fadb9e54cd8c1",
+      "size_bytes": 18
+    },
+    {
+      "path": "native-windows/cp1252-cuda_benchmark_validation_tests.stderr.txt",
+      "sha256": "d487ac77ce5db0c0a40d79172d04a9bd5515baf90b3ab0be61de674ce6a1b4ff",
+      "size_bytes": 774
+    },
+    {
+      "path": "native-windows/cp1252-cuda_benchmark_validation_tests.stdout.txt",
+      "sha256": "c1e52bef231290ae9bb837f15b1371f5f7c6546dfce388bcaac0303d01ff4b69",
+      "size_bytes": 668
+    },
+    {
+      "path": "native-windows/cp1252-cuda_micro_validation_tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/cp1252-cuda_micro_validation_tests.stdout.txt",
+      "sha256": "6ab63393ccc95ac097a78f20b0d6d7d891cdc29916935b9925720a6bb23d59b2",
+      "size_bytes": 530
+    },
+    {
+      "path": "native-windows/cp1252-cuda_validation_report_tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/cp1252-cuda_validation_report_tests.stdout.txt",
+      "sha256": "8b9eb289cf1e161ab6677462277df6a2e7742a79888982d7576e1565b6717477",
+      "size_bytes": 662
+    },
+    {
+      "path": "native-windows/default-benchmark-targeted.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/default-benchmark-targeted.stdout.txt",
+      "sha256": "b58229ff2d106d25776f58d0d46c22d997125f456571233eeb6fadb9e54cd8c1",
+      "size_bytes": 18
+    },
+    {
+      "path": "native-windows/default-cuda_benchmark_validation_tests.stderr.txt",
+      "sha256": "35d546b1a67e4cb545ce5a8a588fd6e520038186b26ae184d34b3406cfc3b0db",
+      "size_bytes": 730
+    },
+    {
+      "path": "native-windows/default-cuda_benchmark_validation_tests.stdout.txt",
+      "sha256": "c1e52bef231290ae9bb837f15b1371f5f7c6546dfce388bcaac0303d01ff4b69",
+      "size_bytes": 668
+    },
+    {
+      "path": "native-windows/default-cuda_micro_validation_tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/default-cuda_micro_validation_tests.stdout.txt",
+      "sha256": "6ab63393ccc95ac097a78f20b0d6d7d891cdc29916935b9925720a6bb23d59b2",
+      "size_bytes": 530
+    },
+    {
+      "path": "native-windows/default-cuda_validation_report_tests.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "native-windows/default-cuda_validation_report_tests.stdout.txt",
+      "sha256": "8b9eb289cf1e161ab6677462277df6a2e7742a79888982d7576e1565b6717477",
+      "size_bytes": 662
+    },
+    {
+      "path": "native-windows/results.json",
+      "sha256": "d68f4c77fec1b1852bd9ae6434591e4e0ca5e9bc05075ad4cba3c68ddf5b9681",
+      "size_bytes": 3701
+    },
+    {
+      "path": "native-windows/targeted-results.json",
+      "sha256": "aeac78e1d824cce9521b6a75508e9154754876733b201eaddaff3a20091ff2c7",
+      "size_bytes": 1094
+    },
+    {
+      "path": "source-identity.json",
+      "sha256": "cd1ab2e53dd571dda16264f6e5d50676621ee0d72fa90d9445796aeac2805190",
+      "size_bytes": 299
+    },
+    {
+      "path": "source-snapshot.zip",
+      "sha256": "e7c0c5112d88b169fb0feac0c2c467bb9c905926a813241f9e22801eaab9bd9a",
+      "size_bytes": 389677
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "ef7d78fa59c9655d947af90cf363f51b08429344f058b61378c3283fda9eebd6",
+      "size_bytes": 24464
+    }
+  ]
+}

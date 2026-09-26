@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\li\code\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 517, in <module>
+    test()
+  File "\\wsl.localhost\Ubuntu\home\li\code\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 360, in duplicates_and_path_escapes_are_rejected
+    (Path(directory) / "link").symlink_to(path)
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python310\lib\pathlib.py", line 1255, in symlink_to
+    self._accessor.symlink(target, self, target_is_directory)
+OSError: [WinError 1314] \u5ba2\u6237\u7aef\u6ca1\u6709\u6240\u9700\u7684\u7279\u6743\u3002: 'C:\\Users\\admin\\AppData\\Local\\Temp\\tmp4q0ctau5\\data.json' -> 'C:\\Users\\admin\\AppData\\Local\\Temp\\tmp4q0ctau5\\link'

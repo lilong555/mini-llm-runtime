@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="3"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="26"
+	timestamp="2026-09-26T17:07:32"
+	>
+	<testcase name="cuda-validation-report" classname="cuda-validation-report" time="0.303554" status="run">
+		<properties/>
+		<system-out>[PASS] full_case_matrix_and_input_hash
+[PASS] exact_threshold_boundaries
+[PASS] reference_attention_precision_is_explicit
+[PASS] near_tie_formula_is_not_a_mismatch_override
+[PASS] score_identity_and_margin_must_match
+[PASS] nonfinite_and_boolean_metrics_are_rejected
+[PASS] inconsistent_extrema_and_status_are_rejected
+[PASS] natural_generation_keeps_only_common_input_comparisons
+[PASS] drifted_inputs_cannot_claim_comparability
+[PASS] copy_counts_and_state_are_recomputed
+[PASS] artifact_paths_and_duplicate_json_are_rejected
+[PASS] missing_report_does_not_overwrite_existing_evidence
+[PASS] negative_metrics_remain_in_summary
+13/13 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-benchmark-validation" classname="cuda-benchmark-validation" time="6.77903" status="run">
+		<properties/>
+		<system-out>[PASS] frozen_schedule_is_separate_balanced_and_complete
+[PASS] complete_workload_report_has_exact_counts
+[PASS] missing_warmup_setup_and_cases_are_rejected
+[PASS] changed_inputs_and_natural_history_are_rejected
+[PASS] no_boolean_nonfinite_or_excluded_sampling_time
+[PASS] wrong_kv_and_device_allocation_are_rejected
+[PASS] cuda_transfer_memory_and_weights_are_recomputed
+[PASS] exact_noise_boundaries_and_negative_results
+[PASS] trial_medians_not_inner_repeats_are_statistical_units
+[PASS] same_backend_aa_output_difference_is_rejected
+[PASS] same_backend_cross_trial_output_difference_is_rejected
+[PASS] cross_backend_generation_difference_is_not_hidden
+[PASS] duplicates_and_path_escapes_are_rejected
+[PASS] preflight_and_publication_failure_preserve_previous_outputs
+[PASS] portable_full_bundle_revalidation_and_tamper_rejection
+15/15 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-micro-validation" classname="cuda-micro-validation" time="19.1677" status="run">
+		<properties/>
+		<system-out>[PASS] frozen_shapes_inputs_and_sample_counts
+[PASS] missing_samples_cases_and_wrong_order_are_rejected
+[PASS] dimensions_recipe_weights_and_causal_metadata_are_checked
+[PASS] timing_and_copy_boundaries_cannot_be_changed
+[PASS] numerical_points_metrics_and_full_output_contract_are_checked
+[PASS] allocation_release_and_memory_plan_are_exact
+[PASS] independent_trials_not_calls_or_inner_repeats
+[PASS] portable_bundle_and_missing_tampered_artifacts
+[PASS] publication_failure_preserves_existing_summary
+9/9 tests passed
+</system-out>
+	</testcase>
+</testsuite>

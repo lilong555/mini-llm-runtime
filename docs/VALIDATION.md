@@ -253,23 +253,26 @@ The bottleneck is not yet established by profiling. See `ENG-008` in
 `docs/ENGINEERING_LOG.md`. Lower-rate, distinct cold/warm-prefix and
 long-context experiments are still needed.
 
-## Remote CI
+## 远端 CI
 
-GitHub Actions run
-[35352370060](https://github.com/lilong555/mini-llm-runtime/actions/runs/35352370060)
-passed all five jobs for source commit
-`07793ddd93410d04188092ade1c14b471078b1ea`:
+GitHub Actions [36232341864](https://github.com/lilong555/mini-llm-runtime/actions/runs/36232341864)
+在源码提交 `a0a62146ec0cb26ef8c548ad7104884892adbed6` 上通过全部五个任务：
 
-- Windows and Ubuntu dependency-free core builds and unit tests.
-- Windows and Ubuntu complete CPU product builds and both CTest suites.
-- Ubuntu core tests under AddressSanitizer and UndefinedBehaviorSanitizer.
+- Windows 2025 与 Ubuntu 24.04 独立核心构建和完整 CTest，各 11/11。
+- Windows 2025 与 Ubuntu 24.04 CPU 产品构建和完整 CTest，各 15/15。
+- Ubuntu 核心的 AddressSanitizer 与 UndefinedBehaviorSanitizer，11/11。
 
-The remote run summary and JUnit reports are archived under
-`benchmarks/results/ci/07793dd/`. Sanitizers cover the dependency-free core;
-they do not cover the GGUF parser, HTTP transport or real-model execution.
-Remote CI downloads the pinned C++ dependency, not model weights.
-`scripts/Test-CtestEvidence.ps1` checks the archived local/remote XML reports
-and rejects failed, missing or truncated suite output.
+[远端归档](../benchmarks/results/ci/a0a6214/README.md) 保存运行身份、五份 JUnit、
+GitHub 原始 artifact ZIP 与其服务端摘要；共 63 套测试、1185 次用例执行。
+`scripts/Test-CtestEvidence.ps1` 拒绝失败、缺失或截断的套件输出。
+
+[本地兼容性验收](../benchmarks/results/validation/windows-ci/README.md) 单列四构建 CTest、
+编码反例、CPU 模型 13/13 和 HTTP 8/8。Windows 本机符号链接权限限制没有被跳过，
+原始失败记录完整保留；远端 Windows 完整套件通过不代表该主机权限已改变。
+
+远端 CI 获取固定版本 C++ 依赖，不下载模型权重。其 sanitizer 只覆盖独立核心，
+不覆盖 GGUF parser、HTTP transport 或真实模型执行；本组不验收 Windows CUDA、
+GPU Serving 或新的性能结果。历史 CI 归档保留独立的源码身份。
 
 ## Unverified Areas
 

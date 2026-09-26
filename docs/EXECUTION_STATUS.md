@@ -30,6 +30,8 @@
 
 ## 可复核证据
 
+[Windows/Linux 兼容性验收](../benchmarks/results/validation/windows-ci/README.md) 关联源码提交 `a0a6214`。远端 CI 五任务全部通过，五份 JUnit 共 63 套、1185 次用例执行；本地四种构建共 62 套 CTest、1034 次用例执行，另有 `cp1252` 环境的三套、37 次检查。CPU 实模型 13/13、HTTP 8/8，临时服务已回收。原生 Windows 的符号链接权限限制和原始失败记录单列，见 `ENG-057` 至 `ENG-059`。本组没有重跑完整 CUDA 数值、性能或 Profiler，旧模型证据仍绑定各自的源码和二进制；M2 尚未实施。
+
 [CUDA-VS-001 完整证据包](../benchmarks/results/cuda-vs-001/README.md) 包含模型基线、微基准、数值验收、Profiler 和工具回归五个独立组件，ZIP 为 56872322 字节、1050 个文件。独立目录复验通过，缺源码、缺组件、同后端输出变化、NCU 单位错误及派生摘要伪造五项反例均被拒绝，原 ZIP 不变。包内保留各阶段的真实采集身份，不含模型权重、编译产物或依赖 checkout。
 
 [完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 包含五个独立诊断进程，每个进程均执行 585 次 forward。NSys 记录 368610 次 kernel，验证每次 forward 的 28 层、单项目 stream 和显式传输；NCU 选定 forward 55、第 27 层 PV，原始符号与 NSys 精确一致。42 个必需原始产物及三个原始 Profiler 文件可获取，迁移和三项反例通过。legacy software-instrumented trace、未验收的 Unified Memory 跟踪和诊断开销明确保留，不替代正式无 Profiler 基线。
@@ -38,7 +40,7 @@
 
 [正式 CUDA 模型基线](../benchmarks/results/cuda-model-baseline/README.md) 包含 70 个独立进程、40950 次 forward 和 2520 次 measured repetition；全部进程正常退出，同后端及跨后端 token 一致，稳态数据路径门禁通过。24 项比较中 14 项为 `faster`、10 项因噪声超过 10% 为 `measurement_inconclusive`；不作统一加速或无退化声明。289 个必需原始产物可独立获取，当前复核入口为 `revalidate.py`，295 个既有文件在迁移与五项反例检查中保持不变；见 `ENG-049`、`ENG-051`。
 
-[CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 包含自有 CUDA 18/18、CPU 12/12、独立核心 8/8、上游 CUDA 12/12 CTest，共 926 次用例执行；CPU 模型 13/13、HTTP 8/8 和 CUDA 层级三种 sanitizer 通过。当前二进制的 12528 次完整数值比较通过，最大 RMSE `0.019126342`、最小 cosine `0.999986580`，无 argmax 分歧或 near-tie；415 个产物在独立目录复核，六项归档反例被拒绝。模型基准预检绑定当前源码与数值测试二进制，没有继承旧编译身份。
+[CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 包含自有 CUDA 18/18、CPU 12/12、独立核心 8/8、上游 CUDA 12/12 CTest，共 926 次用例执行；CPU 模型 13/13、HTTP 8/8 和 CUDA 层级三种 sanitizer 通过。该归档所记二进制的 12528 次完整数值比较通过，最大 RMSE `0.019126342`、最小 cosine `0.999986580`，无 argmax 分歧或 near-tie；415 个产物在独立目录复核，六项归档反例被拒绝。模型基准预检绑定该次采集的源码与数值测试二进制，没有继承旧编译身份。
 
 [CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 包含 375 个用例、五个独立 trial、9375 个原始样本与 5625 个测量样本；跨进程输出一致，计时区间无项目设备分配或显式传输。27 个必需原始产物可迁移复核，六项缺件或语义反例被拒绝。Q projection M=1 的正序/逆序差异与 48 个相对 MAD 超过 10% 的用例完整保留，见 `ENG-048`；没有模型加速、无退化或 A/A 噪声结论。
 

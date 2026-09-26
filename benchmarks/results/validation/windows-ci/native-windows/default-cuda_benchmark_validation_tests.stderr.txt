@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "\\wsl.localhost\Ubuntu\home\li\code\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 517, in <module>
+    test()
+  File "\\wsl.localhost\Ubuntu\home\li\code\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 360, in duplicates_and_path_escapes_are_rejected
+    (Path(directory) / "link").symlink_to(path)
+  File "C:\Users\admin\AppData\Local\Programs\Python\Python310\lib\pathlib.py", line 1255, in symlink_to
+    self._accessor.symlink(target, self, target_is_directory)
+OSError: [WinError 1314] 客户端没有所需的特权。: 'C:\\Users\\admin\\AppData\\Local\\Temp\\tmpc24j8d20\\data.json' -> 'C:\\Users\\admin\\AppData\\Local\\Temp\\tmpc24j8d20\\link'

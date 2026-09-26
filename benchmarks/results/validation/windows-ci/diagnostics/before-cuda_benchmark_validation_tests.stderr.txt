@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/li/code/mini-llm-runtime/tests/cuda_benchmark_validation_tests.py", line 515, in <module>
+    test()
+  File "/home/li/code/mini-llm-runtime/tests/cuda_benchmark_validation_tests.py", line 370, in preflight_and_publication_failure_preserve_previous_outputs
+    assert result.returncode == 1 and "\u7f3a\u5c11\u8bc1\u636e" in result.stderr
+AssertionError

@@ -1,0 +1,371 @@
+﻿2026-09-26T08:58:16.1945104Z Current runner version: '2.337.0'
+2026-09-26T08:58:16.2272244Z ##[group]Runner Image Provisioner
+2026-09-26T08:58:16.2273401Z Hosted Compute Agent
+2026-09-26T08:58:16.2273985Z Version: 20260828.587
+2026-09-26T08:58:16.2274588Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-26T08:58:16.2275333Z Build Date: 2026-08-28T16:44:25Z
+2026-09-26T08:58:16.2276031Z Worker ID: {02c50e46-d1a9-406a-bb40-85453e33e28d}
+2026-09-26T08:58:16.2276714Z Azure Region: northcentralus
+2026-09-26T08:58:16.2277290Z ##[endgroup]
+2026-09-26T08:58:16.2278714Z ##[group]Operating System
+2026-09-26T08:58:16.2279412Z Microsoft Windows Server 2025
+2026-09-26T08:58:16.2279979Z 10.0.26100
+2026-09-26T08:58:16.2280496Z Datacenter
+2026-09-26T08:58:16.2281035Z ##[endgroup]
+2026-09-26T08:58:16.2281542Z ##[group]Runner Image
+2026-09-26T08:58:16.2282130Z Image: windows-2025-vs2026
+2026-09-26T08:58:16.2282681Z Version: 20260922.246.2
+2026-09-26T08:58:16.2284708Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260922.246/images/windows/Windows2025-VS2026-Readme.md
+2026-09-26T08:58:16.2286661Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260922.246
+2026-09-26T08:58:16.2287657Z ##[endgroup]
+2026-09-26T08:58:16.2288782Z ##[group]GITHUB_TOKEN Permissions
+2026-09-26T08:58:16.2290867Z Contents: read
+2026-09-26T08:58:16.2291417Z Metadata: read
+2026-09-26T08:58:16.2291908Z ##[endgroup]
+2026-09-26T08:58:16.2294247Z Secret source: Actions
+2026-09-26T08:58:16.2295126Z Cache mode: write
+2026-09-26T08:58:16.2295846Z Prepare workflow directory
+2026-09-26T08:58:16.3243819Z Prepare all required actions
+2026-09-26T08:58:16.3312222Z Getting action download info
+2026-09-26T08:58:16.5407452Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-26T08:58:16.7129458Z Download action repository 'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a' (SHA:043fb46d1a93c77aae656e7c1c64a875d1fc6a0a)
+2026-09-26T08:58:17.1656705Z Complete job name: unit (windows-2025)
+2026-09-26T08:58:17.8046089Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-09-26T08:58:17.8047418Z with:
+2026-09-26T08:58:17.8047870Z   repository: lilong555/mini-llm-runtime
+2026-09-26T08:58:17.8051716Z   token: ***
+2026-09-26T08:58:17.8052127Z   ssh-strict: true
+2026-09-26T08:58:17.8052548Z   ssh-user: git
+2026-09-26T08:58:17.8052963Z   persist-credentials: true
+2026-09-26T08:58:17.8053426Z   clean: true
+2026-09-26T08:58:17.8053840Z   sparse-checkout-cone-mode: true
+2026-09-26T08:58:17.8054346Z   fetch-depth: 1
+2026-09-26T08:58:17.8054756Z   fetch-tags: false
+2026-09-26T08:58:17.8055181Z   show-progress: true
+2026-09-26T08:58:17.8055593Z   lfs: false
+2026-09-26T08:58:17.8055986Z   submodules: false
+2026-09-26T08:58:17.8056414Z   set-safe-directory: true
+2026-09-26T08:58:17.8056881Z   allow-unsafe-pr-checkout: false
+2026-09-26T08:58:17.8057605Z ##[endgroup]
+2026-09-26T08:58:18.0003295Z Syncing repository: lilong555/mini-llm-runtime
+2026-09-26T08:58:18.0005993Z ##[group]Getting Git version info
+2026-09-26T08:58:18.0006827Z Working directory is 'D:\a\mini-llm-runtime\mini-llm-runtime'
+2026-09-26T08:58:18.1082893Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T08:58:18.4397368Z git version 2.55.0.windows.5
+2026-09-26T08:58:18.4447822Z ##[endgroup]
+2026-09-26T08:58:18.4482243Z Temporarily overriding HOME='D:\a\_temp\d4bd3664-157a-4aaa-ac97-df90474a253d' before making global git config changes
+2026-09-26T08:58:18.4483721Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T08:58:18.4485089Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T08:58:18.5062974Z Deleting the contents of 'D:\a\mini-llm-runtime\mini-llm-runtime'
+2026-09-26T08:58:18.5069114Z ##[group]Determining repository object format
+2026-09-26T08:58:18.5071579Z ##[endgroup]
+2026-09-26T08:58:18.5147782Z ##[group]Initializing the repository
+2026-09-26T08:58:18.5149113Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T08:58:18.5904597Z Initialized empty Git repository in D:/a/mini-llm-runtime/mini-llm-runtime/.git/
+2026-09-26T08:58:18.5954329Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/lilong555/mini-llm-runtime
+2026-09-26T08:58:18.6965948Z ##[endgroup]
+2026-09-26T08:58:18.6967353Z ##[group]Disabling automatic garbage collection
+2026-09-26T08:58:18.6977274Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-09-26T08:58:18.7357437Z ##[endgroup]
+2026-09-26T08:58:18.7359743Z ##[group]Setting up auth
+2026-09-26T08:58:18.7361080Z Removing SSH command configuration
+2026-09-26T08:58:18.7367986Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T08:58:18.7703862Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T08:58:20.1169363Z Removing HTTP extra header
+2026-09-26T08:58:20.1180427Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T08:58:20.1510547Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T08:58:20.7536045Z Removing includeIf entries pointing to credentials config files
+2026-09-26T08:58:20.7547707Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T08:58:20.7879964Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T08:58:21.4066992Z [command]"C:\Program Files\Git\bin\git.exe" config --file D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-09-26T08:58:21.4361796Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:58:21.4716166Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:58:21.5102722Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:58:21.5449162Z [command]"C:\Program Files\Git\bin\git.exe" config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:58:21.5780389Z ##[endgroup]
+2026-09-26T08:58:21.5781036Z ##[group]Fetching the repository
+2026-09-26T08:58:21.5799180Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5a4508d6ace7777e39460675de9ed770fcb66d43:refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:25.1091686Z From https://github.com/lilong555/mini-llm-runtime
+2026-09-26T08:58:25.1093079Z  * [new ref]         5a4508d6ace7777e39460675de9ed770fcb66d43 -> origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:25.1151109Z [command]"C:\Program Files\Git\bin\git.exe" branch --list --remote origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:25.1526840Z   origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:25.1574664Z [command]"C:\Program Files\Git\bin\git.exe" rev-parse refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:25.1858780Z 5a4508d6ace7777e39460675de9ed770fcb66d43
+2026-09-26T08:58:25.1897064Z ##[endgroup]
+2026-09-26T08:58:25.1897482Z ##[group]Determining the checkout info
+2026-09-26T08:58:25.1898163Z ##[endgroup]
+2026-09-26T08:58:25.1907948Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-09-26T08:58:25.2351036Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-09-26T08:58:25.2687435Z ##[group]Checking out the ref
+2026-09-26T08:58:25.2698463Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force -B feat/own-cuda-vertical-slice refs/remotes/origin/feat/own-cuda-vertical-slice
+2026-09-26T08:58:26.3325688Z Updating files:  50% (1492/2958)
+2026-09-26T08:58:26.3442528Z Updating files:  51% (1509/2958)
+2026-09-26T08:58:26.3554080Z Updating files:  52% (1539/2958)
+2026-09-26T08:58:26.3680449Z Updating files:  53% (1568/2958)
+2026-09-26T08:58:26.3797504Z Updating files:  54% (1598/2958)
+2026-09-26T08:58:26.3945043Z Updating files:  55% (1627/2958)
+2026-09-26T08:58:26.4090951Z Updating files:  56% (1657/2958)
+2026-09-26T08:58:26.4225238Z Updating files:  57% (1687/2958)
+2026-09-26T08:58:26.4366842Z Updating files:  58% (1716/2958)
+2026-09-26T08:58:26.4503134Z Updating files:  59% (1746/2958)
+2026-09-26T08:58:26.4636453Z Updating files:  60% (1775/2958)
+2026-09-26T08:58:26.4775205Z Updating files:  61% (1805/2958)
+2026-09-26T08:58:26.4916880Z Updating files:  62% (1834/2958)
+2026-09-26T08:58:26.5053030Z Updating files:  63% (1864/2958)
+2026-09-26T08:58:26.5303148Z Updating files:  64% (1894/2958)
+2026-09-26T08:58:26.5427682Z Updating files:  65% (1923/2958)
+2026-09-26T08:58:26.5540191Z Updating files:  66% (1953/2958)
+2026-09-26T08:58:26.5659814Z Updating files:  67% (1982/2958)
+2026-09-26T08:58:26.5751351Z Updating files:  68% (2012/2958)
+2026-09-26T08:58:26.5862471Z Updating files:  69% (2042/2958)
+2026-09-26T08:58:26.5976928Z Updating files:  70% (2071/2958)
+2026-09-26T08:58:26.6122109Z Updating files:  71% (2101/2958)
+2026-09-26T08:58:26.7674517Z Updating files:  72% (2130/2958)
+2026-09-26T08:58:26.7774998Z Updating files:  73% (2160/2958)
+2026-09-26T08:58:26.7879681Z Updating files:  74% (2189/2958)
+2026-09-26T08:58:26.7976804Z Updating files:  75% (2219/2958)
+2026-09-26T08:58:26.8093405Z Updating files:  76% (2249/2958)
+2026-09-26T08:58:26.8221046Z Updating files:  77% (2278/2958)
+2026-09-26T08:58:26.8342848Z Updating files:  78% (2308/2958)
+2026-09-26T08:58:26.8424012Z Updating files:  79% (2337/2958)
+2026-09-26T08:58:26.8513333Z Updating files:  80% (2367/2958)
+2026-09-26T08:58:26.9046130Z Updating files:  81% (2396/2958)
+2026-09-26T08:58:26.9145039Z Updating files:  82% (2426/2958)
+2026-09-26T08:58:26.9247641Z Updating files:  83% (2456/2958)
+2026-09-26T08:58:26.9408330Z Updating files:  84% (2485/2958)
+2026-09-26T08:58:26.9525953Z Updating files:  85% (2515/2958)
+2026-09-26T08:58:26.9641245Z Updating files:  86% (2544/2958)
+2026-09-26T08:58:26.9811358Z Updating files:  87% (2574/2958)
+2026-09-26T08:58:26.9946413Z Updating files:  88% (2604/2958)
+2026-09-26T08:58:27.0076544Z Updating files:  89% (2633/2958)
+2026-09-26T08:58:27.0207837Z Updating files:  90% (2663/2958)
+2026-09-26T08:58:27.0307716Z Updating files:  91% (2692/2958)
+2026-09-26T08:58:27.0413978Z Updating files:  92% (2722/2958)
+2026-09-26T08:58:27.0931164Z Updating files:  93% (2751/2958)
+2026-09-26T08:58:27.2128112Z Updating files:  94% (2781/2958)
+2026-09-26T08:58:27.2257132Z Updating files:  95% (2811/2958)
+2026-09-26T08:58:27.2380470Z Updating files:  96% (2840/2958)
+2026-09-26T08:58:27.2498645Z Updating files:  97% (2870/2958)
+2026-09-26T08:58:27.2636571Z Updating files:  98% (2899/2958)
+2026-09-26T08:58:27.2752782Z Updating files:  99% (2929/2958)
+2026-09-26T08:58:27.2753258Z Updating files: 100% (2958/2958)
+2026-09-26T08:58:27.2753665Z Updating files: 100% (2958/2958), done.
+2026-09-26T08:58:27.3180487Z Switched to a new branch 'feat/own-cuda-vertical-slice'
+2026-09-26T08:58:27.3244762Z branch 'feat/own-cuda-vertical-slice' set up to track 'origin/feat/own-cuda-vertical-slice'.
+2026-09-26T08:58:27.3533986Z ##[endgroup]
+2026-09-26T08:58:27.4636499Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-09-26T08:58:27.5511574Z 5a4508d6ace7777e39460675de9ed770fcb66d43
+2026-09-26T08:58:27.6154460Z ##[group]Run ./scripts/Test-CtestEvidence.ps1
+2026-09-26T08:58:27.6154978Z [36;1m./scripts/Test-CtestEvidence.ps1[0m
+2026-09-26T08:58:27.7257042Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:58:27.7257687Z ##[endgroup]
+2026-09-26T08:58:28.6435750Z 
+2026-09-26T08:58:28.6446850Z [32;1mReports                 : [0m77
+2026-09-26T08:58:28.6447577Z [32;1mSuiteExecutions         : [0m653
+2026-09-26T08:58:28.6448143Z [32;1mCaseExecutions          : [0m13831
+2026-09-26T08:58:28.6448767Z [32;1mSuitesWithoutCaseCounts : [0m3
+2026-09-26T08:58:28.6451648Z [32;1mDiagnosticReports       : [0m{D:\a\mini-llm-runtime\mini-llm-runtime\benchmarks\results\diagnostics\wsl-native-ctest-trunc
+2026-09-26T08:58:28.6453135Z                           ated.xml}
+2026-09-26T08:58:28.6455192Z [32;1mStatus                  : [0mpassed_with_unreported_case_counts
+2026-09-26T08:58:28.6455630Z 
+2026-09-26T08:58:28.7623594Z ##[group]Run cmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release
+2026-09-26T08:58:28.7625064Z [36;1mcmake -S . -B build -DLLMSERVE_WITH_LLAMA=OFF -DLLMSERVE_REQUIRE_TEST_TOOLS=ON -DCMAKE_BUILD_TYPE=Release[0m
+2026-09-26T08:58:28.7728106Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:58:28.7729019Z ##[endgroup]
+2026-09-26T08:58:39.9087225Z -- Building for: Visual Studio 18 2026
+2026-09-26T08:58:39.9088285Z -- The C compiler identification is MSVC 19.51.36257.0
+2026-09-26T08:58:41.8062757Z -- The CXX compiler identification is MSVC 19.51.36257.0
+2026-09-26T08:58:41.9273611Z -- Detecting C compiler ABI info
+2026-09-26T08:58:43.0029665Z -- Detecting C compiler ABI info - done
+2026-09-26T08:58:43.0381547Z -- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+2026-09-26T08:58:43.0396973Z -- Detecting C compile features
+2026-09-26T08:58:43.0413115Z -- Detecting C compile features - done
+2026-09-26T08:58:43.0977812Z -- Detecting CXX compiler ABI info
+2026-09-26T08:58:43.8765666Z -- Detecting CXX compiler ABI info - done
+2026-09-26T08:58:43.8974717Z -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe - skipped
+2026-09-26T08:58:43.8980623Z -- Detecting CXX compile features
+2026-09-26T08:58:43.8989434Z -- Detecting CXX compile features - done
+2026-09-26T08:58:43.9236685Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+2026-09-26T08:58:45.1750357Z -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+2026-09-26T08:58:45.1751169Z -- Looking for pthread_create in pthreads
+2026-09-26T08:58:45.8127978Z -- Looking for pthread_create in pthreads - not found
+2026-09-26T08:58:45.8128598Z -- Looking for pthread_create in pthread
+2026-09-26T08:58:46.4495162Z -- Looking for pthread_create in pthread - not found
+2026-09-26T08:58:46.4589599Z -- Found Threads: TRUE
+2026-09-26T08:58:47.6045047Z -- Configuring done (17.7s)
+2026-09-26T08:58:47.6514033Z CMake Warning (unused-cli):
+2026-09-26T08:58:47.6514501Z -- Generating done (0.0s)
+2026-09-26T08:58:47.6515011Z   Manually-specified variables were not used by the project:
+2026-09-26T08:58:47.6515436Z 
+2026-09-26T08:58:47.6515571Z     CMAKE_BUILD_TYPE
+2026-09-26T08:58:47.6515736Z 
+2026-09-26T08:58:47.6515742Z 
+2026-09-26T08:58:47.6526648Z -- Build files have been written to: D:/a/mini-llm-runtime/mini-llm-runtime/build
+2026-09-26T08:58:47.7816064Z ##[group]Run cmake --build build --config Release --parallel 4
+2026-09-26T08:58:47.7816598Z [36;1mcmake --build build --config Release --parallel 4[0m
+2026-09-26T08:58:47.7890788Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:58:47.7891151Z ##[endgroup]
+2026-09-26T08:58:48.2224720Z MSBuild version 18.10.1-1.26427.6+3cd27c13e for .NET Framework
+2026-09-26T08:58:48.2727529Z 
+2026-09-26T08:58:48.5923755Z   1>Checking Build System
+2026-09-26T08:58:49.2537759Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:58:49.2628847Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:58:49.4887004Z   kernels.cpp
+2026-09-26T08:58:49.4888003Z   config.cpp
+2026-09-26T08:58:50.8705815Z   paged_kv.cpp
+2026-09-26T08:58:50.9231501Z   block_pool.cpp
+2026-09-26T08:58:51.7073581Z   prefix_index.cpp
+2026-09-26T08:58:51.7272351Z   parallel.cpp
+2026-09-26T08:58:52.6657352Z D:\a\mini-llm-runtime\mini-llm-runtime\include\minillm\parallel.h(31,5): warning C4324: 'minillm::ParallelExecutor::WorkerProfile': structure was padded due to alignment specifier [D:\a\mini-llm-runtime\mini-llm-runtime\build\minillm_compute.vcxproj]
+2026-09-26T08:58:52.6664329Z   (compiling source file '../src/minillm/parallel.cpp')
+2026-09-26T08:58:52.6664837Z   
+2026-09-26T08:58:52.9348554Z   scheduler.cpp
+2026-09-26T08:58:53.7284954Z   utf8.cpp
+2026-09-26T08:58:54.1759585Z   Generating Code...
+2026-09-26T08:58:54.2642708Z   engine.cpp
+2026-09-26T08:58:54.9314092Z   kernels_avx2.cpp
+2026-09-26T08:58:55.4969187Z   minillm_compute.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\minillm_compute.lib
+2026-09-26T08:58:57.4009397Z   Generating Code...
+2026-09-26T08:59:00.4201148Z   llmserve_core.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\Release\llmserve_core.lib
+2026-09-26T08:59:00.5302054Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:00.7060304Z   core_tests.cpp
+2026-09-26T08:59:06.6680279Z   llmserve-unit-tests.vcxproj -> D:\a\mini-llm-runtime\mini-llm-runtime\build\bin\Release\llmserve-unit-tests.exe
+2026-09-26T08:59:06.7244260Z   Building Custom Rule D:/a/mini-llm-runtime/mini-llm-runtime/CMakeLists.txt
+2026-09-26T08:59:06.9523879Z ##[group]Run ctest --test-dir build -C Release --no-tests=error --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml
+2026-09-26T08:59:06.9525018Z [36;1mctest --test-dir build -C Release --no-tests=error --output-on-failure --test-output-size-passed 65536 --output-junit test-results.xml[0m
+2026-09-26T08:59:06.9599595Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-26T08:59:06.9599952Z ##[endgroup]
+2026-09-26T08:59:07.6988457Z Test project D:/a/mini-llm-runtime/mini-llm-runtime/build
+2026-09-26T08:59:07.7377678Z       Start  1: unit
+2026-09-26T08:59:07.9487907Z  1/11 Test  #1: unit .............................   Passed    0.21 sec
+2026-09-26T08:59:07.9492384Z       Start  2: validation-contract
+2026-09-26T08:59:08.4214316Z  2/11 Test  #2: validation-contract ..............   Passed    0.47 sec
+2026-09-26T08:59:08.4218553Z       Start  3: cuda-validation-report
+2026-09-26T08:59:08.9674271Z  3/11 Test  #3: cuda-validation-report ...........***Failed    0.54 sec
+2026-09-26T08:59:08.9674720Z [PASS] full_case_matrix_and_input_hash
+2026-09-26T08:59:08.9675006Z [PASS] exact_threshold_boundaries
+2026-09-26T08:59:08.9675296Z [PASS] reference_attention_precision_is_explicit
+2026-09-26T08:59:08.9675623Z [PASS] near_tie_formula_is_not_a_mismatch_override
+2026-09-26T08:59:08.9675946Z [PASS] score_identity_and_margin_must_match
+2026-09-26T08:59:08.9676254Z [PASS] nonfinite_and_boolean_metrics_are_rejected
+2026-09-26T08:59:08.9676589Z [PASS] inconsistent_extrema_and_status_are_rejected
+2026-09-26T08:59:08.9676960Z [PASS] natural_generation_keeps_only_common_input_comparisons
+2026-09-26T08:59:08.9677343Z [PASS] drifted_inputs_cannot_claim_comparability
+2026-09-26T08:59:08.9677649Z [PASS] copy_counts_and_state_are_recomputed
+2026-09-26T08:59:08.9677967Z [PASS] artifact_paths_and_duplicate_json_are_rejected
+2026-09-26T08:59:08.9678274Z Traceback (most recent call last):
+2026-09-26T08:59:08.9680598Z   File "D:\a\mini-llm-runtime\mini-llm-runtime\tests\cuda_validation_report_tests.py", line 237, in <module>
+2026-09-26T08:59:08.9681097Z     test()
+2026-09-26T08:59:08.9681269Z     ~~~~^^
+2026-09-26T08:59:08.9681828Z   File "D:\a\mini-llm-runtime\mini-llm-runtime\tests\cuda_validation_report_tests.py", line 213, in missing_report_does_not_overwrite_existing_evidence
+2026-09-26T08:59:08.9682605Z     assert result.returncode == 1 and "\u7f3a\u5c11\u8bc1\u636e" in result.stderr
+2026-09-26T08:59:08.9683022Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-09-26T08:59:08.9683297Z AssertionError
+2026-09-26T08:59:08.9683407Z 
+2026-09-26T08:59:08.9683530Z       Start  4: cuda-benchmark-validation
+2026-09-26T08:59:10.5234372Z  4/11 Test  #4: cuda-benchmark-validation ........***Failed    1.55 sec
+2026-09-26T08:59:10.5234847Z [PASS] frozen_schedule_is_separate_balanced_and_complete
+2026-09-26T08:59:10.5235195Z [PASS] complete_workload_report_has_exact_counts
+2026-09-26T08:59:10.5235548Z [PASS] missing_warmup_setup_and_cases_are_rejected
+2026-09-26T08:59:10.5235888Z [PASS] changed_inputs_and_natural_history_are_rejected
+2026-09-26T08:59:10.5236237Z [PASS] no_boolean_nonfinite_or_excluded_sampling_time
+2026-09-26T08:59:10.5236568Z [PASS] wrong_kv_and_device_allocation_are_rejected
+2026-09-26T08:59:10.5236894Z [PASS] cuda_transfer_memory_and_weights_are_recomputed
+2026-09-26T08:59:10.5237214Z [PASS] exact_noise_boundaries_and_negative_results
+2026-09-26T08:59:10.5237562Z [PASS] trial_medians_not_inner_repeats_are_statistical_units
+2026-09-26T08:59:10.5237919Z [PASS] same_backend_aa_output_difference_is_rejected
+2026-09-26T08:59:10.5238399Z [PASS] same_backend_cross_trial_output_difference_is_rejected
+2026-09-26T08:59:10.5238963Z [PASS] cross_backend_generation_difference_is_not_hidden
+2026-09-26T08:59:10.5239528Z [PASS] duplicates_and_path_escapes_are_rejected
+2026-09-26T08:59:10.5239946Z Traceback (most recent call last):
+2026-09-26T08:59:10.5243902Z   File "D:\a\mini-llm-runtime\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 515, in <module>
+2026-09-26T08:59:10.5244568Z     test()
+2026-09-26T08:59:10.5244737Z     ~~~~^^
+2026-09-26T08:59:10.5245350Z   File "D:\a\mini-llm-runtime\mini-llm-runtime\tests\cuda_benchmark_validation_tests.py", line 370, in preflight_and_publication_failure_preserve_previous_outputs
+2026-09-26T08:59:10.5246138Z     assert result.returncode == 1 and "\u7f3a\u5c11\u8bc1\u636e" in result.stderr
+2026-09-26T08:59:10.5246553Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-09-26T08:59:10.5246821Z AssertionError
+2026-09-26T08:59:10.5246940Z 
+2026-09-26T08:59:10.5247046Z       Start  5: cuda-micro-validation
+2026-09-26T08:59:24.7866301Z  5/11 Test  #5: cuda-micro-validation ............   Passed   14.26 sec
+2026-09-26T08:59:24.7870768Z       Start  6: cuda-profiler-validation
+2026-09-26T08:59:26.6747161Z  6/11 Test  #6: cuda-profiler-validation .........   Passed    1.89 sec
+2026-09-26T08:59:26.6750983Z       Start  7: cuda-bundle-validation
+2026-09-26T08:59:27.3993254Z  7/11 Test  #7: cuda-bundle-validation ...........   Passed    0.72 sec
+2026-09-26T08:59:27.3996954Z       Start  8: telemetry-validation
+2026-09-26T08:59:27.4903976Z  8/11 Test  #8: telemetry-validation .............   Passed    0.09 sec
+2026-09-26T08:59:27.4908042Z       Start  9: cuda-profiler-process
+2026-09-26T08:59:28.5570818Z  9/11 Test  #9: cuda-profiler-process ............   Passed    1.07 sec
+2026-09-26T08:59:28.5575181Z       Start 10: benchmark-validation
+2026-09-26T08:59:36.3440229Z 10/11 Test #10: benchmark-validation .............   Passed    7.79 sec
+2026-09-26T08:59:36.3444993Z       Start 11: runtime-benchmark-validation
+2026-09-26T08:59:42.8042950Z 11/11 Test #11: runtime-benchmark-validation .....   Passed    6.46 sec
+2026-09-26T08:59:42.8052764Z 
+2026-09-26T08:59:42.8053270Z 82% tests passed, 2 tests failed out of 11
+2026-09-26T08:59:42.8053683Z 
+2026-09-26T08:59:42.8054217Z Total Test time (real) =  35.10 sec
+2026-09-26T08:59:42.8054533Z 
+2026-09-26T08:59:42.8054686Z The following tests FAILED:
+2026-09-26T08:59:42.8055891Z 	  3 - cuda-validation-report (Failed)
+2026-09-26T08:59:42.8056343Z 	  4 - cuda-benchmark-validation (Failed)
+2026-09-26T08:59:42.8070028Z Errors while running CTest
+2026-09-26T08:59:42.9393038Z ##[error]Process completed with exit code 1.
+2026-09-26T08:59:42.9626425Z ##[group]Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+2026-09-26T08:59:42.9626882Z with:
+2026-09-26T08:59:42.9627081Z   name: unit-windows-2025
+2026-09-26T08:59:42.9627313Z   path: build/test-results.xml
+2026-09-26T08:59:42.9627556Z   if-no-files-found: error
+2026-09-26T08:59:42.9627772Z   compression-level: 6
+2026-09-26T08:59:42.9627965Z   overwrite: false
+2026-09-26T08:59:42.9628159Z   include-hidden-files: false
+2026-09-26T08:59:42.9628375Z   archive: true
+2026-09-26T08:59:42.9628558Z ##[endgroup]
+2026-09-26T08:59:43.1437660Z With the provided path, there will be 1 file uploaded
+2026-09-26T08:59:43.1444345Z Artifact name is valid!
+2026-09-26T08:59:43.1446440Z Root directory input is valid!
+2026-09-26T08:59:43.3812105Z Uploading artifact: unit-windows-2025.zip
+2026-09-26T08:59:43.3891660Z Beginning upload of artifact content to blob storage
+2026-09-26T08:59:43.5258177Z Uploaded bytes 3557
+2026-09-26T08:59:43.5570201Z Finished uploading artifact content to blob storage!
+2026-09-26T08:59:43.5571270Z SHA256 digest of uploaded artifact is 4743646362ef7d1d17744553eaf6534d3b39baaa2c148cf9f2a13950489fbb9f
+2026-09-26T08:59:43.5572850Z Finalizing artifact upload
+2026-09-26T08:59:43.7953314Z Artifact unit-windows-2025 successfully finalized. Artifact ID 10902880324
+2026-09-26T08:59:43.7954412Z Artifact unit-windows-2025 has been successfully uploaded! Final size is 3557 bytes. Artifact ID is 10902880324
+2026-09-26T08:59:43.7964234Z Artifact download URL: https://github.com/lilong555/mini-llm-runtime/actions/runs/36231354762/artifacts/10902880324
+2026-09-26T08:59:43.8366069Z Post job cleanup.
+2026-09-26T08:59:44.0568431Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-09-26T08:59:44.0879811Z git version 2.55.0.windows.5
+2026-09-26T08:59:44.0964635Z Temporarily overriding HOME='D:\a\_temp\0fcc8547-cf8e-440d-be2d-30f3849deccd' before making global git config changes
+2026-09-26T08:59:44.0965907Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-26T08:59:44.0980339Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\mini-llm-runtime\mini-llm-runtime
+2026-09-26T08:59:44.1342283Z Removing SSH command configuration
+2026-09-26T08:59:44.1360000Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-09-26T08:59:44.1717478Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-09-26T08:59:44.7474760Z Removing HTTP extra header
+2026-09-26T08:59:44.7485951Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-26T08:59:44.7844564Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-09-26T08:59:45.3518441Z Removing includeIf entries pointing to credentials config files
+2026-09-26T08:59:45.3530159Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-26T08:59:45.3824547Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path
+2026-09-26T08:59:45.3825731Z includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path
+2026-09-26T08:59:45.3826498Z includeif.gitdir:/github/workspace/.git.path
+2026-09-26T08:59:45.3827465Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-26T08:59:45.3888404Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path
+2026-09-26T08:59:45.4187226Z D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:59:45.4241391Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git.path D\:\\a\\_temp\\git\-credentials\-f6954097\-02fe\-4367\-a069\-1c0aa05e3714\.config
+2026-09-26T08:59:45.4586241Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path
+2026-09-26T08:59:45.4872948Z D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:59:45.4924479Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:D:/a/mini-llm-runtime/mini-llm-runtime/.git/worktrees/*.path D\:\\a\\_temp\\git\-credentials\-f6954097\-02fe\-4367\-a069\-1c0aa05e3714\.config
+2026-09-26T08:59:45.5264389Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-26T08:59:45.5541934Z /github/runner_temp/git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:59:45.5592274Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-f6954097\-02fe\-4367\-a069\-1c0aa05e3714\.config
+2026-09-26T08:59:45.5931734Z [command]"C:\Program Files\Git\bin\git.exe" config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-26T08:59:45.6234062Z /github/runner_temp/git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config
+2026-09-26T08:59:45.6342250Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-f6954097\-02fe\-4367\-a069\-1c0aa05e3714\.config
+2026-09-26T08:59:45.6699181Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-09-26T08:59:46.2437964Z Removing credentials config 'D:\a\_temp\git-credentials-f6954097-02fe-4367-a069-1c0aa05e3714.config'
+2026-09-26T08:59:46.2651798Z Cleaning up orphan processes
+2026-09-26T08:59:46.3075517Z Terminate orphan process: pid (8584) (vctip)
+2026-09-26T08:59:46.3222146Z Terminate orphan process: pid (8300) (MSBuild)
+2026-09-26T08:59:46.3289267Z Terminate orphan process: pid (8680) (MSBuild)
+2026-09-26T08:59:46.3349830Z Terminate orphan process: pid (8332) (conhost)
