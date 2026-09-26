@@ -147,6 +147,7 @@ case "${1:-help}" in
     mkdir -p .run
     state=$(mktemp -d "$root/.run/http-check.XXXXXX")
     port=${2:-8015}
+    http_report=${3:-"$report_prefix-http.json"}
     "$build/bin/llmserve" --model "$model" --backend "$backend" --gpu-layers "$gpu_layers" \
       --port "$port" --shutdown-file "$state/stop" >"$state/server.log" 2>&1 &
     server_pid=$!
@@ -161,7 +162,8 @@ case "${1:-help}" in
       sleep 0.2
     done
     [[ $ready == true ]] || { echo '服务就绪检查超时' >&2; exit 1; }
-    "$build/bin/llmserve-http-tests" --port "$port" --output "$report_prefix-http.json"
+    "$build/bin/llmserve-http-tests" --port "$port" --output "$http_report" \
+      --shutdown-file "$state/stop"
     ;;
   smoke)
     [[ $cuda == ON ]] || { echo '用法：bash scripts/dev.sh cuda smoke' >&2; exit 1; }
@@ -183,8 +185,8 @@ case "${1:-help}" in
     [[ -z $(git -C "$target" status --porcelain) ]] || { echo 'Dependency has local changes' >&2; exit 1; }
     ;;
   *)
-    echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
-    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|serve [服务参数]|http-test [端口]|check-http [端口]|serving-check [报告路径]|serving-memcheck [报告路径]|benchmark -Trace 路径 [基准参数]|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate [生成参数]}'
+    echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口] [报告路径]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|serve [服务参数]|http-test [端口]|check-http [端口] [报告路径]|serving-check [报告路径]|serving-memcheck [报告路径]|benchmark -Trace 路径 [基准参数]|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate [生成参数]}'
     [[ ${1:-help} == help ]]
     ;;
 esac

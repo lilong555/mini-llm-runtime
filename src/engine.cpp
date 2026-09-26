@@ -154,7 +154,11 @@ struct Engine::Impl {
     ~Impl() { stop(); }
 
     void stop() {
-        stopping.store(true);
+        {
+            // 即使谓词是 atomic，也须与 wait 共用互斥锁，避免通知早于等待登记。
+            std::lock_guard lock(mutex);
+            stopping.store(true);
+        }
         cv.notify_all();
         if (worker.joinable()) {
             worker.join();

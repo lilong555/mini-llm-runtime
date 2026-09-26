@@ -16,6 +16,7 @@
 #include <bit>
 #include <chrono>
 #include <cstring>
+#include <future>
 #include <limits>
 #include <map>
 #include <numeric>
@@ -654,6 +655,14 @@ TEST(engine_statistics_only_reads_published_resource_copies) {
     CHECK(engine.statistics().resources_batch_id == engine.statistics().batches);
 }
 
+TEST(engine_idle_stop_does_not_lose_worker_wakeup) {
+    for (int i = 0; i < 256; ++i) {
+        Engine engine({}, std::make_unique<FakeRunner>());
+        engine.stop();
+        CHECK(!engine.statistics().ready && engine.statistics().outstanding_requests == 0);
+    }
+}
+
 TEST(engine_noexcept_cleanup_failure_has_one_terminal_and_returns_credits) {
     for (int fail_at : {1, 2}) {
         auto probe = std::make_shared<Probe>();
@@ -674,10 +683,20 @@ TEST(engine_noexcept_cleanup_failure_has_one_terminal_and_returns_credits) {
     auto probe = std::make_shared<Probe>();
     probe->report_resources = true;
     probe->fail_sync = true;
-    Engine engine({}, std::make_unique<FakeRunner>(probe));
+    auto gate = std::make_shared<test::RunnerGate>();
+    Engine engine({}, std::make_unique<test::GatedRunner>(std::make_unique<FakeRunner>(probe), gate));
     const auto handle = engine.submit(request("sync failure", 100));
-    engine.stop();
+    try {
+        gate->wait_until_sampled();
+    } catch (...) {
+        gate->release();
+        throw;
+    }
+    auto stopped = std::async(std::launch::async, [&] { engine.stop(); });
+    while (engine.statistics().ready) { std::this_thread::yield(); }
+    gate->release();
     CHECK(collect(handle).terminal.error_code == "backend_error" && !handle->next(1ms));
+    stopped.get();
     CHECK(engine.statistics().kv_used_blocks == 0 && !engine.statistics().last_error.empty());
 }
 
@@ -998,4 +1017,7 @@ TEST(engine_shutdown_terminates_queued_and_running_requests) {
     test::throws<RequestError>([&] { engine.submit(request("three")); });
 }
 
-int main() { return test::run(); }
+int main() {
+    std::cout << std::unitbuf;
+    return test::run();
+}

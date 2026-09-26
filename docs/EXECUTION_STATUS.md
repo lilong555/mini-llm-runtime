@@ -13,11 +13,18 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
 - 实施分支：`feat/own-cuda-serving`。
 - 唯一主线：M3-1 自有 CUDA Serving；M3-2 单项优化和 M3-3 GPU 分页须满足 V3 进入条件。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
-- M3-1 实施中：前两组已实现 adapter、清理契约、backend/脚本、资源快照与 schema v2。
-  三种构建 48 套 CTest 通过；真实 Qwen3 的 S=1/S=4 共 80 个输出与独立 Runtime
-  和冻结短金标准一致，S=4 有 3 个确定性 mixed batch；槽复用和并发 tokenize 通过。
-  上游 `GGML_CUDA=OFF` 的 GPU HTTP 8/8、CPU HTTP 8/8 通过。
-  慢消费者/shutdown/完整故障验收、代表性 memcheck、最终候选 CI 与 Serving 基线仍待完成。
+- M3-1 实施中：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
+  自有 CUDA、CPU、上游 CUDA、独立核心、ASan/UBSan 五种构建共 74/74 套 CTest 通过；
+  真实 Qwen3 的 S=1/S=4 共 80 个输出与独立 Runtime 和冻结短金标准一致，
+  S=4 有 3 个确定性 mixed batch，槽复用与并发 tokenize 通过。
+  自有 CUDA（上游 `GGML_CUDA=OFF`）、CPU、上游 CUDA 的 HTTP 均为 12/12，
+  包含 UTF-8、取消、超时、两类断连、慢 socket 和活动/排队请求停服。
+  真实模型 memcheck 覆盖 mixed/reuse 与 4 active + 2 queued 的 post-launch fault，
+  结果为 0 错误、0 泄漏；故障批次没有 token 发布，六个请求各有一个 backend_error，
+  逻辑信用归还，poisoned resident 保留到 owner 析构。
+  CPU 实模型 13/13 通过；证据位于 `.run/cuda-serving-001/validation/`。
+  `f88886e` 的 CI run `36241363029` 为 4/5，sanitizers 的 unit 超时；
+  停机谓词锁修正后的最终候选 CI 与限定 Serving 基线仍待完成，见 `ENG-062`。
 
 ## 阶段门禁
 
@@ -36,7 +43,7 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
 | M3-1 | 实施中 | GPU Serving 接入及 HTTP/SSE、生命周期、限定基线验收 |
 | M3-2/M3-3 | 尚未进入 | 根据 Serving 证据选择单项优化或满足 GPU 分页进入条件 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 正在接入，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 的限定性能基线仍待采集，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
 
 ## 可复核证据
 

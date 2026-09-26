@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include <chrono>
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <future>
@@ -27,6 +28,12 @@ json idle(httplib::Client& client) {
         const auto stats = get(client, "/metrics");
         if (stats.at("outstanding_requests") == 0 && stats.at("active_requests") == 0) {
             CHECK(stats.at("kv_credits").at("active_unique_blocks") == 0);
+            if (stats.at("backend") == "minillm-cuda") {
+                CHECK(stats.at("resources").at("live_tokens") == 0);
+                CHECK(stats.at("resources").at("state_valid") == true && stats.at("resources").at("reusable") == true);
+                CHECK(stats.at("resources").at("resident_kv_payload_bytes").get<std::size_t>() > 0);
+                CHECK(stats.at("resources").at("live_kv_pages").is_null());
+            }
             return stats;
         }
         std::this_thread::sleep_for(50ms);
@@ -40,6 +47,7 @@ struct StreamResult {
     json usage;
     std::string error;
     int done = 0;
+    int terminal = 0;
     json telemetry = json::array();
 };
 
@@ -65,12 +73,16 @@ private:
 void capture(StreamResult& output, const std::string& payload) {
     if (payload == "[DONE]") {
         ++output.done;
+        CHECK(output.done == 1 && output.terminal == 1);
         return;
     }
+    CHECK(output.done == 0 && output.terminal == 0);
     const auto value = json::parse(payload);
     if (value.contains("error")) {
+        ++output.terminal;
         output.error = value.at("error").at("code").get<std::string>();
     } else {
+        if (!value.at("choices").at(0).at("finish_reason").is_null()) { ++output.terminal; }
         output.text += value.at("choices").at(0).at("text").get<std::string>();
         if (value.contains("token_id")) {
             output.tokens.push_back(value.at("token_id").get<std::int32_t>());
@@ -80,6 +92,22 @@ void capture(StreamResult& output, const std::string& payload) {
             output.usage = value.at("usage");
         }
     }
+}
+
+StreamResult stream(httplib::Client& client, json body, const std::string& id = "") {
+    body["stream"] = true;
+    Frames frames;
+    StreamResult output;
+    const auto response = client.Post("/v1/completions", id.empty() ? httplib::Headers{} :
+        httplib::Headers{{"X-Request-ID", id}}, body.dump(), "application/json",
+        [&](const char* data, std::size_t size) {
+            return frames.consume(data, size, [&](const std::string& payload) {
+                capture(output, payload);
+                return true;
+            });
+        });
+    CHECK(response && response->status == 200 && output.done == 1 && output.terminal == 1);
+    return output;
 }
 
 void save(const std::string& path, const json& report) {
@@ -103,9 +131,9 @@ int main(int argc, char** argv) {
     json report{{"status", "failed"}, {"checks", json::array()}};
     std::string output_path;
     try {
-        Options options(argc, argv, {"--port", "--output"});
+        Options options(argc, argv, {"--port", "--output", "--shutdown-file"});
         if (options.has("--help")) {
-            std::cout << "llmserve-http-tests [--port 8000] [--output REPORT.json]\n";
+            std::cout << "llmserve-http-tests [--port 8000] [--output REPORT.json] [--shutdown-file OWN_MARKER]\n";
             return 0;
         }
         output_path = options.get("--output");
@@ -119,24 +147,37 @@ int main(int argc, char** argv) {
         const auto models = get(client, "/v1/models");
         CHECK(models.at("data").at(0).at("id") == before.at("model"));
         checks.push_back("health_and_model_identity");
+        const auto& capabilities = before.at("capabilities");
+        CHECK(capabilities.at("synchronous_execute") == true);
+        CHECK(capabilities.at("max_sequences") >= before.at("max_active"));
+        if (before.at("backend") == "minillm-cuda") {
+            CHECK(before.at("gpu") == true && before.at("gpu_layers") == 0 && before.at("kernel_mode") == "cuda-f32");
+            CHECK(capabilities.at("prefix_copy") == false && capabilities.at("runtime_stage_profile") == false);
+            CHECK(before.at("prefix_cache_entries") == 0 && before.at("prefix_cache_tokens") == 0);
+            const auto& resources = before.at("resources");
+            CHECK(resources.at("layout") == "contiguous" && resources.at("live_kv_pages").is_null());
+            CHECK(resources.at("capacity_tokens").get<std::size_t>() ==
+                  before.at("max_active").get<std::size_t>() * before.at("max_model_len").get<std::size_t>());
+            CHECK(resources.at("snapshot_boundary") == "model_thread_publish");
+            CHECK(resources.at("owned_device_bytes") >= resources.at("resident_kv_payload_bytes"));
+            CHECK(before.at("initialization").at("weight_decode_upload_ns").get<std::uint64_t>() > 0);
+            CHECK(before.at("initialization").at("weight_decode_upload_ns") <=
+                  before.at("initialization").at("storage_initialization_ns"));
+        } else if (before.at("backend") == "minillm") {
+            CHECK(capabilities.at("prefix_copy") == true && capabilities.at("runtime_stage_profile") == true);
+            CHECK(before.at("resources").at("layout") == "paged");
+            CHECK(before.at("resources").at("live_tokens").is_null());
+        } else {
+            CHECK(before.at("backend") == "llama.cpp" && before.at("resources").is_null());
+        }
+        checks.push_back("backend_capabilities_and_resource_semantics");
 
         const json body{{"prompt", "The capital of France is"}, {"max_tokens", 8}, {"ignore_eos", true}};
         auto response = client.Post("/v1/completions", body.dump(), "application/json");
         CHECK(response && response->status == 200);
         const auto full = json::parse(response->body);
-        Frames frames;
-        StreamResult streamed;
-        auto streaming = body;
-        streaming["stream"] = true;
-        response = client.Post("/v1/completions", {}, streaming.dump(), "application/json",
-            [&](const char* data, std::size_t size) {
-                return frames.consume(data, size, [&](const std::string& payload) {
-                    capture(streamed, payload);
-                    return true;
-                });
-            });
-        CHECK(response && response->status == 200);
-        CHECK(streamed.done == 1 && streamed.error.empty());
+        const auto streamed = stream(client, body);
+        CHECK(streamed.error.empty());
         CHECK(streamed.text == full.at("choices").at(0).at("text").get<std::string>());
         CHECK(streamed.tokens == full.at("token_ids").get<std::vector<std::int32_t>>());
         CHECK(streamed.usage.at("completion_tokens") == 8);
@@ -156,6 +197,18 @@ int main(int argc, char** argv) {
         }
         checks.push_back("stream_nonstream_text_tokens_and_usage_match");
         report["sample"] = full;
+
+        const json unicode_body{{"prompt", "你好，我是"}, {"max_tokens", 8}, {"ignore_eos", true}};
+        const auto unicode = client.Post("/v1/completions", unicode_body.dump(), "application/json");
+        CHECK(unicode && unicode->status == 200);
+        const auto unicode_full = json::parse(unicode->body);
+        const auto unicode_stream = stream(client, unicode_body);
+        CHECK(unicode_stream.error.empty());
+        CHECK(unicode_stream.tokens == unicode_full.at("token_ids").get<std::vector<std::int32_t>>());
+        CHECK(unicode_stream.text == unicode_full.at("choices").at(0).at("text").get<std::string>());
+        CHECK(std::any_of(unicode_stream.text.begin(), unicode_stream.text.end(),
+                          [](unsigned char c) { return c >= 0x80; }));
+        checks.push_back("utf8_stream_nonstream_match");
 
         for (const json invalid : {
             json{{"prompt", "x"}, {"temperature", 1}},
@@ -212,7 +265,7 @@ int main(int argc, char** argv) {
                 });
             });
         CHECK(response && response->status == 200);
-        CHECK(cancel_sent && cancelled.error == "cancelled" && cancelled.done == 1);
+        CHECK(cancel_sent && cancelled.error == "cancelled" && cancelled.done == 1 && cancelled.terminal == 1);
         idle(client);
         checks.push_back("explicit_live_stream_cancellation");
 
@@ -257,6 +310,44 @@ int main(int argc, char** argv) {
         idle(client);
         checks.push_back("nonstream_disconnect_reclaims_kv");
 
+        const auto before_slow = idle(client);
+        httplib::Client slow("127.0.0.1", port);
+        slow.set_read_timeout(180);
+        slow.set_socket_options([](socket_t socket) {
+            CHECK(httplib::set_socket_opt(socket, SOL_SOCKET, SO_RCVBUF, 1024));
+        });
+        Frames slow_frames;
+        bool slow_received = false;
+        slow.Post("/v1/completions", {{"X-Request-ID", "http-slow-consumer"}},
+            long_stream.dump(), "application/json", [&](const char* data, std::size_t size) {
+                return slow_frames.consume(data, size, [&](const std::string& payload) {
+                    if (payload != "[DONE]" && json::parse(payload).contains("token_id")) {
+                        slow_received = true;
+                        std::this_thread::sleep_for(350ms);
+                        httplib::Client control("127.0.0.1", port);
+                        const auto snapshot = get(control, "/metrics");
+                        CHECK(snapshot.at("outstanding_requests") <= snapshot.at("queue_capacity"));
+                        CHECK(snapshot.at("active_requests") <= snapshot.at("max_active"));
+                        CHECK(snapshot.at("kv_credits").at("reserved_unique_blocks") <= snapshot.at("kv_credits").at("total_blocks"));
+                        if (snapshot.at("backend") == "minillm-cuda") {
+                            CHECK(snapshot.at("resources").at("live_tokens") <= snapshot.at("resources").at("capacity_tokens"));
+                            CHECK(snapshot.at("resources").at("owned_device_bytes") == before.at("resources").at("owned_device_bytes"));
+                        }
+                        return false;
+                    }
+                    return true;
+                });
+            });
+        CHECK(slow_received);
+        const auto after_slow = idle(client);
+        const auto slow_failures = after_slow.at("failed").get<std::uint64_t>() - before_slow.at("failed").get<std::uint64_t>();
+        CHECK(slow_failures <= 1 && after_slow.at("ready") == true && after_slow.at("last_error") == "");
+        CHECK(after_slow.at("completed").get<std::uint64_t>() + after_slow.at("cancelled").get<std::uint64_t>() +
+              after_slow.at("failed").get<std::uint64_t>() ==
+              before_slow.at("completed").get<std::uint64_t>() + before_slow.at("cancelled").get<std::uint64_t>() +
+              before_slow.at("failed").get<std::uint64_t>() + 1);
+        checks.push_back("slow_socket_bounded_and_reclaimed");
+
         auto deadline = body;
         deadline["timeout_ms"] = 1;
         deadline["max_tokens"] = 64;
@@ -265,8 +356,43 @@ int main(int argc, char** argv) {
         CHECK(json::parse(timed_out->body).at("error").at("code") == "timeout");
         checks.push_back("deadline_returns_408");
         const auto after = idle(client);
-        CHECK(after.at("failed") == before.at("failed"));
+        CHECK(after.at("failed").get<std::uint64_t>() == before.at("failed").get<std::uint64_t>() + slow_failures);
         report["server_after"] = after;
+        const auto shutdown_file = options.get("--shutdown-file");
+        if (!shutdown_file.empty()) {
+            CHECK(!std::filesystem::exists(shutdown_file));
+            const auto count = before.at("max_active").get<std::size_t>() + 2;
+            CHECK(count <= before.at("queue_capacity").get<std::size_t>());
+            std::vector<std::future<StreamResult>> stopping;
+            for (std::size_t i = 0; i < count; ++i) {
+                stopping.push_back(std::async(std::launch::async, [&, i] {
+                    httplib::Client other("127.0.0.1", port);
+                    other.set_read_timeout(180);
+                    return stream(other, long_stream, "http-stop-" + std::to_string(i));
+                }));
+            }
+            json at_stop;
+            for (int i = 0; i < 400; ++i) {
+                at_stop = get(client, "/metrics");
+                if (at_stop.at("outstanding_requests") == count &&
+                    at_stop.at("active_requests").get<std::size_t>() > 0 &&
+                    at_stop.at("waiting_requests").get<std::size_t>() > 0) { break; }
+                std::this_thread::sleep_for(5ms);
+            }
+            const bool active_and_queued = at_stop.at("outstanding_requests") == count &&
+                at_stop.at("active_requests").get<std::size_t>() > 0 &&
+                at_stop.at("waiting_requests").get<std::size_t>() > 0;
+            std::ofstream marker(shutdown_file);
+            marker.close();
+            CHECK(marker && active_and_queued);
+            for (auto& task : stopping) {
+                const auto stopped = task.get();
+                CHECK(stopped.error == "cancelled" && stopped.terminal == 1 && stopped.done == 1);
+            }
+            report["shutdown"] = {{"requests", count}, {"active", at_stop.at("active_requests")},
+                                   {"queued", at_stop.at("waiting_requests")}, {"single_terminals", count}};
+            checks.push_back("shutdown_active_and_queued_single_terminals");
+        }
         report["passed"] = checks.size();
         report["status"] = "passed";
         save(output_path, report);

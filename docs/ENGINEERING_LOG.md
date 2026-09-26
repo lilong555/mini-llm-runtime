@@ -627,3 +627,12 @@
 - 原因：现象与非交互启动会话结束相关；没有 CUDA backend_error 或进程退出信号证据，不将其归因为 CUDA 数学或 KV 故障。
 - 解决方法或下一步：WSL 使用前台 `serve`，或在同一控制会话内完成启动、HTTP 检查与正常停服；独立守护部署不属于本阶段。不新增后台进程管理框架。
 - 验证：同一自有 CUDA 产品经 `bash scripts/dev.sh own-cuda check-http 8121` 完成 HTTP 8/8；backend 为 `minillm-cuda`、上游 `GGML_CUDA=OFF`，请求结束后 active/outstanding/live tokens 均为 0、resident KV 为 939524096 字节，脚本正常回收服务。原始连接失败仍保留，临时启动会话问题未标为已解决。
+
+## ENG-062：空闲 Engine 停机谓词未与条件变量共用互斥锁
+
+- 状态：待候选 CI 验证；旧超时的唯一根因尚未确认。
+- 影响：停机通知可能落在模型线程检查谓词之后、登记等待之前，导致 join 等不到线程退出；原子变量本身不能消除条件变量的丢失唤醒窗口。
+- 复现条件或证据：`f88886e` 的 CI run `36241363029` 中，Windows/Linux 普通构建四任务通过，sanitizers 的 `unit` 在 30.03 秒超时，未提供 ASan 越界或栈报告。原始 JUnit 与日志位于 `.run/cuda-serving-001/diagnostics/ci-f88886e/`。本机新增 256 次空闲启动/停止用例后，五次有界复验全部通过，未再次复现旧超时。
+- 原因：`Engine::Impl::stop()` 原先在 `mutex` 外更新等待谓词并通知；该同步窗口由代码确认，但没有旧 CI 线程栈可将那次超时唯一归因于此处。
+- 解决方法或下一步：在同一 `mutex` 下设置 stopping，解锁后通知并 join；增加空闲停机回归，并即时刷新核心测试进度以定位未来超时。不放宽 30 秒门禁。
+- 验证：修正后五种构建共 74/74 套 CTest 通过；ASan/UBSan 的 unit 连续五次通过，每次包含 256 次空闲停机。CPU/自有 CUDA HTTP 各 12/12、CPU 实模型 13/13 通过，原始记录位于 `.run/cuda-serving-001/validation/` 和各构建的 `cuda-serving-final.xml`。候选自身 CI 仍待验证；旧 `f88886e` 保持 4/5，不继承本地通过结果。

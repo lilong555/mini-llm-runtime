@@ -220,6 +220,64 @@ json check_engine_outputs(const std::string& path, EngineConfig config,
         {"owned_device_bytes", resident.owned_device_bytes}, {"generations", generations},
         {"slot_reuse", true}, {"stage_profile_available", false}};
 }
+
+#ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+json check_post_launch_engine_failure(const std::string& path, EngineConfig config) {
+    const auto before = minillm::cuda::allocation_stats();
+    json result;
+    {
+        config.telemetry_mode = TelemetryMode::batches;
+        config.telemetry_capacity = 32;
+        auto gate = std::make_shared<test::RunnerGate>();
+        Engine engine(config, std::make_unique<test::GatedRunner>(make_runner(path, config), gate));
+        const auto resident = *engine.statistics().resources;
+        const auto allocated = minillm::cuda::allocation_stats();
+        std::vector<std::shared_ptr<RequestHandle>> handles;
+        try {
+            handles.push_back(engine.submit(request({1}, 4)));
+            gate->wait_until_sampled();
+            for (int i = 0; i < 5; ++i) { handles.push_back(engine.submit(request({2,3,4}, 4))); }
+            fail_completion = true;
+        } catch (...) {
+            gate->release();
+            throw;
+        }
+        gate->release();
+        for (std::size_t i = 0; i < handles.size(); ++i) {
+            const auto output = collect(handles[i]);
+            CHECK(output.terminal.error_code == "backend_error");
+            CHECK(output.tokens.size() == (i == 0 ? 1 : 0));
+        }
+        engine.stop();
+        CHECK(!fail_completion);
+        const auto stats = engine.statistics();
+        CHECK(stats.failed == handles.size() && stats.completed == 0 && !stats.ready);
+        CHECK(stats.kv_used_blocks == 0 && stats.active_requests == 0 && stats.outstanding_requests == 0);
+        CHECK(!stats.resources->state_valid && !stats.resources->reusable && !stats.resources->live_tokens);
+        CHECK(stats.resources->resident_kv_payload_bytes == resident.resident_kv_payload_bytes);
+        CHECK(stats.resources->owned_device_bytes == resident.owned_device_bytes);
+        CHECK(minillm::cuda::allocation_stats().release_calls == allocated.release_calls);
+        test::throws<RequestError>([&] { engine.submit(request({1})); });
+        const auto& capture = engine.telemetry();
+        CHECK(capture.recorded == 2 && !capture.batches[1].completed && !capture.batches[1].runner_completed);
+        CHECK(capture.batches[1].waiting_requests == 2 && capture.batches[1].active_requests == 4);
+        CHECK(capture.resources_final && !capture.resources_final->live_tokens);
+        for (std::size_t i = 0; i < capture.batches[1].sequences; ++i) {
+            CHECK(!capture.batches[1].slices[i].sampled_token && !capture.batches[1].slices[i].emitted);
+        }
+        result = {{"name", "post_launch_fail_stop"}, {"requests", handles.size()},
+            {"active_at_fault", 4}, {"queued_at_fault", 2}, {"tokens_from_failed_batch", 0},
+            {"backend_error_terminals", stats.failed}, {"reserved_credit_blocks_after_failure", stats.kv_used_blocks},
+            {"state_valid", stats.resources->state_valid}, {"reusable", stats.resources->reusable},
+            {"live_tokens", stats.resources->live_tokens}, {"resident_kv_payload_bytes", resident.resident_kv_payload_bytes},
+            {"owned_device_bytes", resident.owned_device_bytes}};
+    }
+    const auto after = minillm::cuda::allocation_stats();
+    CHECK(after.allocations - before.allocations == after.releases - before.releases);
+    result["owner_allocations_released"] = after.releases - before.releases;
+    return result;
+}
+#endif
 }
 
 TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
@@ -328,6 +386,53 @@ TEST(cuda_engine_admission_boundary_and_clear) {
     CHECK(engine.statistics().resources->live_tokens == 0 && engine.statistics().kv_used_blocks == 0);
 }
 
+TEST(cuda_engine_slow_consumer_is_bounded_and_reusable) {
+    Qwen3Fixture fixture;
+    auto config = config_for(1);
+    config.event_buffer_size = 2;
+    Engine engine(config, make_runner(model_path(fixture), config));
+    const auto resident = engine.statistics().resources->resident_kv_payload_bytes;
+    auto handle = engine.submit(request({1}, 8));
+    const auto deadline = Clock::now() + 30s;
+    while (!handle->finished() && Clock::now() < deadline) { std::this_thread::sleep_for(1ms); }
+    CHECK(handle->finished());
+    const auto slow = collect(handle);
+    CHECK(slow.tokens.size() == config.event_buffer_size && slow.terminal.error_code == "backpressure");
+    CHECK(collect(engine.submit(request({2,3}, 1))).terminal.status == 200);
+    engine.stop();
+    const auto stats = engine.statistics();
+    CHECK(stats.failed == 1 && stats.completed == 1 && stats.kv_used_blocks == 0);
+    CHECK(stats.resources->state_valid && stats.resources->reusable && stats.resources->live_tokens == 0);
+    CHECK(stats.resources->resident_kv_payload_bytes == resident);
+}
+
+TEST(cuda_engine_stop_cleans_active_and_queued_at_completion_boundary) {
+    Qwen3Fixture fixture;
+    auto config = config_for(1);
+    auto gate = std::make_shared<test::RunnerGate>();
+    Engine engine(config, std::make_unique<test::GatedRunner>(make_runner(model_path(fixture), config), gate));
+    std::shared_ptr<RequestHandle> active, queued;
+    try {
+        active = engine.submit(request({1}, 8));
+        gate->wait_until_sampled();
+        queued = engine.submit(request({2}, 8));
+    } catch (...) {
+        gate->release();
+        throw;
+    }
+    auto stopped = std::async(std::launch::async, [&] { engine.stop(); });
+    while (engine.statistics().ready) { std::this_thread::yield(); }
+    gate->release();
+    CHECK(collect(active).terminal.error_code == "cancelled");
+    const auto pending = collect(queued);
+    CHECK(pending.tokens.empty() && pending.terminal.error_code == "cancelled");
+    stopped.get();
+    const auto stats = engine.statistics();
+    CHECK(stats.cancelled == 2 && stats.kv_used_blocks == 0 && stats.outstanding_requests == 0);
+    CHECK(stats.resources->live_tokens == 0 && stats.resources->reusable);
+    test::throws<RequestError>([&] { engine.submit(request({3})); });
+}
+
 TEST(cuda_runner_nonfinite_engine_failure_has_single_terminal) {
     Qwen3Fixture fixture;
     auto runner = make_runner(model_path(fixture, 1e30f), config_for());
@@ -344,6 +449,11 @@ TEST(cuda_runner_nonfinite_engine_failure_has_single_terminal) {
 }
 
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+TEST(cuda_engine_post_launch_failure_does_not_emit_or_reuse) {
+    Qwen3Fixture fixture;
+    check_post_launch_engine_failure(model_path(fixture), config_for());
+}
+
 TEST(cuda_runner_post_launch_failure_retains_resident_until_owner_destruction) {
     Qwen3Fixture fixture;
     const auto before = minillm::cuda::allocation_stats();
@@ -418,6 +528,14 @@ int main(int argc, char** argv) {
             config.block_size = 16;
             report["checks"].push_back(check_engine_outputs(path, config, prompts, expected));
         }
+#ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+        auto fault_config = config_for();
+        fault_config.max_model_len = 2048;
+        fault_config.context_tokens = 8192;
+        fault_config.batch_tokens = 128;
+        fault_config.block_size = 16;
+        report["checks"].push_back(check_post_launch_engine_failure(path, fault_config));
+#endif
         report["status"] = "passed";
         report["passed"] = report["checks"].size();
         cuda_reports::write(output, report);
