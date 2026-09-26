@@ -232,6 +232,35 @@ function Assert-Rejected([string]$Name, [scriptblock]$Mutate = $null, [string]$P
     Write-Host "[PASS] $Name"
 }
 
+function Set-CudaFixture($Manifest, $Mixed, $Prefill) {
+    $Manifest.engine.backend = 'mini-cuda'
+    $Manifest.engine.metrics_backend = 'minillm-cuda'
+    $Manifest.engine.metrics_kernel_mode = 'cuda-f32'
+    $Manifest.engine.prefix_cache_entries = 0
+    $Manifest.engine.prefix_cache_tokens = 0
+    $Manifest.build.own_cuda_enabled = 'ON'
+    $Manifest.protocol.device_weight_dtype = 'F32'
+    $Manifest.protocol.kv_layout = 'contiguous'
+    $Manifest.protocol.single_stream = $true
+    foreach ($report in @($Mixed, $Prefill)) {
+        foreach ($snapshot in @($report.server_before, $report.server_after)) {
+            $snapshot.backend = 'minillm-cuda'
+            $snapshot.gpu = $true
+            $snapshot.device = 'CUDA/fixture'
+            $snapshot.kernel_mode = 'cuda-f32'
+            $snapshot.prefix_cache_entries = 0
+            $snapshot.prefix_cache_tokens = 0
+            $snapshot.batches = 2
+            $snapshot.capabilities = [ordered]@{ max_sequences = 2; max_batch_tokens = 8; max_model_len = 64
+                prefix_copy = $false; runtime_stage_profile = $false; synchronous_execute = $true }
+            $snapshot.resources = [ordered]@{ layout = 'contiguous'; live_kv_pages = $null
+                resident_kv_payload_bytes = 4096; owned_device_bytes = 8192; capacity_tokens = 128
+                live_tokens = 0; state_valid = $true; reusable = $true
+                snapshot_boundary = 'model_thread_publish'; batch_id = 2 }
+        }
+    }
+}
+
 function Assert-CtestEvidence([string]$Name, [string]$Body, [bool]$ShouldPass,
     [string]$SuiteName = 'benchmark-validation', [int]$UncountedSuites = 0) {
     $directory = Join-Path $testRoot $Name
@@ -296,6 +325,24 @@ try {
     ++$passed
     Write-Host '[PASS] native-port-detection'
     Assert-Passes 'normal'
+    Assert-Passes 'own-cuda-contiguous' { param($m, $a, $b) Set-CudaFixture $m $a $b }
+    Assert-Rejected 'own-cuda-fake-pages' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.resources.live_kv_pages = 0
+    } 'live_kv_pages must be null'
+    Assert-Rejected 'own-cuda-poisoned-success' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.resources.state_valid = $false
+        $b.server_after.resources.reusable = $false
+        $b.server_after.resources.live_tokens = $null
+    } 'resources.state_valid|resources.reusable'
+    Assert-Rejected 'own-cuda-prefix-capability' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.capabilities.prefix_copy = $true
+    } 'prefix_copy'
     $bundlePath = Join-Path $testRoot 'policy-bundle.zip'
     & (Join-Path (Split-Path -Parent $Analyzer) 'Export-BenchmarkBundle.ps1') `
         -Directory (Join-Path $testRoot 'normal') -Output $bundlePath *> $null

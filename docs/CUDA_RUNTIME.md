@@ -1,6 +1,6 @@
 # 自有 CUDA Runtime
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。GPU Serving、prefix sharing 和 PagedAttention 尚未提供。全量固定语料、S=1/2/4、chunk/长度组合与 32-token 续写通过验证，入口见 [CUDA 数值验证](CUDA_NUMERICS.md)；正式性能基线仍在独立门禁内，见 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。[GPU Serving](CUDA_SERVING.md) 通过 MiniCudaRunner 复用现有 HTTP/Engine；prefix sharing 和 PagedAttention 尚未提供。全量固定语料、S=1/2/4、chunk/长度组合与 32-token 续写见 [CUDA 数值验证](CUDA_NUMERICS.md)；M1 模型基线冻结，Serving 验收单列于 [执行状态](EXECUTION_STATUS.md)。
 
 [模型性能对照](CUDA_BENCHMARKS.md) 提供同一 executable 的 CPU8、CPU16、CUDA 选择、独立前缀重建、完整 A/A 采集计划和严格统计复核。单进程报告不等同于正式性能基线。
 
@@ -25,7 +25,7 @@ bash scripts/dev.sh own-cuda model-memcheck
 
 构建目录为 `build/wsl-own-cuda`，上游 CUDA 关闭。可通过 `CUDA_ARCHITECTURES` 指定目标架构。`minillm_cuda` 链接 CUDA Runtime 和 cuBLAS，CPU 产品不链接该 target；`.cu` 测试使用 CUDA C++20。关闭自有 CUDA 的构建不需要 CUDA Toolkit。自有 CUDA 开启、`LLMSERVE_WITH_LLAMA=OFF` 的组合在配置阶段明确拒绝。
 
-现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 的 `generate` 调用 `mini-cuda-llm`，没有 `serve` 入口。`storage-*`、`layer-*`、`model-*` 验证命令需要固定模型，`model-*` 还需要 matched-weight F32 参照；默认使用带时间和进程号的新报告目录，也可指定尚不存在的目录，不覆盖已有报告。
+现有 `bash scripts/dev.sh cuda ...` 仍选择上游 llama.cpp CUDA 参照后端。自有 CUDA 的 `generate` 调用 `mini-cuda-llm`，`serve` 调用同一 `llmserve` 的 `mini-cuda` 后端。`storage-*`、`layer-*`、`model-*` 验证命令需要固定模型，`model-*` 还需要 matched-weight F32 参照；默认使用带时间和进程号的新报告目录，也可指定尚不存在的目录，不覆盖已有报告。
 
 ## 模型接口
 
@@ -35,11 +35,12 @@ bash scripts/dev.sh own-cuda model-memcheck
 - `forward(span<InputToken>, mode, device_timing)` 同步返回 `CudaForwardResult`。`InputToken` 的 token、position、sequence 与 CPU 接口相同，`logits` 选择需要输出的行；支持同一序列多 token 与交错序列。
 - `samples` 按原 batch 的 `input_index` 排序。默认 `greedy` 仅下载 token/status；显式 `debug_logits` 返回与 samples 对齐的全词表 `Logits`。没有输出行时仍完成 KV 写入与状态检查。
 - `clear_sequence` 只在 ready 完成点重置逻辑长度；`diagnostics` 返回已提交长度、常驻计划、计数与 ready/poisoned 状态。
+- `state()` 与 `live_kv_tokens()` 是无分配状态查询；poisoned 的 committed 长度不能冒充有效设备状态。Serving 只在模型线程读取并发布副本，不在 `resources() noexcept` 中复制 diagnostics。
 - `tokenize`、`token_piece`、`is_eog` 使用独立 vocab-only tokenizer；`weight_manifest` 提供唯一权重及别名的形状、源 dtype、设备偏移和有效权重摘要。
 
 执行顺序为 embedding gather → 全部 28 层 → final norm → selected-row gather → LM head → finite/argmax → token/status 下载 → checked completion → 提交长度。完整路径不构造 CPU Runtime，不调用 `llama_decode()`，不回退 CPU。
 
-单实例要求单调用者、不可重入。preflight 或输出容器准备失败发生在设备执行前，长度不变、实例仍可用。设备执行开始后，任何 CUDA/cuBLAS 错误或 nonfinite status 都自动使实例进入 poisoned，不返回本 batch 的结果、不提交长度，不能通过 clear 复用。异常路径在局部 debug 下载目标销毁前终结在途工作；这不是物理 KV 回滚，也不承诺 fatal device error 后的 context 可恢复。
+单实例的 execution/KV 与状态读取要求单调用者、不可重入；tokenizer 可在外部词表锁下与 forward 并行。原始 Runtime 的 preflight 或输出容器准备失败发生在设备执行前，长度不变、实例仍可用；Serving adapter 的契约错误仍是 fail-stop。设备执行开始后，任何 CUDA/cuBLAS 错误或 nonfinite status 都自动使实例进入 poisoned，不返回本 batch 的结果、不提交长度，不能通过 clear 复用。异常路径在局部 debug 下载目标销毁前终结在途工作；这不是物理 KV 回滚，也不承诺 fatal device error 后的 context 可恢复。
 
 ## CLI 与报告
 
@@ -135,7 +136,7 @@ Runtime 测试覆盖无输出行、选中行顺序、事件计时开关位级一
 
 默认短模式覆盖短金标准、四类 33-token 语料、128-token prefill、16+2 mixed 和四序列交错。[全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 覆盖长度 16/33/128/256/1536、chunk 1/16/33/128、S=1/2/4，共 240 个组合与 12 组 32-token 续写；12528 次比较全部通过。S=4、1536-token 的计时开关保持 40 个采样行位级一致，slot 3 的 2048-token 上界拒绝与 clear 复用通过。
 
-全量 F32 llama 参照显式采用非融合 attention。上游 CPU 融合实现的 FP16 PV 累加及两处原始 cosine 失败完整保留，见 `ENG-042`；checkpoint、FP16 KV、输入和门槛不变。运行时及设备代码未改变，sanitizer 证据保持上述已有范围，本组不宣称重跑了全部长语料的 sanitizer。CPU8/16 性能、A/A、microbenchmark、完整模型 Nsight 与性能包仍属于 Step 8–9，不能以数值通过关闭 V2-M1。
+全量 F32 llama 参照显式采用非融合 attention。上游 CPU 融合实现的 FP16 PV 累加及两处原始 cosine 失败完整保留，见 `ENG-042`；checkpoint、FP16 KV、输入和门槛不变。长语料数值验收不等于全部长语料的 sanitizer。M1 的模型性能、A/A、microbenchmark、完整模型 Nsight 与证据包已完成并冻结，测量不确定项保留；不将其作为 Serving 性能证据。
 
 ## 第三方边界
 

@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)][string]$Trace,
-    [ValidateSet('mini', 'llama')][string]$Backend = 'mini',
+    [ValidateSet('mini', 'mini-cuda', 'llama')][string]$Backend = 'mini',
     [ValidateRange(1, 20)][int]$Trials = 3,
     [ValidateRange(0, 1)][int]$PolicyOrderOffset = 0,
     [ValidateRange(1024, 65515)][int]$Port = 8000,
@@ -8,18 +8,20 @@ param(
     [string]$OutputDirectory = '',
     [string]$Model = '',
     [string]$ModelManifest = '',
-    [ValidateRange(1, 128)][int]$MaxActive = 8,
+    [ValidateRange(1, 128)][int]$MaxActive = $(if ($Backend -eq 'mini-cuda') { 4 } else { 8 }),
     [ValidateRange(1, 65536)][int]$QueueCapacity = 64,
-    [ValidateRange(1, 65536)][int]$BatchTokens = 256,
+    [ValidateRange(1, 65536)][int]$BatchTokens = $(if ($Backend -eq 'mini-cuda') { 128 } else { 256 }),
     [ValidateRange(1, 65536)][int]$PrefillChunk = 32,
-    [ValidateRange(0, 128)][int]$PrefixEntries = 4,
-    [ValidateRange(0, 1048576)][int]$PrefixTokens = 2048,
+    [ValidateRange(0, 128)][int]$PrefixEntries = $(if ($Backend -eq 'mini-cuda') { 0 } else { 4 }),
+    [ValidateRange(0, 1048576)][int]$PrefixTokens = $(if ($Backend -eq 'mini-cuda') { 0 } else { 2048 }),
     [ValidateSet(1, 2, 4, 8, 16, 32, 64, 128, 256)][int]$PageSize = 16,
     [ValidateRange(16, 1048576)][int]$Context = 8192,
     [ValidateRange(2, 1048576)][int]$MaxModelLen = 2048,
     [ValidateRange(1, 65536)][int]$EventBuffer = 128,
     [ValidateRange(1, 256)][int]$Threads = 8,
-    [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'mini') { 0 } else { 99 }),
+    [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'llama') { 99 } else { 0 }),
+    [ValidateRange(0, 2147483647)][int]$Device = 0,
+    [ValidateRange(0, 9223372036854775807)][long]$DeviceBudgetBytes = 0,
     [ValidateSet('auto', 'scalar')][string]$Kernel = 'auto',
     [ValidateSet('off', 'batches', 'stages')][string]$Telemetry = 'off',
     [ValidateRange(1, 16384)][int]$TelemetryCapacity = 1024,
@@ -64,6 +66,15 @@ if ($AllowedRequestOutcomes.Count -eq 0 -or $AllowedRequestOutcomes -notcontains
 }
 if ($Backend -eq 'llama' -and $Kernel -ne 'auto') { throw 'The scalar kernel mode applies only to MiniLLM.' }
 if ($Backend -eq 'mini' -and $GpuLayers -ne 0) { throw 'MiniLLM requires GpuLayers=0.' }
+if ($Backend -eq 'mini-cuda' -and ($MaxActive -gt 4 -or $BatchTokens -gt 128 -or
+    $MaxModelLen -gt 2048 -or $Context -gt [long]$MaxActive * $MaxModelLen -or
+    $PrefixEntries -ne 0 -or $PrefixTokens -ne 0 -or $GpuLayers -ne 0 -or $Kernel -ne 'auto')) {
+    throw 'mini-cuda 需要 S<=4、B<=128、Lmax<=2048、credits<=S*Lmax，且禁用 prefix、offload 与 scalar。'
+}
+if ($Backend -ne 'mini-cuda' -and
+    ($PSBoundParameters.ContainsKey('Device') -or $PSBoundParameters.ContainsKey('DeviceBudgetBytes'))) {
+    throw 'Device 和 DeviceBudgetBytes 仅适用于 mini-cuda。'
+}
 if ($Context % $PageSize -ne 0 -or $MaxModelLen -gt $Context -or $BatchTokens -lt $MaxActive -or
     $PrefillChunk -gt $BatchTokens -or $PrefixTokens -gt $Context -or
     ($PrefixEntries -gt 0 -and $PrefixTokens -lt $PageSize)) {
@@ -118,7 +129,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the dependency revision.' }
 
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, [Math]::Min(12, $gitSha.Length)), ([guid]::NewGuid().ToString('N').Substring(0, 8))
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root "benchmarks\results\$runId" }
+if (-not $OutputDirectory) {
+    $OutputDirectory = Join-Path $root $(if ($Backend -eq 'mini-cuda') { ".run/cuda-serving-$runId" } else { "benchmarks/results/$runId" })
+}
 $OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and
     @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count -gt 0) {
@@ -177,7 +190,7 @@ for ($trial = 0; $trial -lt $Trials; ++$trial) {
             telemetry_file = if ($Telemetry -eq 'off') { $null } else { "$policy-$trial-telemetry.jsonl" } }
     }
 }
-$metricsBackend = if ($Backend -eq 'mini') { 'minillm' } else { 'llama.cpp' }
+$metricsBackend = if ($Backend -eq 'mini') { 'minillm' } elseif ($Backend -eq 'mini-cuda') { 'minillm-cuda' } else { 'llama.cpp' }
 $manifest = [ordered]@{
     schema_version = 1
     benchmark = 'llmserve-policy-comparison'
@@ -206,6 +219,7 @@ $manifest = [ordered]@{
         linker_flags = Read-CMakeValue $cache 'CMAKE_EXE_LINKER_FLAGS'
         configuration_linker_flags = Read-CMakeValue $cache "CMAKE_EXE_LINKER_FLAGS_$($buildType.ToUpperInvariant())"
         cuda_enabled = Read-CMakeValue $cache 'LLMSERVE_CUDA'
+        own_cuda_enabled = Read-CMakeValue $cache 'MINILLM_ENABLE_CUDA'
         cuda_architectures = Read-CMakeValue $cache 'CMAKE_CUDA_ARCHITECTURES'
     }
     dependencies = [ordered]@{
@@ -233,7 +247,7 @@ $manifest = [ordered]@{
         backend = $Backend
         metrics_backend = $metricsBackend
         requested_kernel_mode = $Kernel
-        metrics_kernel_mode = if ($Backend -eq 'mini') { $Kernel } else { 'upstream' }
+        metrics_kernel_mode = if ($Backend -eq 'mini') { $Kernel } elseif ($Backend -eq 'mini-cuda') { 'cuda-f32' } else { 'upstream' }
         threads = $Threads
         gpu_layers = $GpuLayers
         context_tokens = $Context
@@ -250,6 +264,8 @@ $manifest = [ordered]@{
         admission_reserve_ms = 2000
         telemetry_mode = $Telemetry
         telemetry_capacity = $TelemetryCapacity
+        device_index = if ($Backend -eq 'mini-cuda') { $Device } else { $null }
+        device_budget_bytes = if ($Backend -eq 'mini-cuda') { $DeviceBudgetBytes } else { $null }
     }
     comparison = [ordered]@{
         dimension = 'engine.policy'
@@ -266,7 +282,10 @@ $manifest = [ordered]@{
             [ordered]@{ prompt = 'Hello'; max_tokens = 8; ignore_eos = $true; cache_namespace = 'benchmark-warmup' }
         }
         allowed_request_outcomes = @($AllowedRequestOutcomes)
-        activation_dtype = if ($Backend -eq 'mini') { 'F32' } else { 'upstream_native' }
+        activation_dtype = if ($Backend -ne 'llama') { 'F32' } else { 'upstream_native' }
+        device_weight_dtype = if ($Backend -eq 'mini-cuda') { 'F32' } else { $null }
+        kv_layout = if ($Backend -eq 'mini-cuda') { 'contiguous' } else { $null }
+        single_stream = if ($Backend -eq 'mini-cuda') { $true } else { $null }
         kv_dtype = 'F16'
         sampling = 'greedy'
         profiler_mode = if ($Telemetry -eq 'off') { 'none' } else { $Telemetry }
@@ -290,13 +309,15 @@ foreach ($spec in $reports) {
     Assert-RunInputs
     $trial = $spec.trial
     $policy = $spec.variant
+    $deviceOptions = @{}
+    if ($Backend -eq 'mini-cuda') { $deviceOptions = @{ Device = $Device; DeviceBudgetBytes = $DeviceBudgetBytes } }
     $server = & (Join-Path $PSScriptRoot 'Start-LLMServe.ps1') -Backend $Backend -Policy $policy `
         -Port $Port -Executable $serverExecutable -Model $Model -MaxActive $MaxActive `
         -QueueCapacity $QueueCapacity -BatchTokens $BatchTokens -PrefillChunk $PrefillChunk `
         -PrefixEntries $PrefixEntries -PrefixTokens $PrefixTokens -PageSize $PageSize -Context $Context `
         -MaxModelLen $MaxModelLen -EventBuffer $EventBuffer -Threads $Threads -GpuLayers $GpuLayers `
         -Kernel $Kernel -Telemetry $Telemetry -TelemetryCapacity $TelemetryCapacity `
-        -TelemetryOutput $(if ($spec.telemetry_file) { Join-Path $OutputDirectory $spec.telemetry_file } else { '' })
+        -TelemetryOutput $(if ($spec.telemetry_file) { Join-Path $OutputDirectory $spec.telemetry_file } else { '' }) @deviceOptions
     try {
         $output = Join-Path $OutputDirectory "$policy-$trial.json"
         $arguments = @('--port', $server.Port, '--trace', $archivedTrace, '--output', $output,

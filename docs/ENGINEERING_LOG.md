@@ -618,3 +618,12 @@
 - 原因：Runtime 的设备状态隔离与原 Serving 清理接口没有共同的失效状态表达；旧资源字段只提供页数和载荷。
 - 解决方法或下一步：adapter 通过 `state_valid/reusable` 传递异常清理状态；poisoned 时跳过 clear，Engine fail-stop 并归还逻辑信用，resident allocation 保留到 owner 析构。整批样本校验在任何 token 发布之前完成。
 - 验证：自有 CUDA 22/22、CPU 15/15、独立核心 11/11 CTest 通过；`unit` 覆盖 admission/finish/synchronize 清理失败、整批样本拒绝、单终态与逻辑信用归还，`cuda-serving` 的五项真实 GPU 小模型检查包含受控 post-launch failure、隔离与 owner 释放。CPU 实模型 13/13、HTTP 8/8 通过。JUnit 位于三种构建的 `cuda-serving-contract.xml`；本阶段尚不宣称真实 Qwen3 GPU HTTP 已验收。
+
+## ENG-061：临时启动会话结束后独立 HTTP 检查无法连接
+
+- 状态：已记录，临时执行会话的生存期限制；退出信号尚未捕获。
+- 影响：通过一次性 `pwsh -File Start-LLMServe.ps1` 启动并等待其退出，再从另一执行会话检查 HTTP，不能保证原服务继续存活；空 telemetry 文件不构成完整证据。
+- 复现条件或证据：`.run/server-8121.json` 记录 PID `13210` 已通过 readiness；stdout 为 `LLMServe minillm-cuda http://127.0.0.1:8121`。启动会话退出后，`ps` 无该进程、`ss` 无该端口，`.run/cuda-serving-http-integration.json` 报告 `tests/http_tests.cpp:21: result && result->status == 200`，对应 JSONL 为空。
+- 原因：现象与非交互启动会话结束相关；没有 CUDA backend_error 或进程退出信号证据，不将其归因为 CUDA 数学或 KV 故障。
+- 解决方法或下一步：WSL 使用前台 `serve`，或在同一控制会话内完成启动、HTTP 检查与正常停服；独立守护部署不属于本阶段。不新增后台进程管理框架。
+- 验证：同一自有 CUDA 产品经 `bash scripts/dev.sh own-cuda check-http 8121` 完成 HTTP 8/8；backend 为 `minillm-cuda`、上游 `GGML_CUDA=OFF`，请求结束后 active/outstanding/live tokens 均为 0、resident KV 为 939524096 字节，脚本正常回收服务。原始连接失败仍保留，临时启动会话问题未标为已解决。

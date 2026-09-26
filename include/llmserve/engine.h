@@ -118,6 +118,8 @@ struct Statistics {
     std::size_t kv_active_unique_blocks = 0;
     std::size_t prefix_entries = 0;
     std::size_t prefix_tokens = 0;
+    std::optional<RunnerResources> resources;
+    std::uint64_t resources_batch_id = 0;
 };
 
 class Engine {
@@ -134,6 +136,7 @@ public:
     const TelemetryCapture& telemetry() const;
     const EngineConfig& config() const noexcept;
     const ModelInfo& model_info() const noexcept;
+    BackendCapabilities capabilities() const noexcept;
     std::vector<Token> tokenize(std::string_view text) const;
 
 private:

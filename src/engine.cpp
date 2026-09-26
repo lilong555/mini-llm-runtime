@@ -85,6 +85,7 @@ struct Engine::Impl {
 
     EngineConfig config;
     std::unique_ptr<ModelRunner> runner;
+    BackendCapabilities capabilities;
     BlockPool pool;
     PrefixIndex prefixes;
     mutable std::mutex mutex;
@@ -92,6 +93,7 @@ struct Engine::Impl {
     std::condition_variable cv;
     std::atomic<bool> stopping{false};
     bool failed = false;
+    bool published = false;
     std::thread worker;
     std::deque<std::shared_ptr<RequestHandle>> incoming;
     std::unordered_map<std::string, std::shared_ptr<RequestHandle>> registry;
@@ -114,7 +116,7 @@ struct Engine::Impl {
         if (!runner || runner->info().context_tokens < config.context_tokens) {
             throw std::invalid_argument("model runner does not satisfy the context capacity");
         }
-        const auto capabilities = runner->capabilities();
+        capabilities = runner->capabilities();
         if ((capabilities.max_sequences &&
              config.max_active + config.prefix_cache_entries > capabilities.max_sequences) ||
             (capabilities.max_batch_tokens && config.batch_tokens > capabilities.max_batch_tokens) ||
@@ -143,8 +145,10 @@ struct Engine::Impl {
         for (std::size_t i = config.prefix_cache_entries; i > 0; --i) {
             free_cache_sequences.push_back(static_cast<SequenceId>(config.max_active + i - 1));
         }
-        publish();
+        snapshot.kv_total_blocks = pool.capacity();
         worker = std::thread([this] { run(); });
+        std::unique_lock lock(mutex);
+        cv.wait(lock, [&] { return published; });
     }
 
     ~Impl() { stop(); }
@@ -170,8 +174,12 @@ struct Engine::Impl {
         counters.kv_active_unique_blocks = active_blocks.size();
         counters.prefix_entries = prefixes.size();
         counters.prefix_tokens = prefixes.token_count();
+        counters.resources = runner->resources();
+        counters.resources_batch_id = next_batch_id;
         std::lock_guard lock(mutex);
         snapshot = counters;
+        published = true;
+        cv.notify_all();
     }
 
     void terminal(const std::shared_ptr<RequestHandle>& request, Event event) {
@@ -594,6 +602,7 @@ struct Engine::Impl {
     void run() {
         try {
             require_reusable();
+            publish();
             while (!stopping.load()) {
                 {
                     std::unique_lock lock(mutex);
@@ -722,6 +731,7 @@ Statistics Engine::statistics() const {
 
 const EngineConfig& Engine::config() const noexcept { return impl_->config; }
 const ModelInfo& Engine::model_info() const noexcept { return impl_->runner->info(); }
+BackendCapabilities Engine::capabilities() const noexcept { return impl_->capabilities; }
 
 std::vector<Token> Engine::tokenize(std::string_view text) const {
     std::lock_guard lock(impl_->tokenizer_mutex);

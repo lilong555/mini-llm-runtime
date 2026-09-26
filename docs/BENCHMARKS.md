@@ -25,7 +25,13 @@ Windows 使用相同的 PowerShell 入口：
     -Trace benchmarks/traces/cpu-mixed-s0.jsonl -Trials 3 -TraceSeed 0
 ```
 
-`BinaryDirectory` 默认选择当前平台的 CPU 或 CUDA 产品目录。WSL 的 `bash scripts/dev.sh cuda benchmark ...` 选择 llama.cpp CUDA 参照后端；它不是自研 CUDA Runtime。模型和来源可通过 `Model`、`ModelManifest` 指定，两者的文件名、字节数和 SHA-256 必须相符。
+`BinaryDirectory` 默认按 `mini`、`mini-cuda`、`llama` 选择当前平台的 CPU、自有 CUDA 或上游 CUDA 产品目录。WSL 的 `bash scripts/dev.sh own-cuda benchmark ...` 使用自有 Runtime；`cuda benchmark ...` 使用 llama.cpp CUDA 参照。模型和来源可通过 `Model`、`ModelManifest` 指定，两者的文件名、字节数和 SHA-256 必须相符。
+
+own-CUDA 的默认配置为 S=4、Lmax=2048、credits=8192、B=128、chunk=32、prefix=0，
+采用 source Q8_0 / device F32 / activation F32 / KV F16、单 stream 同步执行。
+`Device` 和 `DeviceBudgetBytes` 仅适用于此后端。连续 KV 不提供页数，ready/live/resident
+按 [CUDA Serving](CUDA_SERVING.md) 解释。完整 raw 默认放在 `.run/`，按
+[产物政策](ARTIFACT_POLICY.md) 发布一个 canonical bundle，Git 只保留固定输入、小索引和摘要。
 
 输出目录必须为空；未指定时使用包含时间、源码提交和随机后缀的独立目录。采集前对当前 CMake 工程增量构建 `llmserve` 和 `llmserve-bench`，失败时不使用旧二进制继续测量。Windows 增量编译仍需要完整的 MSVC 开发环境。
 

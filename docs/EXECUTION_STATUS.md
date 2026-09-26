@@ -13,9 +13,11 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
 - 实施分支：`feat/own-cuda-serving`。
 - 唯一主线：M3-1 自有 CUDA Serving；M3-2 单项优化和 M3-3 GPU 分页须满足 V3 进入条件。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
-- M3-1 实施中：adapter、能力/资源契约及清理桥接已通过三种构建的 48 套 CTest；
-  真实 GPU 小模型五项检查、CPU 实模型 13/13 与 HTTP 8/8 通过。
-  尚未通过真实 Qwen3 GPU HTTP 或 Serving 基线验收。
+- M3-1 实施中：前两组已实现 adapter、清理契约、backend/脚本、资源快照与 schema v2。
+  三种构建 48 套 CTest 通过；真实 Qwen3 的 S=1/S=4 共 80 个输出与独立 Runtime
+  和冻结短金标准一致，S=4 有 3 个确定性 mixed batch；槽复用和并发 tokenize 通过。
+  上游 `GGML_CUDA=OFF` 的 GPU HTTP 8/8、CPU HTTP 8/8 通过。
+  慢消费者/shutdown/完整故障验收、代表性 memcheck、最终候选 CI 与 Serving 基线仍待完成。
 
 ## 阶段门禁
 

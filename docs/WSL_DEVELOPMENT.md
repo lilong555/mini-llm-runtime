@@ -100,7 +100,7 @@ bash scripts/dev.sh own-cuda model-check
 bash scripts/dev.sh own-cuda model-full-check
 ```
 
-`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`。当前提供常驻 FP32 有效权重、连续 FP16 KV、完整 Qwen3 forward 与 greedy CLI，尚未接入 GPU Serving。`storage-*`、`model-*` 使用固定模型，模型验证还需要 matched-weight F32 参照；报告目录必须尚不存在，默认自动选择 `.run/` 下的新目录。构建与接口契约见 [CUDA Runtime](CUDA_RUNTIME.md)，全量语料、参照配置和报告复核见 [CUDA 数值验证](CUDA_NUMERICS.md)。CPU 可执行文件不链接该 CUDA target。
+`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`，提供常驻 FP32 有效权重、连续 FP16 KV、完整 Qwen3 forward、greedy CLI 和 `serve`。GPU HTTP 与实模型检查使用 `own-cuda check-http`、`own-cuda serving-check`，配置与边界见 [CUDA Serving](CUDA_SERVING.md)。`storage-*`、`model-*` 使用固定模型，模型数值验证还需要 matched-weight F32 参照；报告路径必须尚不存在。构建与接口契约见 [CUDA Runtime](CUDA_RUNTIME.md)，全量语料见 [CUDA 数值验证](CUDA_NUMERICS.md)。CPU 可执行文件不链接该 CUDA target。
 
 ## CUDA 参照后端
 

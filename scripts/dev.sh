@@ -20,9 +20,11 @@ elif [[ ${1:-} == own-cuda ]]; then
   shift
   build=build/wsl-own-cuda
   own_cuda=ON
+  backend=mini-cuda
+  report_prefix=.run/wsl-own-cuda
   case "${1:-help}" in
-    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate|help) ;;
-    *) echo '自有 CUDA 提供 build/test/memcheck、storage/layer/model 验证、runtime-benchmark、micro-benchmark、runtime-profile 和 generate；GPU Serving 尚未交付。' >&2; exit 1 ;;
+    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate|serve|http-test|check-http|benchmark|serving-check|serving-memcheck|help) ;;
+    *) echo '自有 CUDA 支持模型与 Serving；运行 help 查看入口。' >&2; exit 1 ;;
   esac
 fi
 case "${1:-help}" in
@@ -64,6 +66,17 @@ case "${1:-help}" in
       compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "${model_command[@]}"
     else
       "${model_command[@]}"
+    fi
+    ;;
+  serving-check|serving-memcheck)
+    [[ $own_cuda == ON && $# -le 2 ]] || { echo '用法：bash scripts/dev.sh own-cuda serving-check [新报告路径]' >&2; exit 1; }
+    serving_command=("$build/bin/llmserve-cuda-serving-tests" --model "$model"
+      --contract tests/data/qwen3_validation_cases.json
+      --output "${2:-.run/cuda-serving-model.json}")
+    if [[ $1 == serving-memcheck ]]; then
+      compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "${serving_command[@]}"
+    else
+      "${serving_command[@]}"
     fi
     ;;
   layer-check|layer-memcheck)
@@ -171,7 +184,7 @@ case "${1:-help}" in
     ;;
   *)
     echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
-    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck|storage-check [新报告目录]|storage-memcheck [新报告目录]|layer-check [新报告目录]|layer-memcheck [新报告目录]|model-check [新报告目录]|model-full-check [新报告目录]|model-memcheck [新报告目录]|runtime-benchmark [基准参数]|micro-benchmark [基准参数]|runtime-profile [Profiler 参数]|generate [生成参数]}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|serve [服务参数]|http-test [端口]|check-http [端口]|serving-check [报告路径]|serving-memcheck [报告路径]|benchmark -Trace 路径 [基准参数]|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate [生成参数]}'
     [[ ${1:-help} == help ]]
     ;;
 esac

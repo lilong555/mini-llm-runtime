@@ -167,6 +167,17 @@ json metrics_json(const Engine& engine) {
     const auto s = engine.statistics();
     const auto& c = engine.config();
     const auto& m = engine.model_info();
+    const auto caps = engine.capabilities();
+    json resources = nullptr;
+    if (s.resources) {
+        const auto& r = *s.resources;
+        resources = {{"layout", kv_layout_name(r.layout)}, {"live_kv_pages", r.live_kv_pages},
+            {"resident_kv_payload_bytes", r.resident_kv_payload_bytes},
+            {"capacity_tokens", r.capacity_tokens}, {"live_tokens", r.live_tokens},
+            {"owned_device_bytes", r.owned_device_bytes}, {"state_valid", r.state_valid},
+            {"reusable", r.reusable}, {"snapshot_boundary", "model_thread_publish"},
+            {"batch_id", s.resources_batch_id}};
+    }
     return {
         {"ready", s.ready}, {"backend", m.backend}, {"model", m.model}, {"device", m.device},
         {"gpu", m.gpu}, {"threads", m.threads}, {"gpu_layers", m.gpu_layers},
@@ -189,6 +200,13 @@ json metrics_json(const Engine& engine) {
         {"max_batch_tokens", s.max_batch_tokens}, {"max_batch_sequences", s.max_batch_sequences},
         {"outstanding_requests", s.outstanding_requests}, {"active_requests", s.active_requests},
         {"waiting_requests", s.waiting_requests},
+        {"capabilities", {{"max_sequences", caps.max_sequences}, {"max_batch_tokens", caps.max_batch_tokens},
+            {"max_model_len", caps.max_model_len}, {"prefix_copy", caps.prefix_copy},
+            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute}}},
+        {"resources", resources},
+        {"initialization", m.model_load_ns ? json{{"model_load_ns", m.model_load_ns},
+            {"storage_initialization_ns", m.storage_initialization_ns},
+            {"weight_decode_upload_ns", m.weight_decode_upload_ns}} : json(nullptr)},
         {"kv_credits", {{"block_size", c.block_size}, {"total_blocks", s.kv_total_blocks},
              {"reserved_unique_blocks", s.kv_used_blocks}, {"active_unique_blocks", s.kv_active_unique_blocks}}},
         {"prefix_cache", {{"entries", s.prefix_entries}, {"tokens", s.prefix_tokens}}},

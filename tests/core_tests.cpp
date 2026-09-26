@@ -458,6 +458,9 @@ struct Probe {
     std::atomic<bool> fail_sync{false};
     std::atomic<bool> invalid_state{false};
     std::atomic<bool> invalid_clear_slot{false};
+    std::atomic<std::size_t> resource_calls{0};
+    std::atomic<bool> wrong_resource_thread{false};
+    std::thread::id resource_thread;
     bool report_resources = false;
     BackendCapabilities capabilities{256, 8192, 8192, true, false, true};
 };
@@ -470,6 +473,9 @@ public:
     BackendCapabilities capabilities() const noexcept override { return probe_->capabilities; }
     std::optional<RunnerResources> resources() const noexcept override {
         if (!probe_->report_resources) { return std::nullopt; }
+        ++probe_->resource_calls;
+        if (probe_->resource_thread == std::thread::id{}) { probe_->resource_thread = std::this_thread::get_id(); }
+        if (probe_->resource_thread != std::this_thread::get_id()) { probe_->wrong_resource_thread = true; }
         const bool valid = !probe_->invalid_state.load();
         return RunnerResources{std::nullopt, 4096, KvLayout::contiguous, 8192,
                                valid ? std::optional<std::size_t>(0) : std::nullopt, 8192, valid, valid};
@@ -620,6 +626,32 @@ TEST(gated_runner_preserves_capabilities_and_nullable_resources) {
     CHECK(unknown.layout == KvLayout::unknown && !unknown.live_kv_pages && !unknown.live_tokens);
     RunnerResources paged{3, 4096, KvLayout::paged, 64};
     CHECK(paged.live_kv_pages == 3 && !paged.live_tokens && !paged.owned_device_bytes);
+}
+
+TEST(engine_statistics_only_reads_published_resource_copies) {
+    auto probe = std::make_shared<Probe>();
+    probe->report_resources = true;
+    auto gate = std::make_shared<test::RunnerGate>();
+    Engine engine({}, std::make_unique<test::GatedRunner>(std::make_unique<FakeRunner>(probe), gate));
+    CHECK(engine.statistics().resources && engine.statistics().resources_batch_id == 0);
+    const auto handle = engine.submit(request("snapshot", 4));
+    try {
+        gate->wait_until_sampled();
+        const auto calls = probe->resource_calls.load();
+        for (int i = 0; i < 100; ++i) {
+            const auto snapshot = engine.statistics();
+            CHECK(snapshot.resources_batch_id == 0 && snapshot.resources->state_valid);
+        }
+        CHECK(probe->resource_calls == calls && !probe->wrong_resource_thread);
+    } catch (...) {
+        gate->release();
+        throw;
+    }
+    gate->release();
+    CHECK(collect(handle).terminal.status == 200);
+    engine.stop();
+    CHECK(!probe->wrong_resource_thread);
+    CHECK(engine.statistics().resources_batch_id == engine.statistics().batches);
 }
 
 TEST(engine_noexcept_cleanup_failure_has_one_terminal_and_returns_credits) {

@@ -16,12 +16,12 @@ HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
                               Continuous Batching
                               Chunked Prefill + Decode
                                              |
-                         ModelRunner: MiniLLM | llama.cpp
+                     ModelRunner: Mini CPU | Mini CUDA | llama.cpp
 ```
 
 MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
 
-自有 CUDA CLI 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。它执行完整 Qwen3 模型，不调用上游模型 forward；当前尚未接入上述 Serving 路径。
+自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
 
 ## 能力边界
 
@@ -30,6 +30,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
 | Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
 | 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
+| 自有 CUDA Serving | 现有 Engine/HTTP/SSE、动态 mixed batching、独立槽与 clear/reuse、poisoned fail-stop、模型线程资源快照 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
 | CPU 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
@@ -40,9 +41,9 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 | 实验 | CPU SIMD 与 CUDA 真实形状微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
 | 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
-支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 提供 CPU Runtime 与自有 CUDA Runtime/CLI；Serving 的 `mini` 后端仍为 CPU，`llama` 后端可使用上游 CPU/CUDA。自有 CUDA 支持最多 4 个独立序列、128 个 batch tokens，默认每序列 context=2048，见 [CUDA Runtime](docs/CUDA_RUNTIME.md)。
+支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自有 GPU Serving、CUDA prefix sharing 或 PagedAttention。CPU 分页、自有 CUDA 连续 KV 和上游 GPU attention 分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing、PagedAttention 或异步执行。CPU 分页、自有 CUDA 连续 KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -61,14 +62,15 @@ bash scripts/dev.sh serve --port 8000
 
 完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
 
-### 自有 CUDA CLI
+### 自有 CUDA
 
 ```bash
 bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
+bash scripts/dev.sh own-cuda serve --port 8001
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值复验](benchmarks/results/validation/cuda-micro/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md) 和 [70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 保留全部原始样本；24 项模型比较有 14 项判为更快、10 项测量不确定。[完整模型 Profiler](docs/CUDA_PROFILING.md) 单独提供时间线和硬件指标，不替代无 Profiler 基线。GPU Serving 尚未交付。
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。GPU Serving 的生命周期与 HTTP 性能分别验收，当前进度见 [执行状态](docs/EXECUTION_STATUS.md)。
 
 ### Windows / PowerShell
 
@@ -219,11 +221,11 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-当前路线见 [PROJECT_PLAN_V2](docs/PROJECT_PLAN_V2.md)，实施规范见 [NEXT_SPEC](docs/NEXT_SPEC.md)，验收状态见 [执行状态](docs/EXECUTION_STATUS.md)。[原项目计划](docs/PROJECT_PLAN.md) 保留为历史参考。
+当前路线见 [PROJECT_PLAN_V3](docs/PROJECT_PLAN_V3.md)，实施规范见 [CUDA-SERVE-001](docs/NEXT_SPEC_V2.md)，验收状态见 [执行状态](docs/EXECUTION_STATUS.md)。
 
-1. V2-M0：实验依赖可用性检查、完整证据包导出与固定数值验证契约。
-2. V2-M1：独立自有 CUDA 构建、常驻有效权重、连续 GPU KV、完整 Qwen3 模型与真实 token CLI。
-3. V2-M2：接入现有 Serving，验证 HTTP/SSE 与请求生命周期。
-4. V2-M4/M5：在连续 GPU 基线和压力证据上推进分页 attention、公平性与准入策略。
+1. M3-0：兼容修复、冻结 M1、明确 [产物政策](docs/ARTIFACT_POLICY.md)。
+2. M3-1：唯一主线，自有 CUDA Serving、生命周期与有界 HTTP 基线。
+3. M3-2/M3-3：根据 Serving 证据选择一项优化，或满足 GPU 分页进入条件后启动。
 
-CPU 保持独立产品与数值参照；V2-M3 的两项有界研究按证据启动。CUDA 完整模型、GPU Serving 与 GPU PagedAttention 分别验收。
+CPU 保持独立产品与数值参照。CUDA 模型、GPU Serving 与 GPU PagedAttention 分别验收，
+不以重复实验消除已冻结的测量不确定项。

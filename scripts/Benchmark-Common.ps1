@@ -232,7 +232,7 @@ function Test-LoopbackPort([int]$Port) {
 
 function Get-ProductDirectory([string]$Root, [string]$Backend) {
     $platform = if ($env:OS -eq 'Windows_NT') { '' } else { 'wsl-' }
-    $device = if ($Backend -eq 'mini') { 'cpu' } else { 'cuda' }
+    $device = if ($Backend -eq 'mini') { 'cpu' } elseif ($Backend -eq 'mini-cuda') { 'own-cuda' } else { 'cuda' }
     return Join-Path $Root "build/$platform$device/bin"
 }
 

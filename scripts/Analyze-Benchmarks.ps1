@@ -129,13 +129,29 @@ try {
     if (@('Q8_0', 'F16', 'F32') -cnotcontains $manifestData.model.weight_dtype) {
         Add-ValidationError 'Unsupported or unknown model weight dtype.'
     }
-    if (@('mini', 'llama') -cnotcontains $manifestData.engine.backend) { Add-ValidationError 'Unknown engine backend.' }
-    $metricsBackend = if ($manifestData.engine.backend -ceq 'mini') { 'minillm' } else { 'llama.cpp' }
-    $activationDtype = if ($manifestData.engine.backend -ceq 'mini') { 'F32' } else { 'upstream_native' }
+    if (@('mini', 'mini-cuda', 'llama') -cnotcontains $manifestData.engine.backend) { Add-ValidationError 'Unknown engine backend.' }
+    $ownCuda = $manifestData.engine.backend -ceq 'mini-cuda'
+    $metricsBackend = if ($manifestData.engine.backend -ceq 'mini') { 'minillm' } elseif ($ownCuda) { 'minillm-cuda' } else { 'llama.cpp' }
+    $activationDtype = if ($manifestData.engine.backend -cne 'llama') { 'F32' } else { 'upstream_native' }
     Require-Equal $manifestData.engine.metrics_backend $metricsBackend 'engine.metrics_backend'
     Require-Equal $manifestData.protocol.activation_dtype $activationDtype 'protocol.activation_dtype'
     Require-Equal $manifestData.protocol.sampling 'greedy' 'protocol.sampling'
     Require-Equal $manifestData.protocol.kv_dtype 'F16' 'protocol.kv_dtype'
+    if ($ownCuda) {
+        Require-Equal $manifestData.build.own_cuda_enabled 'ON' 'build.own_cuda_enabled'
+        Require-Equal $manifestData.engine.metrics_kernel_mode 'cuda-f32' 'engine.metrics_kernel_mode'
+        Require-Equal $manifestData.engine.gpu_layers 0 'engine.gpu_layers'
+        Require-Equal $manifestData.engine.prefix_cache_entries 0 'engine.prefix_cache_entries'
+        Require-Equal $manifestData.engine.prefix_cache_tokens 0 'engine.prefix_cache_tokens'
+        Require-Integer $manifestData.engine.max_active 1 4 'engine.max_active'
+        Require-Integer $manifestData.engine.batch_tokens 1 128 'engine.batch_tokens'
+        Require-Integer $manifestData.engine.max_model_len 2 2048 'engine.max_model_len'
+        Require-Integer $manifestData.engine.context_tokens 1 `
+            ([long]$manifestData.engine.max_active * $manifestData.engine.max_model_len) 'engine.context_tokens'
+        Require-Equal $manifestData.protocol.device_weight_dtype 'F32' 'protocol.device_weight_dtype'
+        Require-Equal $manifestData.protocol.kv_layout 'contiguous' 'protocol.kv_layout'
+        Require-Equal $manifestData.protocol.single_stream $true 'protocol.single_stream'
+    }
     $telemetryMode = Optional-Value $manifestData.engine 'telemetry_mode' 'off'
     if ($telemetryMode -cnotin @('off', 'batches', 'stages')) { Add-ValidationError 'Invalid telemetry mode.' }
     $profilerMode = if ($telemetryMode -ceq 'off') { 'none' } else { $telemetryMode }
@@ -313,6 +329,31 @@ try {
                 Require-Equal $snapshot.$field 0 "$file $snapshotName.$field"
             }
             Require-Equal $snapshot.kv_credits.active_unique_blocks 0 "$file $snapshotName.kv_active_unique_blocks"
+            if ($ownCuda) {
+                Require-Equal $snapshot.gpu $true "$file $snapshotName.gpu"
+                foreach ($field in @('prefix_copy', 'runtime_stage_profile')) {
+                    Require-Equal $snapshot.capabilities.$field $false "$file $snapshotName.capabilities.$field"
+                }
+                Require-Equal $snapshot.capabilities.synchronous_execute $true "$file $snapshotName.capabilities.synchronous_execute"
+                Require-Equal $snapshot.capabilities.max_sequences $manifestData.engine.max_active "$file capabilities.max_sequences"
+                Require-Equal $snapshot.capabilities.max_batch_tokens $manifestData.engine.batch_tokens "$file capabilities.max_batch_tokens"
+                Require-Equal $snapshot.capabilities.max_model_len $manifestData.engine.max_model_len "$file capabilities.max_model_len"
+                $resource = $snapshot.resources
+                Require-Equal $resource.layout 'contiguous' "$file resources.layout"
+                if ($null -ne $resource.live_kv_pages) { Add-ValidationError "$file resources.live_kv_pages must be null." }
+                Require-Equal $resource.capacity_tokens `
+                    ([long]$manifestData.engine.max_active * $manifestData.engine.max_model_len) "$file resources.capacity_tokens"
+                Require-Equal $resource.live_tokens 0 "$file resources.live_tokens"
+                Require-Equal $resource.state_valid $true "$file resources.state_valid"
+                Require-Equal $resource.reusable $true "$file resources.reusable"
+                Require-Equal $resource.snapshot_boundary 'model_thread_publish' "$file resources.snapshot_boundary"
+                Require-Equal $resource.batch_id $snapshot.batches "$file resources.batch_id"
+                Require-Integer $resource.resident_kv_payload_bytes 1 ([long]::MaxValue) "$file resources.resident_kv_payload_bytes"
+                Require-Integer $resource.owned_device_bytes $resource.resident_kv_payload_bytes ([long]::MaxValue) "$file resources.owned_device_bytes"
+                foreach ($field in @('capacity_tokens', 'resident_kv_payload_bytes', 'owned_device_bytes')) {
+                    Require-Equal $resource.$field $baselineSnapshot.resources.$field "$file resources.$field"
+                }
+            }
         }
         $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         $successCount = 0

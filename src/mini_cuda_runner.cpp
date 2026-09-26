@@ -21,6 +21,9 @@ public:
         samples_.reserve(engine.max_active);
         // 固定内存计划仅在初始化时读取；热路径资源查询不复制 diagnostics 中的 vector。
         const auto initial = runtime_.diagnostics();
+        info_.model_load_ns = initial.model_load_ns;
+        info_.storage_initialization_ns = initial.storage_initialization_ns;
+        info_.weight_decode_upload_ns = initial.weight_decode_upload_ns;
         resident_ = {std::nullopt, initial.resident.kv_bytes, KvLayout::contiguous,
                      initial.kv_capacity_tokens, 0, initial.owned_device_bytes};
     }

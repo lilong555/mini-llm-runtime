@@ -1,8 +1,10 @@
 """在线观测的完整性、时间守恒与 token 关联反例。"""
 
 import copy
+import argparse
 import importlib.util
 from pathlib import Path
+import subprocess
 import sys
 
 spec = importlib.util.spec_from_file_location("analyzer", Path(__file__).parents[1] / "scripts/analyze_telemetry.py")
@@ -10,7 +12,7 @@ analyzer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(analyzer)
 
 
-def fixture(mode="batches"):
+def fixture(mode="batches", version=1, backend="minillm"):
     engine = dict(telemetry_mode=mode, telemetry_capacity=4, metrics_backend="minillm", max_active=2,
                   queue_capacity=4, context_tokens=16, block_size=1, max_model_len=8, batch_tokens=4)
     rows = [dict(type="header", schema_version=1, clock="engine_relative_steady_ns", mode=mode,
@@ -48,15 +50,39 @@ def fixture(mode="batches"):
     report = dict(server_before=dict(policy="mixed", batches=0), server_after=dict(batches=2),
                   requests=[dict(id="r", success=True, token_telemetry=telemetry, token_ids=[42, 43],
                                  token_times_ms=[1., 2.], usage=dict(prompt_tokens=1))])
+    if version == 2:
+        rows[0].update(schema_version=2, backend=backend,
+                       capabilities=dict(max_sequences=2, max_batch_tokens=4, max_model_len=8,
+                                         prefix_copy=backend != "minillm-cuda", runtime_stage_profile=backend == "minillm",
+                                         synchronous_execute=True),
+                       resource_boundaries=dict(before="before_execute", after="after_execute_before_request_cleanup",
+                                                final="after_engine_stop_before_runner_destruction"))
+        engine["metrics_backend"] = backend
+        for row in rows[1:]:
+            for key in ("resources_before", "resources_after", "resources_final"):
+                if key not in row:
+                    continue
+                resource = row[key]
+                if backend == "llama.cpp":
+                    row[key] = None
+                else:
+                    cuda = backend == "minillm-cuda"
+                    resource.update(layout="contiguous" if cuda else "paged", capacity_tokens=16,
+                                    live_tokens=resource["live_kv_pages"] if cuda else None,
+                                    owned_device_bytes=512 if cuda else None, state_valid=True, reusable=True)
+                    if cuda:
+                        resource["live_kv_pages"] = None
+            if backend != "minillm" and "runner" in row:
+                row["runner"] = None
     return rows, report, engine
 
 
 passed = 0
 
 
-def check(name, mutate=None, mode="batches"):
+def check(name, mutate=None, mode="batches", version=1, backend="minillm"):
     global passed
-    rows, report, engine = fixture(mode)
+    rows, report, engine = fixture(mode, version, backend)
     if mutate:
         mutate(rows, report, engine)
     try:
@@ -99,4 +125,41 @@ check("missing-stage", lambda r, *_: r[1]["runner"]["stages"].pop(), mode="stage
 check("runtime-time", lambda r, *_: r[1]["runner"].update(forward_ns=99), mode="stages")
 check("matrix-shape", lambda r, *_: r[1]["runner"]["stages"][-1].update(matrix_m=2), mode="stages")
 check("runtime-on-disabled", lambda r, *_: r[1].update(runner={}))
+
+check("v2-cpu", version=2)
+check("v2-upstream", mode="stages", version=2, backend="llama.cpp")
+check("v2-cuda-no-fake-stages", mode="stages", version=2, backend="minillm-cuda")
+for name, mutate in (
+    ("cuda-no-fake-pages", lambda r, *_: r[1]["resources_after"].update(live_kv_pages=1)),
+    ("cuda-live-capacity", lambda r, *_: r[1]["resources_after"].update(live_tokens=17)),
+    ("cuda-physical-not-credits", lambda r, *_: r[1]["resources_before"].update(capacity_tokens=8)),
+    ("cuda-resident-not-freed", lambda r, *_: r[-1]["resources_final"].update(resident_kv_payload_bytes=0)),
+    ("cuda-poisoned-not-success", lambda r, *_: r[1]["resources_after"].update(state_valid=False, reusable=False, live_tokens=None)),
+    ("cuda-capability", lambda r, *_: r[0]["capabilities"].update(prefix_copy=True)),
+    ("cuda-commit-count", lambda r, *_: r[1]["resources_after"].update(live_tokens=2)),
+):
+    check(name, mutate, version=2, backend="minillm-cuda")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--server", type=Path)
+parser.add_argument("--cuda-enabled", action="store_true")
+args = parser.parse_args()
+if args.server:
+    for options, message in (
+        (["--max-active", "8"], "4 sequences"),
+        (["--batch-tokens", "256"], "128 batch tokens"),
+        (["--max-model-len", "2049"], "2048 model length"),
+        (["--context", "8208"], "context credits"),
+        (["--prefix-entries", "4"], "prefix"),
+        (["--prefix-tokens", "16"], "prefix"),
+        (["--gpu-layers", "1"], "gpu_layers"),
+        (["--kernel", "scalar"], "scalar"),
+        ([], "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
+    ):
+        result = subprocess.run([str(args.server), "--backend", "mini-cuda", "--model",
+                                 str(Path(__file__).with_name("absent-cuda-model.gguf")), *options],
+                                capture_output=True, text=True, encoding="utf-8", timeout=10, check=False)
+        assert result.returncode != 0 and message in result.stderr, (options, result.stderr)
+        passed += 1
+        print(f"[PASS] cuda-cli-{options or 'defaults'}")
 print(f"{passed}/{passed} tests passed")

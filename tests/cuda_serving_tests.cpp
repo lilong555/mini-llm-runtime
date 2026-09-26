@@ -5,6 +5,8 @@
 #include "minillm/cuda/runtime.h"
 #include "minillm/cuda/device_buffer.h"
 #include "llama.h"
+#include "../apps/options.h"
+#include "../apps/cuda_reports.h"
 
 #include <array>
 #include <atomic>
@@ -14,6 +16,7 @@
 using namespace llmserve;
 using namespace std::chrono_literals;
 using minillm::cuda::CudaRuntime;
+using cuda_reports::json;
 
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
 namespace {
@@ -100,6 +103,123 @@ Collected collect(const std::shared_ptr<RequestHandle>& handle) {
     }
     throw std::runtime_error("CUDA Serving 请求没有有限终态");
 }
+
+std::vector<Token> reference_tokens(CudaRuntime& runtime, const std::vector<Token>& prompt,
+                                    std::size_t count, std::size_t chunk) {
+    runtime.clear_sequence(0);
+    std::vector<Token> result;
+    minillm::cuda::CudaForwardResult output;
+    for (std::size_t position = 0; position < prompt.size();) {
+        std::vector<minillm::InputToken> input;
+        const auto end = std::min(prompt.size(), position + chunk);
+        for (; position < end; ++position) {
+            input.push_back({prompt[position], static_cast<std::int32_t>(position), 0, position + 1 == prompt.size()});
+        }
+        output = runtime.forward(input);
+    }
+    while (result.size() < count) {
+        CHECK(output.samples.size() == 1 && output.samples[0].sequence == 0);
+        result.push_back(output.samples[0].token);
+        if (result.size() == count) { break; }
+        output = runtime.forward(std::array<minillm::InputToken,1>{{
+            {result.back(), static_cast<std::int32_t>(prompt.size() + result.size() - 1), 0, true}}});
+    }
+    runtime.clear_sequence(0);
+    return result;
+}
+
+json check_engine_outputs(const std::string& path, EngineConfig config,
+                          const std::vector<std::vector<Token>>& prompts,
+                          const std::vector<std::vector<Token>>& expected) {
+    config.telemetry_mode = TelemetryMode::stages;
+    config.telemetry_capacity = 128;
+    auto gate = std::make_shared<test::RunnerGate>();
+    auto runner = make_runner(path, config);
+    const auto resident = *runner->resources();
+    Engine engine(config, config.max_active == 1 ? std::move(runner) :
+        std::make_unique<test::GatedRunner>(std::move(runner), gate));
+    std::atomic<bool> tokenizer_bad{false};
+    std::atomic<std::size_t> tokenizations{0};
+    const auto text = "a";
+    const auto tokenized = engine.tokenize(text);
+    std::jthread tokenizer([&](std::stop_token stop) {
+        while (!stop.stop_requested()) {
+            try {
+                if (engine.tokenize(text) != tokenized) { tokenizer_bad = true; }
+            } catch (...) { tokenizer_bad = true; }
+            ++tokenizations;
+            std::this_thread::sleep_for(1ms);
+        }
+    });
+    std::vector<Collected> outputs;
+    if (config.max_active == 1) {
+        for (std::size_t i = 0; i < prompts.size(); ++i) {
+            outputs.push_back(collect(engine.submit(request(prompts[i], expected[i].size()))));
+        }
+    } else {
+        std::vector<std::shared_ptr<RequestHandle>> handles;
+        try {
+            handles.push_back(engine.submit(request(prompts[0], expected[0].size())));
+            gate->wait_until_sampled();
+            for (std::size_t i = 1; i < prompts.size(); ++i) {
+                handles.push_back(engine.submit(request(prompts[i], expected[i].size())));
+            }
+        } catch (...) {
+            gate->release();
+            throw;
+        }
+        gate->release();
+        for (const auto& handle : handles) { outputs.push_back(collect(handle)); }
+        CHECK(engine.statistics().mixed_batches > 0);
+        CHECK(engine.statistics().max_batch_sequences == 4);
+    }
+    for (std::size_t i = 0; i < prompts.size(); ++i) {
+        CHECK(outputs[i].terminal.status == 200 && outputs[i].terminal.usage.cached_tokens == 0);
+        CHECK(outputs[i].tokens == expected[i]);
+    }
+    const auto reused = collect(engine.submit(request(prompts[1], expected[1].size())));
+    CHECK(reused.terminal.status == 200 && reused.tokens == expected[1]);
+    engine.stop();
+    tokenizer.request_stop();
+    tokenizer.join();
+    CHECK(!tokenizer_bad && tokenizations > 0);
+    const auto stats = engine.statistics();
+    CHECK(stats.kv_used_blocks == 0 && stats.active_requests == 0 && stats.outstanding_requests == 0);
+    CHECK(stats.resources && stats.resources->live_tokens == 0 && stats.resources->state_valid && stats.resources->reusable);
+    CHECK(stats.resources->resident_kv_payload_bytes == resident.resident_kv_payload_bytes);
+    CHECK(stats.resources->owned_device_bytes == resident.owned_device_bytes);
+    const auto& capture = engine.telemetry();
+    CHECK(capture.dropped == 0 && capture.recorded == stats.batches);
+    std::size_t mapped_samples = 0;
+    for (std::size_t i = 0; i < capture.recorded; ++i) {
+        const auto& batch = capture.batches[i];
+        CHECK(batch.completed && batch.runner_completed && !batch.runner.available);
+        CHECK(batch.resources_before && batch.resources_after);
+        CHECK(!batch.resources_before->live_kv_pages && !batch.resources_after->live_kv_pages);
+        CHECK(*batch.resources_after->live_tokens == *batch.resources_before->live_tokens +
+              batch.prefill_tokens + batch.decode_tokens);
+        for (std::size_t j = 0; j < batch.sequences; ++j) {
+            const auto& slice = batch.slices[j];
+            CHECK(slice.sequence >= 0 && static_cast<std::size_t>(slice.sequence) < config.max_active);
+            CHECK(slice.emitted == (slice.logits_tokens == 1));
+            CHECK(slice.sampled_token.has_value() == slice.emitted);
+            mapped_samples += slice.emitted ? 1 : 0;
+        }
+    }
+    std::size_t output_count = reused.tokens.size();
+    json generations = json::array();
+    for (std::size_t i = 0; i < outputs.size(); ++i) {
+        output_count += outputs[i].tokens.size();
+        generations.push_back({{"input_token_ids", prompts[i]}, {"token_ids", outputs[i].tokens}});
+    }
+    CHECK(mapped_samples == output_count && stats.generated_tokens == output_count);
+    return {{"max_sequences", config.max_active}, {"batches", stats.batches}, {"mixed_batches", stats.mixed_batches},
+        {"max_batch_sequences", stats.max_batch_sequences}, {"mapped_samples", mapped_samples},
+        {"tokenizations", tokenizations.load()}, {"live_tokens_after_stop", stats.resources->live_tokens},
+        {"capacity_tokens", resident.capacity_tokens}, {"resident_kv_payload_bytes", resident.resident_kv_payload_bytes},
+        {"owned_device_bytes", resident.owned_device_bytes}, {"generations", generations},
+        {"slot_reuse", true}, {"stage_profile_available", false}};
+}
 }
 
 TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
@@ -110,6 +230,9 @@ TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
     const std::vector<minillm::InputToken> input{{1,0,3,false},{2,0,0,true},{3,1,3,true},{4,1,0,false}};
     const auto expected = reference.forward(input);
     auto runner = make_runner(path, config);
+    CHECK(runner->info().model_load_ns > 0 && runner->info().storage_initialization_ns > 0);
+    CHECK(runner->info().weight_decode_upload_ns > 0 &&
+          runner->info().weight_decode_upload_ns <= runner->info().storage_initialization_ns);
     const auto caps = runner->capabilities();
     CHECK(caps.max_sequences == 4 && caps.max_batch_tokens == 8 && caps.max_model_len == 16);
     CHECK(!caps.prefix_copy && !caps.runtime_stage_profile && caps.synchronous_execute);
@@ -179,6 +302,32 @@ TEST(cuda_runner_invalid_noexcept_clear_is_not_healthy) {
     CHECK(!runner->resources()->live_tokens);
 }
 
+TEST(cuda_engine_mixed_join_reuse_and_concurrent_tokenizer) {
+    Qwen3Fixture fixture;
+    const auto path = model_path(fixture);
+    const std::vector<std::vector<Token>> prompts{{1,2,3}, {2,4,5}, {6,1}, {3,2,4,1}};
+    std::vector<std::vector<Token>> expected;
+    {
+        CudaRuntime reference({path, 0, 1, 16, 8, 0});
+        for (const auto& prompt : prompts) { expected.push_back(reference_tokens(reference, prompt, 4, 2)); }
+    }
+    check_engine_outputs(path, config_for(1), prompts, expected);
+    check_engine_outputs(path, config_for(4), prompts, expected);
+}
+
+TEST(cuda_engine_admission_boundary_and_clear) {
+    Qwen3Fixture fixture;
+    const auto config = config_for(1);
+    Engine engine(config, make_runner(model_path(fixture), config));
+    const auto boundary = collect(engine.submit(request(std::vector<Token>(15, 1), 1)));
+    CHECK(boundary.tokens.size() == 1 && boundary.terminal.status == 200);
+    test::throws<RequestError>([&] { engine.submit(request(std::vector<Token>(16, 1), 1)); });
+    test::throws<RequestError>([&] { engine.submit(request({9}, 1)); });
+    CHECK(collect(engine.submit(request({2}, 1))).terminal.status == 200);
+    engine.stop();
+    CHECK(engine.statistics().resources->live_tokens == 0 && engine.statistics().kv_used_blocks == 0);
+}
+
 TEST(cuda_runner_nonfinite_engine_failure_has_single_terminal) {
     Qwen3Fixture fixture;
     auto runner = make_runner(model_path(fixture, 1e30f), config_for());
@@ -219,9 +368,65 @@ TEST(cuda_runner_post_launch_failure_retains_resident_until_owner_destruction) {
 }
 #endif
 
-int main() {
+int main(int argc, char** argv) {
     llama_log_set([](ggml_log_level level, const char* text, void*) {
         if (level >= GGML_LOG_LEVEL_ERROR) { std::cerr << text; }
     }, nullptr);
-    return test::run();
+    json report{{"schema_version", 1}, {"spec_id", "CUDA-SERVE-001"}, {"status", "failed"},
+                {"backend", "minillm-cuda"}, {"checks", json::array()}};
+    std::filesystem::path output;
+    try {
+        Options options(argc, argv, {"--model", "--contract", "--output"});
+        if (options.has("--help")) {
+            std::cout << "llmserve-cuda-serving-tests [--model MODEL --contract JSON --output NEW_REPORT.json]\n";
+            return 0;
+        }
+        if (!options.has("--model")) { return test::run(); }
+        output = options.get("--output");
+        if (output.empty() || std::filesystem::exists(output)) {
+            output.clear();
+            throw std::invalid_argument("真实 CUDA Serving 验证需要不存在的 --output 文件");
+        }
+        const auto contract_path = options.get("--contract");
+        std::ifstream contract_file(contract_path);
+        const auto contract = json::parse(contract_file);
+        const auto path = options.get("--model");
+        report["model_sha256"] = cuda_reports::file_hash(path);
+        CHECK(report["model_sha256"] == contract.at("model").at("sha256"));
+        report["contract_sha256"] = cuda_reports::file_hash(contract_path);
+        report["binary_sha256"] = cuda_reports::file_hash(argv[0]);
+        std::vector<std::vector<Token>> prompts, expected;
+        {
+            CudaRuntime reference({path, 0, 1, 2048, 128, 0});
+            report["device"] = cuda_reports::device(reference.device_info());
+            report["arithmetic"] = cuda_reports::arithmetic(reference);
+            for (const auto& item : contract.at("stable_greedy")) {
+                prompts.push_back(item.at("input_token_ids").get<std::vector<Token>>());
+                CHECK(reference.tokenize(item.at("text").get<std::string>()) == prompts.back());
+                expected.push_back(reference_tokens(reference, prompts.back(), 8, 2));
+                CHECK(expected.back() == item.at("expected_token_ids").get<std::vector<Token>>());
+            }
+        }
+        CHECK(prompts.size() == 3);
+        prompts.push_back(prompts[0]);
+        expected.push_back(expected[0]);
+        for (const std::size_t slots : {1, 4}) {
+            auto config = config_for(slots);
+            config.max_model_len = 2048;
+            config.context_tokens = slots * config.max_model_len;
+            config.batch_tokens = 128;
+            config.block_size = 16;
+            report["checks"].push_back(check_engine_outputs(path, config, prompts, expected));
+        }
+        report["status"] = "passed";
+        report["passed"] = report["checks"].size();
+        cuda_reports::write(output, report);
+        std::cout << report.dump(2) << '\n';
+        return 0;
+    } catch (const std::exception& error) {
+        report["error"] = error.what();
+        if (!output.empty()) { cuda_reports::write(output, report); }
+        std::cerr << report.dump(2) << '\n';
+        return 1;
+    }
 }

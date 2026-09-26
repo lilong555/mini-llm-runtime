@@ -1,21 +1,23 @@
 param(
-    [ValidateSet('mini', 'llama')][string]$Backend = 'mini',
+    [ValidateSet('mini', 'mini-cuda', 'llama')][string]$Backend = 'mini',
     [ValidateSet('mixed', 'prefill_first')][string]$Policy = 'mixed',
     [ValidateRange(1024, 65515)][int]$Port = 8000,
     [string]$Executable = '',
     [string]$Model = '',
-    [ValidateRange(1, 128)][int]$MaxActive = 8,
+    [ValidateRange(1, 128)][int]$MaxActive = $(if ($Backend -eq 'mini-cuda') { 4 } else { 8 }),
     [ValidateRange(1, 65536)][int]$QueueCapacity = 64,
-    [ValidateRange(1, 65536)][int]$BatchTokens = 256,
+    [ValidateRange(1, 65536)][int]$BatchTokens = $(if ($Backend -eq 'mini-cuda') { 128 } else { 256 }),
     [ValidateRange(1, 65536)][int]$PrefillChunk = 32,
-    [ValidateRange(0, 128)][int]$PrefixEntries = 4,
-    [ValidateRange(0, 1048576)][int]$PrefixTokens = 2048,
+    [ValidateRange(0, 128)][int]$PrefixEntries = $(if ($Backend -eq 'mini-cuda') { 0 } else { 4 }),
+    [ValidateRange(0, 1048576)][int]$PrefixTokens = $(if ($Backend -eq 'mini-cuda') { 0 } else { 2048 }),
     [ValidateSet(1, 2, 4, 8, 16, 32, 64, 128, 256)][int]$PageSize = 16,
     [ValidateRange(16, 1048576)][int]$Context = 8192,
     [ValidateRange(2, 1048576)][int]$MaxModelLen = 2048,
     [ValidateRange(1, 65536)][int]$EventBuffer = 128,
     [ValidateRange(1, 256)][int]$Threads = 8,
-    [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'mini') { 0 } else { 99 }),
+    [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'llama') { 99 } else { 0 }),
+    [ValidateRange(0, 2147483647)][int]$Device = 0,
+    [ValidateRange(0, 9223372036854775807)][long]$DeviceBudgetBytes = 0,
     [ValidateSet('auto', 'scalar')][string]$Kernel = 'auto',
     [ValidateSet('off', 'batches', 'stages')][string]$Telemetry = 'off',
     [ValidateRange(1, 16384)][int]$TelemetryCapacity = 1024,
@@ -25,6 +27,10 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
 $root = Split-Path -Parent $PSScriptRoot
+if ($Backend -ne 'mini-cuda' -and
+    ($PSBoundParameters.ContainsKey('Device') -or $PSBoundParameters.ContainsKey('DeviceBudgetBytes'))) {
+    throw 'Device 和 DeviceBudgetBytes 仅适用于 mini-cuda。'
+}
 if (-not $Executable) {
     $Executable = Get-ProductExecutable (Get-ProductDirectory $root $Backend) 'llmserve'
 }
@@ -55,6 +61,7 @@ $argsList = @('--model', $Model, '--backend', $Backend, '--policy', $Policy, '--
     '--max-model-len', "$MaxModelLen", '--event-buffer', "$EventBuffer", '--gpu-layers', "$GpuLayers",
     '--kernel', $Kernel, '--shutdown-file', $marker)
 $argsList += @('--telemetry', $Telemetry, '--telemetry-capacity', "$TelemetryCapacity")
+if ($Backend -eq 'mini-cuda') { $argsList += @('--device', "$Device", '--device-budget-bytes', "$DeviceBudgetBytes") }
 if ($TelemetryOutput) { $argsList += @('--telemetry-output', $TelemetryOutput) }
 $arguments = $argsList | ForEach-Object {
     if ($_.Contains('"')) { throw 'Argument cannot contain a double quote.' }

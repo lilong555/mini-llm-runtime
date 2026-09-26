@@ -34,6 +34,9 @@ struct ModelInfo {
     int threads = 0;
     int gpu_layers = 0;
     std::string kernel_mode;
+    std::optional<std::uint64_t> model_load_ns = std::nullopt;
+    std::optional<std::uint64_t> storage_initialization_ns = std::nullopt;
+    std::optional<std::uint64_t> weight_decode_upload_ns = std::nullopt;
 };
 
 struct BackendCapabilities {
