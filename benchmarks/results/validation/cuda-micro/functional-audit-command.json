@@ -1,0 +1,16 @@
+{
+  "command": "python3",
+  "arguments": [
+    "scripts/analyze_cuda_micro.py",
+    "--report",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-micro/diagnostics/functional-report.json",
+    "--input",
+    "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T02:19:06.0074282Z",
+  "status": "passed",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "finished_at_utc": "2026-09-26T02:19:07.5195891Z"
+}

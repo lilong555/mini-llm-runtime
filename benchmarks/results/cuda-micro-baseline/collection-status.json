@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "reports": [
+    {
+      "file": "cuda-micro-t0.json",
+      "exit_code": 0,
+      "sha256": "6865632384844b745dacffbeacebc949db1c06aa338de4a830e2e7d0bfd58933",
+      "artifacts": [
+        {
+          "path": "cuda-micro-t0.json.stdout.txt",
+          "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e"
+        },
+        {
+          "path": "cuda-micro-t0.json.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "cuda-micro-t0.json.process.json",
+          "sha256": "7decb387bb5232e1ab75930bfccf335d80e411191fb4f98f81e8a791d635fc83"
+        }
+      ]
+    },
+    {
+      "file": "cuda-micro-t1.json",
+      "exit_code": 0,
+      "sha256": "ecc9a539eb276fcadc493c360dc676e3255d4f0e3ba30d65178f4c66deee12a8",
+      "artifacts": [
+        {
+          "path": "cuda-micro-t1.json.stdout.txt",
+          "sha256": "cad3b0e5e477644dc3f98530782f38cfa798bd4312cf4db46d88dcc6ffd14b40"
+        },
+        {
+          "path": "cuda-micro-t1.json.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "cuda-micro-t1.json.process.json",
+          "sha256": "a46ecb39dcfddb3af7cc0eb53fd6b128f0069d93e9b790c1ff63ef001a9556df"
+        }
+      ]
+    },
+    {
+      "file": "cuda-micro-t2.json",
+      "exit_code": 0,
+      "sha256": "22ed42f124082d23b809c320d754891bc84c94281ffb949f156dec36f1829535",
+      "artifacts": [
+        {
+          "path": "cuda-micro-t2.json.stdout.txt",
+          "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e"
+        },
+        {
+          "path": "cuda-micro-t2.json.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "cuda-micro-t2.json.process.json",
+          "sha256": "7edc7defd6933b5e09df82a6196e2b22a7655e1b2e96b81e1a635b352b2aa63f"
+        }
+      ]
+    },
+    {
+      "file": "cuda-micro-t3.json",
+      "exit_code": 0,
+      "sha256": "a3d63763134bfc44cc24dbcec3c099504fc2fe423f7718ddd1dd0c334ae8605c",
+      "artifacts": [
+        {
+          "path": "cuda-micro-t3.json.stdout.txt",
+          "sha256": "cad3b0e5e477644dc3f98530782f38cfa798bd4312cf4db46d88dcc6ffd14b40"
+        },
+        {
+          "path": "cuda-micro-t3.json.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "cuda-micro-t3.json.process.json",
+          "sha256": "d15f418b48f6b57b23383cb9507faeb98aa679186a969835668e746f0039e4b1"
+        }
+      ]
+    },
+    {
+      "file": "cuda-micro-t4.json",
+      "exit_code": 0,
+      "sha256": "3549eed1161a2f0d632689928793d9a39590c7d052186cb350e337580cf639eb",
+      "artifacts": [
+        {
+          "path": "cuda-micro-t4.json.stdout.txt",
+          "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e"
+        },
+        {
+          "path": "cuda-micro-t4.json.stderr.txt",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "cuda-micro-t4.json.process.json",
+          "sha256": "11abd1582dd1311315fd8fcac98ea03dd68bdaa7d0ee817a5c6930857ddb9227"
+        }
+      ]
+    }
+  ],
+  "planned_reports": 5,
+  "finished_at_utc": "2026-09-26T02:24:58.5044284Z"
+}

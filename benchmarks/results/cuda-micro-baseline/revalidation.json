@@ -1,0 +1,98 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "source_directory": "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-micro-baseline",
+  "negatives": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/missing-source/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/missing-source"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：缺少证据：source-snapshot.zip\n",
+      "name": "missing-source",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/missing-helper/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/missing-helper"
+      ],
+      "exit_code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/tmp/cuda-micro-relocation-xmonzvut/missing-helper/verify.py\", line 14, in <module>\n    import analyze_cuda_benchmark as common\nModuleNotFoundError: No module named 'analyze_cuda_benchmark'\n",
+      "name": "missing-helper",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/incomplete-trials/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/incomplete-trials"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：采集失败或缺少独立进程\n",
+      "name": "incomplete-trials",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/numeric-point/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/numeric-point"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：FP64 抽样不满足冻结容差\n",
+      "name": "numeric-point",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/device-identity/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/device-identity"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：进程间身份不一致：device\n",
+      "name": "device-identity",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/tmp/cuda-micro-relocation-xmonzvut/steady-copy/verify.py",
+        "--directory",
+        "/tmp/cuda-micro-relocation-xmonzvut/steady-copy"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：计时边界或显式传输计数不符\n",
+      "name": "steady-copy",
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "python3",
+      "-B",
+      "/tmp/cuda-micro-relocation-xmonzvut/bundle/verify.py",
+      "--directory",
+      "/tmp/cuda-micro-relocation-xmonzvut/bundle"
+    ],
+    "exit_code": 0,
+    "output": "{\n  \"status\": \"measured\",\n  \"case_count\": 375,\n  \"independent_trials\": 5,\n  \"measured_samples\": 5625,\n  \"artifacts\": 27\n}\n"
+  },
+  "original_files_unchanged": true,
+  "checked_original_files": 34
+}

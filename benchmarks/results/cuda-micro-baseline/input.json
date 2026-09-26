@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "protocol_id": "qwen3-cuda-micro-v0",
+  "spec_id": "CUDA-VS-001",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "limits": {
+    "device": 0,
+    "max_sequences": 4,
+    "max_model_len": 2048,
+    "batch_tokens": 128
+  },
+  "matrix": {
+    "rows": [1, 2, 4, 8, 16, 18, 32, 64, 128],
+    "roles": ["Q", "K", "V", "attention_output", "gate", "up", "down", "LM_head"],
+    "layer": 0,
+    "input": "dense_modular_f32",
+    "layout": "Y[M,N]=X[M,K]*transpose(W[N,K])"
+  },
+  "ops": {
+    "rms_norm_roles": ["hidden", "query", "key"],
+    "rope_roles": ["query", "key"],
+    "rope_positions": [0, 1, 15, 16, 17, 1535],
+    "attention_contexts": [1, 17, 33, 256, 257, 1536, 1537, 2048],
+    "decode_sequences": [1, 2, 4],
+    "prefill": "matrix_rows_not_exceeding_context",
+    "mixed": {
+      "prefill_tokens": 16,
+      "decode_sequences": 2,
+      "prefix_tokens": [256, 1536]
+    },
+    "attention_layer": 0,
+    "softmax": "same_causal_attention_kernel_standalone",
+    "kv_storage": "F16"
+  },
+  "input_recipe": {
+    "modulus": 127,
+    "offset": 63,
+    "index_multiplier": 17,
+    "seed_multiplier": 13,
+    "denominator": 4096,
+    "seed": "canonical_case_index_plus_one",
+    "softmax": "(position*7+head*3+row*11)%127_minus_63_div_16",
+    "kv": "(slot*19+kind*23+position*7+column*11)%127_minus_63_div_256",
+    "kv_rounding": "nearest_even"
+  },
+  "measurement": {
+    "independent_trials": 5,
+    "warmup": 2,
+    "measured_repeats": 3,
+    "calls_per_sample": 32,
+    "order": "case_order_then_reverse_on_odd_trials",
+    "profiler": "none",
+    "device_clock": "cuda_events",
+    "host_clock": "steady_clock",
+    "device_interval_includes_submission_gaps": true,
+    "initialization_and_input_reset": "outside_timing",
+    "status_and_output_download": "outside_timing",
+    "reference_work": "outside_timing",
+    "rope_recurrence": "32_in_place_rotations_reset_before_each_sample",
+    "statistics_unit": "independent_trial_median",
+    "hardware_dram_bandwidth": null
+  },
+  "validation": {
+    "atol": 0.0002,
+    "rtol": 0.0002,
+    "all_output_elements_finite": true,
+    "matrix_reference": "sampled_rows_0_middle_last_and_8_columns_cpu_fp64",
+    "attention_reference": "sampled_rows_0_middle_last_heads_0_7_8_15_columns_0_1_63_127_cpu_fp64",
+    "rms_norm_rope_softmax_reference": "all_active_elements_cpu_fp64",
+    "check_each_sample": true
+  }
+}

@@ -481,3 +481,21 @@
 - 原因：相同源码不等同于相同机器码或浮点计算行为。
 - 解决方法：采集前重建 `minillm-cuda-model-tests`，要求其 SHA-256 与完整数值验收记录一致，并在每个进程前后检查未变；离线分析交叉核对归档数值环境与 manifest 中的编译身份。不同构建需重新建立数值验收。
 - 验证：真实预检通过；当前完整模型测试摘要为 `4b31b3d60cf3b5d79fcbec054a234ad273eee67a03d661a7a40bde2ea08c518f`，与完整数值归档相同。仅修改数值环境记录中的二进制摘要时，采集器在模型执行及输出目录创建前返回 1；离线完整合成包也拒绝身份不符。四组 CTest 共 875 次用例执行通过，见 `benchmarks/results/validation/cuda-benchmark/final-preflight/`、`negative-numerical-binary.txt` 与 `revalidation.json`。
+
+## ENG-047：模型基准的数值归档位置固定为旧目录
+
+- 状态：已解决，限定于模型基准 manifest 的数值来源定位。
+- 影响：使用 `NumericalDirectory` 指定其他有效数值归档时，二进制与源码检查仍针对实际目录，但 `numerical_evidence.repository_path` 指向旧归档，影响证据追溯。
+- 复现条件或证据：`dcb07b7` 的 `scripts/Benchmark-CudaRuntime.ps1` 接受 `NumericalDirectory`，该 manifest 字段却固定为 `benchmarks/results/validation/cuda-full`。当前完整数值复验位于 `benchmarks/results/validation/cuda-micro/real-model`，其模型测试二进制摘要为 `fb9dc71c05a44f19eec764ada02d9a9a6918c89327dd65228ce268f23b213f34`，不能由旧目录的编译身份替代。
+- 原因：来源字段没有使用已解析的数值归档参数。
+- 解决方法：使用 `[IO.Path]::GetRelativePath` 记录实际归档相对仓库根目录的位置；默认目录与当前完整数值证据一致。源码集合与模型测试二进制的继承条件保持不变。
+- 验证：`benchmarks/results/validation/cuda-micro/model-preflight/manifest.json` 指向当前数值根目录，记录的编译摘要与独立全量复验一致；预检返回 0，没有启动 70 进程性能采样。四种构建共 50 项 CTest、926 次用例执行，以及 12528 次完整数值比较通过。
+
+## ENG-048：微基准存在顺序相关差异与离散长样本
+
+- 状态：已记录，待 Step 9 Profiler 归因；不作为已解决的性能问题。
+- 影响：仅以单轮或最短区间描述小算子延迟会明显偏乐观；微基准不能据此证明模型加速、测量稳定或没有退化。
+- 复现条件或证据：`benchmarks/results/cuda-micro-baseline/summary.json` 中，`matrix-Q-m1` 的五个独立 trial device 区间均摊值依次为 `37.664/10.240/37.369/10.656/37.792` 微秒；三个正序 trial 与两个逆序 trial 分组一致。`rope-query-m1-p1535` 的 trial 值为 `6.275/6.457/6.912/16.960/6.937` 微秒。375 个用例中有 48 个用例的相对 MAD 超过 10%；该统计不是模型 A/A 协议的噪声带。
+- 原因：尚未确定。当前区间包含 host 提交空隙，未锁频、未固定 affinity，且只有进程边界环境；现有证据不能区分热状态、库内部执行选择与提交间隙。
+- 解决方法或下一步：保留五轮全部 warmup、测量、初始化和验证记录，不修改冻结的重复次数或筛除慢样本。Step 9 结合完整模型 Nsight 与选定 kernel 检查设备执行、提交间隙和热状态；模型 A/A 继续使用独立的 70 进程协议。
+- 验证：五个独立进程的 9375 个样本均通过数值、输出一致性和传输/分配检查，375 个用例全部保留。Q 投影的区间差异和 RoPE 长样本仍存在，未宣称性能问题已消失。

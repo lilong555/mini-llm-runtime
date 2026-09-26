@@ -65,4 +65,6 @@ build/wsl-own-cuda/bin/minillm-cuda-reference-diagnostic \
 
 ## 验收边界
 
+当前编译产物的完整数值证据位于 [微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md)。模型性能采集同时核对 Runtime 源文件集合、摘要与 `minillm-cuda-model-tests` 的二进制 SHA-256，不能仅凭旧报告的通过状态继承数值门禁。
+
 本入口只验收数值与数据路径。CPU8/16 性能、A/A 噪声、矩阵和算子 microbenchmark、完整模型 Profiler 属于独立门禁；不提供 GPU Serving、GPU paging 或自有 PagedAttention 的验收结论。

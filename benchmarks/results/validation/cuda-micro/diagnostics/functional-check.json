@@ -1,0 +1,25 @@
+{
+  "scope": "无 manifest 的单进程功能检查",
+  "performance_trial": false,
+  "binary_identity_at_run": null,
+  "original_command": [
+    "build/wsl-own-cuda/bin/mini-cuda-kernel-bench",
+    "--model",
+    "models/Qwen3-0.6B-Q8_0.gguf",
+    "--input",
+    "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json",
+    "--output",
+    ".run/cuda-micro-functional-01.json"
+  ],
+  "report_sha256": "12ba70d0ef6ea7e048b38d14709c401287440c80f51cf6a447794193630dbcc3",
+  "audit": {
+    "trial": 0,
+    "samples": 1875,
+    "api_calls": 60000,
+    "measured_samples": 1125,
+    "measured_api_calls": 36000,
+    "owned_device_bytes": 3449229312,
+    "status": "passed",
+    "case_count": 375
+  }
+}

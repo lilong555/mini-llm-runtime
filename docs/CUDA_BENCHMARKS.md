@@ -2,7 +2,7 @@
 
 `mini-cuda-runtime-bench` 在同一可执行文件中选择自有 CPU8、CPU16 或 CUDA Runtime，每个进程只构造一个后端。固定协议为 `benchmarks/runtime-inputs/qwen3-cuda-v0.json`，模型为固定 Q8_0 checkpoint；CUDA 使用常驻 FP32 有效权重、FP16 连续 KV 和 cuBLAS pedantic FP32，CPU 使用 auto SIMD 与 FP16 paged KV。
 
-当前提供模型层的采集、严格复核和配对统计工具。单进程检查、合成报告 fixture 和数值验收均不能替代完整 A/A 性能基线；microbenchmark、Profiler 和 GPU Serving 仍有各自的阶段门禁。
+当前提供模型层的采集、严格复核和配对统计工具。[真实形状微基准](CUDA_MICROBENCHMARKS.md) 使用独立协议与归档。单进程检查、合成报告 fixture 和数值验收均不能替代完整 A/A 性能基线；Profiler 和 GPU Serving 仍有各自的阶段门禁。
 
 ## 运行入口
 
@@ -76,4 +76,4 @@ python3 scripts/analyze_cuda_benchmark.py \
 python3 /path/to/bundle/verify.py --directory /path/to/bundle
 ```
 
-模型权重、二进制、依赖 checkout 和完整数值归档不重复装入该模型性能包。数值摘要只在 `include/minillm/`、`src/minillm/` 文件集合和摘要一致，且重新构建的 `minillm-cuda-model-tests` 与完整数值验收的二进制 SHA-256 一致时继承；编译身份不同须在当前构建下重新进行数值验收。完整数值原始证据见 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md)。归档复核不是原二进制重跑，也不是可信执行证明。Step 8 的 microbenchmark 与 Step 9 的完整 Profiler/交付门禁不由本报告替代。
+模型权重、二进制、依赖 checkout 和完整数值归档不重复装入该模型性能包。数值摘要只在 `include/minillm/`、`src/minillm/` 文件集合和摘要一致，且重新构建的 `minillm-cuda-model-tests` 与完整数值验收的二进制 SHA-256 一致时继承；编译身份不同须在当前构建下重新进行数值验收。默认数值归档为 `benchmarks/results/validation/cuda-micro`；`NumericalDirectory` 指定其他归档时，manifest 记录其实际相对位置。原有 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 保持独立身份。归档复核不是原二进制重跑，也不是可信执行证明。Step 8 的 microbenchmark 与 Step 9 的完整 Profiler/交付门禁不由本报告替代。

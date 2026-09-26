@@ -196,6 +196,79 @@ TEST(kv_store_device_failure_keeps_logical_lengths_uncommitted) {
     CHECK(data[4] == float_to_half(65520.0f));
 }
 
+TEST(softmax_standalone_real_width_causal_nan_tail_and_preflight) {
+    CudaContext context;
+    constexpr std::size_t rows = 4, heads = 16, capacity = 2048, width = heads * capacity, stride = width + 3;
+    const KvShape shape{4,28,capacity,8,128};
+    const std::vector<std::int32_t> slots{0,1,2,3}, positions{0,16,1535,2047};
+    std::vector<float> input(rows * stride, std::numeric_limits<float>::quiet_NaN());
+    for (std::size_t r = 0; r < rows; ++r) {
+        for (std::size_t h = 0; h < heads; ++h) {
+            for (std::size_t p = 0; p <= std::size_t(positions[r]); ++p) {
+                input[r*stride+h*capacity+p] = float(int((p*7+h*3+r*11)%67)-33)/4.0f;
+            }
+        }
+    }
+    DeviceBuffer<float> scores(input.size()), probabilities(input.size());
+    DeviceBuffer<std::int32_t> s(rows), p(rows), status(2);
+    upload(context, matrix_view(scores,1,input.size()), input);
+    upload(context, matrix_view(probabilities,1,input.size()), std::vector<float>(input.size(), 719.25f));
+    upload(context, matrix_view(s,rows,1), slots); upload(context, matrix_view(p,rows,1), positions);
+    const DeviceTensorView<float> a{scores.data(),rows,width,stride,scores.size(),0};
+    const DeviceTensorView<float> b{probabilities.data(),rows,width,stride,probabilities.size(),0};
+    reset_status(context, matrix_view(status,1,2));
+    const auto before = allocation_stats();
+    causal_softmax(context, shape, heads, read_only(matrix_view(s,rows,1)), read_only(matrix_view(p,rows,1)),
+                   capacity, a, b, matrix_view(status,1,2));
+    status_is(context, status);
+    const auto actual = download(context, matrix_view(probabilities,1,probabilities.size()));
+    for (std::size_t r = 0; r < rows; ++r) {
+        const auto used = std::size_t(positions[r]) + 1;
+        for (std::size_t h = 0; h < heads; ++h) {
+            const auto first = input.begin() + r*stride+h*capacity;
+            const float maximum = *std::max_element(first, first+used);
+            double denominator = 0;
+            for (std::size_t i = 0; i < used; ++i) { denominator += std::exp(double(first[i])-maximum); }
+            for (std::size_t i = 0; i < capacity; ++i) {
+                near(actual[r*stride+h*capacity+i], i < used ? std::exp(double(first[i])-maximum)/denominator : 0.0);
+            }
+        }
+        for (std::size_t i = width; i < stride; ++i) { CHECK(actual[r*stride+i] == 719.25f); }
+    }
+    const auto observed = download(context, matrix_view(scores,1,scores.size()));
+    for (std::size_t i = 0; i < input.size(); ++i) {
+        CHECK(std::isnan(input[i]) ? std::isnan(observed[i]) : input[i] == observed[i]);
+    }
+    test::throws<std::invalid_argument>([&] {
+        causal_softmax(context, shape, heads, read_only(matrix_view(s,rows,1)), read_only(matrix_view(p,rows,1)),
+                       capacity, a, a, matrix_view(status,1,2));
+    });
+    test::throws<std::invalid_argument>([&] {
+        causal_softmax(context, shape, heads, read_only(matrix_view(s,rows,1)), read_only(matrix_view(p,rows,1)),
+                       capacity+1, a, b, matrix_view(status,1,2));
+    });
+    const auto after = allocation_stats();
+    CHECK(after.allocation_calls == before.allocation_calls && after.release_calls == before.release_calls);
+}
+
+TEST(softmax_standalone_device_errors_are_explicit) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,128};
+    DeviceBuffer<float> scores(3*17), probabilities(3*17);
+    DeviceBuffer<std::int32_t> slots(3), positions(3), status(2);
+    std::vector<float> input(3*17, 1.0f);
+    input[0] = std::numeric_limits<float>::quiet_NaN();
+    upload(context, matrix_view(scores,3,17), input);
+    upload(context, matrix_view(slots,3,1), std::vector<std::int32_t>{0,1,0});
+    upload(context, matrix_view(positions,3,1), std::vector<std::int32_t>{0,0,17});
+    reset_status(context, matrix_view(status,1,2));
+    causal_softmax(context, shape, 1, read_only(matrix_view(slots,3,1)), read_only(matrix_view(positions,3,1)),
+                   17, matrix_view(scores,3,17), matrix_view(probabilities,3,17), matrix_view(status,1,2));
+    status_is(context, status, 7, 0);
+    const auto output = download(context, matrix_view(probabilities,3,17));
+    CHECK(std::isnan(output[0]) && std::isnan(output[17]) && std::isnan(output[34]));
+}
+
 namespace {
 void attention_case(std::size_t capacity, std::size_t length, std::size_t kv_heads,
                      std::size_t heads, std::size_t dimension) {

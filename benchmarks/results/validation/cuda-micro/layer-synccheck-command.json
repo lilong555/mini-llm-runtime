@@ -1,0 +1,15 @@
+{
+  "command": "compute-sanitizer",
+  "arguments": [
+    "--tool",
+    "synccheck",
+    "--error-exitcode",
+    "1",
+    "build/wsl-own-cuda/bin/minillm-cuda-layer-tests"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T01:51:27.1969719Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T01:51:28.2160355Z"
+}

@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "name": "micro-existing-directory",
+      "exit_code": 1,
+      "unchanged": true
+    },
+    {
+      "name": "model-existing-directory",
+      "exit_code": 1,
+      "unchanged": true
+    },
+    {
+      "name": "model-incomplete",
+      "exit_code": 1,
+      "unchanged": true
+    },
+    {
+      "name": "model-numerical-binary",
+      "exit_code": 1,
+      "unchanged": true
+    }
+  ]
+}

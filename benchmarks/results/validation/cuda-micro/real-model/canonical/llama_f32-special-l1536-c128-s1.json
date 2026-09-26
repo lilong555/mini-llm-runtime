@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "backend": "llama_f32",
+  "id": "special-l1536-c128-s1",
+  "corpus": 3,
+  "length": 1536,
+  "input_sha256": "a05b463bfc16e759c0a94256dd453af45bcc43e2f19145765308b503f25ade92",
+  "samples": [
+    {
+      "token": 1479,
+      "margin": 0.8590855598449707,
+      "sha256": "00ccabe0292a4f912376921dbbed66cdc41fd9846651d8be1dd328498ac9d6fc",
+      "position": 0
+    },
+    {
+      "token": 198,
+      "margin": 3.545135498046875,
+      "sha256": "68081c89507931350e8bcd7fc86801759ffdacbc94b5cedf3def2645e5c71bc6",
+      "position": 1
+    },
+    {
+      "token": 198,
+      "margin": 14.398773193359375,
+      "sha256": "f56b585378d8c85206b860f324ea9be3411b4242073e53aafa103dca2bc0e322",
+      "position": 15
+    },
+    {
+      "token": 151667,
+      "margin": 0.09643173217773438,
+      "sha256": "eee9d7a54c0536b1c6575943aa21b92b5efaf035dbfa327b82f95fbdbaaf5e13",
+      "position": 16
+    },
+    {
+      "token": 151667,
+      "margin": 9.616201400756836,
+      "sha256": "6eca36441168e6ac49f96aa7dd8375810216e92a70370650227fb0343d3069bc",
+      "position": 17
+    },
+    {
+      "token": 151644,
+      "margin": 5.923648834228516,
+      "sha256": "366963910e569ca9d83af87903d5b89b96166e8e36a78c0fb63c7b329b6078c0",
+      "position": 32
+    },
+    {
+      "token": 198,
+      "margin": 13.260835647583008,
+      "sha256": "8c345f64bacfd35bfc705ee6697c91d0561b4fd933bad12c81498cd8749c3cf1",
+      "position": 127
+    },
+    {
+      "token": 108386,
+      "margin": 2.279735565185547,
+      "sha256": "7814460af6d407aca2b3be05a64f5d84352ceaec29616264abe2c1133c8b89c2",
+      "position": 128
+    },
+    {
+      "token": 151645,
+      "margin": 0.6107254028320313,
+      "sha256": "47fb46abadc064b85af19124f89e731c4d9ab36b291b7f96b8098e5f70f2ba51",
+      "position": 255
+    },
+    {
+      "token": 151644,
+      "margin": 5.3375091552734375,
+      "sha256": "116065239fab5663097f942eb71db5e19af94eda8d67829f906bb54379f78b24",
+      "position": 1535
+    }
+  ]
+}

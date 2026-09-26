@@ -1,0 +1,74 @@
+{
+  "collected_at_utc": "2026-09-26T01:54:00.8194923Z",
+  "compiler": "g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
+  "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+  "device": {
+    "at_utc": "2026-09-26T01:54:00.8350712Z",
+    "load_average_raw": "0.46 0.68 0.54 1/746 911600",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cpu_frequency_mhz": [
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193
+    ],
+    "gpu": {
+      "raw": [
+        "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 59, 1980, 8000, 16.83, 3, 1398, 6551"
+      ],
+      "records": [
+        {
+          "uuid": "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211",
+          "driver_version": "591.74",
+          "temperature_c": 59.0,
+          "sm_clock_mhz": 1980.0,
+          "memory_clock_mhz": 8000.0,
+          "power_w": 16.83,
+          "utilization_percent": 3.0,
+          "used_mib": 1398.0,
+          "free_mib": 6551.0
+        }
+      ]
+    },
+    "unavailable": []
+  },
+  "powershell": "7.6.6",
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "kernel": "Linux LAPTOP-GBFPGV8B 5.15.167.4-microsoft-standard-WSL2 #1 SMP Tue Nov 5 00:21:55 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux",
+  "full_validation_binary_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "micro_binary_sha256": "d07516a97c1c74b9ff4db2359bb29c2e3c262c7bbe98ae5f67b9ff39ad551c3f",
+  "full_validation_compile_commands": [
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DGGML_USE_CPU -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/ggml/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -isystem /usr/local/cuda-12.8/targets/x86_64-linux/include -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_model_tests.cpp.o -c /home/li/code/mini-llm-runtime/tests/cuda_model_tests.cpp",
+      "file": "/home/li/code/mini-llm-runtime/tests/cuda_model_tests.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_model_tests.cpp.o"
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DGGML_USE_CPU -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/ggml/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -isystem /usr/local/cuda-12.8/targets/x86_64-linux/include -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_full_validation.cpp.o -c /home/li/code/mini-llm-runtime/tests/cuda_full_validation.cpp",
+      "file": "/home/li/code/mini-llm-runtime/tests/cuda_full_validation.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_full_validation.cpp.o"
+    }
+  ],
+  "micro_compile_commands": [
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/src/minillm/cuda -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -isystem /usr/local/cuda-12.8/targets/x86_64-linux/include -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/mini-cuda-kernel-bench.dir/apps/cuda_kernel_bench.cpp.o -c /home/li/code/mini-llm-runtime/apps/cuda_kernel_bench.cpp",
+      "file": "/home/li/code/mini-llm-runtime/apps/cuda_kernel_bench.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/mini-cuda-kernel-bench.dir/apps/cuda_kernel_bench.cpp.o"
+    }
+  ]
+}

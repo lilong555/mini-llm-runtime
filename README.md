@@ -37,7 +37,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 | 调度 | token budget、chunked prefill、优先级 aging、等待保护、保守容量预留 |
 | Prefix cache | token Trie、命名空间、完整块复用、LRU 淘汰；全命中时重算最后一块 |
 | 服务 | C++ HTTP/SSE、取消、超时、断连回收、慢消费者背压、严格参数校验 |
-| 实验 | scalar/SIMD 微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
+| 实验 | CPU SIMD 与 CUDA 真实形状微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
 | 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
 支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 提供 CPU Runtime 与自有 CUDA Runtime/CLI；Serving 的 `mini` 后端仍为 CPU，`llama` 后端可使用上游 CPU/CUDA。自有 CUDA 支持最多 4 个独立序列、128 个 batch tokens，默认每序列 context=2048，见 [CUDA Runtime](docs/CUDA_RUNTIME.md)。
@@ -68,7 +68,7 @@ bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值验收](benchmarks/results/validation/cuda-full/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。正式性能基线与 GPU Serving 尚未验收。
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。四类语料、S=1/2/4、全部预定 chunk/长度组合及 32-token 续写已通过 [全量数值复验](benchmarks/results/validation/cuda-micro/README.md)，运行入口见 [CUDA 数值验证](docs/CUDA_NUMERICS.md)。[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md) 保留五轮原始样本及测量波动；正式模型性能基线与 GPU Serving 尚未验收。
 
 ### Windows / PowerShell
 
@@ -170,6 +170,8 @@ ctest --test-dir build\cpu --output-on-failure
 WSL 原生入口为 `bash scripts/dev.sh benchmark -Trace benchmarks/traces/cpu-mixed-s0.jsonl`。策略对照的实验身份、源码快照、合法失败终态和严格验收规则见 [策略回放与验收](docs/BENCHMARKS.md)。
 
 `bash scripts/dev.sh runtime-benchmark` 直接测量 CPU Runtime 的固定 prefill、decode 和 mixed 输入，交替采集无计时与分阶段计时的独立进程，核对完整 logits 摘要及 KV 状态。接口、矩阵形状、线程池等待时间和开销边界见 [Runtime 计时与模型基准](docs/RUNTIME_PROFILING.md)。
+
+自有 CUDA 提供 [模型性能对照](docs/CUDA_BENCHMARKS.md) 与 [真实形状微基准](docs/CUDA_MICROBENCHMARKS.md)，入口分别为 `bash scripts/dev.sh own-cuda runtime-benchmark` 和 `micro-benchmark`。两者使用独立协议、原始样本和归档；微基准不代表模型或服务加速。
 
 `scripts/Benchmark-Telemetry.ps1` 交替运行 `off / batches / stages` 与两种调度策略，关联每个 SSE token 的 batch、Engine 发布间隔及客户端 ITL。数据结构、到达率缩放、有界采集与验收见 [在线 batch 与 token 时间线](docs/BATCH_TELEMETRY.md)。
 

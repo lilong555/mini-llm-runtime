@@ -1,0 +1,13 @@
+{
+  "weights_bytes": 2384199680,
+  "workspace_bytes": 121311232,
+  "kv_bytes": 939524096,
+  "library_workspace_bytes": 4194304,
+  "activations_bytes": 8912896,
+  "attention_scratch_bytes": 33554432,
+  "logits_bytes": 77791232,
+  "metadata_bytes": 3608,
+  "rope_bytes": 1048576,
+  "padding_bytes": 488,
+  "total_owned_bytes": 3449229312
+}

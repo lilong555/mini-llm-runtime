@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "source_state_sha256": "ef819201b390cfa46677983e3291202cafec51757d857c183028aaa9b887832b",
+  "binary_sha256": "fb9dc71c05a44f19eec764ada02d9a9a6918c89327dd65228ce268f23b213f34",
+  "before_after_equal": true
+}

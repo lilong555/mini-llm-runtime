@@ -1,0 +1,79 @@
+{
+  "own_cache": {
+    "MINILLM_ENABLE_CUDA": "ON",
+    "LLMSERVE_CUDA": "OFF",
+    "GGML_CUDA": "OFF",
+    "build_type": "RelWithDebInfo"
+  },
+  "binaries": [
+    {
+      "configuration": "cpu",
+      "name": "llmserve",
+      "sha256": "6c47a4d8617de4696d1e086635af5049d7b71ed63ae66ae90cc340fd08bfd30b",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffd975fd000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f26e1b9b000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f26e196f000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f26e1888000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f26e1868000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f26e163f000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f26e21b7000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "mini-llm",
+      "sha256": "75d3d676ab5bb5cd3e812ee65bacc06e9db2c6e83adf9ae17adf7011bf6b8efd",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffde2ece000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f26531b5000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f2652f89000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f2652ea2000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f2652e82000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f2652c59000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f2653712000)"
+      ]
+    },
+    {
+      "configuration": "own-cuda",
+      "name": "mini-cuda-kernel-bench",
+      "sha256": "d07516a97c1c74b9ff4db2359bb29c2e3c262c7bbe98ae5f67b9ff39ad551c3f",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffd7977c000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f0427462000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007f0427000000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007f041fe00000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f041fbd4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f042737b000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f0427359000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f041f9ab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f04275b8000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f0427354000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f042734f000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f042734a000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007f03ed600000)"
+      ]
+    },
+    {
+      "configuration": "own-cuda",
+      "name": "minillm-cuda-model-tests",
+      "sha256": "fb9dc71c05a44f19eec764ada02d9a9a6918c89327dd65228ce268f23b213f34",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fffedd38000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007fb9d4600000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007fb9cd400000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fb9d497d000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fb9cd1d4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fb9d4519000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fb9d495b000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fb9ccfab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fb9d4f5d000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fb9d4956000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fb9d4951000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fb9d494c000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007fb99ac00000)"
+      ]
+    }
+  ],
+  "micro_cpu_or_upstream_forward_symbols": []
+}

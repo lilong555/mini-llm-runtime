@@ -21,8 +21,8 @@ elif [[ ${1:-} == own-cuda ]]; then
   build=build/wsl-own-cuda
   own_cuda=ON
   case "${1:-help}" in
-    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|generate|help) ;;
-    *) echo '自有 CUDA 提供 build/test/memcheck、storage/layer/model 验证、runtime-benchmark 和 generate；GPU Serving 尚未交付。' >&2; exit 1 ;;
+    build|test|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|generate|help) ;;
+    *) echo '自有 CUDA 提供 build/test/memcheck、storage/layer/model 验证、runtime-benchmark、micro-benchmark 和 generate；GPU Serving 尚未交付。' >&2; exit 1 ;;
   esac
 fi
 case "${1:-help}" in
@@ -120,6 +120,11 @@ case "${1:-help}" in
       exec pwsh -NoProfile -File scripts/Benchmark-Runtime.ps1 -BinaryDirectory "$build/bin" "$@"
     fi
     ;;
+  micro-benchmark)
+    [[ $own_cuda == ON ]] || { echo '用法：bash scripts/dev.sh own-cuda micro-benchmark [基准参数]' >&2; exit 1; }
+    shift
+    exec pwsh -NoProfile -File scripts/Benchmark-CudaMicro.ps1 -BinaryDirectory "$build/bin" "$@"
+    ;;
   check-http)
     mkdir -p .run
     state=$(mktemp -d "$root/.run/http-check.XXXXXX")
@@ -161,7 +166,7 @@ case "${1:-help}" in
     ;;
   *)
     echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
-    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck|storage-check [新报告目录]|storage-memcheck [新报告目录]|layer-check [新报告目录]|layer-memcheck [新报告目录]|model-check [新报告目录]|model-full-check [新报告目录]|model-memcheck [新报告目录]|runtime-benchmark [基准参数]|generate [生成参数]}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|memcheck|storage-check [新报告目录]|storage-memcheck [新报告目录]|layer-check [新报告目录]|layer-memcheck [新报告目录]|model-check [新报告目录]|model-full-check [新报告目录]|model-memcheck [新报告目录]|runtime-benchmark [基准参数]|micro-benchmark [基准参数]|generate [生成参数]}'
     [[ ${1:-help} == help ]]
     ;;
 esac

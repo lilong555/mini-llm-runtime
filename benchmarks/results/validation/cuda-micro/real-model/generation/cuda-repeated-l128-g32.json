@@ -1,0 +1,2103 @@
+{
+  "schema_version": 1,
+  "id": "repeated-l128-g32",
+  "corpus": 2,
+  "prompt_tokens": 128,
+  "output_tokens": 32,
+  "final_kv_tokens": 159,
+  "rows": [
+    {
+      "step": 0,
+      "cuda": {
+        "token": 1479,
+        "margin": 1.0827765464782715,
+        "sha256": "cf0b710ad5f372dbdee534f9365c50b804f3ee6b9d5e4930de93e1d43c8512d9"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 1479,
+            "margin": 1.0827698707580566,
+            "sha256": "01e84fc00e0f6e5c3da5b0e376eaf0d0fbe169e3dbd96d0a64f36030fd3427fb"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 6.374238400821975e-06,
+            "max_absolute": 3.528594970703125e-05,
+            "cosine": 0.9999999999971354,
+            "all_finite": true,
+            "actual_sha256": "cf0b710ad5f372dbdee534f9365c50b804f3ee6b9d5e4930de93e1d43c8512d9",
+            "reference_sha256": "01e84fc00e0f6e5c3da5b0e376eaf0d0fbe169e3dbd96d0a64f36030fd3427fb",
+            "actual_argmax": 1479,
+            "reference_argmax": 1479,
+            "reference_margin": 1.0827698707580566,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 0,
+            "sequence": 0,
+            "position": 127
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 1479,
+            "margin": 1.082819938659668,
+            "sha256": "a2ff0ceb9fbb6ab4422abe5dec4d6802c20ce0beea673392e6ff8e5d14152c1e"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 4.8919926765689605e-05,
+            "max_absolute": 0.00024819374084472656,
+            "cosine": 0.9999999997821332,
+            "all_finite": true,
+            "actual_sha256": "cf0b710ad5f372dbdee534f9365c50b804f3ee6b9d5e4930de93e1d43c8512d9",
+            "reference_sha256": "a2ff0ceb9fbb6ab4422abe5dec4d6802c20ce0beea673392e6ff8e5d14152c1e",
+            "actual_argmax": 1479,
+            "reference_argmax": 1479,
+            "reference_margin": 1.082819938659668,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 0,
+            "sequence": 0,
+            "position": 127
+          }
+        }
+      }
+    },
+    {
+      "step": 1,
+      "cuda": {
+        "token": 198,
+        "margin": 1.1353397369384766,
+        "sha256": "3db28118704cf78ab91219026f54782a63d24802c1aaed32e95483cbbbc8dfc4"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 198,
+            "margin": 1.1354522705078125,
+            "sha256": "be090b4e7f2f071f4c51b1584bd9837c80e9f635f45629994255979d77c4934d"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0005016667219891454,
+            "max_absolute": 0.0024747848510742188,
+            "cosine": 0.9999999753782304,
+            "all_finite": true,
+            "actual_sha256": "3db28118704cf78ab91219026f54782a63d24802c1aaed32e95483cbbbc8dfc4",
+            "reference_sha256": "be090b4e7f2f071f4c51b1584bd9837c80e9f635f45629994255979d77c4934d",
+            "actual_argmax": 198,
+            "reference_argmax": 198,
+            "reference_margin": 1.1354522705078125,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 1,
+            "sequence": 0,
+            "position": 128
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 198,
+            "margin": 1.133357048034668,
+            "sha256": "3862c658e3b9ffe7cc431b01f9ecf0e40ca7cc2364cf8b80ec055fdad29912c6"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.002777226848330675,
+            "max_absolute": 0.01397085189819336,
+            "cosine": 0.9999993113266645,
+            "all_finite": true,
+            "actual_sha256": "3db28118704cf78ab91219026f54782a63d24802c1aaed32e95483cbbbc8dfc4",
+            "reference_sha256": "3862c658e3b9ffe7cc431b01f9ecf0e40ca7cc2364cf8b80ec055fdad29912c6",
+            "actual_argmax": 198,
+            "reference_argmax": 198,
+            "reference_margin": 1.133357048034668,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 1,
+            "sequence": 0,
+            "position": 128
+          }
+        }
+      }
+    },
+    {
+      "step": 2,
+      "cuda": {
+        "token": 9707,
+        "margin": 0.022896766662597656,
+        "sha256": "829e67f98ddb84973687c2e0bc90a1a3d5d6319a1be5e1168680867eab80a5d6"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 9707,
+            "margin": 0.02374267578125,
+            "sha256": "6d64b4fbd551fcc5a3e54bdd3cb847573f767ded9e77eeebdd5e574851784be3"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00055316762890239,
+            "max_absolute": 0.002517879009246826,
+            "cosine": 0.9999999650658781,
+            "all_finite": true,
+            "actual_sha256": "829e67f98ddb84973687c2e0bc90a1a3d5d6319a1be5e1168680867eab80a5d6",
+            "reference_sha256": "6d64b4fbd551fcc5a3e54bdd3cb847573f767ded9e77eeebdd5e574851784be3",
+            "actual_argmax": 9707,
+            "reference_argmax": 9707,
+            "reference_margin": 0.02374267578125,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 2,
+            "sequence": 0,
+            "position": 129
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 9707,
+            "margin": 0.02895641326904297,
+            "sha256": "692c0acb97be1a83cd42a267cc863233c6fbb63ac5fb3d0f0393f4bd63e767ea"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0022307786284099782,
+            "max_absolute": 0.0102882981300354,
+            "cosine": 0.9999994400162082,
+            "all_finite": true,
+            "actual_sha256": "829e67f98ddb84973687c2e0bc90a1a3d5d6319a1be5e1168680867eab80a5d6",
+            "reference_sha256": "692c0acb97be1a83cd42a267cc863233c6fbb63ac5fb3d0f0393f4bd63e767ea",
+            "actual_argmax": 9707,
+            "reference_argmax": 9707,
+            "reference_margin": 0.02895641326904297,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 2,
+            "sequence": 0,
+            "position": 129
+          }
+        }
+      }
+    },
+    {
+      "step": 3,
+      "cuda": {
+        "token": 11,
+        "margin": 1.3220548629760742,
+        "sha256": "e26ab26b93cabb1c457969d760d08167ff8878d1600243420bb76749b8ec2f6e"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 11,
+            "margin": 1.3218069076538086,
+            "sha256": "3d2f9451c7a838d58ecf4ff20fd5db8d7f104731d00aa52d94c411ac48aed519"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00036574354708005056,
+            "max_absolute": 0.0019860267639160156,
+            "cosine": 0.9999999912370018,
+            "all_finite": true,
+            "actual_sha256": "e26ab26b93cabb1c457969d760d08167ff8878d1600243420bb76749b8ec2f6e",
+            "reference_sha256": "3d2f9451c7a838d58ecf4ff20fd5db8d7f104731d00aa52d94c411ac48aed519",
+            "actual_argmax": 11,
+            "reference_argmax": 11,
+            "reference_margin": 1.3218069076538086,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 3,
+            "sequence": 0,
+            "position": 130
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 11,
+            "margin": 1.3210563659667969,
+            "sha256": "5e3ac68410531df582b54e6421e18711453419fa48de058dde62489e6a58b1aa"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0014449429437674124,
+            "max_absolute": 0.007250785827636719,
+            "cosine": 0.9999998819981876,
+            "all_finite": true,
+            "actual_sha256": "e26ab26b93cabb1c457969d760d08167ff8878d1600243420bb76749b8ec2f6e",
+            "reference_sha256": "5e3ac68410531df582b54e6421e18711453419fa48de058dde62489e6a58b1aa",
+            "actual_argmax": 11,
+            "reference_argmax": 11,
+            "reference_margin": 1.3210563659667969,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 3,
+            "sequence": 0,
+            "position": 130
+          }
+        }
+      }
+    },
+    {
+      "step": 4,
+      "cuda": {
+        "token": 358,
+        "margin": 0.29099559783935547,
+        "sha256": "64fc3c4405cf56a0ca2af2a92b71b4ad79274b214cc98c9516a97565e8fd6872"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 358,
+            "margin": 0.2913665771484375,
+            "sha256": "1f411957298a01ec278b3a65a48148b42095aae866fff90ad85ff3f473895e42"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0005883420921262938,
+            "max_absolute": 0.0035109519958496094,
+            "cosine": 0.9999999741556688,
+            "all_finite": true,
+            "actual_sha256": "64fc3c4405cf56a0ca2af2a92b71b4ad79274b214cc98c9516a97565e8fd6872",
+            "reference_sha256": "1f411957298a01ec278b3a65a48148b42095aae866fff90ad85ff3f473895e42",
+            "actual_argmax": 358,
+            "reference_argmax": 358,
+            "reference_margin": 0.2913665771484375,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 4,
+            "sequence": 0,
+            "position": 131
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 358,
+            "margin": 0.29412269592285156,
+            "sha256": "ba8a143cfb2493f42c32e87ea917b2094edd084eb8f34daa4726e6929e8c3818"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0015497496174126954,
+            "max_absolute": 0.008179187774658203,
+            "cosine": 0.9999998175178316,
+            "all_finite": true,
+            "actual_sha256": "64fc3c4405cf56a0ca2af2a92b71b4ad79274b214cc98c9516a97565e8fd6872",
+            "reference_sha256": "ba8a143cfb2493f42c32e87ea917b2094edd084eb8f34daa4726e6929e8c3818",
+            "actual_argmax": 358,
+            "reference_argmax": 358,
+            "reference_margin": 0.29412269592285156,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 4,
+            "sequence": 0,
+            "position": 131
+          }
+        }
+      }
+    },
+    {
+      "step": 5,
+      "cuda": {
+        "token": 1184,
+        "margin": 1.1811494827270508,
+        "sha256": "fdcb975b9a0494ae9d7bed8fc00c42a8594b13461d37c2090594ab36295654d0"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 1184,
+            "margin": 1.1812000274658203,
+            "sha256": "302977a70622b7fc716431763d4772223606e1ae3d83c0e80067d518d89df635"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0004586671776984825,
+            "max_absolute": 0.0023097991943359375,
+            "cosine": 0.9999999850469513,
+            "all_finite": true,
+            "actual_sha256": "fdcb975b9a0494ae9d7bed8fc00c42a8594b13461d37c2090594ab36295654d0",
+            "reference_sha256": "302977a70622b7fc716431763d4772223606e1ae3d83c0e80067d518d89df635",
+            "actual_argmax": 1184,
+            "reference_argmax": 1184,
+            "reference_margin": 1.1812000274658203,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 5,
+            "sequence": 0,
+            "position": 132
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 1184,
+            "margin": 1.1821622848510742,
+            "sha256": "2e91109a3b153d73e85b90be4688bf3e2ab409665aa714822929c48525aa1816"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0013311607791642642,
+            "max_absolute": 0.006920337677001953,
+            "cosine": 0.9999998647985803,
+            "all_finite": true,
+            "actual_sha256": "fdcb975b9a0494ae9d7bed8fc00c42a8594b13461d37c2090594ab36295654d0",
+            "reference_sha256": "2e91109a3b153d73e85b90be4688bf3e2ab409665aa714822929c48525aa1816",
+            "actual_argmax": 1184,
+            "reference_argmax": 1184,
+            "reference_margin": 1.1821622848510742,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 5,
+            "sequence": 0,
+            "position": 132
+          }
+        }
+      }
+    },
+    {
+      "step": 6,
+      "cuda": {
+        "token": 311,
+        "margin": 0.4893646240234375,
+        "sha256": "fbc48e97552dcef175af230838a3fc7c62711753b679b6b0d25a870a24b411da"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 311,
+            "margin": 0.4893016815185547,
+            "sha256": "8d4e52dca8cb7b634e8953fc1b11efdb68c8b0440442ff25dba8f90aeb7e59f5"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00028065820796084113,
+            "max_absolute": 0.0012170076370239258,
+            "cosine": 0.999999990514262,
+            "all_finite": true,
+            "actual_sha256": "fbc48e97552dcef175af230838a3fc7c62711753b679b6b0d25a870a24b411da",
+            "reference_sha256": "8d4e52dca8cb7b634e8953fc1b11efdb68c8b0440442ff25dba8f90aeb7e59f5",
+            "actual_argmax": 311,
+            "reference_argmax": 311,
+            "reference_margin": 0.4893016815185547,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 6,
+            "sequence": 0,
+            "position": 133
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 311,
+            "margin": 0.49038124084472656,
+            "sha256": "eca8c5ef62fd9b58a6e75ccf37d0062c546c8cd106c72910bb435e7e3c530959"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0007064881161835922,
+            "max_absolute": 0.002992957830429077,
+            "cosine": 0.9999999398882667,
+            "all_finite": true,
+            "actual_sha256": "fbc48e97552dcef175af230838a3fc7c62711753b679b6b0d25a870a24b411da",
+            "reference_sha256": "eca8c5ef62fd9b58a6e75ccf37d0062c546c8cd106c72910bb435e7e3c530959",
+            "actual_argmax": 311,
+            "reference_argmax": 311,
+            "reference_margin": 0.49038124084472656,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 6,
+            "sequence": 0,
+            "position": 133
+          }
+        }
+      }
+    },
+    {
+      "step": 7,
+      "cuda": {
+        "token": 3270,
+        "margin": 0.2603340148925781,
+        "sha256": "1345f5c206e17cfac0d98606fe13b8c57545318ad5f0e620c5a95260e802b878"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 3270,
+            "margin": 0.2600822448730469,
+            "sha256": "268a0ebcbbb75cf26d11797f999bc4773472f554d51eb0acbf0527b39f5c113b"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00026976369831375606,
+            "max_absolute": 0.001294940710067749,
+            "cosine": 0.9999999938015326,
+            "all_finite": true,
+            "actual_sha256": "1345f5c206e17cfac0d98606fe13b8c57545318ad5f0e620c5a95260e802b878",
+            "reference_sha256": "268a0ebcbbb75cf26d11797f999bc4773472f554d51eb0acbf0527b39f5c113b",
+            "actual_argmax": 3270,
+            "reference_argmax": 3270,
+            "reference_margin": 0.2600822448730469,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 7,
+            "sequence": 0,
+            "position": 134
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 3270,
+            "margin": 0.2574653625488281,
+            "sha256": "ef0d5b8e193cde2124a780f96f05fb19dd3056b94edfc3c553cea99c28bb03fc"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0011671690042836527,
+            "max_absolute": 0.0055904388427734375,
+            "cosine": 0.9999998838228586,
+            "all_finite": true,
+            "actual_sha256": "1345f5c206e17cfac0d98606fe13b8c57545318ad5f0e620c5a95260e802b878",
+            "reference_sha256": "ef0d5b8e193cde2124a780f96f05fb19dd3056b94edfc3c553cea99c28bb03fc",
+            "actual_argmax": 3270,
+            "reference_argmax": 3270,
+            "reference_margin": 0.2574653625488281,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 7,
+            "sequence": 0,
+            "position": 134
+          }
+        }
+      }
+    },
+    {
+      "step": 8,
+      "cuda": {
+        "token": 264,
+        "margin": 1.4621944427490234,
+        "sha256": "e5829bd25f9b3eb688f09842a9bdf55f0e0ef6625d2f5f2018a2101ee4e1f1c3"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 264,
+            "margin": 1.4621696472167969,
+            "sha256": "1ba0e01accd970979632fc896c3216d939f51e6b2bd4d1ab255a714eabc247c0"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00026759696644650794,
+            "max_absolute": 0.0013332366943359375,
+            "cosine": 0.9999999927330693,
+            "all_finite": true,
+            "actual_sha256": "e5829bd25f9b3eb688f09842a9bdf55f0e0ef6625d2f5f2018a2101ee4e1f1c3",
+            "reference_sha256": "1ba0e01accd970979632fc896c3216d939f51e6b2bd4d1ab255a714eabc247c0",
+            "actual_argmax": 264,
+            "reference_argmax": 264,
+            "reference_margin": 1.4621696472167969,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 8,
+            "sequence": 0,
+            "position": 135
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 264,
+            "margin": 1.4623794555664063,
+            "sha256": "865a8f025667a48b37173bf5bb97760cb78ef1ef0aff7c48c6c00c6c46af0ca8"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00111642707612598,
+            "max_absolute": 0.005106806755065918,
+            "cosine": 0.9999998746019141,
+            "all_finite": true,
+            "actual_sha256": "e5829bd25f9b3eb688f09842a9bdf55f0e0ef6625d2f5f2018a2101ee4e1f1c3",
+            "reference_sha256": "865a8f025667a48b37173bf5bb97760cb78ef1ef0aff7c48c6c00c6c46af0ca8",
+            "actual_argmax": 264,
+            "reference_argmax": 264,
+            "reference_margin": 1.4623794555664063,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 8,
+            "sequence": 0,
+            "position": 135
+          }
+        }
+      }
+    },
+    {
+      "step": 9,
+      "cuda": {
+        "token": 13027,
+        "margin": 0.5080184936523438,
+        "sha256": "31f0c9cf08d68eaabea44583a71fe8e852f6a393c362eec95f2a027be54ac6d1"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 13027,
+            "margin": 0.5082054138183594,
+            "sha256": "adf380aa605712b75ea2cf8ef3b7fb530b69b44f661022f840c94f23baa45125"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00046063112311894676,
+            "max_absolute": 0.0021839141845703125,
+            "cosine": 0.9999999853748195,
+            "all_finite": true,
+            "actual_sha256": "31f0c9cf08d68eaabea44583a71fe8e852f6a393c362eec95f2a027be54ac6d1",
+            "reference_sha256": "adf380aa605712b75ea2cf8ef3b7fb530b69b44f661022f840c94f23baa45125",
+            "actual_argmax": 13027,
+            "reference_argmax": 13027,
+            "reference_margin": 0.5082054138183594,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 9,
+            "sequence": 0,
+            "position": 136
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 13027,
+            "margin": 0.5080375671386719,
+            "sha256": "3e5f1a468831ac94f49d8f98ffe9419815da74ae5a6d01df214c14e6d0ae413c"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00100011995114848,
+            "max_absolute": 0.005285739898681641,
+            "cosine": 0.9999999333441699,
+            "all_finite": true,
+            "actual_sha256": "31f0c9cf08d68eaabea44583a71fe8e852f6a393c362eec95f2a027be54ac6d1",
+            "reference_sha256": "3e5f1a468831ac94f49d8f98ffe9419815da74ae5a6d01df214c14e6d0ae413c",
+            "actual_argmax": 13027,
+            "reference_argmax": 13027,
+            "reference_margin": 0.5080375671386719,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 9,
+            "sequence": 0,
+            "position": 136
+          }
+        }
+      }
+    },
+    {
+      "step": 10,
+      "cuda": {
+        "token": 729,
+        "margin": 0.9969158172607422,
+        "sha256": "8a6bd79fce8b7b9cf22602969709bcb6f73564c0d38dd1b8506a9f32cca9b83e"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 729,
+            "margin": 0.9972381591796875,
+            "sha256": "0ce3d9d1c01224ab4155f8d4b0f014c4a849d5729bdf42651ae0f3fb335cc6ac"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0002890922404857649,
+            "max_absolute": 0.0012857913970947266,
+            "cosine": 0.9999999954665312,
+            "all_finite": true,
+            "actual_sha256": "8a6bd79fce8b7b9cf22602969709bcb6f73564c0d38dd1b8506a9f32cca9b83e",
+            "reference_sha256": "0ce3d9d1c01224ab4155f8d4b0f014c4a849d5729bdf42651ae0f3fb335cc6ac",
+            "actual_argmax": 729,
+            "reference_argmax": 729,
+            "reference_margin": 0.9972381591796875,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 10,
+            "sequence": 0,
+            "position": 137
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 729,
+            "margin": 0.9954681396484375,
+            "sha256": "6a07be94d562bf173c15ffb9c439563f92715fd314ebe24db8108218aa41c091"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0008762918296220957,
+            "max_absolute": 0.003704071044921875,
+            "cosine": 0.9999999596450303,
+            "all_finite": true,
+            "actual_sha256": "8a6bd79fce8b7b9cf22602969709bcb6f73564c0d38dd1b8506a9f32cca9b83e",
+            "reference_sha256": "6a07be94d562bf173c15ffb9c439563f92715fd314ebe24db8108218aa41c091",
+            "actual_argmax": 729,
+            "reference_argmax": 729,
+            "reference_margin": 0.9954681396484375,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 10,
+            "sequence": 0,
+            "position": 137
+          }
+        }
+      }
+    },
+    {
+      "step": 11,
+      "cuda": {
+        "token": 429,
+        "margin": 0.37926483154296875,
+        "sha256": "ff123fbfbe209f7a3e0013b7f2250e34d5802dce5a91608df1d5f42ce61fbaf1"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 429,
+            "margin": 0.3793754577636719,
+            "sha256": "cabc7108d1352a62c20b5846b8f1800250cbccb9e53047d5a6f72828be9d6293"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00026872740215618814,
+            "max_absolute": 0.001270294189453125,
+            "cosine": 0.9999999931676425,
+            "all_finite": true,
+            "actual_sha256": "ff123fbfbe209f7a3e0013b7f2250e34d5802dce5a91608df1d5f42ce61fbaf1",
+            "reference_sha256": "cabc7108d1352a62c20b5846b8f1800250cbccb9e53047d5a6f72828be9d6293",
+            "actual_argmax": 429,
+            "reference_argmax": 429,
+            "reference_margin": 0.3793754577636719,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 11,
+            "sequence": 0,
+            "position": 138
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 429,
+            "margin": 0.37918853759765625,
+            "sha256": "a5e7690503fb52fcdbb39a782d2a193ddddaaff4a61ab6b2b87c0257ef3fa004"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0007247578689332233,
+            "max_absolute": 0.0037298202514648438,
+            "cosine": 0.9999999518206696,
+            "all_finite": true,
+            "actual_sha256": "ff123fbfbe209f7a3e0013b7f2250e34d5802dce5a91608df1d5f42ce61fbaf1",
+            "reference_sha256": "a5e7690503fb52fcdbb39a782d2a193ddddaaff4a61ab6b2b87c0257ef3fa004",
+            "actual_argmax": 429,
+            "reference_argmax": 429,
+            "reference_margin": 0.37918853759765625,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 11,
+            "sequence": 0,
+            "position": 138
+          }
+        }
+      }
+    },
+    {
+      "step": 12,
+      "cuda": {
+        "token": 4990,
+        "margin": 1.4251842498779297,
+        "sha256": "75e09564eb79a22ce91166765b826e8f6fab50fe097e31cc03852d47b9578295"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 4990,
+            "margin": 1.425278663635254,
+            "sha256": "68cb41eff5dcd8f611bfa0973aa1397f80661ab8190812d808e86ded166f7e9d"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00021726121406165738,
+            "max_absolute": 0.0009965896606445313,
+            "cosine": 0.9999999963753052,
+            "all_finite": true,
+            "actual_sha256": "75e09564eb79a22ce91166765b826e8f6fab50fe097e31cc03852d47b9578295",
+            "reference_sha256": "68cb41eff5dcd8f611bfa0973aa1397f80661ab8190812d808e86ded166f7e9d",
+            "actual_argmax": 4990,
+            "reference_argmax": 4990,
+            "reference_margin": 1.425278663635254,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 12,
+            "sequence": 0,
+            "position": 139
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 4990,
+            "margin": 1.4244670867919922,
+            "sha256": "17ff27e6c008523b1e0528abade813219556fb6a0563cc5ba29d32146ded4557"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0006745127333817628,
+            "max_absolute": 0.0034437179565429688,
+            "cosine": 0.9999999653206707,
+            "all_finite": true,
+            "actual_sha256": "75e09564eb79a22ce91166765b826e8f6fab50fe097e31cc03852d47b9578295",
+            "reference_sha256": "17ff27e6c008523b1e0528abade813219556fb6a0563cc5ba29d32146ded4557",
+            "actual_argmax": 4990,
+            "reference_argmax": 4990,
+            "reference_margin": 1.4244670867919922,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 12,
+            "sequence": 0,
+            "position": 139
+          }
+        }
+      }
+    },
+    {
+      "step": 13,
+      "cuda": {
+        "token": 264,
+        "margin": 1.9608478546142578,
+        "sha256": "179c7b900790f732d8485682b95c6e405082baaf8d7740f8bd590d3382a39ceb"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 264,
+            "margin": 1.9611358642578125,
+            "sha256": "ba3e78310a73ff65069cf1f94212fed734ffec098aa359b150d82578fdc320dd"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00019659817026791747,
+            "max_absolute": 0.0009233951568603516,
+            "cosine": 0.9999999966923309,
+            "all_finite": true,
+            "actual_sha256": "179c7b900790f732d8485682b95c6e405082baaf8d7740f8bd590d3382a39ceb",
+            "reference_sha256": "ba3e78310a73ff65069cf1f94212fed734ffec098aa359b150d82578fdc320dd",
+            "actual_argmax": 264,
+            "reference_argmax": 264,
+            "reference_margin": 1.9611358642578125,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 13,
+            "sequence": 0,
+            "position": 140
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 264,
+            "margin": 1.9613399505615234,
+            "sha256": "c078350af03ceb99570698f26052f0bdfc9a754a8082ec6f90e94dff5eb8a236"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.000706463022893035,
+            "max_absolute": 0.0032846927642822266,
+            "cosine": 0.9999999578880754,
+            "all_finite": true,
+            "actual_sha256": "179c7b900790f732d8485682b95c6e405082baaf8d7740f8bd590d3382a39ceb",
+            "reference_sha256": "c078350af03ceb99570698f26052f0bdfc9a754a8082ec6f90e94dff5eb8a236",
+            "actual_argmax": 264,
+            "reference_argmax": 264,
+            "reference_margin": 1.9613399505615234,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 13,
+            "sequence": 0,
+            "position": 140
+          }
+        }
+      }
+    },
+    {
+      "step": 14,
+      "cuda": {
+        "token": 914,
+        "margin": 0.2691459655761719,
+        "sha256": "48e4e603654061bf03f14db5dfb2add9b653b2582f16f22111fc8dcf8d81f858"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 914,
+            "margin": 0.2692699432373047,
+            "sha256": "56c88fce70fb5afacc70f473f01231ce57376165c7c23451437341cb37d7c8c9"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0007028781654520949,
+            "max_absolute": 0.0033707022666931152,
+            "cosine": 0.9999999572528806,
+            "all_finite": true,
+            "actual_sha256": "48e4e603654061bf03f14db5dfb2add9b653b2582f16f22111fc8dcf8d81f858",
+            "reference_sha256": "56c88fce70fb5afacc70f473f01231ce57376165c7c23451437341cb37d7c8c9",
+            "actual_argmax": 914,
+            "reference_argmax": 914,
+            "reference_margin": 0.2692699432373047,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 14,
+            "sequence": 0,
+            "position": 141
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 914,
+            "margin": 0.2634429931640625,
+            "sha256": "a223fb5d6b8babe1ed15762a9ae54c524376089e2c61a816c769cb75df117c14"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.003600922080725288,
+            "max_absolute": 0.020467758178710938,
+            "cosine": 0.9999988073243377,
+            "all_finite": true,
+            "actual_sha256": "48e4e603654061bf03f14db5dfb2add9b653b2582f16f22111fc8dcf8d81f858",
+            "reference_sha256": "a223fb5d6b8babe1ed15762a9ae54c524376089e2c61a816c769cb75df117c14",
+            "actual_argmax": 914,
+            "reference_argmax": 914,
+            "reference_margin": 0.2634429931640625,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 14,
+            "sequence": 0,
+            "position": 141
+          }
+        }
+      }
+    },
+    {
+      "step": 15,
+      "cuda": {
+        "token": 323,
+        "margin": 0.259429931640625,
+        "sha256": "e15171853f93142200425c72b44ee7bdc5614dcb37ab56d1705d00a0a4dea57c"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 323,
+            "margin": 0.25903892517089844,
+            "sha256": "491a66a08f3623be07e8fe98575297fc0e1dc5c767802bfaa832588406f62ed0"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00028005801769962103,
+            "max_absolute": 0.0013053417205810547,
+            "cosine": 0.9999999952424713,
+            "all_finite": true,
+            "actual_sha256": "e15171853f93142200425c72b44ee7bdc5614dcb37ab56d1705d00a0a4dea57c",
+            "reference_sha256": "491a66a08f3623be07e8fe98575297fc0e1dc5c767802bfaa832588406f62ed0",
+            "actual_argmax": 323,
+            "reference_argmax": 323,
+            "reference_margin": 0.25903892517089844,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 15,
+            "sequence": 0,
+            "position": 142
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 323,
+            "margin": 0.2593193054199219,
+            "sha256": "e5477143a40f3078e33523a850daadb1dcea50922a69f7520c4ebb7e950ba219"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0008589434268305944,
+            "max_absolute": 0.004543304443359375,
+            "cosine": 0.9999999558359862,
+            "all_finite": true,
+            "actual_sha256": "e15171853f93142200425c72b44ee7bdc5614dcb37ab56d1705d00a0a4dea57c",
+            "reference_sha256": "e5477143a40f3078e33523a850daadb1dcea50922a69f7520c4ebb7e950ba219",
+            "actual_argmax": 323,
+            "reference_argmax": 323,
+            "reference_margin": 0.2593193054199219,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 15,
+            "sequence": 0,
+            "position": 142
+          }
+        }
+      }
+    },
+    {
+      "step": 16,
+      "cuda": {
+        "token": 4675,
+        "margin": 3.3848438262939453,
+        "sha256": "d7bcb4d20d093fa2ea345cd6e4f359f91206003506ff71c20fc709fafc3d8c72"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 4675,
+            "margin": 3.3850908279418945,
+            "sha256": "bb11ad63654adb782f0a52aa53931cd6448860001d6678e3027d1efbb760bb55"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00042019927603710795,
+            "max_absolute": 0.002294301986694336,
+            "cosine": 0.9999999887727014,
+            "all_finite": true,
+            "actual_sha256": "d7bcb4d20d093fa2ea345cd6e4f359f91206003506ff71c20fc709fafc3d8c72",
+            "reference_sha256": "bb11ad63654adb782f0a52aa53931cd6448860001d6678e3027d1efbb760bb55",
+            "actual_argmax": 4675,
+            "reference_argmax": 4675,
+            "reference_margin": 3.3850908279418945,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 16,
+            "sequence": 0,
+            "position": 143
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 4675,
+            "margin": 3.3861513137817383,
+            "sha256": "bae65e11c79f56eca83ab30cd00b8b4733c259dce429c08bc6c15bd85b484b48"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0012267057212416272,
+            "max_absolute": 0.0055183470249176025,
+            "cosine": 0.9999999088402396,
+            "all_finite": true,
+            "actual_sha256": "d7bcb4d20d093fa2ea345cd6e4f359f91206003506ff71c20fc709fafc3d8c72",
+            "reference_sha256": "bae65e11c79f56eca83ab30cd00b8b4733c259dce429c08bc6c15bd85b484b48",
+            "actual_argmax": 4675,
+            "reference_argmax": 4675,
+            "reference_margin": 3.3861513137817383,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 16,
+            "sequence": 0,
+            "position": 143
+          }
+        }
+      }
+    },
+    {
+      "step": 17,
+      "cuda": {
+        "token": 279,
+        "margin": 0.7284202575683594,
+        "sha256": "b7ad1b77ac581f7d0884650288e5e9b1f5175e60ffb0520141c0eadc5749d3cf"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 279,
+            "margin": 0.7279586791992188,
+            "sha256": "65a76a7672e435e79d506f8dd9d449399d2bf94d501213150f782cbf2bcd3287"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0003139486920774739,
+            "max_absolute": 0.001561880111694336,
+            "cosine": 0.9999999907879054,
+            "all_finite": true,
+            "actual_sha256": "b7ad1b77ac581f7d0884650288e5e9b1f5175e60ffb0520141c0eadc5749d3cf",
+            "reference_sha256": "65a76a7672e435e79d506f8dd9d449399d2bf94d501213150f782cbf2bcd3287",
+            "actual_argmax": 279,
+            "reference_argmax": 279,
+            "reference_margin": 0.7279586791992188,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 17,
+            "sequence": 0,
+            "position": 144
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 279,
+            "margin": 0.72906494140625,
+            "sha256": "f06093b9c1e75e8688194ab1654ec20f22406b78e86d788bfdfb4b4280de18b1"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.000735935800155875,
+            "max_absolute": 0.0032663345336914063,
+            "cosine": 0.9999999508529198,
+            "all_finite": true,
+            "actual_sha256": "b7ad1b77ac581f7d0884650288e5e9b1f5175e60ffb0520141c0eadc5749d3cf",
+            "reference_sha256": "f06093b9c1e75e8688194ab1654ec20f22406b78e86d788bfdfb4b4280de18b1",
+            "actual_argmax": 279,
+            "reference_argmax": 279,
+            "reference_margin": 0.72906494140625,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 17,
+            "sequence": 0,
+            "position": 144
+          }
+        }
+      }
+    },
+    {
+      "step": 18,
+      "cuda": {
+        "token": 1372,
+        "margin": 0.826390266418457,
+        "sha256": "edb1af7737667b134967241ecb12af9699b29c1235e88604362baf4fd9afcb2d"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 1372,
+            "margin": 0.8260383605957031,
+            "sha256": "672b3d72609d00cedaefb03e6ffa973f23332f2c3f9692d0d7c0eb80409ab997"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0003112386737271692,
+            "max_absolute": 0.0016078948974609375,
+            "cosine": 0.9999999934559092,
+            "all_finite": true,
+            "actual_sha256": "edb1af7737667b134967241ecb12af9699b29c1235e88604362baf4fd9afcb2d",
+            "reference_sha256": "672b3d72609d00cedaefb03e6ffa973f23332f2c3f9692d0d7c0eb80409ab997",
+            "actual_argmax": 1372,
+            "reference_argmax": 1372,
+            "reference_margin": 0.8260383605957031,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 18,
+            "sequence": 0,
+            "position": 145
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 1372,
+            "margin": 0.8270702362060547,
+            "sha256": "5162b16a811303002eda0f91fbe6044a93b903bf901bdcd2897a4aa785d24732"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.001033793455540514,
+            "max_absolute": 0.003865480422973633,
+            "cosine": 0.999999928345937,
+            "all_finite": true,
+            "actual_sha256": "edb1af7737667b134967241ecb12af9699b29c1235e88604362baf4fd9afcb2d",
+            "reference_sha256": "5162b16a811303002eda0f91fbe6044a93b903bf901bdcd2897a4aa785d24732",
+            "actual_argmax": 1372,
+            "reference_argmax": 1372,
+            "reference_margin": 0.8270702362060547,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 18,
+            "sequence": 0,
+            "position": 145
+          }
+        }
+      }
+    },
+    {
+      "step": 19,
+      "cuda": {
+        "token": 315,
+        "margin": 7.576396942138672,
+        "sha256": "e609dcf9e0660f1b90650735d1468150f39b040e4ffca3ed38612fa593403d9e"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 315,
+            "margin": 7.575717926025391,
+            "sha256": "68bb6e677f56d8050d161cdc8993a2035a0e8b4f54b7700d9c1529af6f6ab7bf"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.000333861332374773,
+            "max_absolute": 0.0017273426055908203,
+            "cosine": 0.9999999898382766,
+            "all_finite": true,
+            "actual_sha256": "e609dcf9e0660f1b90650735d1468150f39b040e4ffca3ed38612fa593403d9e",
+            "reference_sha256": "68bb6e677f56d8050d161cdc8993a2035a0e8b4f54b7700d9c1529af6f6ab7bf",
+            "actual_argmax": 315,
+            "reference_argmax": 315,
+            "reference_margin": 7.575717926025391,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 19,
+            "sequence": 0,
+            "position": 146
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 315,
+            "margin": 7.576900482177734,
+            "sha256": "e9cdf66415841dcab68931bd1fbba3115286ba33eb04041f7327c2d51ba878c5"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0006240969901800338,
+            "max_absolute": 0.002854585647583008,
+            "cosine": 0.9999999650547832,
+            "all_finite": true,
+            "actual_sha256": "e609dcf9e0660f1b90650735d1468150f39b040e4ffca3ed38612fa593403d9e",
+            "reference_sha256": "e9cdf66415841dcab68931bd1fbba3115286ba33eb04041f7327c2d51ba878c5",
+            "actual_argmax": 315,
+            "reference_argmax": 315,
+            "reference_margin": 7.576900482177734,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 19,
+            "sequence": 0,
+            "position": 146
+          }
+        }
+      }
+    },
+    {
+      "step": 20,
+      "cuda": {
+        "token": 3039,
+        "margin": 0.5824069976806641,
+        "sha256": "6ab44daeb986eaecea49d440c12e2f7655be6248d5804646071e02c30ebd9aed"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 3039,
+            "margin": 0.5823726654052734,
+            "sha256": "9ba53fef13f1976bfd71a45fcb898e5368fa0e6a47613bd7b07f028f06c2edc4"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0003937042156012355,
+            "max_absolute": 0.0022580623626708984,
+            "cosine": 0.999999988143226,
+            "all_finite": true,
+            "actual_sha256": "6ab44daeb986eaecea49d440c12e2f7655be6248d5804646071e02c30ebd9aed",
+            "reference_sha256": "9ba53fef13f1976bfd71a45fcb898e5368fa0e6a47613bd7b07f028f06c2edc4",
+            "actual_argmax": 3039,
+            "reference_argmax": 3039,
+            "reference_margin": 0.5823726654052734,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 20,
+            "sequence": 0,
+            "position": 147
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 3039,
+            "margin": 0.5842008590698242,
+            "sha256": "c25ccec0c2800a12cd1d4d2b2b73aa7a90877389eebbab34675b21f1347b9557"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0009559739160970341,
+            "max_absolute": 0.0041790008544921875,
+            "cosine": 0.9999999290421261,
+            "all_finite": true,
+            "actual_sha256": "6ab44daeb986eaecea49d440c12e2f7655be6248d5804646071e02c30ebd9aed",
+            "reference_sha256": "c25ccec0c2800a12cd1d4d2b2b73aa7a90877389eebbab34675b21f1347b9557",
+            "actual_argmax": 3039,
+            "reference_argmax": 3039,
+            "reference_margin": 0.5842008590698242,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 20,
+            "sequence": 0,
+            "position": 147
+          }
+        }
+      }
+    },
+    {
+      "step": 21,
+      "cuda": {
+        "token": 432,
+        "margin": 0.2077503204345703,
+        "sha256": "b436bfb369c2d8baf48339add9006d382bf922d0a639c16b78cb27791ccf5160"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 432,
+            "margin": 0.20662784576416016,
+            "sha256": "17061c7cced89b9d50686652b2ae2796c35532a1caa1b11987f3dbbc2fc982d1"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00029558261999720637,
+            "max_absolute": 0.0013728141784667969,
+            "cosine": 0.9999999939999356,
+            "all_finite": true,
+            "actual_sha256": "b436bfb369c2d8baf48339add9006d382bf922d0a639c16b78cb27791ccf5160",
+            "reference_sha256": "17061c7cced89b9d50686652b2ae2796c35532a1caa1b11987f3dbbc2fc982d1",
+            "actual_argmax": 432,
+            "reference_argmax": 432,
+            "reference_margin": 0.20662784576416016,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 21,
+            "sequence": 0,
+            "position": 148
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 432,
+            "margin": 0.20514297485351563,
+            "sha256": "3b93d2c31a80fd85df895100e75baf113de65a5cf1c2a40f69ea27c380f1c15f"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0010159074886565758,
+            "max_absolute": 0.005333423614501953,
+            "cosine": 0.999999923170944,
+            "all_finite": true,
+            "actual_sha256": "b436bfb369c2d8baf48339add9006d382bf922d0a639c16b78cb27791ccf5160",
+            "reference_sha256": "3b93d2c31a80fd85df895100e75baf113de65a5cf1c2a40f69ea27c380f1c15f",
+            "actual_argmax": 432,
+            "reference_argmax": 432,
+            "reference_margin": 0.20514297485351563,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 21,
+            "sequence": 0,
+            "position": 148
+          }
+        }
+      }
+    },
+    {
+      "step": 22,
+      "cuda": {
+        "token": 7952,
+        "margin": 0.938232421875,
+        "sha256": "a0cce21004c0ee8e39822944f93daad4e6948262f4568b09d682692ee1228198"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 7952,
+            "margin": 0.9391593933105469,
+            "sha256": "9f0968748f030e18900eeed8bd0376ee8f119017bf5e01c11da75919e8097677"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0004005681471022613,
+            "max_absolute": 0.0019044876098632813,
+            "cosine": 0.999999986831744,
+            "all_finite": true,
+            "actual_sha256": "a0cce21004c0ee8e39822944f93daad4e6948262f4568b09d682692ee1228198",
+            "reference_sha256": "9f0968748f030e18900eeed8bd0376ee8f119017bf5e01c11da75919e8097677",
+            "actual_argmax": 7952,
+            "reference_argmax": 7952,
+            "reference_margin": 0.9391593933105469,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 22,
+            "sequence": 0,
+            "position": 149
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 7952,
+            "margin": 0.9394397735595703,
+            "sha256": "6bfb05fd8830f7863838d4caec2d7213feadc5adb8f0c8d7e2905b86280f6c34"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0008647287150853285,
+            "max_absolute": 0.003920078277587891,
+            "cosine": 0.9999999376074896,
+            "all_finite": true,
+            "actual_sha256": "a0cce21004c0ee8e39822944f93daad4e6948262f4568b09d682692ee1228198",
+            "reference_sha256": "6bfb05fd8830f7863838d4caec2d7213feadc5adb8f0c8d7e2905b86280f6c34",
+            "actual_argmax": 7952,
+            "reference_argmax": 7952,
+            "reference_margin": 0.9394397735595703,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 22,
+            "sequence": 0,
+            "position": 149
+          }
+        }
+      }
+    },
+    {
+      "step": 23,
+      "cuda": {
+        "token": 304,
+        "margin": 1.7010173797607422,
+        "sha256": "2818d7bb4db06f023a24403e38bf0b16dbc34755fb3d57ca7dece9331f9770a5"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 304,
+            "margin": 1.7004423141479492,
+            "sha256": "091061931b5cfe4a991306f423946e21004acd305ed078b9f2fde0f80ec87c81"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.00048761105535734007,
+            "max_absolute": 0.002493739128112793,
+            "cosine": 0.9999999905360671,
+            "all_finite": true,
+            "actual_sha256": "2818d7bb4db06f023a24403e38bf0b16dbc34755fb3d57ca7dece9331f9770a5",
+            "reference_sha256": "091061931b5cfe4a991306f423946e21004acd305ed078b9f2fde0f80ec87c81",
+            "actual_argmax": 304,
+            "reference_argmax": 304,
+            "reference_margin": 1.7004423141479492,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 23,
+            "sequence": 0,
+            "position": 150
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 304,
+            "margin": 1.7004756927490234,
+            "sha256": "f70d319933bf524cad82e684d9b9d41a311724a947317d928840015c69655ae8"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0009035476356744727,
+            "max_absolute": 0.004384040832519531,
+            "cosine": 0.9999999684143756,
+            "all_finite": true,
+            "actual_sha256": "2818d7bb4db06f023a24403e38bf0b16dbc34755fb3d57ca7dece9331f9770a5",
+            "reference_sha256": "f70d319933bf524cad82e684d9b9d41a311724a947317d928840015c69655ae8",
+            "actual_argmax": 304,
+            "reference_argmax": 304,
+            "reference_margin": 1.7004756927490234,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 23,
+            "sequence": 0,
+            "position": 150
+          }
+        }
+      }
+    },
+    {
+      "step": 24,
+      "cuda": {
+        "token": 279,
+        "margin": 1.557260513305664,
+        "sha256": "788e7ad9ecd8b24d690dae95d937d9f9c18d17f6327eea38663826b532fd1f2f"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 279,
+            "margin": 1.557265281677246,
+            "sha256": "b4bc025adf6bfd609b5daa74ddf3f92910834ba39ce416e5fa55bba91b994a63"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.000429283772417564,
+            "max_absolute": 0.0022635459899902344,
+            "cosine": 0.9999999860130807,
+            "all_finite": true,
+            "actual_sha256": "788e7ad9ecd8b24d690dae95d937d9f9c18d17f6327eea38663826b532fd1f2f",
+            "reference_sha256": "b4bc025adf6bfd609b5daa74ddf3f92910834ba39ce416e5fa55bba91b994a63",
+            "actual_argmax": 279,
+            "reference_argmax": 279,
+            "reference_margin": 1.557265281677246,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 24,
+            "sequence": 0,
+            "position": 151
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 279,
+            "margin": 1.5557489395141602,
+            "sha256": "84997e79c676ae7e0bf2a52bc208fca2db187747b89097b85d0f79c0bf2be8d2"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0013138271090370299,
+            "max_absolute": 0.006352424621582031,
+            "cosine": 0.9999998728354358,
+            "all_finite": true,
+            "actual_sha256": "788e7ad9ecd8b24d690dae95d937d9f9c18d17f6327eea38663826b532fd1f2f",
+            "reference_sha256": "84997e79c676ae7e0bf2a52bc208fca2db187747b89097b85d0f79c0bf2be8d2",
+            "actual_argmax": 279,
+            "reference_argmax": 279,
+            "reference_margin": 1.5557489395141602,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 24,
+            "sequence": 0,
+            "position": 151
+          }
+        }
+      }
+    },
+    {
+      "step": 25,
+      "cuda": {
+        "token": 914,
+        "margin": 4.953383445739746,
+        "sha256": "4348d23e3781b654b7f2598471cd02b53ba0fc75263c1cf7ce214b3e551a8117"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 914,
+            "margin": 4.9529008865356445,
+            "sha256": "22c4baa881a79d876ed047bdc45498ea98c144deae0a806298b744144965c418"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0025765381635903086,
+            "max_absolute": 0.011232376098632813,
+            "cosine": 0.9999995174597803,
+            "all_finite": true,
+            "actual_sha256": "4348d23e3781b654b7f2598471cd02b53ba0fc75263c1cf7ce214b3e551a8117",
+            "reference_sha256": "22c4baa881a79d876ed047bdc45498ea98c144deae0a806298b744144965c418",
+            "actual_argmax": 914,
+            "reference_argmax": 914,
+            "reference_margin": 4.9529008865356445,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 25,
+            "sequence": 0,
+            "position": 152
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 914,
+            "margin": 4.952993392944336,
+            "sha256": "4e7b3c32f674168b6627a8f872abd43d17d78a89d82e27d8bdd10b1861fe90eb"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.008189629497868452,
+            "max_absolute": 0.03640103340148926,
+            "cosine": 0.9999951055145909,
+            "all_finite": true,
+            "actual_sha256": "4348d23e3781b654b7f2598471cd02b53ba0fc75263c1cf7ce214b3e551a8117",
+            "reference_sha256": "4e7b3c32f674168b6627a8f872abd43d17d78a89d82e27d8bdd10b1861fe90eb",
+            "actual_argmax": 914,
+            "reference_argmax": 914,
+            "reference_margin": 4.952993392944336,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 25,
+            "sequence": 0,
+            "position": 152
+          }
+        }
+      }
+    },
+    {
+      "step": 26,
+      "cuda": {
+        "token": 13,
+        "margin": 0.9764900207519531,
+        "sha256": "4fe07605b9bba348739c314733fde9581add1b429858d93126d0ea22607217d7"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 13,
+            "margin": 0.976318359375,
+            "sha256": "b22d3fbb977cdfa100d6afa95598bb3ae8af6c54598f1a811d5058617358cdc8"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0007159901251625264,
+            "max_absolute": 0.00306132435798645,
+            "cosine": 0.9999999647503172,
+            "all_finite": true,
+            "actual_sha256": "4fe07605b9bba348739c314733fde9581add1b429858d93126d0ea22607217d7",
+            "reference_sha256": "b22d3fbb977cdfa100d6afa95598bb3ae8af6c54598f1a811d5058617358cdc8",
+            "actual_argmax": 13,
+            "reference_argmax": 13,
+            "reference_margin": 0.976318359375,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 26,
+            "sequence": 0,
+            "position": 153
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 13,
+            "margin": 0.9764003753662109,
+            "sha256": "e4bc56bbf67a538121cb6fe4249ac2ac0bcdfcda353f8af395ad2f7dafd5841a"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0023708630388430867,
+            "max_absolute": 0.012494802474975586,
+            "cosine": 0.9999996447606754,
+            "all_finite": true,
+            "actual_sha256": "4fe07605b9bba348739c314733fde9581add1b429858d93126d0ea22607217d7",
+            "reference_sha256": "e4bc56bbf67a538121cb6fe4249ac2ac0bcdfcda353f8af395ad2f7dafd5841a",
+            "actual_argmax": 13,
+            "reference_argmax": 13,
+            "reference_margin": 0.9764003753662109,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 26,
+            "sequence": 0,
+            "position": 153
+          }
+        }
+      }
+    },
+    {
+      "step": 27,
+      "cuda": {
+        "token": 715,
+        "margin": 0.13763141632080078,
+        "sha256": "706ce32f4eae3ebe1f852548bbb2346024096cc84d4a86ff66793eec8afc6a4c"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 715,
+            "margin": 0.13730812072753906,
+            "sha256": "4ae0c43e819a87d994b9d12beb34273f8a3e9dc48e16099ac1903299c92803fb"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0004905611572170372,
+            "max_absolute": 0.0025290250778198242,
+            "cosine": 0.9999999805617076,
+            "all_finite": true,
+            "actual_sha256": "706ce32f4eae3ebe1f852548bbb2346024096cc84d4a86ff66793eec8afc6a4c",
+            "reference_sha256": "4ae0c43e819a87d994b9d12beb34273f8a3e9dc48e16099ac1903299c92803fb",
+            "actual_argmax": 715,
+            "reference_argmax": 715,
+            "reference_margin": 0.13730812072753906,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 27,
+            "sequence": 0,
+            "position": 154
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 715,
+            "margin": 0.13744068145751953,
+            "sha256": "0ab38e01256c6014a3e1b8ed265fa7becbc541d07870c4d2daa1109e32f23856"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0019301069485843983,
+            "max_absolute": 0.009398937225341797,
+            "cosine": 0.9999996927316138,
+            "all_finite": true,
+            "actual_sha256": "706ce32f4eae3ebe1f852548bbb2346024096cc84d4a86ff66793eec8afc6a4c",
+            "reference_sha256": "0ab38e01256c6014a3e1b8ed265fa7becbc541d07870c4d2daa1109e32f23856",
+            "actual_argmax": 715,
+            "reference_argmax": 715,
+            "reference_margin": 0.13744068145751953,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 27,
+            "sequence": 0,
+            "position": 154
+          }
+        }
+      }
+    },
+    {
+      "step": 28,
+      "cuda": {
+        "token": 2461,
+        "margin": 0.9546499252319336,
+        "sha256": "365b4e24dbd2df3eafac77cafb559c58dde0e52ae4f9f55f90165b9f9bac74eb"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 2461,
+            "margin": 0.9543437957763672,
+            "sha256": "6af25bf54d36bb0cbcfc4efd222fe3758a232fd5736ee0c80bc03c09fd00e086"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.000633798573241546,
+            "max_absolute": 0.0030837059020996094,
+            "cosine": 0.9999999654679662,
+            "all_finite": true,
+            "actual_sha256": "365b4e24dbd2df3eafac77cafb559c58dde0e52ae4f9f55f90165b9f9bac74eb",
+            "reference_sha256": "6af25bf54d36bb0cbcfc4efd222fe3758a232fd5736ee0c80bc03c09fd00e086",
+            "actual_argmax": 2461,
+            "reference_argmax": 2461,
+            "reference_margin": 0.9543437957763672,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 28,
+            "sequence": 0,
+            "position": 155
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 2461,
+            "margin": 0.9535932540893555,
+            "sha256": "926ca15b1a05e9aa0b3923db07bb1ded8719e46bd22426946b0a2e5b5c5ca1dd"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.001689378721587068,
+            "max_absolute": 0.008521974086761475,
+            "cosine": 0.9999997617726346,
+            "all_finite": true,
+            "actual_sha256": "365b4e24dbd2df3eafac77cafb559c58dde0e52ae4f9f55f90165b9f9bac74eb",
+            "reference_sha256": "926ca15b1a05e9aa0b3923db07bb1ded8719e46bd22426946b0a2e5b5c5ca1dd",
+            "actual_argmax": 2461,
+            "reference_argmax": 2461,
+            "reference_margin": 0.9535932540893555,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 28,
+            "sequence": 0,
+            "position": 155
+          }
+        }
+      }
+    },
+    {
+      "step": 29,
+      "cuda": {
+        "token": 3110,
+        "margin": 3.6818771362304688,
+        "sha256": "b6c0b7f749d9c5472def571f4e189c123748b30f6164f9522a9b44f70c5a30dd"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 3110,
+            "margin": 3.6819229125976563,
+            "sha256": "097e8528b4bb52a001a80d21ae20e5c10450489df6fc88acda6ffdbaf699989d"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0003615322037082804,
+            "max_absolute": 0.0014405250549316406,
+            "cosine": 0.9999999843940248,
+            "all_finite": true,
+            "actual_sha256": "b6c0b7f749d9c5472def571f4e189c123748b30f6164f9522a9b44f70c5a30dd",
+            "reference_sha256": "097e8528b4bb52a001a80d21ae20e5c10450489df6fc88acda6ffdbaf699989d",
+            "actual_argmax": 3110,
+            "reference_argmax": 3110,
+            "reference_margin": 3.6819229125976563,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 29,
+            "sequence": 0,
+            "position": 156
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 3110,
+            "margin": 3.6815719604492188,
+            "sha256": "ae476df3cdac5da4c87b95b58dbb961bdbe133ebbb59794b5611b5495b131535"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0009701690758534066,
+            "max_absolute": 0.004558086395263672,
+            "cosine": 0.9999998879096003,
+            "all_finite": true,
+            "actual_sha256": "b6c0b7f749d9c5472def571f4e189c123748b30f6164f9522a9b44f70c5a30dd",
+            "reference_sha256": "ae476df3cdac5da4c87b95b58dbb961bdbe133ebbb59794b5611b5495b131535",
+            "actual_argmax": 3110,
+            "reference_argmax": 3110,
+            "reference_margin": 3.6815719604492188,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 29,
+            "sequence": 0,
+            "position": 156
+          }
+        }
+      }
+    },
+    {
+      "step": 30,
+      "cuda": {
+        "token": 11,
+        "margin": 0.6040382385253906,
+        "sha256": "64153c8d089b9671971d7c64712d6bb60de70c39da420c1b3226cfa499a16c20"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 11,
+            "margin": 0.605194091796875,
+            "sha256": "1c7d776a62e04c24cc986a951183a036bc1b707b664034f6ca24958ba9090279"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0004153439573598784,
+            "max_absolute": 0.0017085075378417969,
+            "cosine": 0.9999999924875823,
+            "all_finite": true,
+            "actual_sha256": "64153c8d089b9671971d7c64712d6bb60de70c39da420c1b3226cfa499a16c20",
+            "reference_sha256": "1c7d776a62e04c24cc986a951183a036bc1b707b664034f6ca24958ba9090279",
+            "actual_argmax": 11,
+            "reference_argmax": 11,
+            "reference_margin": 0.605194091796875,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 30,
+            "sequence": 0,
+            "position": 157
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 11,
+            "margin": 0.6052074432373047,
+            "sha256": "0393d9e99d6c02d7ee3f73889f868b61e2aa8a3b713a70f04ce5555d79485d33"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0014876380814957057,
+            "max_absolute": 0.0064487457275390625,
+            "cosine": 0.9999998950454391,
+            "all_finite": true,
+            "actual_sha256": "64153c8d089b9671971d7c64712d6bb60de70c39da420c1b3226cfa499a16c20",
+            "reference_sha256": "0393d9e99d6c02d7ee3f73889f868b61e2aa8a3b713a70f04ce5555d79485d33",
+            "actual_argmax": 11,
+            "reference_argmax": 11,
+            "reference_margin": 0.6052074432373047,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 30,
+            "sequence": 0,
+            "position": 157
+          }
+        }
+      }
+    },
+    {
+      "step": 31,
+      "cuda": {
+        "token": 421,
+        "margin": 1.0789775848388672,
+        "sha256": "a8c89b6366acd53551cd8b2024d0e05c7b5f76687ac37b0316b6b7c4b43803e3"
+      },
+      "references": {
+        "cpu": {
+          "score": {
+            "token": 421,
+            "margin": 1.0789508819580078,
+            "sha256": "9659c312f63993ee2ff611aacf79675f72955f526539005ba9ea57711efc077e"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0005452859179068056,
+            "max_absolute": 0.0025959014892578125,
+            "cosine": 0.9999999811054968,
+            "all_finite": true,
+            "actual_sha256": "a8c89b6366acd53551cd8b2024d0e05c7b5f76687ac37b0316b6b7c4b43803e3",
+            "reference_sha256": "9659c312f63993ee2ff611aacf79675f72955f526539005ba9ea57711efc077e",
+            "actual_argmax": 421,
+            "reference_argmax": 421,
+            "reference_margin": 1.0789508819580078,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "cpu",
+            "step": 31,
+            "sequence": 0,
+            "position": 158
+          }
+        },
+        "llama_f32": {
+          "score": {
+            "token": 421,
+            "margin": 1.0787620544433594,
+            "sha256": "ac6da67ddb2abafbb3b4ddf7c72badb10130ee50193333f7b389ae493bc3cb13"
+          },
+          "input_prefix_equal": true,
+          "comparison": {
+            "rmse": 0.0018085296738063934,
+            "max_absolute": 0.008421242237091064,
+            "cosine": 0.999999809140525,
+            "all_finite": true,
+            "actual_sha256": "a8c89b6366acd53551cd8b2024d0e05c7b5f76687ac37b0316b6b7c4b43803e3",
+            "reference_sha256": "ac6da67ddb2abafbb3b4ddf7c72badb10130ee50193333f7b389ae493bc3cb13",
+            "actual_argmax": 421,
+            "reference_argmax": 421,
+            "reference_margin": 1.0787620544433594,
+            "near_tie": false,
+            "argmax_equal": true,
+            "passed": true,
+            "case": "repeated-l128-g32",
+            "reference": "llama_f32",
+            "step": 31,
+            "sequence": 0,
+            "position": 158
+          }
+        }
+      }
+    }
+  ],
+  "first_divergence": {
+    "cpu": null,
+    "llama_f32": null
+  },
+  "passed": true,
+  "after": {
+    "state": "ready",
+    "sequence_lengths": [
+      159,
+      0,
+      0,
+      0
+    ],
+    "live_sequences": 1,
+    "live_kv_tokens": 159,
+    "kv_capacity_tokens": 8192,
+    "resident": {
+      "weights_bytes": 2384199680,
+      "workspace_bytes": 121311232,
+      "kv_bytes": 939524096,
+      "library_workspace_bytes": 4194304,
+      "activations_bytes": 8912896,
+      "attention_scratch_bytes": 33554432,
+      "logits_bytes": 77791232,
+      "metadata_bytes": 3608,
+      "rope_bytes": 1048576,
+      "padding_bytes": 488,
+      "total_owned_bytes": 3449229312
+    },
+    "weight_h2d_bytes": 2384199680,
+    "rope_h2d_bytes": 1048576,
+    "metadata_h2d_bytes": 1641592,
+    "token_d2h_bytes": 10240,
+    "status_d2h_bytes": 281448,
+    "debug_d2h_bytes": 1541238784,
+    "intermediate_h2d_bytes": 0,
+    "intermediate_d2h_bytes": 0,
+    "owned_device_allocations": 4,
+    "owned_device_bytes": 3449229312,
+    "completed_forwards": 35181,
+    "post_launch_failures": 0,
+    "model_load_ns": 259503697,
+    "storage_initialization_ns": 11421805503,
+    "weight_decode_upload_ns": 11400321287
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "command": "cmake",
+  "arguments": [
+    "-S",
+    ".",
+    "-B",
+    "build/wsl-core",
+    "-G",
+    "Ninja",
+    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+    "-DLLMSERVE_WITH_LLAMA=OFF",
+    "-DMINILLM_ENABLE_CUDA=OFF",
+    "-DLLMSERVE_BUILD_TESTS=ON",
+    "-DLLMSERVE_REQUIRE_TEST_TOOLS=ON"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T01:49:15.9091426Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T01:49:16.4980837Z"
+}

@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "status": "AVAILABLE",
+  "artifacts": [
+    {
+      "locator": "manifest.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "9e76ba0db5cda182836d7bfde19ac838bff51848d0d64cfe6be650a75380c6f6",
+      "size_bytes": 3964,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "collection-status.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "f721a66dd440f377cb9d9495a6ad88488648fa87abc7328d056d34ced3c06a0d",
+      "size_bytes": 3431,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "source-state.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "ecac7314a7589771b1694ae2ffeff7955dc6d40000469683b2651f4a59dd3195",
+      "size_bytes": 23000,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "source-snapshot.zip",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "4b5dcab27c3b828fd54e08494873c8ed86e2bed92cf61824c429ea7161154d12",
+      "size_bytes": 353732,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "input.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c",
+      "size_bytes": 2439,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "verify.py",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "a9d1d14e1f6f909e41df5478f622454ac19a84af7faefb179ef766bb83bf2330",
+      "size_bytes": 24195,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "analyze_cuda_benchmark.py",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e343e781c3b471e66bb013052043844904dbf6c142da49cdeeadabe6782cc867",
+      "size_bytes": 37952,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t0.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "6865632384844b745dacffbeacebc949db1c06aa338de4a830e2e7d0bfd58933",
+      "size_bytes": 6808805,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t0.json.stdout.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e",
+      "size_bytes": 10430,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t0.json.stderr.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t0.json.process.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "7decb387bb5232e1ab75930bfccf335d80e411191fb4f98f81e8a791d635fc83",
+      "size_bytes": 2705,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t1.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "ecc9a539eb276fcadc493c360dc676e3255d4f0e3ba30d65178f4c66deee12a8",
+      "size_bytes": 6808795,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t1.json.stdout.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "cad3b0e5e477644dc3f98530782f38cfa798bd4312cf4db46d88dcc6ffd14b40",
+      "size_bytes": 10430,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t1.json.stderr.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t1.json.process.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "a46ecb39dcfddb3af7cc0eb53fd6b128f0069d93e9b790c1ff63ef001a9556df",
+      "size_bytes": 2705,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t2.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "22ed42f124082d23b809c320d754891bc84c94281ffb949f156dec36f1829535",
+      "size_bytes": 6808810,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t2.json.stdout.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e",
+      "size_bytes": 10430,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t2.json.stderr.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t2.json.process.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "7edc7defd6933b5e09df82a6196e2b22a7655e1b2e96b81e1a635b352b2aa63f",
+      "size_bytes": 2705,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t3.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "a3d63763134bfc44cc24dbcec3c099504fc2fe423f7718ddd1dd0c334ae8605c",
+      "size_bytes": 6808912,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t3.json.stdout.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "cad3b0e5e477644dc3f98530782f38cfa798bd4312cf4db46d88dcc6ffd14b40",
+      "size_bytes": 10430,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t3.json.stderr.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t3.json.process.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "d15f418b48f6b57b23383cb9507faeb98aa679186a969835668e746f0039e4b1",
+      "size_bytes": 2704,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t4.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "3549eed1161a2f0d632689928793d9a39590c7d052186cb350e337580cf639eb",
+      "size_bytes": 6808895,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t4.json.stdout.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "5c796ee288b383eedb04957de5e66102f33268c14135b22b7e1dd1b09fc3842e",
+      "size_bytes": 10430,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t4.json.stderr.txt",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "locator": "cuda-micro-t4.json.process.json",
+      "mandatory": true,
+      "exists": true,
+      "sha256": "11abd1582dd1311315fd8fcac98ea03dd68bdaa7d0ee817a5c6930857ddb9227",
+      "size_bytes": 2705,
+      "status": "AVAILABLE"
+    }
+  ]
+}

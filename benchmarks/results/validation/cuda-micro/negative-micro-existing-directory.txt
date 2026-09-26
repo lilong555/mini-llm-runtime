@@ -1,0 +1,6 @@
+ninja: no work to do.
+Exception: /home/li/code/mini-llm-runtime/scripts/Benchmark-CudaMicro.ps1:75
+Line |
+  75 |      throw 'micro 输出目录必须为空；已有采样不会被覆盖。'
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | micro 输出目录必须为空；已有采样不会被覆盖。

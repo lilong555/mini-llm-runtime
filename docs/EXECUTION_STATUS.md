@@ -21,14 +21,18 @@
 | V2-M1 / Step 6 | 已验收 | 连续 KV 状态、FP16 store、causal GQA attention、完整层、preflight/poisoned 状态 |
 | V2-M1 / Step 7 | 已验收 | 完整 28 层、selected-row LM head、greedy、真实 CLI；S=1/S=4、128 组 logits、六组短金标准 |
 | V2-M1 / Step 8 数值 | 已验收 | 240 个组合、11760 次固定输入与 768 次生成比较；长语料、独立 KV、32-token 续写、计时开关与容量边界 |
-| V2-M1 / Step 8 性能 | 实施中 | 模型 workload、70 进程采集计划及严格统计工具已验收；正式 A/A/异构基线与 microbenchmark 待采集 |
+| V2-M1 / Step 8 性能 | 实施中 | 375 项微基准、五个独立 trial 与严格复核完成；顺序相关差异和离散样本保留，正式 70 进程模型 A/A/异构基线待采集 |
 | V2-M1 / Step 9 | 待实施 | 完整模型 Nsight、选定 kernel 的 NCU、完整性能证据包及独立复验 |
 | V2-M2 | 等待完整模型 gate | GPU Serving、HTTP/SSE 和生命周期验收 |
 | V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成，[模型性能对照](CUDA_BENCHMARKS.md) 提供独立 KV 重建、A/A 采集计划和统计复核。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为 microbenchmark 与正式 70 进程模型对照，随后执行 Step 9 Profiler/完整性能包门禁；当前不代表 V2-M1 整体完成。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成，[真实形状微基准](CUDA_MICROBENCHMARKS.md) 覆盖矩阵、RMSNorm、RoPE、softmax 与 attention，[模型性能对照](CUDA_BENCHMARKS.md) 提供独立 KV 重建、A/A 采集计划和统计复核。GPU Serving 与 GPU PagedAttention 尚未提供。下一项为正式 70 进程模型对照，随后执行 Step 9 Profiler/完整性能包门禁；当前不代表 V2-M1 整体完成。
 
 ## 可复核证据
+
+[CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 包含自有 CUDA 18/18、CPU 12/12、独立核心 8/8、上游 CUDA 12/12 CTest，共 926 次用例执行；CPU 模型 13/13、HTTP 8/8 和 CUDA 层级三种 sanitizer 通过。当前二进制的 12528 次完整数值比较通过，最大 RMSE `0.019126342`、最小 cosine `0.999986580`，无 argmax 分歧或 near-tie；415 个产物在独立目录复核，六项归档反例被拒绝。模型基准预检绑定当前源码与数值测试二进制，没有继承旧编译身份。
+
+[CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 包含 375 个用例、五个独立 trial、9375 个原始样本与 5625 个测量样本；跨进程输出一致，计时区间无项目设备分配或显式传输。27 个必需原始产物可迁移复核，六项缺件或语义反例被拒绝。Q projection M=1 的正序/逆序差异与 48 个相对 MAD 超过 10% 的用例完整保留，见 `ENG-048`；没有模型加速、无退化或 A/A 噪声结论。
 
 [CUDA 模型基准工具验收](../benchmarks/results/validation/cuda-benchmark/README.md) 包含自有 CUDA 16/16、CPU 10/10、独立核心 7/7、上游 CUDA 10/10 CTest，共 875 次用例执行；CPU 模型 13/13、HTTP 8/8、CUDA 短模型通过。四个真实基准进程各覆盖 12 项 workload，共 2340 次 forward、144 次 measured repetition，输出一致，copy/allocation 门禁通过。完整数值门禁同时约束源码与模型测试二进制身份。100 个产物在独立目录复核通过，五项缺件/语义反例被拒绝；单进程计时完整保留，不代表正式 A/A 性能基线。
 
@@ -56,4 +60,5 @@
 
 - `tests/data/qwen3_validation_cases.json`：Q8_0/F32 参照 SHA-256、源 tensor dtype、数值模式、四类固定 token 语料、长度 16/33/128/256/1536、采样位置、near-tie 公式与三个短样例的 8-token 金标准。
 - `benchmarks/runtime-inputs/qwen3-cuda-v0.json`：S=4、Lmax=2048、B=128、CPU 8/16 线程、5 个独立 trial、A/A 噪声规则及稳态数据路径门禁。
-- 全量数值语料与模型基准工具已有独立验收；冻结性能协议仍需完整 A/A/异构采集及 microbenchmark，不能据数值或单进程检查宣称加速或关闭整个 Step 8。
+- `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json`：375 个真实形状、五个独立 trial、每样本 32 次 API 调用、FP64 对照与计时边界。
+- 全量数值、微基准与模型基准工具已有独立验收；冻结模型性能协议仍需完整 A/A/异构采集，不能据数值或微基准宣称模型加速或关闭整个 Step 8。

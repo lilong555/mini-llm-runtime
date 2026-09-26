@@ -57,3 +57,6 @@ benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/validation/cuda-full/diagnostics/fused-reference/reference-diagnostic-source/source-snapshot.zip
 !benchmarks/results/validation/cuda-benchmark/preflight/source-snapshot.zip
 !benchmarks/results/validation/cuda-benchmark/final-preflight/source-snapshot.zip
+!benchmarks/results/validation/cuda-micro/source-snapshot.zip
+!benchmarks/results/validation/cuda-micro/model-preflight/source-snapshot.zip
+!benchmarks/results/cuda-micro-baseline/source-snapshot.zip

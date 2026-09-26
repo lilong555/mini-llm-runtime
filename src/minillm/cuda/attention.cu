@@ -209,6 +209,35 @@ void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache,
     check_cuda(cudaGetLastError(), "FP16 KV store kernel");
 }
 
+void causal_softmax(const CudaContext& context, KvShape shape, std::size_t query_heads,
+                    DeviceTensorView<const std::int32_t> slots,
+                    DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
+                    DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
+                    DeviceTensorView<std::int32_t> status) {
+    for (auto n : {shape.sequences, shape.layers, shape.max_length, shape.kv_heads, shape.head_dim, query_heads}) {
+        as_int(n);
+    }
+    const auto s = validate(scores, context.device()), p = validate(probabilities, context.device());
+    const auto meta = validate_metadata(slots, positions, scores.rows, context.device());
+    const auto error = status_range(status, context.device());
+    require(query_heads % shape.kv_heads == 0 && max_context > 0 && max_context <= shape.max_length,
+            "CUDA softmax 的 GQA 或 context 上界无效");
+    require(scores.columns == checked_product(query_heads, shape.max_length) &&
+            probabilities.rows == scores.rows && probabilities.columns == scores.columns,
+            "CUDA softmax 输出形状无效");
+    for (auto output : {p, error}) {
+        for (auto input : {s, meta[0], meta[1]}) {
+            require(!overlaps(output, input), "CUDA softmax 输出与输入重叠");
+        }
+    }
+    require(!overlaps(p, error), "CUDA softmax 输出与 status 重叠");
+    const auto tasks = as_int(checked_product(scores.rows, query_heads));
+    DeviceScope scope(context.device());
+    softmax_kernel<<<static_cast<unsigned>(tasks), threads, 0, context.stream()>>>(shape, query_heads, slots,
+        positions, max_context, scores, probabilities, status.data);
+    check_cuda(cudaGetLastError(), "FP64-denominator softmax kernel");
+}
+
 void causal_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
                       std::size_t layer, DeviceTensorView<const float> query, std::size_t query_heads,
                       DeviceTensorView<const std::int32_t> slots,

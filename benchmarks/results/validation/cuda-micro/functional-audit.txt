@@ -1,0 +1,10 @@
+{
+  "trial": 0,
+  "samples": 1875,
+  "api_calls": 60000,
+  "measured_samples": 1125,
+  "measured_api_calls": 36000,
+  "owned_device_bytes": 3449229312,
+  "status": "passed",
+  "case_count": 375
+}

@@ -2,6 +2,10 @@
 
 ## 当前 WSL 验收
 
+[CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 记录四种构建共 50 项 CTest、926 次用例执行，CPU 模型 13/13、HTTP 8/8，以及 CUDA 层级 memcheck/racecheck/synccheck 通过。当前模型测试二进制完成 12528 次全量数值比较，无数值失败、argmax 分歧或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307348`、最小 cosine `0.999986580`。415 个产物独立目录复核通过，六项缺件或语义反例被拒绝；已有目录、未完成模型基准及错误数值编译身份的拒绝检查保持原文件不变。
+
+[CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 保留五个独立进程、375 个用例、9375 个原始样本和 5625 个测量样本。跨进程输出一致，固定 FP64 容差、显式传输和设备分配检查通过；27 个必需原始产物迁移复核通过，另有六项归档反例。小矩阵的正序/逆序差异及 48 个相对 MAD 超过 10% 的用例未被删除，原因待 Profiler 归因。该组没有模型加速或 A/A 噪声结论，正式 70 进程模型对照、Profiler 和 GPU Serving 仍待各自门禁。
+
 [CUDA 模型基准工具验收](../benchmarks/results/validation/cuda-benchmark/README.md) 记录四种构建共 43 次 CTest 套件、875 次用例执行，CPU 模型 13/13、HTTP 8/8 和 CUDA 短模型回归。四个真实进程各覆盖 12 个固定 workload，共 2340 次 forward，全部 token 一致；独立前缀重建、计时边界、传输/分配、完整数值编译身份、A/A 统计与发布回滚均有检查。100 个产物在独立目录复核通过，五项缺件或语义反例被拒绝。该组为工具与功能验收，保留全部单进程计时，但未执行完整 70 进程 A/A 基线、microbenchmark 或 Profiler。
 
 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 记录四种构建共 36 次 CTest 套件、807 次用例执行，CPU 模型 13/13、HTTP 8/8 和默认短模式回归。240 个固定输入组合、11760 次 teacher-forcing 比较与 768 次生成比较全部通过，无 argmax 差异或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307349`、最小 cosine `0.999986580`。F32 llama 参照使用相同有效权重与 FP16 KV，显式采用非融合 attention；原融合参照的两处 cosine 失败及同输入重放保留在诊断目录。783 个产物在独立目录复验通过，12 项缺件、篡改和语义反例被拒绝。此项关闭 Step 8 数值门禁，不代表性能、Profiler 或 GPU Serving 已完成。

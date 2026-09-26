@@ -1,0 +1,21 @@
+-- llama.cpp version: 0.4.1-dev
+CMAKE_BUILD_TYPE=RelWithDebInfo
+-- ccache found, compilation results will be cached. Disable with GGML_CCACHE=OFF.
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  911f6cdc8
+-- Configuring done (8.8s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/li/code/mini-llm-runtime/build/wsl-own-cuda
+[1/8] Linking CXX executable bin/mini-cuda-llm
+[2/8] Linking CXX executable bin/mini-cuda-runtime-bench
+[3/8] Linking CXX executable bin/minillm-cuda-unit-tests
+[4/8] Linking CXX executable bin/minillm-cuda-ops-tests
+[5/8] Linking CXX executable bin/minillm-cuda-storage-tests
+[6/8] Linking CXX executable bin/minillm-cuda-runtime-tests
+[7/8] Linking CXX executable bin/minillm-cuda-model-tests
+[8/8] Linking CXX executable bin/minillm-cuda-reference-diagnostic

@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
+. (Join-Path $PSScriptRoot 'Cuda-Benchmark-Common.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 $python = if (Get-Command python3 -ErrorAction SilentlyContinue) { 'python3' } else { 'python' }
 $analyzer = Join-Path $PSScriptRoot 'analyze_cuda_benchmark.py'
@@ -19,7 +20,7 @@ if (-not $BinaryDirectory) {
     $BinaryDirectory = Join-Path $root "build/${platform}own-cuda/bin"
 }
 if (-not $Model) { $Model = Join-Path $root 'models/Qwen3-0.6B-Q8_0.gguf' }
-if (-not $NumericalDirectory) { $NumericalDirectory = Join-Path $root 'benchmarks/results/validation/cuda-full' }
+if (-not $NumericalDirectory) { $NumericalDirectory = Join-Path $root 'benchmarks/results/validation/cuda-micro' }
 $BinaryDirectory = (Resolve-Path -LiteralPath $BinaryDirectory).Path
 $Model = (Resolve-Path -LiteralPath $Model).Path
 $NumericalDirectory = (Resolve-Path -LiteralPath $NumericalDirectory).Path
@@ -129,7 +130,7 @@ $manifest = [ordered]@{
         frequency_control = 'uncontrolled'; affinity = 'inherited'; telemetry = 'process_boundaries_not_continuous'
         profiler = 'none' }
     statistics = $plan.statistics; reports = $plan.reports; artifacts = @($artifacts)
-    numerical_evidence = [ordered]@{ repository_path = 'benchmarks/results/validation/cuda-full'
+    numerical_evidence = [ordered]@{ repository_path = [IO.Path]::GetRelativePath($root, $NumericalDirectory).Replace('\', '/')
         scope = 'source_and_validation_binary_equivalent_full_corpus'; full_numeric_archive_included = $false
         validation_binary_sha256 = $validationHash }
 }
@@ -151,48 +152,6 @@ function Assert-CudaBenchmarkInputs {
     if ($LASTEXITCODE -ne 0 -or $currentRevision -cne $revision) { throw '依赖版本发生变化。' }
 }
 
-function Get-ProcessEnvironment {
-    $result = [ordered]@{ at_utc = (Get-Date).ToUniversalTime().ToString('o')
-        load_average_raw = $null; processor = $null; cpu_frequency_mhz = $null; gpu = $null; unavailable = @() }
-    if (Test-Path -LiteralPath '/proc/loadavg') { $result.load_average_raw = (Get-Content -Raw /proc/loadavg).Trim() }
-    else { $result.unavailable += 'load_average: /proc/loadavg 不可用' }
-    if (Test-Path -LiteralPath '/proc/cpuinfo') {
-        $cpuInfo = Get-Content /proc/cpuinfo
-        $processor = $cpuInfo | Where-Object { $_ -match '^model name\s*:' } | Select-Object -First 1
-        if ($processor) { $result.processor = ($processor -split ':', 2)[1].Trim() }
-        $values = @($cpuInfo | Where-Object { $_ -match '^cpu MHz\s*:' } |
-            ForEach-Object { [double]::Parse(($_ -split ':', 2)[1].Trim(), [Globalization.CultureInfo]::InvariantCulture) })
-        $result.cpu_frequency_mhz = $values
-    } else { $result.unavailable += 'cpu_frequency: /proc/cpuinfo 不可用' }
-    if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
-        $raw = @(& nvidia-smi '--query-gpu=uuid,driver_version,temperature.gpu,clocks.current.sm,clocks.current.memory,power.draw,utilization.gpu,memory.used,memory.free' `
-            '--format=csv,noheader,nounits' 2>&1 | ForEach-Object { "$_" })
-        if ($LASTEXITCODE -eq 0) {
-            $records = @($raw | ConvertFrom-Csv -Header @(
-                'uuid', 'driver_version', 'temperature_c', 'sm_clock_mhz', 'memory_clock_mhz', 'power_w',
-                'utilization_percent', 'used_mib', 'free_mib'))
-            foreach ($record in $records) {
-                $record.uuid = $record.uuid.Trim()
-                $record.driver_version = $record.driver_version.Trim()
-                foreach ($field in @('temperature_c', 'sm_clock_mhz', 'memory_clock_mhz', 'power_w',
-                    'utilization_percent', 'used_mib', 'free_mib')) {
-                    $number = 0.0
-                    if ([double]::TryParse($record.$field, [Globalization.NumberStyles]::Float,
-                        [Globalization.CultureInfo]::InvariantCulture, [ref]$number) -and
-                        -not [double]::IsNaN($number) -and -not [double]::IsInfinity($number)) {
-                        $record.$field = $number
-                    } else {
-                        $result.unavailable += "nvidia-smi $field`: $($record.$field)"
-                        $record.$field = $null
-                    }
-                }
-            }
-            $result.gpu = [ordered]@{ raw = $raw; records = $records }
-        } else { $result.unavailable += 'nvidia-smi 查询失败'; $result.gpu = [ordered]@{ raw = $raw; records = $null } }
-    } else { $result.unavailable += 'nvidia-smi 不可用' }
-    return $result
-}
-
 $completed = [Collections.Generic.List[object]]::new()
 $failed = $false
 try {
@@ -208,7 +167,7 @@ try {
     }
     Test-BenchmarkSourceArchive $OutputDirectory ([pscustomobject]$manifest.source)
     if ($PreflightOnly) {
-        Write-BenchmarkJson (Join-Path $OutputDirectory 'preflight-environment.json') (Get-ProcessEnvironment)
+        Write-BenchmarkJson (Join-Path $OutputDirectory 'preflight-environment.json') (Get-CudaBenchmarkEnvironment)
         Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
             status = 'preflight_only'; reports = @(); planned_reports = 70
             scope = '输入、源码、依赖、构建和环境检查；没有性能测量或统计结论' })
@@ -220,11 +179,11 @@ try {
         $path = Join-Path $OutputDirectory $slot.file
         $arguments = @('--model', $Model, '--input', (Join-Path $OutputDirectory 'input.json'), '--backend', $slot.backend,
             '--output', $path, '--manifest', $manifestPath, '--order', "$($slot.order)")
-        $before = Get-ProcessEnvironment
+        $before = Get-CudaBenchmarkEnvironment
         $started = (Get-Date).ToUniversalTime().ToString('o')
         & $executable @arguments 1> "$path.stdout.txt" 2> "$path.stderr.txt"
         $exitCode = $LASTEXITCODE
-        $after = Get-ProcessEnvironment
+        $after = Get-CudaBenchmarkEnvironment
         Write-BenchmarkJson "$path.process.json" ([ordered]@{ order = $slot.order; executable = $executable
             arguments = $arguments; exit_code = $exitCode; started_at_utc = $started
             finished_at_utc = (Get-Date).ToUniversalTime().ToString('o'); before = $before; after = $after })
