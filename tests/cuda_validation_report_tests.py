@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 import hashlib
+import os
 from pathlib import Path
 import struct
 import subprocess
@@ -209,8 +210,9 @@ def missing_report_does_not_overwrite_existing_evidence():
         original = b'{"status":"passed","previous":true}\n'
         old.write_bytes(original)
         result = subprocess.run([sys.executable, str(ROOT / "scripts/analyze_cuda_validation.py"),
-                                 "--directory", directory], capture_output=True, text=True)
-        assert result.returncode == 1 and "缺少证据" in result.stderr
+                                 "--directory", directory], capture_output=True, encoding="utf-8",
+                                env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        assert result.returncode == 1 and "缺少证据" in result.stderr, repr(result.stderr)
         assert old.read_bytes() == original
 
 

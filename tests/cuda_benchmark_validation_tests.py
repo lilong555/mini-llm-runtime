@@ -4,6 +4,7 @@ from copy import deepcopy
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -366,8 +367,9 @@ def preflight_and_publication_failure_preserve_previous_outputs():
         original = b'{"status":"old"}\n'
         (root / "summary.json").write_bytes(original)
         result = subprocess.run([sys.executable, str(ROOT / "scripts/analyze_cuda_benchmark.py"),
-                                 "--directory", directory, "--write"], text=True, capture_output=True)
-        assert result.returncode == 1 and "缺少证据" in result.stderr
+                                 "--directory", directory, "--write"], encoding="utf-8", capture_output=True,
+                                env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+        assert result.returncode == 1 and "缺少证据" in result.stderr, repr(result.stderr)
         assert (root / "summary.json").read_bytes() == original
         replace, count = audit.os.replace, 0
 
@@ -477,9 +479,9 @@ def executable_preflight_guards(executable):
         root = Path(directory)
         existing = root / "existing.json"
         existing.write_bytes(b"original\n")
-        help_result = subprocess.run([executable, "--help"], text=True, capture_output=True)
+        help_result = subprocess.run([executable, "--help"], encoding="utf-8", capture_output=True)
         assert help_result.returncode == 0 and "cpu8|cpu16|cuda" in help_result.stdout
-        result = subprocess.run([executable, "--output", str(existing)], text=True, capture_output=True)
+        result = subprocess.run([executable, "--output", str(existing)], encoding="utf-8", capture_output=True)
         assert result.returncode == 1 and existing.read_bytes() == b"original\n"
         model = root / "not-model.gguf"
         model.write_bytes(b"not a model\n")
@@ -492,7 +494,7 @@ def executable_preflight_guards(executable):
                 recipe.write_text(json.dumps(value), encoding="utf-8")
             report = root / f"rejected-{name}.json"
             result = subprocess.run([executable, "--model", str(model), "--input", str(recipe),
-                                     "--output", str(report), "--backend", backend], text=True, capture_output=True)
+                                     "--output", str(report), "--backend", backend], encoding="utf-8", capture_output=True)
             assert result.returncode == 1 and audit.read(report)["status"] == "failed"
             assert {"backend": "--backend", "model": "模型摘要", "input": "冻结"}[name] in result.stderr
         print("[PASS] executable_preflight_guards")

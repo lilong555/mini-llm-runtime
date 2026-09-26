@@ -5,6 +5,7 @@ from collections import Counter
 from copy import deepcopy
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -263,7 +264,8 @@ def portable_bundle_and_missing_tampered_artifacts():
         moved = root / "moved"
         shutil.copytree(bundle, moved)
         process = subprocess.run([sys.executable, str(moved / "verify.py"), "--directory", str(moved)],
-                                 cwd=root, capture_output=True, text=True)
+                                 cwd=root, capture_output=True, encoding="utf-8",
+                                 env=dict(os.environ, PYTHONIOENCODING="utf-8"))
         assert process.returncode == 0, process.stderr
         saved = (bundle / "summary.json").read_bytes()
         for name in ("source-snapshot.zip", "cuda-micro-t0.json", "cuda-micro-t0.json.stderr.txt", "analyze_cuda_benchmark.py"):
@@ -283,7 +285,8 @@ def publication_failure_preserves_existing_summary():
         summary = root / "summary.json"
         summary.write_bytes(b"original\n")
         result = subprocess.run([sys.executable, str(ROOT / "scripts/analyze_cuda_micro.py"),
-                                 "--directory", directory, "--write"], capture_output=True, text=True)
+                                 "--directory", directory, "--write"], capture_output=True, encoding="utf-8",
+                                env=dict(os.environ, PYTHONIOENCODING="utf-8"))
         assert result.returncode == 1 and summary.read_bytes() == b"original\n"
         original_replace = audit.common.os.replace
         calls = 0
@@ -310,9 +313,9 @@ def executable_guards(executable):
         root = Path(directory)
         existing = root / "existing.json"
         existing.write_bytes(b"original\n")
-        help_result = subprocess.run([executable, "--help"], capture_output=True, text=True)
+        help_result = subprocess.run([executable, "--help"], capture_output=True, encoding="utf-8")
         assert help_result.returncode == 0 and "mini-cuda-kernel-bench" in help_result.stdout
-        result = subprocess.run([executable, "--output", str(existing)], capture_output=True, text=True)
+        result = subprocess.run([executable, "--output", str(existing)], capture_output=True, encoding="utf-8")
         assert result.returncode == 1 and existing.read_bytes() == b"original\n"
         model = root / "not-model.gguf"
         model.write_bytes(b"not a model\n")
@@ -321,7 +324,7 @@ def executable_guards(executable):
             recipe.write_bytes(SPEC_PATH.read_bytes() + (b" " if changed else b""))
             output = root / f"rejected-{changed}.json"
             result = subprocess.run([executable, "--model", str(model), "--input", str(recipe), "--output", str(output)],
-                                    capture_output=True, text=True)
+                                    capture_output=True, encoding="utf-8")
             assert result.returncode == 1 and audit.read(output)["status"] == "failed"
             assert ("冻结" if changed else "模型") in result.stderr
         print("[PASS] executable_guards")

@@ -6,6 +6,7 @@
 #include "minillm/parallel.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <limits>
