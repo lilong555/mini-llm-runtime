@@ -2,6 +2,8 @@
 
 `MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。GPU Serving、prefix sharing 和 PagedAttention 尚未提供。全量固定语料、S=1/2/4、chunk/长度组合与 32-token 续写通过验证，入口见 [CUDA 数值验证](CUDA_NUMERICS.md)；正式性能基线仍在独立门禁内，见 [执行状态](EXECUTION_STATUS.md)。
 
+[模型性能对照](CUDA_BENCHMARKS.md) 提供同一 executable 的 CPU8、CPU16、CUDA 选择、独立前缀重建、完整 A/A 采集计划和严格统计复核。单进程报告不等同于正式性能基线。
+
 ## 构建与验收
 
 WSL2、CUDA Toolkit >= 12.8、C++20 工具链和固定版本 llama.cpp 为构建前提。本机 RTX 4070 Laptop 使用架构 `89`：

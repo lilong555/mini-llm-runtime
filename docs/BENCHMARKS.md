@@ -94,4 +94,6 @@ CTest 的 `benchmark-validation` 套件覆盖正常报告、合法失败、单 t
 
 本协议用于 Serving 策略对照。Runtime 的模型级计时、独立进程对照及 manifest 见 [Runtime 计时与模型基准](RUNTIME_PROFILING.md)。dot、KV 布局的统一 manifest，以及跨源码/二进制的优化前后比较仍属于独立工作。微基准结果和上游 CUDA 执行不能作为自研端到端加速证据。
 
+自有 CPU8/CPU16/CUDA 的固定模型 workload、独立 KV 重建、A/A 与配对统计使用单独的 [CUDA 模型性能对照](CUDA_BENCHMARKS.md)，不适用本页的策略回放协议或旧 CPU Runtime 的共享前缀重置。
+
 启用在线观测时，每份报告另有 `*-telemetry.jsonl`，通过 Python 3 验收完整的 batch/token 关联。跨观测模式比较使用 [在线观测入口](BATCH_TELEMETRY.md)，不能在同一策略组中隐式改变观测模式。

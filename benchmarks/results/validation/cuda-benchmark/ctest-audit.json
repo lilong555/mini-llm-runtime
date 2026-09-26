@@ -1,0 +1,13 @@
+{
+  "Reports": 4,
+  "SuiteExecutions": 43,
+  "CaseExecutions": 875,
+  "SuitesWithoutCaseCounts": 0,
+  "DiagnosticReports": [
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/core-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/cpu-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/own-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/upstream-ctest.xml"
+  ],
+  "Status": "passed"
+}

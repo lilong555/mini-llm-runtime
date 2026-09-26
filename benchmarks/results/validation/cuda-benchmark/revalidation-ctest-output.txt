@@ -1,0 +1,6 @@
+Exception: /tmp/cuda-benchmark-verify-7b7710b8630d448eb54a1395631020eb/Test-CtestEvidence.ps1:38
+Line |
+  38 |              throw "Missing or failed test output: $($file.FullName)"
+     |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Missing or failed test output:
+     | /tmp/cuda-benchmark-relocation-08fe94d1bd7b4b0bb7e3c29ee4504fac/ctest-output/own-ctest.xml

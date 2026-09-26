@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "independent_directory": true,
+  "model_and_binary_required": false,
+  "cases": [
+    {
+      "case": "complete",
+      "exit_code": 0,
+      "expected_exit_code": 0
+    },
+    {
+      "case": "missing-source",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    },
+    {
+      "case": "missing-report",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    },
+    {
+      "case": "copy-count",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    },
+    {
+      "case": "generation-input",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    },
+    {
+      "case": "ctest-output",
+      "exit_code": 1,
+      "expected_exit_code": 1
+    }
+  ]
+}

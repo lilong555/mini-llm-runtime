@@ -1,0 +1,13 @@
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+cuda: prefill-16 通过
+cuda: prefill-128 通过
+cuda: chunked-prefill-256 通过
+cuda: chunked-prefill-1536 通过
+cuda: decode-16 通过
+cuda: decode-256 通过
+cuda: decode-1536 通过
+cuda: batch-2 通过
+cuda: batch-4 通过
+cuda: mixed-16-2 通过
+cuda: generate-16-32 通过
+cuda: generate-128-32 通过

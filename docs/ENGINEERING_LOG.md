@@ -445,3 +445,39 @@
 - 原因：固定 llama.cpp `911f6cdc8ab8a530b2bee09ee61471a6f3178eeb` 的 `ggml_compute_forward_flash_attn_ext_f16_one_chunk` 将 Q 转换为 FP16，并在 V 为 FP16 时使用 `VKQ16` 和 `ggml_vec_mad_f16` 累加。长上下文单 query 进入 split-KV 分支，调用同一实现；prefill 的 tiled 分支则使用 FP32 PV 缓冲。F32 权重或 graph 的 `GGML_PREC_F32` 标记不能保证该 CPU 分支实际采用 FP32 PV 累加。自有 CPU/CUDA 使用 FP32 累加，差异不应通过改变产品数学路径追随上游半精度累加。
 - 解决方法：全量测试的 F32 llama 参照显式关闭 FlashAttention，报告固定记录 attention 模式及 QK/PV 累加精度。checkpoint、FP16 KV、输入、线程和原有门槛不变；不修改上游源码。默认短模式保留已有参照配置，完整失败归档单独复核，不替换为成功记录。
 - 验证：诊断目录的 `reference-diagnostic/attention-reference.json` 固定重放同一 prompt 与续写输入，原 CPU、融合参照、GPU 的 96 个分数和摘要全部复现，仍出现原来的两处融合参照失败。仅切换上游 attention 模式后，32 步全部通过。主目录 `real-model/` 的独立全量采集完成 240 个组合和 12 组续写，12528 次比较全部通过，最小 cosine `0.9999865801437234`。`reference-mode-comparison.json` 确认 65 个产品源文件及冻结输入未变，两次采集的同一 GPU 路径 4444 个采样行、CPU 路径 524 个采样行摘要分别一致。四种构建共 807 次用例执行、CPU 模型 13/13 和 HTTP 8/8 通过；完整证据包与保留的失败包均在独立目录复核。
+
+## ENG-043：性能 workload 测试引用不存在的辅助头文件
+
+- 状态：已解决，限定于性能 workload 测试构建。
+- 影响：`minillm-cuda-benchmark-tests` 无法构建；Runtime 源码和既有数值证据不受影响。
+- 复现条件或证据：`cmake --build build/wsl-own-cuda --target mini-cuda-runtime-bench minillm-cuda-benchmark-tests --parallel 4` 返回 `tests/cuda_benchmark_tests.cpp:2:10: fatal error: test.h: No such file or directory`。
+- 原因：测试文件引用了 `test.h`，仓库实际提供的是 `tests/test_support.h`。
+- 解决方法：使用仓库现有 `test_support.h` 和 `TEST/CHECK` 接口。
+- 验证：两个 target 均构建成功；`ctest --test-dir build/wsl-own-cuda -R '^cuda-benchmark-workloads$' --output-on-failure` 通过，包含 5 项 workload、逐轮重建、自然生成、摘要与错误输出检查。
+
+## ENG-044：性能分析器使用超出环境版本的 Python 哈希接口
+
+- 状态：已解决，限定于分析器的 Python 3.10 兼容性。
+- 影响：分析器在读取固定输入摘要时退出，尚未执行报告数据和统计校验；实模型原始报告不受影响。
+- 复现条件或证据：`python3 scripts/analyze_cuda_benchmark.py --report .run/cuda-benchmark-first-gpu.json --input benchmarks/runtime-inputs/qwen3-cuda-v0.json` 返回 `AttributeError: module 'hashlib' has no attribute 'file_digest'`。
+- 原因：本机 Python 3.10 不提供 Python 3.11 才加入的 `hashlib.file_digest`。
+- 解决方法：使用 `hashlib.sha256` 和固定 64 KiB 流式读取，保持 SHA-256 与报告协议不变。
+- 验证：三个真实后端报告分别通过严格复核，各含 12 个 workload、585 次 forward；13 项 Python 报告与统计测试通过，包括流式文件摘要与原字节 SHA-256 一致性。
+
+## ENG-045：CLI 反例的输出路径与输入 fixture 重名
+
+- 状态：已解决，限定于 CLI 反例的文件命名。
+- 影响：13 项分析器测试通过后，CLI 拒绝用例读取不到预期失败报告的 `status`；产品的已有文件保护行为正常。
+- 复现条件或证据：`python3 tests/cuda_benchmark_validation_tests.py --executable build/wsl-own-cuda/bin/mini-cuda-runtime-bench` 在 `executable_preflight_guards` 中返回 `KeyError: 'status'`。
+- 原因：名为 `input` 的反例使用 `input.json` 作为输出路径，与已有输入 fixture 相同；可执行文件拒绝覆盖后，测试读取的是输入 recipe，而非失败报告。
+- 解决方法：反例输出统一使用 `rejected-<name>.json`，与输入和模型文件分离。
+- 验证：带真实 executable 的 14 项测试通过，四种构建的 CTest 共 875 次用例执行通过；失败输出与 fixture 保留于 `benchmarks/results/validation/cuda-benchmark/diagnostics/`。
+
+## ENG-046：仅按源码继承数值门禁不能约束编译差异
+
+- 状态：已解决，限定于模型性能采集的数值门禁继承。
+- 影响：源码未改变但编译器或编译选项改变时，若仍继承旧数值摘要，会把未经当前编译产物验证的性能报告误认为数值门禁已通过。
+- 复现条件或证据：性能采集器的源码继承检查只比较 `include/minillm/`、`src/minillm/` 文件摘要，Release/RelWithDebInfo 和其他编译选项可不相同。该风险来自预检代码复核；没有以修改浮点选项的实际模型运行冒充通过。
+- 原因：相同源码不等同于相同机器码或浮点计算行为。
+- 解决方法：采集前重建 `minillm-cuda-model-tests`，要求其 SHA-256 与完整数值验收记录一致，并在每个进程前后检查未变；离线分析交叉核对归档数值环境与 manifest 中的编译身份。不同构建需重新建立数值验收。
+- 验证：真实预检通过；当前完整模型测试摘要为 `4b31b3d60cf3b5d79fcbec054a234ad273eee67a03d661a7a40bde2ea08c518f`，与完整数值归档相同。仅修改数值环境记录中的二进制摘要时，采集器在模型执行及输出目录创建前返回 1；离线完整合成包也拒绝身份不符。四组 CTest 共 875 次用例执行通过，见 `benchmarks/results/validation/cuda-benchmark/final-preflight/`、`negative-numerical-binary.txt` 与 `revalidation.json`。

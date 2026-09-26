@@ -2,6 +2,8 @@
 
 ## 当前 WSL 验收
 
+[CUDA 模型基准工具验收](../benchmarks/results/validation/cuda-benchmark/README.md) 记录四种构建共 43 次 CTest 套件、875 次用例执行，CPU 模型 13/13、HTTP 8/8 和 CUDA 短模型回归。四个真实进程各覆盖 12 个固定 workload，共 2340 次 forward，全部 token 一致；独立前缀重建、计时边界、传输/分配、完整数值编译身份、A/A 统计与发布回滚均有检查。100 个产物在独立目录复核通过，五项缺件或语义反例被拒绝。该组为工具与功能验收，保留全部单进程计时，但未执行完整 70 进程 A/A 基线、microbenchmark 或 Profiler。
+
 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 记录四种构建共 36 次 CTest 套件、807 次用例执行，CPU 模型 13/13、HTTP 8/8 和默认短模式回归。240 个固定输入组合、11760 次 teacher-forcing 比较与 768 次生成比较全部通过，无 argmax 差异或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307349`、最小 cosine `0.999986580`。F32 llama 参照使用相同有效权重与 FP16 KV，显式采用非融合 attention；原融合参照的两处 cosine 失败及同输入重放保留在诊断目录。783 个产物在独立目录复验通过，12 项缺件、篡改和语义反例被拒绝。此项关闭 Step 8 数值门禁，不代表性能、Profiler 或 GPU Serving 已完成。
 
 [CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 记录四种构建共 31 次 CTest 套件、749 次用例执行，8 项 Runtime 检查、128 组 CPU/F32 logits 对照、六组 S=1/S=4 短金标准与三个 CLI 生成。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异。设备与完整模型 memcheck、Runtime racecheck/synccheck 均通过；CPU 模型 13/13、HTTP 8/8。该组验证完整 GPU 模型路径，但未完成长语料全契约、正式性能或 GPU Serving 门禁。

@@ -1,0 +1,19 @@
+Test project /home/li/code/mini-llm-runtime/build/wsl-core
+    Start 1: unit
+1/7 Test #1: unit .............................   Passed    0.22 sec
+    Start 2: validation-contract
+2/7 Test #2: validation-contract ..............   Passed    0.02 sec
+    Start 3: cuda-validation-report
+3/7 Test #3: cuda-validation-report ...........   Passed    0.27 sec
+    Start 4: cuda-benchmark-validation
+4/7 Test #4: cuda-benchmark-validation ........   Passed    5.27 sec
+    Start 5: telemetry-validation
+5/7 Test #5: telemetry-validation .............   Passed    0.03 sec
+    Start 6: benchmark-validation
+6/7 Test #6: benchmark-validation .............   Passed    4.28 sec
+    Start 7: runtime-benchmark-validation
+7/7 Test #7: runtime-benchmark-validation .....   Passed    3.65 sec
+
+100% tests passed out of 7
+
+Total Test time (real) =  13.74 sec

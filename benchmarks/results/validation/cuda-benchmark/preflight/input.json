@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "protocol_id": "qwen3-cuda-model-v0",
+  "spec_id": "CUDA-VS-001",
+  "validation_contract": "tests/data/qwen3_validation_cases.json",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "gpu": {
+    "device": 0,
+    "max_sequences": 4,
+    "max_model_len": 2048,
+    "batch_tokens": 128,
+    "streams": 1,
+    "kv_layout": "contiguous",
+    "page_tokens": null
+  },
+  "cpu": {
+    "threads": [
+      8,
+      16
+    ],
+    "kernel": "auto",
+    "page_tokens": 16
+  },
+  "token_ids": [
+    1900,
+    220,
+    15,
+    13,
+    13850,
+    323,
+    37852,
+    5185,
+    13,
+    220,
+    1900,
+    220,
+    15,
+    13,
+    13850,
+    323
+  ],
+  "workloads": [
+    {
+      "name": "prefill-16",
+      "mode": "prefill",
+      "tokens": 16
+    },
+    {
+      "name": "prefill-128",
+      "mode": "prefill",
+      "tokens": 128
+    },
+    {
+      "name": "chunked-prefill-256",
+      "mode": "prefill",
+      "tokens": 256,
+      "chunk": 128
+    },
+    {
+      "name": "chunked-prefill-1536",
+      "mode": "prefill",
+      "tokens": 1536,
+      "chunk": 128
+    },
+    {
+      "name": "decode-16",
+      "mode": "fixed_context_decode",
+      "prefix_tokens": 16,
+      "effective_length": 17
+    },
+    {
+      "name": "decode-256",
+      "mode": "fixed_context_decode",
+      "prefix_tokens": 256,
+      "effective_length": 257
+    },
+    {
+      "name": "decode-1536",
+      "mode": "fixed_context_decode",
+      "prefix_tokens": 1536,
+      "effective_length": 1537
+    },
+    {
+      "name": "batch-2",
+      "mode": "independent_sequences",
+      "sequences": 2,
+      "prefix_tokens": 256
+    },
+    {
+      "name": "batch-4",
+      "mode": "independent_sequences",
+      "sequences": 4,
+      "prefix_tokens": 256
+    },
+    {
+      "name": "mixed-16-2",
+      "mode": "mixed",
+      "prefill_tokens": 16,
+      "decode_sequences": 2,
+      "prefix_tokens": 256,
+      "input_rows": 18,
+      "logits_rows": 3
+    },
+    {
+      "name": "generate-16-32",
+      "mode": "natural_generation",
+      "prompt_tokens": 16,
+      "output_tokens": 32,
+      "prefill_calls": 1,
+      "decode_calls": 31
+    },
+    {
+      "name": "generate-128-32",
+      "mode": "natural_generation",
+      "prompt_tokens": 128,
+      "output_tokens": 32,
+      "prefill_calls": 1,
+      "decode_calls": 31
+    }
+  ],
+  "measurement": {
+    "independent_trials": 5,
+    "warmup": 2,
+    "measured_repeats": 3,
+    "profiler": "none",
+    "primary": "host_forward_to_token_ns",
+    "fixed_context_setup": "clear_and_rebuild_independent_prefix_outside_timing",
+    "reference_model_resident": false,
+    "initialization": "separate",
+    "comparison_order": "CPU8/CUDA/CUDA/CPU8_then_reverse;CPU16_separate",
+    "aa_required": true,
+    "noise_percent": "max(5, abs(median(d_AA)) + 2 * MAD(d_AA))",
+    "inconclusive_if_noise_percent_above": 10,
+    "statistics_unit": "independent_trial_median",
+    "retain_all_samples": true
+  },
+  "steady_state_gates": {
+    "weight_h2d_bytes": 0,
+    "layer_hidden_h2d_d2h_bytes": 0,
+    "owned_device_allocation_free_calls": 0,
+    "full_logits_d2h_in_greedy": false,
+    "upstream_model_forward_calls": 0,
+    "implicit_cpu_fallback": false
+  }
+}

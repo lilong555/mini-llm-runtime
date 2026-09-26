@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "configuration": "own",
+      "LLMSERVE_WITH_LLAMA": "ON",
+      "MINILLM_ENABLE_CUDA": "ON",
+      "LLMSERVE_CUDA": "OFF",
+      "LLMSERVE_REQUIRE_TEST_TOOLS": "ON"
+    },
+    {
+      "configuration": "cpu",
+      "LLMSERVE_WITH_LLAMA": "ON",
+      "MINILLM_ENABLE_CUDA": "OFF",
+      "LLMSERVE_CUDA": "OFF",
+      "LLMSERVE_REQUIRE_TEST_TOOLS": "ON"
+    },
+    {
+      "configuration": "core",
+      "LLMSERVE_WITH_LLAMA": "OFF",
+      "MINILLM_ENABLE_CUDA": "OFF",
+      "LLMSERVE_CUDA": "OFF",
+      "LLMSERVE_REQUIRE_TEST_TOOLS": "ON"
+    },
+    {
+      "configuration": "upstream",
+      "LLMSERVE_WITH_LLAMA": "ON",
+      "MINILLM_ENABLE_CUDA": "OFF",
+      "LLMSERVE_CUDA": "ON",
+      "LLMSERVE_REQUIRE_TEST_TOOLS": "ON"
+    }
+  ],
+  "cpu_dynamic_dependencies": [
+    "\tlinux-vdso.so.1 (0x00007ffc1bbc1000)",
+    "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f1a91dcc000)",
+    "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f1a91ba0000)",
+    "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f1a91ab9000)",
+    "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f1a91a99000)",
+    "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f1a91870000)",
+    "\t/lib64/ld-linux-x86-64.so.2 (0x00007f1a92329000)"
+  ],
+  "single_process_binary_sha256": "b49eeaba5732509a91d8cbe743ffa0e4ed986ed7fdb47b28cd8859f514b6dae0",
+  "post_checks_binary_sha256": "b49eeaba5732509a91d8cbe743ffa0e4ed986ed7fdb47b28cd8859f514b6dae0",
+  "single_process_source_capture": "预检时归档；三个功能检查与预检使用相同 executable，不能代替冻结性能 cohort"
+}
