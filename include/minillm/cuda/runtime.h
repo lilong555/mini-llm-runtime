@@ -67,7 +67,8 @@ struct CudaDiagnostics {
     std::uint64_t model_load_ns = 0, storage_initialization_ns = 0, weight_decode_upload_ns = 0;
 };
 
-// 单调用者、不可重入。返回前检查 stream 和 status，再同时发布结果与逻辑长度。
+// execution/KV 状态单调用者、不可重入；tokenizer 可在外部词表锁下与 forward 并行。
+// 返回前检查 stream 和 status，再同时发布结果与逻辑长度。
 // preflight 失败可继续；设备执行开始后的失败进入 poisoned，必须销毁该实例。
 class CudaRuntime {
 public:
@@ -78,6 +79,9 @@ public:
     const CudaRuntimeConfig& config() const noexcept;
     const ModelDimensions& dimensions() const noexcept;
     const CudaDeviceInfo& device_info() const noexcept;
+    CudaRuntimeState state() const noexcept;
+    // 最后 committed 长度；poisoned 时不能作为有效设备状态对外发布。
+    std::size_t live_kv_tokens() const noexcept;
     std::vector<CudaWeightInfo> weight_manifest() const;
     std::vector<std::int32_t> tokenize(std::string_view text) const;
     std::string token_piece(std::int32_t token) const;

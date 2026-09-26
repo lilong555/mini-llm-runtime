@@ -39,4 +39,24 @@ std::string policy_name(SchedulingPolicy policy) {
     return policy == SchedulingPolicy::mixed ? "mixed" : "prefill_first";
 }
 
+void validate_mini_cuda_config(const ModelConfig& model, const EngineConfig& engine) {
+    engine.validate();
+    if (model.path.empty() || model.device < 0 || model.threads < 1 || model.threads > 256) {
+        throw std::invalid_argument("mini-cuda 需要模型路径、非负 device 和 1..256 threads");
+    }
+    if (model.gpu_layers != 0 || model.scalar_kernels) {
+        throw std::invalid_argument("mini-cuda 不支持 gpu_layers offload 或 scalar kernel");
+    }
+    if (engine.max_active > 4 || engine.batch_tokens > 128 || engine.max_model_len > 2048) {
+        throw std::invalid_argument("mini-cuda 容量上限为 4 sequences、128 batch tokens、2048 model length");
+    }
+    if (engine.prefix_cache_entries != 0 || engine.prefix_cache_tokens != 0) {
+        throw std::invalid_argument("mini-cuda 不支持 prefix cache；entries 和 tokens 必须均为 0");
+    }
+    if (engine.max_model_len > std::numeric_limits<std::size_t>::max() / engine.max_active ||
+        engine.context_tokens > engine.max_active * engine.max_model_len) {
+        throw std::invalid_argument("mini-cuda context credits 不得超过 max_active * max_model_len");
+    }
+}
+
 } // namespace llmserve

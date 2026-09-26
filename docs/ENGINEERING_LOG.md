@@ -609,3 +609,12 @@
 - 原因：当前 Windows 进程没有创建符号链接所需的权限；该限制发生在编码断言之前，与归档验证器拒绝符号链接的行为不同。
 - 解决方法或下一步：保留完整测试与失败记录，不跳过符号链接门禁，不自行修改主机权限。编码修复使用原生 Windows 的定向函数检查；完整套件继续在已有权限的 Windows CI 中执行。
 - 验证：本机定向调用 `preflight_and_publication_failure_preserve_previous_outputs` 在两种编码环境均通过；CI run `36232341864` 的 Windows 两个任务均完成完整套件，符号链接反例没有被跳过。本机失败输出与定向结果保留在 `benchmarks/results/validation/windows-ci/native-windows/`，本机权限问题仍未标为已解决。
+
+## ENG-060：CUDA poisoned 状态与 Serving 清理契约不兼容
+
+- 状态：已解决，限定于 adapter/Engine 清理契约；GPU HTTP 验收单列。
+- 影响：在 `ModelRunner::clear_sequence() noexcept` 内直接转调 poisoned Runtime 的 clear 会终止进程；若吞掉异常，可能误报资源已回收并复用故障槽。
+- 复现条件或证据：`CudaRuntime::forward` 的 post-launch 失败调用 `BatchState::poison()`；`BatchState::clear` 拒绝非 ready，诊断为 `CUDA KV 只能在 ready 完成点清理，不能清除 poisoned`。Engine 的错误收尾遍历 active requests 调用 noexcept clear。
+- 原因：Runtime 的设备状态隔离与原 Serving 清理接口没有共同的失效状态表达；旧资源字段只提供页数和载荷。
+- 解决方法或下一步：adapter 通过 `state_valid/reusable` 传递异常清理状态；poisoned 时跳过 clear，Engine fail-stop 并归还逻辑信用，resident allocation 保留到 owner 析构。整批样本校验在任何 token 发布之前完成。
+- 验证：自有 CUDA 22/22、CPU 15/15、独立核心 11/11 CTest 通过；`unit` 覆盖 admission/finish/synchronize 清理失败、整批样本拒绝、单终态与逻辑信用归还，`cuda-serving` 的五项真实 GPU 小模型检查包含受控 post-launch failure、隔离与 owner 释放。CPU 实模型 13/13、HTTP 8/8 通过。JUnit 位于三种构建的 `cuda-serving-contract.xml`；本阶段尚不宣称真实 Qwen3 GPU HTTP 已验收。

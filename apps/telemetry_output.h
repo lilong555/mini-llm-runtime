@@ -9,7 +9,7 @@ inline void write_telemetry(std::ostream& output, const llmserve::Engine& engine
     const auto& capture = engine.telemetry();
     const auto resources = [](const std::optional<llmserve::RunnerResources>& value) -> json {
         if (!value) { return nullptr; }
-        return {{"live_kv_pages", value->live_kv_pages},
+        return {{"live_kv_pages", value->live_kv_pages ? json(*value->live_kv_pages) : json(nullptr)},
                 {"resident_kv_payload_bytes", value->resident_kv_payload_bytes}};
     };
     output << json{{"type", "header"}, {"schema_version", 1},

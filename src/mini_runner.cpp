@@ -32,6 +32,11 @@ public:
         if (engine.telemetry_mode == TelemetryMode::stages) { profile_ = runtime_.make_profile(); }
     }
     const ModelInfo& info() const noexcept override { return info_; }
+    BackendCapabilities capabilities() const noexcept override {
+        const auto& config = runtime_.config();
+        return {config.max_sequences, config.batch_tokens,
+                std::min(config.context_tokens, runtime_.dimensions().trained_context), true, true, true};
+    }
     std::vector<Token> tokenize(std::string_view text) const override { return runtime_.tokenize(text); }
     std::string token_piece(Token token) const override { return runtime_.token_piece(token); }
     bool is_eog(Token token) const override { return runtime_.is_eog(token); }
@@ -45,7 +50,8 @@ public:
         return execute_impl(batch, &profile);
     }
     std::optional<RunnerResources> resources() const noexcept override {
-        return RunnerResources{runtime_.used_kv_pages(), runtime_.resident_kv_bytes()};
+        return RunnerResources{runtime_.used_kv_pages(), runtime_.resident_kv_bytes(),
+                               KvLayout::paged, runtime_.config().context_tokens};
     }
     void copy_sequence(SequenceId source, SequenceId target, std::size_t tokens) override {
         runtime_.share_prefix(source, target, tokens);

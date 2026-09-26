@@ -94,6 +94,8 @@ public:
         if (!sampler_) {
             throw std::runtime_error("cannot create greedy sampler");
         }
+        capabilities_ = {engine.max_active + engine.prefix_cache_entries, engine.batch_tokens,
+                         engine.max_model_len, true, false, true};
     }
 
     ~LlamaRunner() override {
@@ -104,6 +106,7 @@ public:
     }
 
     const ModelInfo& info() const noexcept override { return info_; }
+    BackendCapabilities capabilities() const noexcept override { return capabilities_; }
 
     std::vector<Token> tokenize(std::string_view text) const override {
         if (text.size() > static_cast<std::size_t>(std::numeric_limits<std::int32_t>::max() - 8)) {
@@ -167,7 +170,7 @@ public:
                     llama_sampler_sample(sampler_.get(), context_.get(), static_cast<std::int32_t>(i))});
             }
         }
-        // Sequence aliases and resource reclamation are only changed after GPU work completes.
+        // GPU 工作完成后才允许修改 sequence 别名和回收资源。
         synchronize();
         return samples;
     }
@@ -191,6 +194,7 @@ public:
 
 private:
     ModelInfo info_;
+    BackendCapabilities capabilities_;
     std::unique_ptr<llama_model, decltype(&llama_model_free)> model_{nullptr, llama_model_free};
     std::unique_ptr<llama_context, decltype(&llama_free)> context_{nullptr, llama_free};
     std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampler_{nullptr, llama_sampler_free};

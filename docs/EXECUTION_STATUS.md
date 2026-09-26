@@ -1,13 +1,21 @@
 # 项目执行状态
 
-决策入口为 [PROJECT_PLAN_V2](PROJECT_PLAN_V2.md)，已验收的自有 CUDA 模型规范为 [CUDA-VS-001](NEXT_SPEC.md)。旧 `PROJECT_PLAN.md` 保留为历史参考。
+决策入口为 [PROJECT_PLAN_V3](PROJECT_PLAN_V3.md)，当前实施规范为
+[CUDA-SERVE-001](NEXT_SPEC_V2.md)。[CUDA-VS-001](NEXT_SPEC.md) 是冻结的 M1 模型规范；
+V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_POLICY.md)。
 
 ## 基点与依赖
 
 - 审计基点：`68ac275913207975a88e2090c6617467e351301c`。
 - 本地原起点：`235c5c4`；与审计基点的 Git tree 相同，审计基点包含主分支合并记录。
-- 实施分支：`feat/own-cuda-vertical-slice`；V2-M0 提交为 `e2fcb6d`。
-- 顺序：V2-M0 → V2-M1 → V2-M2；CPU 有界研究、GPU 分页和 Serving 策略按 V2 依赖与进入条件推进。
+- 开发基点：`608daf148a17007f96387040fd66ce130fe8d640`，包含现成 Windows 修复；
+  对应 CI run `36233429810` 的五个任务全部通过。
+- 实施分支：`feat/own-cuda-serving`。
+- 唯一主线：M3-1 自有 CUDA Serving；M3-2 单项优化和 M3-3 GPU 分页须满足 V3 进入条件。
+- M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
+- M3-1 实施中：adapter、能力/资源契约及清理桥接已通过三种构建的 48 套 CTest；
+  真实 GPU 小模型五项检查、CPU 实模型 13/13 与 HTTP 8/8 通过。
+  尚未通过真实 Qwen3 GPU HTTP 或 Serving 基线验收。
 
 ## 阶段门禁
 
@@ -23,10 +31,10 @@
 | V2-M1 / Step 8 数值 | 已验收 | 240 个组合、11760 次固定输入与 768 次生成比较；长语料、独立 KV、32-token 续写、计时开关与容量边界 |
 | V2-M1 / Step 8 性能 | 已验收，测量不确定项保留 | 375 项微基准与正式 70 进程模型基线；正确性、数据路径和跨进程输出一致性通过，24 项比较中 10 项为 `measurement_inconclusive` |
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
-| V2-M2 | 下一阶段，尚未实施 | 完整模型前置门禁已完成；待接入 GPU Serving 并验收 HTTP/SSE 和生命周期 |
-| V2-M3/M4/M5 | 条件进入 | 依照 V2 计划的研究预算、连续 GPU baseline 和压力证据 |
+| M3-1 | 实施中 | GPU Serving 接入及 HTTP/SSE、生命周期、限定基线验收 |
+| M3-2/M3-3 | 尚未进入 | 根据 Serving 证据选择单项优化或满足 GPU 分页进入条件 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md) 覆盖冻结语料、chunk/sequence 和自然生成，[真实形状微基准](CUDA_MICROBENCHMARKS.md) 覆盖矩阵、RMSNorm、RoPE、softmax 与 attention，[模型性能对照](CUDA_BENCHMARKS.md) 提供独立 KV 重建、完整 A/A 基线和统计复核，[完整模型 Profiler](CUDA_PROFILING.md) 提供实际时间线与选定 kernel 的硬件指标。V2-M1 的正确性、资源、数据路径和证据门禁已完成，不等于所有性能比较均有确定加速。下一阶段为 V2-M2；GPU Serving 与 GPU PagedAttention 尚未提供。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI 两条路径。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 正在接入，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
 
 ## 可复核证据
 
@@ -71,4 +79,4 @@
 - `tests/data/qwen3_validation_cases.json`：Q8_0/F32 参照 SHA-256、源 tensor dtype、数值模式、四类固定 token 语料、长度 16/33/128/256/1536、采样位置、near-tie 公式与三个短样例的 8-token 金标准。
 - `benchmarks/runtime-inputs/qwen3-cuda-v0.json`：S=4、Lmax=2048、B=128、CPU 8/16 线程、5 个独立 trial、A/A 噪声规则及稳态数据路径门禁。
 - `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json`：375 个真实形状、五个独立 trial、每样本 32 次 API 调用、FP64 对照与计时边界。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收；测量不确定项保留。V2-M1 已完成，V2-M2 尚未实施。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。当前主线为 M3-1。

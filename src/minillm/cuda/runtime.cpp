@@ -229,6 +229,10 @@ CudaRuntime::~CudaRuntime() = default;
 const CudaRuntimeConfig& CudaRuntime::config() const noexcept { return impl_->config; }
 const ModelDimensions& CudaRuntime::dimensions() const noexcept { return impl_->model.dimensions(); }
 const CudaDeviceInfo& CudaRuntime::device_info() const noexcept { return impl_->device; }
+CudaRuntimeState CudaRuntime::state() const noexcept {
+    return impl_->state.phase() == BatchPhase::poisoned ? CudaRuntimeState::poisoned : CudaRuntimeState::ready;
+}
+std::size_t CudaRuntime::live_kv_tokens() const noexcept { return impl_->state.live_tokens(); }
 std::vector<CudaWeightInfo> CudaRuntime::weight_manifest() const {
     std::vector<CudaWeightInfo> result;
     result.reserve(impl_->storage.plan().weights.size());
@@ -254,7 +258,7 @@ void CudaRuntime::clear_sequence(std::int32_t sequence) { impl_->state.clear(seq
 CudaDiagnostics CudaRuntime::diagnostics() const {
     CudaDiagnostics result;
     const auto& p = *impl_;
-    result.state = p.state.phase() == BatchPhase::poisoned ? CudaRuntimeState::poisoned : CudaRuntimeState::ready;
+    result.state = state();
     result.sequence_lengths.assign(p.state.lengths().begin(),p.state.lengths().end());
     result.live_sequences = p.state.live_sequences(); result.live_kv_tokens = p.state.live_tokens();
     result.kv_capacity_tokens = p.config.max_sequences*p.config.max_model_len;

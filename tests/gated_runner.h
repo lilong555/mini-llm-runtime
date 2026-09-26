@@ -49,6 +49,7 @@ public:
         : runner_(std::move(runner)), gate_(std::move(gate)) {}
 
     const llmserve::ModelInfo& info() const noexcept override { return runner_->info(); }
+    llmserve::BackendCapabilities capabilities() const noexcept override { return runner_->capabilities(); }
     std::vector<llmserve::Token> tokenize(std::string_view text) const override {
         return runner_->tokenize(text);
     }

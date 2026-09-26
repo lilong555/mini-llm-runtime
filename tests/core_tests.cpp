@@ -16,6 +16,7 @@
 #include <bit>
 #include <chrono>
 #include <cstring>
+#include <limits>
 #include <map>
 #include <numeric>
 #include <random>
@@ -153,6 +154,41 @@ TEST(config_rejects_unprogressable_settings) {
     config = {};
     config.context_tokens = 65;
     test::throws<std::invalid_argument>([&] { config.validate(); });
+}
+
+TEST(cuda_serving_configuration_is_checked_without_loading_a_model) {
+    ModelConfig model{"不存在的模型.gguf", 0, 8};
+    EngineConfig valid;
+    valid.max_active = 4;
+    valid.batch_tokens = 128;
+    valid.prefill_chunk = 32;
+    valid.prefix_cache_entries = valid.prefix_cache_tokens = 0;
+    validate_mini_cuda_config(model, valid);
+    for (int failure = 0; failure < 8; ++failure) {
+        auto config = valid;
+        switch (failure) {
+        case 0: config.max_active = 8; break;
+        case 1: config.batch_tokens = 256; break;
+        case 2: config.max_model_len = 2049; break;
+        case 3: config.prefix_cache_entries = 1; config.prefix_cache_tokens = 16; break;
+        case 4: config.prefix_cache_tokens = 16; break;
+        case 5: config.context_tokens = 8208; break;
+        case 6: config.max_active = std::numeric_limits<std::size_t>::max(); break;
+        case 7: config.max_model_len = std::numeric_limits<std::size_t>::max(); break;
+        }
+        test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(model, config); });
+    }
+    for (int failure = 0; failure < 5; ++failure) {
+        auto invalid = model;
+        switch (failure) {
+        case 0: invalid.gpu_layers = 1; break;
+        case 1: invalid.scalar_kernels = true; break;
+        case 2: invalid.device = -1; break;
+        case 3: invalid.threads = 0; break;
+        case 4: invalid.path.clear(); break;
+        }
+        test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(invalid, valid); });
+    }
 }
 
 TEST(half_conversion_all_finite_patterns) {
@@ -416,6 +452,14 @@ struct Probe {
     std::atomic<bool> fail{false};
     std::atomic<bool> fail_copy{false};
     std::atomic<bool> missing_sample{false};
+    std::atomic<int> invalid_sample{0};
+    std::atomic<int> clear_calls{0};
+    std::atomic<int> fail_clear_at{0};
+    std::atomic<bool> fail_sync{false};
+    std::atomic<bool> invalid_state{false};
+    std::atomic<bool> invalid_clear_slot{false};
+    bool report_resources = false;
+    BackendCapabilities capabilities{256, 8192, 8192, true, false, true};
 };
 
 class FakeRunner final : public ModelRunner {
@@ -423,6 +467,13 @@ public:
     explicit FakeRunner(std::shared_ptr<Probe> probe = std::make_shared<Probe>())
         : probe_(std::move(probe)) {}
     const ModelInfo& info() const noexcept override { return info_; }
+    BackendCapabilities capabilities() const noexcept override { return probe_->capabilities; }
+    std::optional<RunnerResources> resources() const noexcept override {
+        if (!probe_->report_resources) { return std::nullopt; }
+        const bool valid = !probe_->invalid_state.load();
+        return RunnerResources{std::nullopt, 4096, KvLayout::contiguous, 8192,
+                               valid ? std::optional<std::size_t>(0) : std::nullopt, 8192, valid, valid};
+    }
     std::vector<Token> tokenize(std::string_view text) const override {
         return {text.begin(), text.end()};
     }
@@ -451,6 +502,15 @@ public:
         if (probe_->missing_sample.load()) {
             result.clear();
         }
+        if (result.size() > 1) {
+            switch (probe_->invalid_sample.load()) {
+            case 1: result.back() = result.front(); break;
+            case 2: result.back().sequence = -1; break;
+            case 3: result.back().token = 512; break;
+            case 4: result.back().sequence = 7; break;
+            default: break;
+            }
+        }
         return result;
     }
     void copy_sequence(SequenceId source, SequenceId target, std::size_t tokens) override {
@@ -460,8 +520,17 @@ public:
         const auto& from = sequences_.at(source);
         sequences_[target] = {from.begin(), from.begin() + static_cast<std::ptrdiff_t>(tokens)};
     }
-    void clear_sequence(SequenceId sequence) noexcept override { sequences_.erase(sequence); }
-    void synchronize() noexcept override {}
+    void clear_sequence(SequenceId sequence) noexcept override {
+        if (sequence < 0 || (probe_->capabilities.max_sequences &&
+            static_cast<std::size_t>(sequence) >= probe_->capabilities.max_sequences)) {
+            probe_->invalid_clear_slot = true;
+        }
+        if (++probe_->clear_calls == probe_->fail_clear_at.load()) { probe_->invalid_state = true; }
+        if (!probe_->invalid_state.load()) { sequences_.erase(sequence); }
+    }
+    void synchronize() noexcept override {
+        if (probe_->fail_sync.load()) { probe_->invalid_state = true; }
+    }
 private:
     ModelInfo info_{"fake", "test-model", "test", "CPU", 8192, 512, false};
     std::shared_ptr<Probe> probe_;
@@ -512,6 +581,99 @@ static RequestInput request(std::string prompt, std::size_t max_tokens = 8) {
     result.max_tokens = max_tokens;
     result.ignore_eos = true;
     return result;
+}
+
+TEST(engine_checks_runner_capacities_and_prefix_support) {
+    EngineConfig config;
+    for (int failure = 0; failure < 5; ++failure) {
+        auto probe = std::make_shared<Probe>();
+        switch (failure) {
+        case 0: probe->capabilities.max_sequences = config.max_active + config.prefix_cache_entries - 1; break;
+        case 1: probe->capabilities.max_batch_tokens = config.batch_tokens - 1; break;
+        case 2: probe->capabilities.max_model_len = config.max_model_len - 1; break;
+        case 3: probe->capabilities.prefix_copy = false; break;
+        case 4: probe->capabilities.synchronous_execute = false; break;
+        }
+        test::throws<std::invalid_argument>([&] { Engine engine(config, std::make_unique<FakeRunner>(probe)); });
+        CHECK(probe->clear_calls == 0);
+    }
+    auto probe = std::make_shared<Probe>();
+    probe->capabilities = {0, 0, 0, true, false, true};
+    Engine engine(config, std::make_unique<FakeRunner>(probe));
+    CHECK(collect(engine.submit(request("unknown upper bound", 1))).terminal.status == 200);
+}
+
+TEST(gated_runner_preserves_capabilities_and_nullable_resources) {
+    auto probe = std::make_shared<Probe>();
+    probe->capabilities = {4, 128, 2048, false, false, true};
+    probe->report_resources = true;
+    test::GatedRunner runner(std::make_unique<FakeRunner>(probe), std::make_shared<test::RunnerGate>());
+    const auto caps = runner.capabilities();
+    CHECK(caps.max_sequences == 4 && caps.max_batch_tokens == 128 && caps.max_model_len == 2048);
+    CHECK(!caps.prefix_copy && !caps.runtime_stage_profile && caps.synchronous_execute);
+    CHECK(runner.resources()->layout == KvLayout::contiguous && !runner.resources()->live_kv_pages);
+    CHECK(runner.resources()->live_tokens == 0 && runner.resources()->resident_kv_payload_bytes == 4096);
+    probe->invalid_state = true;
+    CHECK(!runner.resources()->state_valid && !runner.resources()->reusable && !runner.resources()->live_tokens);
+    CHECK(runner.resources()->resident_kv_payload_bytes == 4096);
+    RunnerResources unknown;
+    CHECK(unknown.layout == KvLayout::unknown && !unknown.live_kv_pages && !unknown.live_tokens);
+    RunnerResources paged{3, 4096, KvLayout::paged, 64};
+    CHECK(paged.live_kv_pages == 3 && !paged.live_tokens && !paged.owned_device_bytes);
+}
+
+TEST(engine_noexcept_cleanup_failure_has_one_terminal_and_returns_credits) {
+    for (int fail_at : {1, 2}) {
+        auto probe = std::make_shared<Probe>();
+        probe->report_resources = true;
+        probe->fail_clear_at = fail_at;
+        EngineConfig config;
+        config.prefix_cache_entries = config.prefix_cache_tokens = 0;
+        Engine engine(config, std::make_unique<FakeRunner>(probe));
+        const auto handle = engine.submit(request("clear failure", 1));
+        CHECK(collect(handle).terminal.error_code == "backend_error");
+        CHECK(!handle->next(1ms));
+        engine.stop();
+        CHECK(engine.statistics().failed == 1 && engine.statistics().completed == 0);
+        CHECK(engine.statistics().kv_used_blocks == 0 && !engine.statistics().ready);
+        CHECK(!probe->invalid_clear_slot);
+        test::throws<RequestError>([&] { engine.submit(request("cannot reuse")); });
+    }
+    auto probe = std::make_shared<Probe>();
+    probe->report_resources = true;
+    probe->fail_sync = true;
+    Engine engine({}, std::make_unique<FakeRunner>(probe));
+    const auto handle = engine.submit(request("sync failure", 100));
+    engine.stop();
+    CHECK(collect(handle).terminal.error_code == "backend_error" && !handle->next(1ms));
+    CHECK(engine.statistics().kv_used_blocks == 0 && !engine.statistics().last_error.empty());
+}
+
+TEST(engine_rejects_entire_invalid_sample_batch_before_emission) {
+    for (int failure : {1, 2, 3, 4}) {
+        auto probe = std::make_shared<Probe>();
+        probe->invalid_sample = failure;
+        auto gate = std::make_shared<test::RunnerGate>();
+        EngineConfig config;
+        config.prefix_cache_entries = config.prefix_cache_tokens = 0;
+        Engine engine(config, std::make_unique<test::GatedRunner>(std::make_unique<FakeRunner>(probe), gate));
+        auto first = engine.submit(request("a", 4));
+        std::shared_ptr<RequestHandle> second;
+        try {
+            gate->wait_until_sampled();
+            second = engine.submit(request("b", 4));
+        } catch (...) {
+            gate->release();
+            throw;
+        }
+        gate->release();
+        const auto one = collect(first), two = collect(second);
+        CHECK(one.terminal.error_code == "backend_error" && two.terminal.error_code == "backend_error");
+        CHECK(one.tokens.size() == 1 && two.tokens.empty());
+        CHECK(!first->next(1ms) && !second->next(1ms));
+        engine.stop();
+        CHECK(engine.statistics().kv_used_blocks == 0 && !probe->invalid_clear_slot);
+    }
 }
 
 TEST(engine_serial_batched_and_cached_outputs_agree) {
