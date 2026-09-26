@@ -137,12 +137,14 @@ timeline 验证自有 kernel/cuBLAS、真实 dynamic batch、无逐层 weight/hi
 greedy 小 token/status D2H、无逐请求 Runtime 重建、单 stream 和同步完成边界。
 只按真实 timeline 解释 host 等待与 GPU gap，不累加 API/device 重叠时间。
 
-- [ ] 原 server 的 own-CUDA HTTP/SSE 在上游 GPU 关闭时通过。
-- [ ] 启动前能力与参数校验、sample 映射、S=1/4、dynamic/mixed/reuse 通过。
-- [ ] 正常 clear 的 live/resident 分离，poisoned invalid/non-reusable 与单终态通过。
-- [ ] cancel/timeout/disconnect/backpressure/shutdown 有对应证据。
-- [ ] 模型线程快照、noexcept 无分配、旧 CPU/upstream 与代表性 memcheck 通过。
-- [ ] 最终候选自身 CI 通过，完整 Serving raw+summary+validation+命令可获取。
-- [ ] 12 进程内的正式基线和一次 timeline 完整，所有不利结果保留。
+以下为交付条件；实际证据与发布候选身份见 [CUDA Serving 基线](../benchmarks/results/cuda-serving-001/README.md)。
+
+- 原 server 的 own-CUDA HTTP/SSE 在上游 GPU 关闭时通过。
+- 启动前能力与参数校验、sample 映射、S=1/4、dynamic/mixed/reuse 通过。
+- 正常 clear 的 live/resident 分离，poisoned invalid/non-reusable 与单终态通过。
+- cancel/timeout/disconnect/backpressure/shutdown 有对应证据。
+- 模型线程快照、noexcept 无分配、旧 CPU/upstream 与代表性 memcheck 通过。
+- 最终候选自身 CI 通过，完整 Serving raw+summary+validation+命令可获取。
+- 12 进程内的正式基线和一次 timeline 完整，所有不利结果保留。
 
 达到门禁即停止，不因性能不确定继续 trial，不在本 SPEC 顺手实现 M3-2 优化。

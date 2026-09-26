@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-SERVE-001",
+  "lifecycle_source": "b1ced89e98eef3bb2b6f21ac8f0f72c38067bfc2",
+  "lifecycle_ci": {
+    "run_id": 36242754913,
+    "jobs_passed": 5
+  },
+  "earlier_ci": {
+    "status": "failure",
+    "jobs_passed": 4,
+    "run_id": 36241363029,
+    "source": "f88886ee3768632f945d8358caedecdb4e5fc75e"
+  },
+  "local_ctest": {
+    "lifecycle_suites": 74,
+    "status": "passed",
+    "baseline_suites": 37
+  },
+  "archived_ctest_executions": {
+    "Reports": 12,
+    "SuiteExecutions": 174,
+    "CaseExecutions": 3353,
+    "SuitesWithoutCaseCounts": 0,
+    "DiagnosticReports": [
+      "/home/li/code/mini-llm-runtime/.run/cuda-serving-001/diagnostics/ci-f88886e/test-results.xml"
+    ],
+    "Status": "passed"
+  },
+  "cpu_model": {
+    "report": "validation/model-cpu-final.json",
+    "passed": 13
+  },
+  "cuda_real_model_memcheck": {
+    "log": "validation/memcheck-cuda.log",
+    "errors": 0,
+    "report": "validation/model-cuda-memcheck.json",
+    "leaked_bytes": 0,
+    "checks": 3,
+    "status": "passed"
+  },
+  "http": [
+    {
+      "passed": 12,
+      "backend": "minillm-cuda",
+      "report": "validation/http-cuda-final.json"
+    },
+    {
+      "passed": 12,
+      "backend": "minillm",
+      "report": "validation/http-cpu-final.json"
+    },
+    {
+      "passed": 12,
+      "backend": "llama.cpp",
+      "report": "validation/http-upstream-cuda.json"
+    }
+  ],
+  "formal": {
+    "failures": 0,
+    "processes": 12,
+    "output_comparisons": 288,
+    "requests": 288,
+    "output_tokens": 9216,
+    "status": "passed"
+  },
+  "nsys": {
+    "project_streams": 1,
+    "forwards": 288,
+    "status": "passed",
+    "baseline_output_matches": 24,
+    "layers_per_forward": 28,
+    "token_ids_matched": 768,
+    "measured_batches": 280,
+    "processes": 1,
+    "kernels": 201216
+  },
+  "final_candidate_ci": "发布候选的 SHA 和其自身 CI run 见 GitHub Release 元数据。"
+}

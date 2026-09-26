@@ -103,3 +103,8 @@ Engine 计时，runner 为 null，不伪报 GPU 阶段。详见 [在线观测](B
 Serving 测量使用 [既有策略回放](BENCHMARKS.md)，遵循 `CUDA-SERVE-001` 的两条 trace、
 最多三个 pilot、12 个正式进程和一次 NSys 预算。模型 token/s、CPU SIMD 微基准和
 上游 GPU 执行不能代替自有 GPU HTTP 性能。
+
+[首份 Serving 基线](../benchmarks/results/cuda-serving-001/README.md) 已有 12 个独立进程、
+288 个成功请求和一次完整时间线。mixed-length 的 mixed 吞吐中位数为
+130.68 token/s，prefill_first 为 122.03；burst-reuse 的约 0.28% 差异保持测量不确定。
+固定 SLO 的未达标请求和长 token 停顿均保留，结果不外推为生产级承诺。

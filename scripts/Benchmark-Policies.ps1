@@ -26,6 +26,7 @@ param(
     [ValidateSet('off', 'batches', 'stages')][string]$Telemetry = 'off',
     [ValidateRange(1, 16384)][int]$TelemetryCapacity = 1024,
     [ValidateRange(0.000001, 10000)][double]$ArrivalScale = 1.0,
+    [ValidateRange(0, 60000)][int]$GpuSamplePeriodMs = 0,
     [ValidateSet('success', 'queue_full', 'timeout', 'cancelled', 'backpressure')]
     [string[]]$AllowedRequestOutcomes = @('success'),
     [Nullable[long]]$TraceSeed = $null,
@@ -63,6 +64,16 @@ function Assert-RunInputs {
 
 if ($AllowedRequestOutcomes.Count -eq 0 -or $AllowedRequestOutcomes -notcontains 'success') {
     throw 'AllowedRequestOutcomes must include success so deterministic outputs have a comparison reference.'
+}
+if ($GpuSamplePeriodMs -gt 0 -and $GpuSamplePeriodMs -lt 1000) {
+    throw 'GPU 整设备采样周期须至少为 1000 ms；0 表示关闭。'
+}
+$gpuSampler = $null
+$gpuSampleArguments = @()
+if ($GpuSamplePeriodMs -gt 0) {
+    $gpuSampler = Get-Command nvidia-smi -ErrorAction Stop
+    $gpuSampleArguments = @('--query-gpu=timestamp,index,uuid,utilization.gpu,utilization.memory,memory.used,power.draw,clocks.gr,clocks.mem,temperature.gpu',
+        '--format=csv,nounits', "--id=$Device", "--loop-ms=$GpuSamplePeriodMs")
 }
 if ($Backend -eq 'llama' -and $Kernel -ne 'auto') { throw 'The scalar kernel mode applies only to MiniLLM.' }
 if ($Backend -eq 'mini' -and $GpuLayers -ne 0) { throw 'MiniLLM requires GpuLayers=0.' }
@@ -187,7 +198,14 @@ for ($trial = 0; $trial -lt $Trials; ++$trial) {
     $policies = if (($trial + $PolicyOrderOffset) % 2 -eq 0) { @('mixed', 'prefill_first') } else { @('prefill_first', 'mixed') }
     foreach ($policy in $policies) {
         $reports += [ordered]@{ file = "$policy-$trial.json"; variant = $policy; trial = $trial; order = $reports.Count
-            telemetry_file = if ($Telemetry -eq 'off') { $null } else { "$policy-$trial-telemetry.jsonl" } }
+            telemetry_file = if ($Telemetry -eq 'off') { $null } else { "$policy-$trial-telemetry.jsonl" }
+            process_file = "$policy-$trial-process.json"
+            server_stdout_file = "$policy-$trial-server.stdout.log"
+            server_stderr_file = "$policy-$trial-server.stderr.log"
+            client_stdout_file = "$policy-$trial-client.stdout.log"
+            client_stderr_file = "$policy-$trial-client.stderr.log"
+            gpu_sample_file = if ($GpuSamplePeriodMs) { "$policy-$trial-gpu.csv" } else { $null }
+            gpu_sample_error_file = if ($GpuSamplePeriodMs) { "$policy-$trial-gpu.stderr.log" } else { $null } }
     }
 }
 $metricsBackend = if ($Backend -eq 'mini') { 'minillm' } elseif ($Backend -eq 'mini-cuda') { 'minillm-cuda' } else { 'llama.cpp' }
@@ -297,6 +315,11 @@ $manifest = [ordered]@{
         processor = $processor
         logical_processors = [System.Environment]::ProcessorCount
         gpu = $gpu
+        gpu_sampling = if ($GpuSamplePeriodMs) {
+            [ordered]@{ source = 'nvidia-smi'; scope = 'whole_device'; period_ms = $GpuSamplePeriodMs
+                window = 'ready_service_through_shutdown_including_warmup'
+                executable = $gpuSampler.Source; arguments = $gpuSampleArguments }
+        } else { $null }
         cpu_frequency_temperature = $null
     }
     reports = $reports
@@ -311,14 +334,26 @@ foreach ($spec in $reports) {
     $policy = $spec.variant
     $deviceOptions = @{}
     if ($Backend -eq 'mini-cuda') { $deviceOptions = @{ Device = $Device; DeviceBudgetBytes = $DeviceBudgetBytes } }
-    $server = & (Join-Path $PSScriptRoot 'Start-LLMServe.ps1') -Backend $Backend -Policy $policy `
-        -Port $Port -Executable $serverExecutable -Model $Model -MaxActive $MaxActive `
-        -QueueCapacity $QueueCapacity -BatchTokens $BatchTokens -PrefillChunk $PrefillChunk `
-        -PrefixEntries $PrefixEntries -PrefixTokens $PrefixTokens -PageSize $PageSize -Context $Context `
-        -MaxModelLen $MaxModelLen -EventBuffer $EventBuffer -Threads $Threads -GpuLayers $GpuLayers `
-        -Kernel $Kernel -Telemetry $Telemetry -TelemetryCapacity $TelemetryCapacity `
-        -TelemetryOutput $(if ($spec.telemetry_file) { Join-Path $OutputDirectory $spec.telemetry_file } else { '' }) @deviceOptions
+    $server = $null
+    $sampler = $null
+    $clientExitCode = $null
+    $arguments = @()
+    $failure = $null
+    $stopped = $false
+    $started = (Get-Date).ToUniversalTime().ToString('o')
     try {
+        $server = & (Join-Path $PSScriptRoot 'Start-LLMServe.ps1') -Backend $Backend -Policy $policy `
+            -Port $Port -Executable $serverExecutable -Model $Model -MaxActive $MaxActive `
+            -QueueCapacity $QueueCapacity -BatchTokens $BatchTokens -PrefillChunk $PrefillChunk `
+            -PrefixEntries $PrefixEntries -PrefixTokens $PrefixTokens -PageSize $PageSize -Context $Context `
+            -MaxModelLen $MaxModelLen -EventBuffer $EventBuffer -Threads $Threads -GpuLayers $GpuLayers `
+            -Kernel $Kernel -Telemetry $Telemetry -TelemetryCapacity $TelemetryCapacity `
+            -TelemetryOutput $(if ($spec.telemetry_file) { Join-Path $OutputDirectory $spec.telemetry_file } else { '' }) @deviceOptions
+        if ($GpuSamplePeriodMs) {
+            $sampler = Start-Process -FilePath $gpuSampler.Source -ArgumentList $gpuSampleArguments -PassThru `
+                -RedirectStandardOutput (Join-Path $OutputDirectory $spec.gpu_sample_file) `
+                -RedirectStandardError (Join-Path $OutputDirectory $spec.gpu_sample_error_file)
+        }
         $output = Join-Path $OutputDirectory "$policy-$trial.json"
         $arguments = @('--port', $server.Port, '--trace', $archivedTrace, '--output', $output,
             '--run-id', $runId, '--trial', $trial, '--variant', $policy,
@@ -327,12 +362,47 @@ foreach ($spec in $reports) {
             '--client-sha256', $manifest.binaries.benchmark_client.sha256)
         $arguments += @('--arrival-scale', $ArrivalScale.ToString('R', [Globalization.CultureInfo]::InvariantCulture))
         if ($NoWarmup) { $arguments += '--no-warmup' }
-        & $benchExecutable @arguments
-        if ($LASTEXITCODE -notin @(0, 1) -or -not (Test-Path -LiteralPath $output -PathType Leaf)) {
+        Write-Host "Serving $($spec.order + 1)/$($reports.Count): $policy, trial=$trial"
+        & $benchExecutable @arguments 1> (Join-Path $OutputDirectory $spec.client_stdout_file) `
+            2> (Join-Path $OutputDirectory $spec.client_stderr_file)
+        $clientExitCode = $LASTEXITCODE
+        if ($clientExitCode -notin @(0, 1) -or -not (Test-Path -LiteralPath $output -PathType Leaf)) {
             throw "Benchmark process failed without a complete report: $output"
         }
+        if ($null -ne $sampler -and $sampler.HasExited) { throw 'GPU 采样进程提前退出，原始日志已保留。' }
+    } catch {
+        $failure = $_.Exception.Message
+        throw
     } finally {
-        & (Join-Path $PSScriptRoot 'Stop-LLMServe.ps1') -Port $server.Port
+        try {
+            if ($null -ne $server) {
+                & (Join-Path $PSScriptRoot 'Stop-LLMServe.ps1') -Port $server.Port
+                $stopped = $true
+            }
+        } catch {
+            $failure = $_.Exception.Message
+            throw
+        } finally {
+            if ($null -ne $sampler) {
+                if (-not $sampler.HasExited) { $sampler.Kill() }
+                $sampler.WaitForExit()
+            }
+            $logPort = if ($null -ne $server) { $server.Port } else { $Port }
+            foreach ($stream in @('stdout', 'stderr')) {
+                $log = Join-Path $root ".run/server-$logPort.$stream.log"
+                if (Test-Path -LiteralPath $log) {
+                    Copy-Item -LiteralPath $log -Destination (Join-Path $OutputDirectory $spec."server_${stream}_file")
+                }
+            }
+            Write-BenchmarkJson (Join-Path $OutputDirectory $spec.process_file) ([ordered]@{
+                variant = $policy; trial = $trial; order = $spec.order
+                started_at_utc = $started; finished_at_utc = (Get-Date).ToUniversalTime().ToString('o')
+                server = $server; shutdown_completed = $stopped; server_exit_code = $null
+                client_executable = $benchExecutable; client_arguments = $arguments; client_exit_code = $clientExitCode
+                gpu_sampler_stop = if ($null -ne $sampler) { 'collector_terminated_after_client' } else { $null }
+                error = $failure
+            })
+        }
     }
     Assert-RunInputs
 }

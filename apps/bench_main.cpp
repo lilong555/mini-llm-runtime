@@ -14,6 +14,7 @@
 #include <random>
 #include <set>
 #include <sstream>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -66,6 +67,7 @@ struct Measurement {
     double dispatch_lag_ms = 0;
     double ttft_ms = 0;
     double tpot_ms = 0;
+    double max_itl_ms = 0;
     double e2e_ms = 0;
     double finished_s = 0;
     std::vector<double> token_times_ms;
@@ -169,6 +171,10 @@ void replay_one(const json& row, const std::string& model, int port,
             if (measurement.token_times_ms.size() > 1) {
                 measurement.tpot_ms = (measurement.token_times_ms.back() - measurement.ttft_ms) /
                     static_cast<double>(measurement.token_times_ms.size() - 1);
+                for (std::size_t i = 1; i < measurement.token_times_ms.size(); ++i) {
+                    measurement.max_itl_ms = std::max(measurement.max_itl_ms,
+                        measurement.token_times_ms[i] - measurement.token_times_ms[i - 1]);
+                }
             }
         }
         measurement.within_slo = measurement.success &&
@@ -183,7 +189,7 @@ void replay_one(const json& row, const std::string& model, int port,
 }
 
 json summarize(const std::vector<Measurement>& values, double elapsed) {
-    std::vector<double> ttft, tpot, e2e, lag, itl;
+    std::vector<double> ttft, tpot, e2e, lag, itl, max_itl;
     std::size_t success = 0, good = 0, tokens = 0;
     for (const auto& value : values) {
         lag.push_back(value.dispatch_lag_ms);
@@ -196,6 +202,7 @@ json summarize(const std::vector<Measurement>& values, double elapsed) {
         ttft.push_back(value.ttft_ms);
         if (value.token_ids.size() > 1) {
             tpot.push_back(value.tpot_ms);
+            max_itl.push_back(value.max_itl_ms);
         }
         e2e.push_back(value.e2e_ms);
         for (std::size_t i = 1; i < value.token_times_ms.size(); ++i) {
@@ -214,7 +221,8 @@ json summarize(const std::vector<Measurement>& values, double elapsed) {
             {"output_tokens_per_second", elapsed > 0 ? tokens / elapsed : 0},
             {"goodput_requests_per_second", elapsed > 0 ? good / elapsed : 0},
             {"ttft_ms", percentiles(ttft)}, {"mean_tpot_ms", percentiles(tpot)},
-            {"inter_token_ms", percentiles(itl)}, {"e2e_ms", percentiles(e2e)},
+            {"inter_token_ms", percentiles(itl)}, {"request_max_itl_ms", percentiles(max_itl)},
+            {"e2e_ms", percentiles(e2e)},
             {"dispatch_lag_ms", percentiles(lag)}};
 }
 
@@ -224,17 +232,28 @@ void make_trace(const Options& options, httplib::Client& client, const std::stri
     const auto seed = options.integer("--seed", 0, 0, 2147483647);
     const auto long_tokens = options.integer("--long-tokens", 128, 1, 4096);
     const auto short_tokens = options.integer("--short-tokens", 16, 1, 4096);
+    const auto medium_tokens = options.integer("--medium-tokens", 128, 1, 4096);
     const auto generated = options.integer("--max-tokens", 16, 1, 4096);
+    const auto workload = options.get("--workload", "default");
+    if (workload != "default" && workload != "mixed-length" && workload != "burst-reuse") {
+        throw std::invalid_argument("unknown trace workload");
+    }
+    const auto burst_gap = options.number("--burst-gap-s", 2, 0.001, 120);
     const auto shared = options.has("--shared-prefix");
     auto file = output_file(options.get("--trace"));
     std::mt19937_64 random(static_cast<std::uint64_t>(seed));
     std::exponential_distribution<double> arrivals(rate > 0 ? static_cast<double>(rate) : 1.0);
     double arrival = 0;
     for (std::int64_t i = 0; i < count; ++i) {
-        if (i > 0 && rate > 0) {
+        if (workload == "burst-reuse") {
+            arrival = static_cast<double>(i / 4) * burst_gap;
+        } else if (i > 0 && rate > 0) {
             arrival += arrivals(random);
         }
-        const auto length = static_cast<std::size_t>(i % 4 == 0 ? long_tokens : short_tokens);
+        const auto class_name = workload == "mixed-length" ? (i % 3 == 0 ? "short" : i % 3 == 1 ? "medium" : "long") :
+            workload == "burst-reuse" ? (i % 2 == 0 ? "short" : "long") : (i % 4 == 0 ? "long" : "short");
+        const auto length = static_cast<std::size_t>(std::string_view(class_name) == "short" ? short_tokens :
+            std::string_view(class_name) == "medium" ? medium_tokens : long_tokens);
         const auto prefix = shared ? std::string("Shared memory and scheduling note. ") :
             "Request " + std::to_string(i) + ". Memory and scheduling note. ";
         const auto response = client.Post("/tokenize", json{{"text", prefix}}.dump(), "application/json");
@@ -251,7 +270,7 @@ void make_trace(const Options& options, httplib::Client& client, const std::stri
         }
         prompt.resize(length);
         file << json{{"request_id", "s" + std::to_string(seed) + "-r" + std::to_string(i)},
-            {"arrival_s", arrival}, {"class_name", i % 4 == 0 ? "long" : "short"},
+            {"arrival_s", arrival}, {"class_name", class_name},
             {"ttft_slo_ms", options.integer("--ttft-slo-ms", 1500, 1, 300000)},
             {"tpot_slo_ms", options.integer("--tpot-slo-ms", 100, 1, 300000)},
             {"request", {{"model", model}, {"prompt", prompt}, {"max_tokens", generated},
@@ -265,7 +284,8 @@ void make_trace(const Options& options, httplib::Client& client, const std::stri
 int main(int argc, char** argv) {
     try {
         Options options(argc, argv, {"--port", "--trace", "--output", "--requests", "--rate", "--seed",
-            "--long-tokens", "--short-tokens", "--max-tokens", "--ttft-slo-ms", "--tpot-slo-ms",
+            "--long-tokens", "--short-tokens", "--medium-tokens", "--workload", "--burst-gap-s",
+            "--max-tokens", "--ttft-slo-ms", "--tpot-slo-ms",
             "--run-id", "--trial", "--variant", "--trace-sha256", "--manifest-sha256",
             "--model-sha256", "--server-sha256", "--client-sha256", "--arrival-scale"},
             {"--help", "--make-trace", "--shared-prefix", "--no-warmup"});
@@ -276,6 +296,8 @@ int main(int argc, char** argv) {
                          "                --manifest-sha256 HASH --model-sha256 HASH --server-sha256 HASH --client-sha256 HASH]\n"
                          "llmserve-bench --make-trace --trace WORKLOAD.jsonl [--port 8000]\n"
                          "               [--requests 24] [--rate 4] [--seed 0] [--shared-prefix]\n"
+                         "               [--workload default|mixed-length|burst-reuse] [--burst-gap-s 2]\n"
+                         "               [--medium-tokens 128]\n"
                          "               [--long-tokens 128] [--short-tokens 16] [--max-tokens 16]\n"
                          "               [--ttft-slo-ms 1500] [--tpot-slo-ms 100]\n";
             return options.has("--help") ? 0 : 1;
@@ -400,6 +422,7 @@ int main(int argc, char** argv) {
                 {"terminal_events", result.terminal_events},
                 {"dispatch_lag_ms", result.dispatch_lag_ms}, {"ttft_ms", result.ttft_ms},
                 {"mean_tpot_ms", result.token_ids.size() > 1 ? json(result.tpot_ms) : json(nullptr)},
+                {"max_itl_ms", result.token_ids.size() > 1 ? json(result.max_itl_ms) : json(nullptr)},
                 {"e2e_ms", result.e2e_ms}, {"finished_s", result.finished_s},
                 {"token_times_ms", result.token_times_ms}, {"token_ids", result.token_ids},
                 {"token_telemetry", result.token_telemetry},

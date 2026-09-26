@@ -10,7 +10,9 @@
   `a0a62146ec0cb26ef8c548ad7104884892adbed6` 的 Windows 修复。
 - 基点自己的 CI：run `36233429810`，五个任务全部通过。
 - 实施分支：`feat/own-cuda-serving`。
-- 唯一主线：复用 HTTP、Engine、Scheduler、RequestHandle，接入 MiniCudaRunner。
+- 本轮交付：复用 HTTP、Engine、Scheduler、RequestHandle 的 MiniCudaRunner；
+  本机生命周期与限定测量证据见 [M3-1 基线](../benchmarks/results/cuda-serving-001/README.md)。
+  12 个正式进程与一次 NSys 已完成；M3-2/M3-3 尚未启动。
 - M1 数值、375-case 微基准、70-process 模型协议与 Profiler 冻结。
   24 项模型比较中的 14 项 `faster`、10 项 `measurement_inconclusive` 保持原判定。
   模型基线不是 HTTP 性能证据。

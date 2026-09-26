@@ -13,7 +13,7 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
 - 实施分支：`feat/own-cuda-serving`。
 - 唯一主线：M3-1 自有 CUDA Serving；M3-2 单项优化和 M3-3 GPU 分页须满足 V3 进入条件。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
-- M3-1 实施中：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
+- M3-1 本机与实验门禁已完成：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
   自有 CUDA、CPU、上游 CUDA、独立核心、ASan/UBSan 五种构建共 74/74 套 CTest 通过；
   真实 Qwen3 的 S=1/S=4 共 80 个输出与独立 Runtime 和冻结短金标准一致，
   S=4 有 3 个确定性 mixed batch，槽复用与并发 tokenize 通过。
@@ -24,7 +24,16 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
   逻辑信用归还，poisoned resident 保留到 owner 析构。
   CPU 实模型 13/13 通过；证据位于 `.run/cuda-serving-001/validation/`。
   `f88886e` 的 CI run `36241363029` 为 4/5，sanitizers 的 unit 超时；
-  停机谓词锁修正后的最终候选 CI 与限定 Serving 基线仍待完成，见 `ENG-062`。
+  停机谓词锁修正后的 `b1ced89` 对应 run `36242754913` 为 5/5，见 `ENG-062`。
+  最终发布候选 SHA 与自身 CI 由 [证据索引](../benchmarks/results/cuda-serving-001/evidence.json)
+  所指 Release 元数据绑定，不继承其他 SHA 的检查状态。
+- [首份 GPU Serving 基线](../benchmarks/results/cuda-serving-001/README.md)：
+  两条冻结 trace、固定 SLO、12 个正式服务进程，288 请求全部成功、9216 token 跨轮次一致；
+  mixed-length 的 prefill_first 有 6/72 请求未达 SLO，burst-reuse 吞吐差异保持
+  `measurement_inconclusive`。一次 NSys 覆盖 288 次完整 forward、201216 次 kernel，
+  batch 关联、单 stream、紧凑传输与无逐请求 Runtime 重建通过。
+  基准扩展的 own-CUDA/CPU CTest 共 37/37 通过。
+- 采集与验证已停止；没有补跑 M1、追加 trial/NCU 或进入 M3-2/M3-3。
 
 ## 阶段门禁
 
@@ -40,12 +49,17 @@ V1/V2 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_P
 | V2-M1 / Step 8 数值 | 已验收 | 240 个组合、11760 次固定输入与 768 次生成比较；长语料、独立 KV、32-token 续写、计时开关与容量边界 |
 | V2-M1 / Step 8 性能 | 已验收，测量不确定项保留 | 375 项微基准与正式 70 进程模型基线；正确性、数据路径和跨进程输出一致性通过，24 项比较中 10 项为 `measurement_inconclusive` |
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
-| M3-1 | 实施中 | GPU Serving 接入及 HTTP/SSE、生命周期、限定基线验收 |
+| M3-1 | 本机与实验已验收 | GPU HTTP/SSE、生命周期、资源、12 进程基线和一次 NSys；发布候选 CI 见证据索引 |
 | M3-2/M3-3 | 尚未进入 | 根据 Serving 证据选择单项优化或满足 GPU 分页进入条件 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 的限定性能基线仍待采集，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 已有独立的限定性能基线，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
 
 ## 可复核证据
+
+[CUDA-SERVE-001](../benchmarks/results/cuda-serving-001/README.md) 的完整 raw、日志、
+源码快照、单次 NSys/SQLite、生命周期与旧失败记录使用一个外部 canonical bundle。
+Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/results/cuda-serving-001/analysis.md)；
+不重复保存完整包或再建立验证层。性能与正确性分开，SLO 未达标和吞吐不确定项完整保留。
 
 [Windows/Linux 兼容性验收](../benchmarks/results/validation/windows-ci/README.md) 关联源码提交 `a0a6214`。远端 CI 五任务全部通过，五份 JUnit 共 63 套、1185 次用例执行；本地四种构建共 62 套 CTest、1034 次用例执行，另有 `cp1252` 环境的三套、37 次检查。CPU 实模型 13/13、HTTP 8/8，临时服务已回收。原生 Windows 的符号链接权限限制和原始失败记录单列，见 `ENG-057` 至 `ENG-059`。本组没有重跑完整 CUDA 数值、性能或 Profiler，旧模型证据仍绑定各自的源码和二进制；M2 尚未实施。
 

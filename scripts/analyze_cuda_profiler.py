@@ -159,9 +159,19 @@ def union_ns(intervals):
     return result
 
 
-def analyze_nsys(path, report):
-    calls = flatten(report)
-    target_index, target = selected_call(report)
+def analyze_nsys(path, report, serving_batches=None, device=None):
+    if serving_batches is None:
+        calls = flatten(report)
+        target_index, target = selected_call(report)
+    else:
+        calls = [dict(batch_id=batch["batch_id"], measured=batch["batch_id"] > report["server_before"]["batches"],
+                      call=dict(input_tokens=batch["prefill_tokens"] + batch["decode_tokens"],
+                                logits_rows=batch["logits_tokens"], host_forward_to_token_ns=batch["runner_ns"],
+                                context_before=[item["context_before"] for item in batch["slices"]],
+                                context_after=[item["context_before"] + item["tokens"] for item in batch["slices"]]))
+                 for batch in serving_batches]
+        target_index = target = None
+        require(calls, "Serving 时间线没有 batch")
     connection = sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
     try:
@@ -175,7 +185,7 @@ def analyze_nsys(path, report):
                 "NSys 没有完整 CUDA kernel、API、传输或设备信息")
         names = dict(connection.execute("SELECT id,value FROM StringIds"))
         devices = list(connection.execute("SELECT id,name,uuid,computeMajor,computeMinor FROM TARGET_INFO_GPU"))
-        gpu = report["runtime"]["device"]
+        gpu = device if serving_batches is not None else report["runtime"]["device"]
         require(any(row["id"] == 0 and row["name"] == gpu["name"]
                     and row["uuid"].lower().removeprefix("gpu-") == gpu["uuid"].lower()
                     and [row["computeMajor"], row["computeMinor"]] == gpu["compute_capability"] for row in devices),
@@ -214,6 +224,9 @@ def analyze_nsys(path, report):
         if current is not None:
             windows.append(current)
         require(len(windows) == len(calls) and len(stream_ids) == 1, "NSys 完整 forward 数或项目 stream 数不符")
+        if serving_batches is not None:
+            require({(event["deviceId"], event["contextId"], event["streamId"]) for event in events} == stream_ids,
+                    "Serving 矩阵与项目 kernel 没有使用同一 stream")
         require(roles["vendor_or_other"] > 0, "NSys 缺少模型矩阵 kernel")
         transfers = list(connection.execute(
             "SELECT start,end,deviceId,streamId,bytes,copyKind FROM CUPTI_ACTIVITY_KIND_MEMCPY ORDER BY start,end"))
@@ -275,6 +288,12 @@ def analyze_nsys(path, report):
             api.append(dict(row))
         allocation_apis = [row for row in api if re.match(r"cuda(Malloc|Free)", row["name"])]
         measured = [row for row in results if row["measured"]]
+        if serving_batches is not None:
+            require(not allocation_apis and not any(row["nonzero_returns"] for row in api),
+                    "Serving forward 范围内存在分配、释放或 CUDA API 错误")
+        selected = None if target is None else dict(
+            selector=SELECTOR, forward_index=target_index, input_tokens=target["call"]["input_tokens"],
+            context_after=target["call"]["context_after"], event=selected_event)
         return dict(schema_version=1, status="passed", complete_model=True, forwards=len(results),
                     measured_forwards=len(measured), layers_per_forward=28, project_streams=len(stream_ids),
                     kernel_count=len(events), kernel_roles=dict(roles),
@@ -285,14 +304,49 @@ def analyze_nsys(path, report):
                     measured_device_span_ns=sum(row["device_span_ns"] for row in measured),
                     measured_device_busy_union_ns=sum(row["device_busy_union_ns"] for row in measured),
                     measured_device_gap_ns=sum(row["device_gap_ns"] for row in measured),
-                    diagnostics=diagnostics, selected_kernel=dict(selector=SELECTOR, forward_index=target_index,
-                    input_tokens=target["call"]["input_tokens"], context_after=target["call"]["context_after"],
-                    event=selected_event), calls=results,
+                    diagnostics=diagnostics, selected_kernel=selected, calls=results,
                     limitations=["外部 Profiler 时间线，不是无插桩模型基线",
                                  "设备空隙不单独证明 host 提交、驱动或调度是原因",
                                  "GPU 活跃区间不等同于硬件 SM 利用率或 DRAM 带宽"])
     finally:
         connection.close()
+
+
+def analyze_serving(directory):
+    import analyze_telemetry as telemetry
+
+    manifest = read(model.artifact(directory, "manifest.json"))
+    require(manifest["benchmark"] == "llmserve-cuda-profiler" and manifest["spec_id"] == "CUDA-SERVE-001",
+            "不是 CUDA Serving 时间线")
+    require(manifest["engine"]["metrics_backend"] == "minillm-cuda" and
+            manifest["engine"]["telemetry_mode"] == "batches", "Serving 时间线需要 own-CUDA batch 观测")
+    for entry in (manifest["report"], manifest["telemetry"], manifest["database"]):
+        model.artifact(directory, entry["path"])
+    require(sha(model.artifact(directory, manifest["trace"]["path"])) == manifest["trace"]["sha256"],
+            "Serving trace 摘要不符")
+    report = read(directory / manifest["report"]["path"])
+    rows = [telemetry.parse(line) for line in (directory / manifest["telemetry"]["path"]).read_text(encoding="utf-8").splitlines()]
+    batches, stalls = telemetry.validate_capture(rows, report, manifest["engine"])
+    require(report["run_identity"]["server_sha256"] == manifest["binaries"]["server"]["sha256"] and
+            report["run_identity"]["model_sha256"] == manifest["model"]["sha256"] and
+            report["run_identity"]["client_sha256"] == manifest["binaries"]["benchmark_client"]["sha256"] and
+            report["run_identity"]["trace_sha256"] == manifest["trace"]["sha256"] and
+            report["run_identity"]["manifest_sha256"] == sha(directory / "manifest.json"), "Serving 采集身份不同")
+    nsys = analyze_nsys(directory / manifest["database"]["path"], report, rows[1:-1], manifest["device"])
+    composition = telemetry.summarize_batches(batches)
+    orders_by_slot = defaultdict(set)
+    for batch in batches:
+        for item in batch["slices"]:
+            orders_by_slot[item["sequence"]].add(item["request_order"])
+    require(any(batch["prefill_tokens"] and batch["decode_tokens"] for batch in batches), "Serving 未形成实际 mixed batch")
+    require(any(len(orders) > 1 for orders in orders_by_slot.values()), "Serving 没有槽复用")
+    return dict(nsys=nsys, telemetry=dict(
+        schema_version=1, status="passed", batches=composition, request_stalls=stalls,
+        slot_request_counts={str(slot): len(orders) for slot, orders in orders_by_slot.items()},
+        final_resources=rows[-1]["resources_final"],
+        limitations=["单次外部诊断，不纳入正式吞吐或策略显著性结论。",
+                     "host runner、CUDA API 与设备区间存在重叠，不能相加。",
+                     "GPU event busy/gap 不是整设备利用率；SSE 残差包含队列、socket 与客户端调度。"]))
 
 
 def analyze_ncu(path, nsys, report):
@@ -524,6 +578,7 @@ def main():
     parser.add_argument("--directory", type=Path)
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--schedule", action="store_true")
+    parser.add_argument("--serving", action="store_true")
     args = parser.parse_args()
     try:
         if args.schedule:
@@ -532,6 +587,15 @@ def main():
                              ensure_ascii=False, indent=2))
             return 0
         require(args.directory is not None, "必须指定 Profiler 证据目录")
+        if args.serving:
+            result = analyze_serving(args.directory)
+            if args.write:
+                model.publish(args.directory, {"nsys-summary.json": result["nsys"],
+                                              "telemetry-summary.json": result["telemetry"]})
+            print(json.dumps(dict(status="passed", serving_forwards=result["nsys"]["forwards"],
+                                  measured_batches=result["telemetry"]["batches"]["batches"]),
+                             ensure_ascii=False, indent=2))
+            return 0
         result = validate_bundle(args.directory)
         if args.write:
             model.publish(args.directory, {"nsys-summary.json": result["nsys"], "ncu-selected-kernel.json": result["ncu"],

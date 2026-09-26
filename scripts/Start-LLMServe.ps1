@@ -85,7 +85,9 @@ $record = [pscustomobject]@{
     Policy = $Policy
     ShutdownFile = $marker
     StartedAt = $process.StartTime.ToUniversalTime().ToString('o')
+    OutputLog = $stdout
     ErrorLog = $stderr
+    Arguments = @($argsList)
 }
 $record | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run "server-$Port.json") -Encoding utf8
 try {

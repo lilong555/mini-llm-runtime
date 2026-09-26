@@ -366,6 +366,7 @@ try {
         $e2es = @()
         $lags = @()
         $itls = @()
+        $maxItls = @()
         foreach ($request in @($report.requests)) {
             $id = [string]$request.id
             if ([string]::IsNullOrWhiteSpace($id) -or -not $seen.Add($id)) {
@@ -437,8 +438,19 @@ try {
                     $tpot = ($request.token_times_ms[-1] - $request.token_times_ms[0]) / ($tokenCount - 1)
                     Require-Close $request.mean_tpot_ms $tpot "$file request $id mean_tpot_ms"
                     $tpots += $tpot
+                    $maxItl = 0.0
+                    for ($i = 1; $i -lt $tokenCount; ++$i) {
+                        $maxItl = [math]::Max($maxItl, $request.token_times_ms[$i] - $request.token_times_ms[$i - 1])
+                    }
+                    $maxItls += $maxItl
+                    if ($request.PSObject.Properties['max_itl_ms']) {
+                        Require-Close $request.max_itl_ms $maxItl "$file request $id max_itl_ms"
+                    }
                 } elseif ($null -ne $request.mean_tpot_ms) {
                     Add-ValidationError "$file request $id single-token TPOT must be null."
+                }
+                if ($tokenCount -le 1 -and (Optional-Value $request 'max_itl_ms' $null) -ne $null) {
+                    Add-ValidationError "$file request $id single-token maximum ITL must be null."
                 }
                 $withinSlo = $request.ttft_ms -le (Optional-Value $traceRequest 'ttft_slo_ms' 1500) -and
                     $tpot -le (Optional-Value $traceRequest 'tpot_slo_ms' 100)
@@ -478,6 +490,9 @@ try {
         Check-Percentiles $report.summary.ttft_ms $ttfts "$file summary.ttft_ms"
         Check-Percentiles $report.summary.mean_tpot_ms $tpots "$file summary.mean_tpot_ms"
         Check-Percentiles $report.summary.inter_token_ms $itls "$file summary.inter_token_ms"
+        if ($report.summary.PSObject.Properties['request_max_itl_ms']) {
+            Check-Percentiles $report.summary.request_max_itl_ms $maxItls "$file summary.request_max_itl_ms"
+        }
         Check-Percentiles $report.summary.e2e_ms $e2es "$file summary.e2e_ms"
         Check-Percentiles $report.summary.dispatch_lag_ms $lags "$file summary.dispatch_lag_ms"
         $reportRecords += [pscustomobject]@{ file = $file; spec = $spec; data = $report }

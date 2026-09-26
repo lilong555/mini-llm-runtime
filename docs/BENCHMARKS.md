@@ -44,6 +44,8 @@ own-CUDA 的默认配置为 S=4、Lmax=2048、credits=8192、B=128、chunk=32、
 | `source-snapshot.zip` | 对应的源码与构建、测试、运行脚本快照，不含模型、依赖 checkout 或编译产物 |
 | `trace.jsonl` | 输入 trace 的原始字节副本 |
 | `mixed-N.json`、`prefill_first-N.json` | 每轮服务前后快照、完整请求、token、终态和时间戳 |
+| `*-process.json`、`*-server.*.log`、`*-client.*.log` | 每轮命令、进程身份、客户端退出码、停服状态与原始日志；未直接取得的服务端退出码为 null |
+| `*-gpu.csv`、`*-gpu.stderr.log` | 可选低频 `nvidia-smi` 整设备采样与诊断 |
 | `validation-summary.json` | 验收状态、检查项、实际比较的成功请求数和错误 |
 | `summary.json` | 仅在验收通过时生成的策略统计 |
 
@@ -61,6 +63,7 @@ own-CUDA 的默认配置为 S=4、Lmax=2048、credits=8192、B=128、chunk=32、
 - 已知 trace seed 通过 `TraceSeed` 提供；未知值记录为 `null`，不从文件名推测。
 - 采集不常驻数值参照模型，观测默认关闭。`Telemetry` 可选择 `batches` 或 `stages`；同一个策略组固定该选项。CPU 频率与温度未采集时记录为 `null`，不能解释为零或恒定。
 - `ArrivalScale` 默认 1，以固定比例缩放原始到达时间并写入 manifest。`PolicyOrderOffset` 默认 0；值为 1 时从 `prefill_first` 开始交替，用于外层观测模式实验。
+- `GpuSamplePeriodMs` 默认 0；启用时至少 1000 ms，使用 `nvidia-smi` 采集所选整张设备，而非本进程。窗口从服务 ready 后至停服，包含预热与客户端调度等待；不将该窗口的采样均值称为稳态 SM 利用率。
 - MiniLLM 使用 F32 激活和 F16 KV；llama.cpp 的激活算术记录为 `upstream_native`，不能把其量化内核与 MiniLLM 当作相同算术。
 
 ## 验收规则
@@ -71,7 +74,19 @@ own-CUDA 的默认配置为 S=4、Lmax=2048、credits=8192、B=128、chunk=32、
 
 `AllowedRequestOutcomes` 默认只有 `success`。压力实验可以显式加入 `queue_full`、`timeout`、`cancelled`、`backpressure`；客户端连接错误或不完整响应不能作为合法终态。所有请求仍须保留，失败请求不能计入 goodput。其他轮次中的成功请求必须在声明的参照轮次中有成功输出，否则验收失败。全部失败的合法压力记录可以通过结构验收，但 `successfully_compared_requests=0`，不代表模型输出验证通过。
 
-吞吐、goodput、延迟分位数及完整回放时长均根据原始请求重新核对。TTFT 从客户端实际发送时刻开始；TPOT 是每请求平均 token 间隔，ITL 单独统计。单输出 token 的 TPOT 为 `null`，不作为零延迟样本。吞吐和 goodput 的分母包含整个回放时长，失败请求不从请求集合中删除。
+吞吐、goodput、延迟分位数及完整回放时长均根据原始请求重新核对。TTFT 从客户端实际发送时刻开始；TPOT 是每请求平均 token 间隔，ITL 单独统计。`max_itl_ms` 是每请求最大间隔，`request_max_itl_ms` 汇总其分布；历史报告可缺省这两项。单输出 token 的 TPOT 和最大 ITL 为 `null`，不作为零延迟样本。吞吐和 goodput 的分母包含整个回放时长，失败请求不从请求集合中删除。
+
+## 固定 Trace
+
+`llmserve-bench --make-trace` 通过现有 `/tokenize` 取得词元，再按指定长度重复/截断，
+不需要执行模型生成。`--workload default` 保留每四个请求一长三短；
+`mixed-length` 按 short/medium/long 循环，`burst-reuse` 每四个请求同时到达且短长交错。
+指数到达使用 `--rate`、`--seed`，突发间隔使用 `--burst-gap-s`。
+SLO 写入每行，冻结后以原始字节和 SHA-256 为准，不依赖跨标准库重现随机分布。
+
+`CUDA-SERVE-001` 的固定输入与预算见
+[Serving 协议](../benchmarks/results/cuda-serving-001/protocol.json)：
+两个 24 请求 trace、每请求 32 个输出、两策略各三轮；SLO 是实验目标，不是产品承诺。
 
 验收失败时写入 `analysis-failure.json`，返回非零状态；原始文件与既有 `validation-summary.json`、统计汇总保持原字节。旧的成功记录只代表当时的验收，不能代替本次退出状态。成功时先完成所有验证和 JSON 序列化，再逐文件原子发布汇总，最后发布验收标记；发布异常恢复原文件。本接口不支持并发写同一归档目录。
 

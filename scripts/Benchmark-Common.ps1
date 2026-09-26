@@ -169,6 +169,12 @@ function Get-EvidenceAvailability([string]$Directory, [string]$Manifest = '') {
         else { & $add $data.trace.path $data.trace.sha256 'trace' $true }
         foreach ($report in $data.reports) {
             & $add $report.file '' 'report'
+            foreach ($field in @('process_file', 'server_stdout_file', 'server_stderr_file',
+                'client_stdout_file', 'client_stderr_file', 'gpu_sample_file', 'gpu_sample_error_file')) {
+                if ($report.PSObject.Properties[$field] -and $report.$field) {
+                    & $add $report.$field '' $field
+                }
+            }
             if ($report.PSObject.Properties['telemetry_file'] -and $report.telemetry_file) {
                 & $add $report.telemetry_file '' 'telemetry'
             } elseif ($data.benchmark -ceq 'llmserve-policy-comparison' -and

@@ -3,9 +3,13 @@
 import copy
 import argparse
 import importlib.util
+import http.server
+import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
+import threading
 
 spec = importlib.util.spec_from_file_location("analyzer", Path(__file__).parents[1] / "scripts/analyze_telemetry.py")
 analyzer = importlib.util.module_from_spec(spec)
@@ -142,6 +146,7 @@ for name, mutate in (
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--server", type=Path)
+parser.add_argument("--bench", type=Path)
 parser.add_argument("--cuda-enabled", action="store_true")
 args = parser.parse_args()
 if args.server:
@@ -162,4 +167,51 @@ if args.server:
         assert result.returncode != 0 and message in result.stderr, (options, result.stderr)
         passed += 1
         print(f"[PASS] cuda-cli-{options or 'defaults'}")
+if args.bench:
+    class Tokenizer(http.server.BaseHTTPRequestHandler):
+        def reply(self, value):
+            content = json.dumps(value).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+
+        def do_GET(self):
+            assert self.path == "/metrics"
+            self.reply(dict(model="fixture"))
+
+        def do_POST(self):
+            assert self.path == "/tokenize"
+            self.rfile.read(int(self.headers["Content-Length"]))
+            self.reply(dict(tokens=[1, 2, 3]))
+
+        def log_message(self, *_):
+            pass
+
+    with http.server.HTTPServer(("127.0.0.1", 0), Tokenizer) as server, tempfile.TemporaryDirectory() as temporary:
+        worker = threading.Thread(target=server.serve_forever)
+        worker.start()
+        try:
+            for workload, lengths in (("default", [512, 16, 16, 16] * 6),
+                                      ("mixed-length", [16, 128, 512] * 8),
+                                      ("burst-reuse", [16, 512] * 12)):
+                path = Path(temporary) / (workload + ".jsonl")
+                command = [str(args.bench), "--make-trace", "--port", str(server.server_port), "--trace", str(path),
+                           "--workload", workload, "--long-tokens", "512", "--max-tokens", "32",
+                           "--ttft-slo-ms", "1000", "--tpot-slo-ms", "100"]
+                result = subprocess.run(command, capture_output=True, encoding="utf-8", timeout=10)
+                assert result.returncode == 0, result.stderr
+                rows = [json.loads(line) for line in path.read_text().splitlines()]
+                assert [len(row["request"]["prompt"]) for row in rows] == lengths
+                assert len({row["request_id"] for row in rows}) == 24
+                assert all(row["request"]["max_tokens"] == 32 and row["request"]["ignore_eos"] and
+                           row["ttft_slo_ms"] == 1000 and row["tpot_slo_ms"] == 100 for row in rows)
+                assert [row["arrival_s"] for row in rows] == sorted(row["arrival_s"] for row in rows)
+                if workload == "burst-reuse":
+                    assert [row["arrival_s"] for row in rows] == [2 * (i // 4) for i in range(24)]
+                passed += 1
+                print(f"[PASS] trace-{workload}")
+        finally:
+            server.shutdown()
+            worker.join()
 print(f"{passed}/{passed} tests passed")

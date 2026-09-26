@@ -630,9 +630,18 @@
 
 ## ENG-062：空闲 Engine 停机谓词未与条件变量共用互斥锁
 
-- 状态：待候选 CI 验证；旧超时的唯一根因尚未确认。
+- 状态：已解决，限定于停机谓词的丢失唤醒窗口；旧超时的唯一根因尚未确认。
 - 影响：停机通知可能落在模型线程检查谓词之后、登记等待之前，导致 join 等不到线程退出；原子变量本身不能消除条件变量的丢失唤醒窗口。
 - 复现条件或证据：`f88886e` 的 CI run `36241363029` 中，Windows/Linux 普通构建四任务通过，sanitizers 的 `unit` 在 30.03 秒超时，未提供 ASan 越界或栈报告。原始 JUnit 与日志位于 `.run/cuda-serving-001/diagnostics/ci-f88886e/`。本机新增 256 次空闲启动/停止用例后，五次有界复验全部通过，未再次复现旧超时。
 - 原因：`Engine::Impl::stop()` 原先在 `mutex` 外更新等待谓词并通知；该同步窗口由代码确认，但没有旧 CI 线程栈可将那次超时唯一归因于此处。
 - 解决方法或下一步：在同一 `mutex` 下设置 stopping，解锁后通知并 join；增加空闲停机回归，并即时刷新核心测试进度以定位未来超时。不放宽 30 秒门禁。
-- 验证：修正后五种构建共 74/74 套 CTest 通过；ASan/UBSan 的 unit 连续五次通过，每次包含 256 次空闲停机。CPU/自有 CUDA HTTP 各 12/12、CPU 实模型 13/13 通过，原始记录位于 `.run/cuda-serving-001/validation/` 和各构建的 `cuda-serving-final.xml`。候选自身 CI 仍待验证；旧 `f88886e` 保持 4/5，不继承本地通过结果。
+- 验证：修正后五种构建共 74/74 套 CTest 通过；ASan/UBSan 的 unit 连续五次通过，每次包含 256 次空闲停机。CPU/自有 CUDA HTTP 各 12/12、CPU 实模型 13/13 通过，原始记录位于 `.run/cuda-serving-001/validation/` 和各构建的 `cuda-serving-final.xml`。候选 `b1ced89` 自身的 CI run `36242754913` 五任务全部通过；旧 `f88886e` 保持 4/5，不继承新候选结果。
+
+## ENG-063：prefill_first 的长停顿与部分请求未达固定 SLO
+
+- 状态：已记录，策略取舍和未达标结果保留；不作为 M3-1 接入阻塞。
+- 影响：mixed-length 的 prefill_first 每轮有 2/24 请求未达 TTFT≤1000 ms 的实验目标；burst-reuse 虽满足 mean TPOT≤100 ms，仍出现最长 466.71 ms 的单 token 停顿。不能将请求全部成功或均值达标解释为无长停顿。
+- 复现条件或证据：`benchmarks/results/cuda-serving-001/protocol.json` 固定两条 trace、SLO、三轮顺序及 12 进程预算。`summary.json` 保留所有逐轮指标；完整 raw 由同目录 `evidence.json` 定位。mixed-length 的 prefill_first P95 TTFT 三轮为 1050.65、1049.31、1072.67 ms，最大 ITL 为 333.40、340.46、333.00 ms。
+- 原因：`src/scheduler.cpp` 的 prefill_first 在仍有 prefill 时不安排 decode；该策略的正式采集中 mixed batch 均为 0。mean TPOT 把长停顿分摊到整个输出序列，不能替代最大 ITL。突发负载吞吐还受固定到达间隔影响。
+- 解决方法或下一步：保留 mixed 默认策略与 prefill_first 对照，不更改 SLO 或负载、不补跑挑选结果。后续策略优化需另行满足 M3-2 的单项研究进入条件。
+- 验证：12 个正式进程的 288 请求全部成功、9216 token 跨轮次一致；SLO 未达标请求没有删除。burst-reuse 吞吐差异约 0.28% 且配对方向不稳定，保持 `measurement_inconclusive`。单次 NSys 的 batch/显式传输/单 stream 检查通过，不外推为通用策略加速。

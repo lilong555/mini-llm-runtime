@@ -377,6 +377,21 @@ try {
         Set-Trace $directory $manifest $mixed $prefill $rows
         $mixed.requests[1].id = 'R0'; $prefill.requests[1].id = 'R0'
     }
+    Assert-Passes 'per-request-maximum-stall' {
+        param($manifest, $mixed, $prefill)
+        foreach ($report in @($mixed, $prefill)) {
+            foreach ($request in $report.requests) { $request.max_itl_ms = 1.0 }
+            $report.summary.request_max_itl_ms = Quantiles @(1.0, 1.0)
+        }
+    }
+    Assert-Rejected 'forged-maximum-stall' {
+        param($manifest, $mixed, $prefill)
+        $prefill.requests[0].max_itl_ms = 999.0
+    } 'max_itl_ms'
+    Assert-Rejected 'forged-maximum-stall-distribution' {
+        param($manifest, $mixed, $prefill)
+        $prefill.summary.request_max_itl_ms = Quantiles @(999.0, 999.0)
+    } 'request_max_itl_ms'
     Assert-Passes 'allowed-timeout' {
         param($manifest, $mixed, $prefill)
         $manifest.protocol.allowed_request_outcomes += 'timeout'

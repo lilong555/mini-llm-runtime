@@ -133,6 +133,29 @@ def timeline_checks_complete_layers_and_transfers():
         assert result["allocation_apis_in_forward_span"] == []
 
 
+def serving_batch_mapping_and_no_runtime_rebuild():
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "trace.sqlite"
+        database(path)
+        batches = [dict(batch_id=i + 1, prefill_tokens=item["call"]["input_tokens"], decode_tokens=0,
+                        logits_tokens=1, runner_ns=item["call"]["host_forward_to_token_ns"],
+                        slices=[dict(context_before=item["call"]["context_before"][0], tokens=item["call"]["input_tokens"])])
+                   for i, item in enumerate(calls())]
+        report = dict(server_before=dict(batches=1))
+        result = audit.analyze_nsys(path, report, batches, gpu())
+        assert result["forwards"] == 2 and result["selected_kernel"] is None
+        assert result["calls"][1]["batch_id"] == 2 and result["calls"][1]["measured"]
+        wrong = deepcopy(batches)
+        wrong[1]["logits_tokens"] = 2
+        invalid(lambda: audit.analyze_nsys(path, report, wrong, gpu()))
+        connection = sqlite3.connect(path)
+        connection.execute("INSERT INTO StringIds VALUES(999,'cudaMalloc')")
+        connection.execute("INSERT INTO CUPTI_ACTIVITY_KIND_RUNTIME VALUES(120,130,999,999,0)")
+        connection.commit()
+        connection.close()
+        invalid(lambda: audit.analyze_nsys(path, report, batches, gpu()))
+
+
 def incomplete_kernel_trace_is_rejected():
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "trace.sqlite"
@@ -347,6 +370,7 @@ def failed_revalidation_preserves_previous_summary():
 
 if __name__ == "__main__":
     tests = [protocol_and_selection_are_frozen, timeline_checks_complete_layers_and_transfers,
+             serving_batch_mapping_and_no_runtime_rebuild,
              incomplete_kernel_trace_is_rejected, wrong_stream_or_device_is_rejected,
              wrong_layer_order_is_rejected_even_with_matching_counts,
              copy_errors_and_dropped_events_are_rejected, timeline_union_does_not_double_count_overlap,

@@ -33,3 +33,11 @@ Release 暂不可用不阻塞产品开发。
 source SHA 或必要 dirty snapshot、binary/model/input hash、配置、raw、summary、
 validation、复现命令齐全且可获取即可。允许检查错 token、重复终态、非法内存、
 缺样本、错单位、错源码；不新增验证器的验证器，不以产物数量作为完成指标。
+
+## CUDA Serving
+
+`CUDA-SERVE-001` 使用 [单一证据索引](../benchmarks/results/cuda-serving-001/evidence.json)
+定位 Release asset、SHA-256、尺寸、采集源码与既有复核命令。
+完整 raw/日志/源码快照/NSys/SQLite 不进入 Git；Git 中只保留固定输入与小摘要。
+实验的 source SHA/dirty snapshot 与最终发布候选分开，后者的 SHA 及自身 CI run
+由 Release 元数据绑定，不通过反复重封包更新候选身份。

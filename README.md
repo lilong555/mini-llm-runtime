@@ -70,7 +70,7 @@ bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --toke
 bash scripts/dev.sh own-cuda serve --port 8001
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。GPU Serving 的生命周期与 HTTP 性能分别验收，当前进度见 [执行状态](docs/EXECUTION_STATUS.md)。
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。[自有 GPU Serving 基线](benchmarks/results/cuda-serving-001/README.md) 包含 12 个独立服务进程、288 个成功请求和一次完整时间线，保留 SLO 未达标及吞吐不确定项；生命周期与性能分别验收。
 
 ### Windows / PowerShell
 
@@ -224,7 +224,7 @@ benchmarks/          固定输入及实测报告
 当前路线见 [PROJECT_PLAN_V3](docs/PROJECT_PLAN_V3.md)，实施规范见 [CUDA-SERVE-001](docs/NEXT_SPEC_V2.md)，验收状态见 [执行状态](docs/EXECUTION_STATUS.md)。
 
 1. M3-0：兼容修复、冻结 M1、明确 [产物政策](docs/ARTIFACT_POLICY.md)。
-2. M3-1：唯一主线，自有 CUDA Serving、生命周期与有界 HTTP 基线。
+2. M3-1：自有 CUDA Serving、生命周期与有界 HTTP 基线已提供。
 3. M3-2/M3-3：根据 Serving 证据选择一项优化，或满足 GPU 分页进入条件后启动。
 
 CPU 保持独立产品与数值参照。CUDA 模型、GPU Serving 与 GPU PagedAttention 分别验收，

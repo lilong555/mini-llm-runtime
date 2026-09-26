@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-SERVE-001",
+  "benchmark": "first-own-cuda-serving-baseline",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "source_weights": "Q8_0",
+  "device_weights": "F32",
+  "activation": "F32",
+  "kv": "F16",
+  "single_stream": true,
+  "prefix_cache": false,
+  "engine": {
+    "max_active": 4,
+    "max_model_len": 2048,
+    "context_tokens": 8192,
+    "batch_tokens": 128,
+    "prefill_chunk": 32,
+    "block_size": 16,
+    "queue_capacity": 64,
+    "event_buffer_size": 128,
+    "prefix_cache_entries": 0,
+    "prefix_cache_tokens": 0,
+    "threads": 8,
+    "gpu_layers": 0,
+    "device": 0
+  },
+  "slo": {
+    "ttft_ms": 1000,
+    "request_mean_tpot_ms": 100,
+    "scope": "experimental_target_not_product_guarantee"
+  },
+  "workloads": [
+    {
+      "name": "mixed-length",
+      "trace": "benchmarks/traces/cuda-serving-mixed-s20260926.jsonl",
+      "trace_sha256": "caf9c4e5baf7ad6e159df7af514b080bf65ca8bd1fcb0e1e3c1304c2e29f81e4",
+      "seed": 20260926,
+      "requests": 24,
+      "prompt_lengths": [16, 128, 512],
+      "arrival": "exponential",
+      "rate_per_second": 4,
+      "policy_order_offset": 0
+    },
+    {
+      "name": "burst-reuse",
+      "trace": "benchmarks/traces/cuda-serving-burst-s20260927.jsonl",
+      "trace_sha256": "628a0fa4b215d89ac7b80ac355cb0fa5168374caf42052cdad978a82b65ce1d8",
+      "seed": 20260927,
+      "requests": 24,
+      "prompt_lengths": [16, 512],
+      "arrival": "groups_of_4_short_long_alternating",
+      "burst_gap_seconds": 2,
+      "policy_order_offset": 1
+    }
+  ],
+  "generation": {
+    "max_tokens": 32,
+    "ignore_eos": true,
+    "temperature": 0,
+    "timeout_ms": 120000
+  },
+  "collection": {
+    "pilots": 0,
+    "trials_per_policy": 3,
+    "policies": ["mixed", "prefill_first"],
+    "formal_processes": 12,
+    "arrival_scale": 1,
+    "order": "alternating",
+    "telemetry": "off",
+    "gpu_sample_period_ms": 1000,
+    "gpu_sampling_scope": "whole_device_ready_through_shutdown_including_warmup",
+    "warmup": {"prompt": "Hello", "max_tokens": 8, "ignore_eos": true},
+    "profiler_processes": 1,
+    "profiler": "nsys",
+    "profiler_workload": "mixed-length",
+    "profiler_policy": "mixed",
+    "profiler_telemetry": "batches",
+    "ncu_processes": 0
+  },
+  "primary_metrics": ["successful_output_tokens_per_second", "slo_goodput_requests_per_second"],
+  "guardrails": ["ttft_p50_p95", "request_mean_tpot", "inter_token_latency", "request_max_itl", "failure_rejection_timeout_rates"],
+  "interpretation": [
+    "两条 trace 分开报告，不合并统一加速比。",
+    "三轮差异不稳定时保留测量不确定，不增加 trial。",
+    "失败保留在完整请求集合中，不放松 all-success 时间线规则。",
+    "SLO 不因结果而调整；24 请求尾分位数只作描述。",
+    "初始化与权重上传单列，不计入客户端稳态吞吐。",
+    "CUDA API、host runner 与 device 时间重叠，不相加。",
+    "达到 M3-1 门禁后停止，不自动进入 M3-2 或 M3-3。"
+  ]
+}
