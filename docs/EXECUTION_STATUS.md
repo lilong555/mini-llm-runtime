@@ -17,8 +17,8 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 - 实施基点包含独立 HTTP 停服修复 `57268f9`，对应 `ENG-064`：
   52/52 套 CTest、三后端 HTTP 各 12/12 通过，保留初始失败。
   此修复不改变模型数学、KV 或 scheduler，后续精度 A/B 均使用它。
-- 唯一主线：M4-1 受控 F16 矩阵边界研究，F32 默认保持。
-  成功或 memory-only 成功后进入功能冻结；attention 仅作为 V4 条件备选，不做 GPU 分页。
+- M4-1 受控 F16 矩阵边界研究已触发 `blocked_correctness` 停止线，F32 默认保持。
+  下一项为研究证据收束与 M4-2 进入条件判定；attention 仅作为 V4 条件备选，不做 GPU 分页。
 - M4-0：现有 NSys 的测量 batch、kernel 分组及关联拷贝已离线拆解，
   [研究记录](PRECISION_STUDY.md) 与 [冻结输入](../benchmarks/runtime-inputs/qwen3-precision-v1.json)
   固定数值、主指标、护栏与 24 个正式性能进程预算。
@@ -32,7 +32,11 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   `03492ca` 的六进程正式采样及离线复核通过，自身 CI run `36416066381` 五任务通过。
   owned bytes 从 3,449,229,312 降至 2,258,046,976（34.53%）；M128 body 三类 shape
   含转换改善中位数为 53.61% 至 61.50%，保留小 M 的逆序退化。
-  当前决定进入全模型数值验证，尚无端到端速度或产品晋升结论；Runtime/Serving 仍拒绝候选模式。
+- M4-1 模型边界：同一 Runtime 已接入四组转换复用与 selected-row LM head；
+  48 配置的 840 行、两模式 S1/S4 的 12 组短 golden 均通过。
+  四组 32-token 续写没有 token 分叉，但 repeated/1536 的 step=19
+  cosine 为 0.999885866，低于 0.9999。完整门禁失败，见 `ENG-067`。
+  Serving 继续拒绝候选，模型/Serving 正式性能进程均未启动，不判为 memory-only 成功。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
 - M3-1 本机与实验门禁已完成：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
   自有 CUDA、CPU、上游 CUDA、独立核心、ASan/UBSan 五种构建共 74/74 套 CTest 通过；
@@ -73,7 +77,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
 | M3-1 | 本机与实验已验收 | GPU HTTP/SSE、生命周期、资源、12 进程基线和一次 NSys；发布候选 CI 见证据索引 |
 | M4-0 | 入口检查与合同已定义 | 已有时间线离线分解，16 个矩阵 shape、6 个模型 workload、两条 Serving trace |
-| M4-1 | 合同、底层边界与微基准通过验收 | 六进程 16-shape 结果支持进入全模型数值验证；模型和 Serving 尚未完成 |
+| M4-1 | `blocked_correctness`，停止性能推进 | 模型边界可执行；长续写 cosine 未达冻结门槛；无产品晋升，研究证据待最终归档 |
 | M4-2 | 未进入 | 仅 Primary 停止且独立目标 workload 的 attention 份额满足门槛时考虑 |
 | M4-3 | 未进入 | 一项研究完成后的功能冻结、作品表达与 upstream |
 

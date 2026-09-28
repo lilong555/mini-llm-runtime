@@ -243,14 +243,20 @@ int main(int argc, char** argv) {
     std::filesystem::path output;
     bool owns_output = false;
     try {
-        Options options(argc,argv,{"--model","--reference-model","--contract","--output"},{"--help","--full"});
+        Options options(argc,argv,{"--model","--reference-model","--contract","--output","--precision-study"},{"--help","--full"});
         if (options.has("--help")) {
-            std::cout << "minillm-cuda-model-tests --model MODEL --reference-model F32 --contract JSON --output NEW_DIRECTORY [--full]\n";
+            std::cout << "minillm-cuda-model-tests --model MODEL --contract JSON --output NEW_DIRECTORY\n"
+                         "  --reference-model F32 [--full] 或 --precision-study INPUT_JSON\n";
             return 0;
         }
-        for (const auto* name : {"--model","--reference-model","--contract","--output"}) {
+        const bool precision = options.has("--precision-study");
+        if (precision && (options.has("--full") || options.has("--reference-model"))) {
+            throw std::invalid_argument("--precision-study 不能与 --full 或 --reference-model 同时使用");
+        }
+        for (const auto* name : {"--model","--contract","--output"}) {
             if (options.get(name).empty()) { throw std::invalid_argument(std::string("缺少参数：")+name); }
         }
+        if (!precision && options.get("--reference-model").empty()) { throw std::invalid_argument("缺少参数：--reference-model"); }
         output = options.get("--output");
         if (!output.parent_path().empty()) { std::filesystem::create_directories(output.parent_path()); }
         if (!std::filesystem::create_directory(output)) { throw std::runtime_error("模型验证目录必须尚不存在"); }
@@ -259,13 +265,27 @@ int main(int argc, char** argv) {
         std::ifstream input(options.get("--contract"));
         const auto contract = json::parse(input);
         const auto model_sha = cuda_reports::file_hash(options.get("--model"));
-        const auto reference_sha = cuda_reports::file_hash(options.get("--reference-model"));
         CHECK(contract.at("schema_version") == 1 && contract.at("model").at("sha256") == model_sha);
-        CHECK(contract.at("reference").at("sha256") == reference_sha && contract.at("reference").at("source_sha256") == model_sha);
         std::filesystem::copy_file(options.get("--contract"),output/"validation-contract.json");
         llama_log_set([](ggml_log_level level, const char* text, void*) {
             if (level >= GGML_LOG_LEVEL_WARN) { std::cerr << text; }
         },nullptr);
+        if (precision) {
+            const auto experiment_path = options.get("--precision-study");
+            const auto input_sha = cuda_reports::file_hash(experiment_path);
+            CHECK(input_sha == "3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8");
+            std::ifstream experiment_file(experiment_path);
+            const auto experiment = json::parse(experiment_file);
+            CHECK(experiment.at("model_sha256") == model_sha);
+            CHECK(experiment.at("validation_contract").at("sha256") == cuda_reports::file_hash(options.get("--contract")));
+            std::filesystem::copy_file(experiment_path,output/"precision-input.json");
+            auto summary = cuda_validation::run_precision_validation(options.get("--model"),contract,experiment,output);
+            summary["model_sha256"] = model_sha; summary["precision_input_sha256"] = input_sha;
+            cuda_reports::write(output/"validation-summary.json",summary);
+            return summary.at("passed").get<bool>() ? 0 : 1;
+        }
+        const auto reference_sha = cuda_reports::file_hash(options.get("--reference-model"));
+        CHECK(contract.at("reference").at("sha256") == reference_sha && contract.at("reference").at("source_sha256") == model_sha);
         if (options.has("--full")) {
             auto summary = cuda_validation::run_full_validation(options.get("--model"),options.get("--reference-model"),contract,output);
             summary["model_sha256"] = model_sha; summary["reference_sha256"] = reference_sha;

@@ -39,5 +39,7 @@ void matrix_multiply(const CudaContext& context, DeviceTensorView<const float> x
 // uint16_t 保存 IEEE F16 位模式；累加和输出为 F32，要求候选精度 context。
 void matrix_multiply(const CudaContext& context, DeviceTensorView<const std::uint16_t> x,
                      DeviceTensorView<const std::uint16_t> weights, DeviceTensorView<float> output);
+void matrix_multiply(const CudaContext& context, const MatrixWeightView& x,
+                     const MatrixWeightView& weights, DeviceTensorView<float> output);
 
 } // namespace minillm::cuda

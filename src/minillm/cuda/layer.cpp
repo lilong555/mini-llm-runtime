@@ -10,8 +10,9 @@ LayerExecutor::LayerExecutor(CudaStorage& storage)
     layers_.reserve(dimensions_.layers);
     for (std::size_t layer = 0; layer < dimensions_.layers; ++layer) {
         const auto prefix = "blk." + std::to_string(layer) + ".";
-        const auto w = [&](const char* name) { return storage.weight(prefix + name + ".weight"); };
-        layers_.push_back({w("attn_norm"), w("attn_q_norm"), w("attn_k_norm"), w("ffn_norm"),
+        const auto norm = [&](const char* name) { return storage.norm_weight(prefix + name + ".weight"); };
+        const auto w = [&](const char* name) { return storage.matrix_weight(prefix + name + ".weight"); };
+        layers_.push_back({norm("attn_norm"), norm("attn_q_norm"), norm("attn_k_norm"), norm("ffn_norm"),
                           w("attn_q"), w("attn_k"), w("attn_v"), w("attn_output"),
                           w("ffn_gate"), w("ffn_up"), w("ffn_down")});
     }
@@ -38,9 +39,10 @@ void LayerExecutor::enqueue(std::size_t layer, std::size_t tokens, std::size_t m
     const auto coefficients = read_only(storage_.workspace<float>(Workspace::rope_coefficients, kv_shape_.max_length));
     const auto kv = storage_.kv_view();
     rms_norm(context, read_only(hidden), w.attention_norm, normalized, dimensions_.rms_epsilon);
-    matrix_multiply(context, read_only(normalized), w.query, query);
-    matrix_multiply(context, read_only(normalized), w.key, key);
-    matrix_multiply(context, read_only(normalized), w.value, value);
+    const auto qkv_input = storage_.prepare_matrix_input(read_only(normalized));
+    matrix_multiply(context, qkv_input, w.query, query);
+    matrix_multiply(context, qkv_input, w.key, key);
+    matrix_multiply(context, qkv_input, w.value, value);
     rms_norm(context, read_only(query), w.query_norm, query, dimensions_.rms_epsilon);
     rms_norm(context, read_only(key), w.key_norm, key, dimensions_.rms_epsilon);
     rope(context, query, positions, coefficients, status);
@@ -48,13 +50,14 @@ void LayerExecutor::enqueue(std::size_t layer, std::size_t tokens, std::size_t m
     store_kv(context, kv, kv_shape_, layer, read_only(key), read_only(value), slots, positions, status);
     causal_attention(context, read_only(kv), kv_shape_, layer, read_only(query), dimensions_.heads,
                      slots, positions, max_context, scores, probabilities, attention, status);
-    matrix_multiply(context, read_only(attention), w.output, projected);
+    matrix_multiply(context, storage_.prepare_matrix_input(read_only(attention)), w.output, projected);
     residual_add(context, hidden, read_only(projected));
     rms_norm(context, read_only(hidden), w.ffn_norm, normalized, dimensions_.rms_epsilon);
-    matrix_multiply(context, read_only(normalized), w.gate, gate);
-    matrix_multiply(context, read_only(normalized), w.up, up);
+    const auto ffn_input = storage_.prepare_matrix_input(read_only(normalized));
+    matrix_multiply(context, ffn_input, w.gate, gate);
+    matrix_multiply(context, ffn_input, w.up, up);
     swiglu(context, gate, read_only(up));
-    matrix_multiply(context, read_only(gate), w.down, down);
+    matrix_multiply(context, storage_.prepare_matrix_input(read_only(gate)), w.down, down);
     residual_add(context, hidden, read_only(down));
     check_finite(context, read_only(hidden), status);
 }

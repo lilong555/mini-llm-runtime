@@ -706,3 +706,48 @@
 - 解决方法：按 `output_norm.weight`、`output.weight` 名称定位相应反例，不依赖 tensor 顺序。
 - 验证：带真实 executable 的微基准反例 13/13 通过；自有 CUDA 与 CPU 的
   37/37 套 CTest、679 次用例执行通过，见 `.run/cuda-precision-001/micro-validation/`。
+
+## ENG-067：F16 矩阵路径的长续写 cosine 未达冻结门槛
+
+- 状态：未解决，Primary 按 `blocked_correctness` 停止性能推进。
+- 影响：候选不能晋升 Serving，也不满足 memory-only 成功条件；不执行后续正式模型与
+  Serving 性能实验。F32 默认模式保留。
+- 复现或证据：`.run/cuda-precision-001/model-validation/precision/precision-validation.json`
+  记录 48 配置的 840 行通过、12 组短 golden 完全一致；`generation-repeated`
+  在 1536-token prompt 后的 step=19，cosine 为 `0.9998858663580449`，
+  低于冻结的 `0.9999`。RMSE 为 `0.04454669974760739`，最大绝对误差为
+  `0.1838979721069336`。程序完整运行并返回 1，没有删掉失败样本。
+- 原因：同一固定输入轨迹下 F16 与原 F32 的 logits 偏差超过 cosine 门槛；
+  尚无逐层证据能唯一分解权重舍入、输入转换和误差传播的贡献，不假定是单一 kernel 错误。
+  全部 token 一致不等于数值通过，near-tie 也不豁免 cosine 检查。
+- 解决方法或下一步：保存完整失败 logits、源码和运行身份；停止该候选的性能推进，
+  不调整阈值、不更换 checkpoint、不自动回退。按 V4 核对唯一备选门槛或进入功能冻结。
+- 验证：独立 `math.fsum` 对保存的 151936 维向量重算 cosine 为
+  `0.9998858663580924`，确认不是原报告的舍入误差。
+  报告中的 2 次失败是同一行在自然续写与固定轨迹标签下的重复检查，不是两个独立失败。
+  原 F32 短模型回归 S1/S4 为 2/2，128 次 logits 对照和 6 组短 golden 通过；
+  不将这些通过项视作候选问题已解决。
+
+## ENG-068：槽复用证据字段误称逐位相等
+
+- 状态：字段已修正；原始证据按实际检查范围解释。
+- 影响：数值验证的槽复用报告原名 `reuse_bitwise_equal`，容易被误解为检查了浮点位模式。
+- 复现或证据：模型数值采集的源码快照中，`boundary_and_mixed` 使用
+  `execute(runtime,{short_batch}) == fresh`，即 `std::vector<float>` 逐值比较。
+  正负零等值但位模式不同的情况不会被这个断言拒绝。
+- 原因：报告字段的承诺强于执行断言；与使用 `memcmp` 的计时开关检查混淆。
+- 解决方法：字段使用 `reuse_values_equal`；保留原采集文件，并在精度研究中明确其范围。
+  不以修改字段重跑数值语料，也不改变 cosine 失败结论。
+- 验证：源码检查确认当前字段与逐值断言一致，timing 仍使用 `memcmp`；
+  原模型采集的逐值相等检查已通过，未据此声称原采集执行了逐位检查。
+
+## ENG-069：远端公开状态与私有仓库约束冲突
+
+- 状态：待用户确认；本轮仅本地提交，未推送。
+- 影响：继续向当前远端推送会公开本轮源码，与项目要求的私有交付范围不一致。
+- 复现或证据：同步前执行 `gh repo view --json visibility,isPrivate`，
+  返回 `{"isPrivate":false,"visibility":"PUBLIC"}`。
+- 原因：当前远端可见性为公开；未查明何时或由谁设置，不推断是本轮操作导致。
+- 解决方法或下一步：不擅自修改可见性，不推送本轮提交；等待用户确认私有同步范围，
+  或明确授权向公开仓库发布。
+- 验证：本轮只读检查确认远端状态，未执行可见性修改、`git push` 或 Release 发布。

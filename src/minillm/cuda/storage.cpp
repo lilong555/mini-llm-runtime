@@ -1,5 +1,7 @@
 #include "storage.h"
 #include "minillm/kernels.h"
+#include "ops.h"
+#include "tensor_validation.h"
 
 extern "C" {
 #include "hash/sha256/sha256.h"
@@ -315,6 +317,13 @@ DeviceTensorView<std::uint16_t> CudaStorage::matrix_input(std::size_t rows, std:
     }
     return {reinterpret_cast<std::uint16_t*>(workspace_.data() + r.offset), rows, columns,
             columns, r.bytes / sizeof(std::uint16_t), context_.device()};
+}
+MatrixWeightView CudaStorage::prepare_matrix_input(DeviceTensorView<const float> input) {
+    if (plan_.limits.precision_mode == PrecisionMode::f32_pedantic) { return input; }
+    const auto output = matrix_input(input.rows, input.columns);
+    cast_matrix_input(context_, input, output, workspace<std::int32_t>(Workspace::status, 1));
+    ++matrix_cast_calls_;
+    return detail::read_only(output);
 }
 const WorkspaceRegion& CudaStorage::region(Workspace id) const {
     for (const auto& r : plan_.regions) { if (r.id == id) { return r; } }

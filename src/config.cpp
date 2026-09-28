@@ -43,7 +43,7 @@ void validate_mini_cuda_config(const ModelConfig& model, const EngineConfig& eng
     const auto precision = model.cuda_precision.value_or(minillm::cuda::PrecisionMode::f32_pedantic);
     minillm::cuda::precision_mode_name(precision);
     if (precision != minillm::cuda::PrecisionMode::f32_pedantic) {
-        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+        throw std::invalid_argument("f16-matrix-f32acc 未通过模型数值门禁；Serving 仅支持 f32-pedantic");
     }
     engine.validate();
     if (model.path.empty() || model.device < 0 || model.threads < 1 || model.threads > 256) {

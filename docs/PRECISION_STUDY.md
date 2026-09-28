@@ -4,13 +4,14 @@
 
 规范为 [CUDA-PREC-001](NEXT_OPT_SPEC.md)，路线为 [PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)。
 M4-0 的决策、已有时间线拆解和实验预注册已完成。第一组配置入口已通过本机验收；
-底层 F16 存储、转换与矩阵边界及六进程微基准已完成，项目 owned 显存实测减少 34.53%。
-完整模型接入和模型/Serving 实验尚未完成，不作端到端速度或产品晋升声明。
+F16 存储、矩阵边界与完整模型研究路径可执行，项目 owned 显存实测减少 34.53%。
+完整模型数值门禁因长续写 cosine 失败，结论为 `blocked_correctness`，停止性能推进。
+Serving 不开放候选，模型/Serving 正式实验未执行；不作端到端速度或产品晋升声明。
 
 | 模式 | 当前执行能力 | 默认 |
 | --- | --- | --- |
 | `f32-pedantic` | 原自有 CUDA 模型与 Serving；矩阵输入、权重、累加、输出均为 F32 | 是 |
-| `f16-matrix-f32acc` | 内部 storage/cast/GEMM 和矩阵微基准可运行；Runtime、Serving、模型 CLI 仍拒绝 | 否 |
+| `f16-matrix-f32acc` | storage/cast/GEMM、Runtime、模型 CLI 可供研究；数值门禁失败，Serving 拒绝 | 否 |
 
 模式枚举不依赖 CUDA 头文件。Serving、CUDA CLI 和两个 CUDA benchmark 均识别
 `--cuda-precision`；CPU 与上游后端显式使用该参数时失败。
@@ -46,7 +47,7 @@ M4-0 的决策、已有时间线拆解和实验预注册已完成。第一组配
 - 主指标：`prefill-128 / host_forward_to_token_ns`，三个配对 trial 的
   `median(1-T_f16/T_f32) >= 10%`，每个 trial 均至少改善 5%。
 - 显存门槛：S4/L2048/B128 下项目 owned bytes 减少至少 30%。
-  约 34.53% 的减少、2,258,046,976 bytes 的总量均是静态预测，不是实测。
+  冻结预测为约 34.53% 的减少、2,258,046,976 bytes 的总量；实测见微基准结果。
 - 其余五个模型 workload 的配对中位数退化不超过 5%，不能有至少两轮退化超过 5%；
   mixed-length 的吞吐和 goodput 配对中位数退化不超过 5%。
 - 两条 Serving trace 的 `ttft_ms.p95`、`mean_tpot_ms.p95`、
@@ -276,7 +277,7 @@ snapshot，`verification.json` 固定源码、二进制、设备、输入与所�
 本机 CUDA Runtime 为 12080，cuBLAS 为 120805，设备为 RTX 4070 Laptop、SM 8.9。
 
 底层用例本身不代表 F16 完整模型或 Serving 验收。真实载荷和 shape 结果见下节；
-Runtime 的候选拒绝保持有效，Tensor Core 使用仍为 `unverified`。
+完整模型门禁见模型数值边界一节，Tensor Core 使用仍为 `unverified`。
 
 ## 微基准入口
 
@@ -362,8 +363,75 @@ M=4 的 Q/gate/down 在计入转换后，收益明显收窄。Q/M=1 的 F32 含�
 提交间隙影响，`ENG-048` 的归因仍未完成，不筛掉逆序负结果。
 LM head 各 M 的收益不能直接按 body 的 M 外推，模型中 LM head 行数实际为选中 logits 的 R。
 
-**入口决定：继续 Primary 的模型接入与冻结数值验证。** M=128 的三类 body shape
+**微基准入口决定：支持进入 Primary 的模型接入与冻结数值验证。** M=128 的三类 body shape
 在每一轮计入转换后仍有明显改善，有限探针没有触发速度方向的停止线。
 它们不证明 `prefill-128` 的主指标已达标，也不形成 `performance_success` 或
-`memory_only_success`。下一项为同一 LayerExecutor 的四组转换复用、selected-row LM head，
-以及 48 个模型配置和生命周期检查；不再采微基准，不启动 attention 备选。
+`memory_only_success`。完整模型数值结果如下；不再采微基准，不自动启动 attention 备选。
+
+## 模型数值边界
+
+同一 `CudaRuntime` 按 precision mode 使用 typed matrix views。每层 Q/K/V 共用一次输入转换，
+O 一次、gate/up 共用一次、down 一次；最终先选择 logits 行，再转换 LM head 输入。
+每次 forward 核对 `4*layers + (有 logits ? 1 : 0)` 次转换，F32 为零。
+hidden、residual、norm、attention、FP16 contiguous KV 与执行状态合同保持不变。
+
+```bash
+build/wsl-own-cuda/bin/minillm-cuda-model-tests \
+  --model models/Qwen3-0.6B-Q8_0.gguf \
+  --contract tests/data/qwen3_validation_cases.json \
+  --precision-study benchmarks/runtime-inputs/qwen3-precision-v1.json \
+  --output .run/precision-numerical
+```
+
+输出目录必须尚不存在；该入口按冻结 SHA 校验输入，不能与旧 `--full` 或
+`--reference-model` 混用。每个 S 下先执行 F32、保留选中 logits，再销毁 GPU 实例并执行
+F16，不同时驻留两套权重。续写分叉后只在固定 F32 token 轨迹上比较数值。
+
+原始记录位于 `.run/cuda-precision-001/model-validation/`，`execution-identity.json`
+绑定运行源码快照、二进制、模型与输入。采集身份为 `a8a56de` 加
+`source-state.json` / `source-snapshot.zip`，不是 clean HEAD 采集。
+完整研究仍只使用一个最终 canonical bundle，本目录不是独立发布包。
+
+| 检查 | 结果 |
+| --- | --- |
+| 固定 teacher forcing | 48/48 配置、840 行通过 |
+| 短 golden | F32/F16、S1/S4 共 12/12 组完全一致 |
+| 长度边界与状态 | 两模式的 slot 3 / 2048、越界 preflight、clear/reuse、mixed 和计时开关检查通过 |
+| 四组 32-token 自由续写 | 全部 token 一致，不代表数值合同通过 |
+| 全部 logits 检查 | 1099 次比较，2 次失败对应同一输出位置的两种检查标签 |
+| 全部比较最坏指标 | RMSE 0.045953874、max absolute 0.206753254、cosine 0.999885866 |
+
+原始边界记录中的 `reuse_bitwise_equal` 只执行了有限 float 逐值相等检查，
+不提供正负零等位模式一致性保证；当前入口使用 `reuse_values_equal` 字段。
+计时开关检查确实使用 `memcmp`，与槽复用的判定不同，见 `ENG-068`。
+
+唯一失败位置为 `generation-repeated`：1536-token prompt、step=19（第 20 个输出，
+输入最后位置 1554）。RMSE 为 0.044546700、max absolute 为 0.183897972，
+cosine 为 **0.9998858663580449 < 0.9999**。所有值有限，两个 argmax 均为 330；
+near-tie 规则不豁免 cosine 门槛。自然轨迹未分叉，因此它与 F32 teacher-forced 检查
+使用同一行，不能报告成两个独立失败样本。
+
+`first-numeric-failure-logits.json` 保存两个完整词表向量。独立 CPU `math.fsum`
+重算 cosine 为 0.9998858663580924，确认失败不是摘要舍入或原归约顺序造成。
+当前证据不能把偏差唯一归因于权重舍入、activation cast 或跨层传播中的某一项，
+不据矩阵单测通过宣称全模型无精度损失。
+
+**决定：`blocked_correctness`。** 按规范停止 Primary 的模型/Serving 性能采集，
+不放宽阈值、不更换 golden、不引入 BF16/TF32/自动 fallback。显存门槛虽通过，
+仍不符合 `memory_only_success` 或产品资格。正式预算保持 micro 6/6、model 0/6、
+Serving 0/12，新增 NSys 0/1、NCU 0/1。下一项仅为最终证据归档及独立判定 M4-2
+进入条件；若条件不成立，直接进入功能冻结。
+
+| 回归与内存检查 | 结果 |
+| --- | --- |
+| 自有 CUDA / CPU CTest | 22/22、15/15 套，共 683 次用例执行 |
+| 原 F32 短模型 | S1/S4 2/2，128 次 logits 比较、6 组短 golden |
+| 原 F32 HTTP | 12/12，包括停服单终态 |
+| Runtime memcheck | 11/11 用例，0 错误、0 泄漏；包含候选转换溢出的 fail-stop |
+| 真实 F16 模型 CLI memcheck | 8-token golden 一致，0 错误、0 泄漏；不是完整数值通过或性能证据 |
+
+`precision/validation-summary.json` 的 SHA-256 为
+`7485476ee97c5083589253620cee9bc7dc2333d8161002a220e9b82d52cd065e`；
+`precision/first-numeric-failure-logits.json` 为
+`cbd0777a39cad561e891d02e6095a6c03b578a3faafcaee4bbef84382239635d`。
+`verification.json` 索引原始报告及最终回归身份；原数值失败不被后续 CTest 成功覆盖。

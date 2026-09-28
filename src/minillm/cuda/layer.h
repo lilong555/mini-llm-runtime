@@ -17,7 +17,7 @@ public:
 private:
     struct Weights {
         DeviceTensorView<const float> attention_norm, query_norm, key_norm, ffn_norm;
-        DeviceTensorView<const float> query, key, value, output, gate, up, down;
+        MatrixWeightView query, key, value, output, gate, up, down;
     };
     CudaStorage& storage_;
     ModelDimensions dimensions_;

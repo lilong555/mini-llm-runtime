@@ -160,7 +160,7 @@ if args.server:
         (["--prefix-tokens", "16"], "prefix"),
         (["--gpu-layers", "1"], "gpu_layers"),
         (["--kernel", "scalar"], "scalar"),
-        (["--cuda-precision", "f16-matrix-f32acc"], "尚未实现"),
+        (["--cuda-precision", "f16-matrix-f32acc"], "未通过模型数值门禁"),
         (["--cuda-precision", "fp16"], "--cuda-precision 必须"),
         (["--cuda-precision", "f32-pedantic"],
          "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
@@ -181,7 +181,7 @@ if args.server:
             passed += 1
             print(f"[PASS] precision-backend-{backend}-{precision}")
 if args.cuda_cli:
-    for precision, message in (("f16-matrix-f32acc", "尚未实现"), ("tf32", "--cuda-precision 必须"),
+    for precision, message in (("f16-matrix-f32acc", "无法读取文件"), ("tf32", "--cuda-precision 必须"),
                                ("f32-pedantic", "无法读取文件")):
         result = subprocess.run([str(args.cuda_cli), "--model", "absent-precision-model.gguf",
                                  "--cuda-precision", precision],

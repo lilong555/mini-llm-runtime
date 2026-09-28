@@ -86,6 +86,9 @@ public:
     DeviceTensorView<const float> norm_weight(const std::string& name) const;
     MatrixWeightView matrix_weight(const std::string& name) const;
     DeviceTensorView<std::uint16_t> matrix_input(std::size_t rows, std::size_t columns);
+    // 同组所有 GEMM 必须入队后才能准备下一组；复用整个 batch 的 status。
+    MatrixWeightView prepare_matrix_input(DeviceTensorView<const float> input);
+    std::uint64_t matrix_cast_calls() const noexcept { return matrix_cast_calls_; }
     const WorkspaceRegion& region(Workspace id) const;
     template<class T> DeviceTensorView<T> workspace(Workspace id, std::size_t rows) {
         static_assert(std::is_same_v<T, float> || std::is_same_v<T, std::int32_t>);
@@ -113,6 +116,7 @@ private:
     std::size_t weight_staging_peak_bytes_ = 0;
     std::size_t rope_uploaded_bytes_ = 0;
     std::uint64_t weight_decode_upload_ns_ = 0;
+    std::uint64_t matrix_cast_calls_ = 0;
 };
 
 } // namespace minillm::cuda

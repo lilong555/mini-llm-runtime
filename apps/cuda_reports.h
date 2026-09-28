@@ -57,24 +57,40 @@ inline json device(const minillm::cuda::CudaDeviceInfo& d) {
     return {{"name",d.name},{"uuid",d.uuid},{"compute_capability",{d.compute_major,d.compute_minor}},
         {"driver_version",d.driver_version},{"runtime_version",d.runtime_version},{"cublas_version",d.cublas_version}};
 }
-inline json weights(const std::vector<minillm::cuda::CudaWeightInfo>& records) {
+inline json weights(const std::vector<minillm::cuda::CudaWeightInfo>& records, bool precision_study = false) {
     json result = json::array();
     for (const auto& w : records) {
-        result.push_back({{"name",w.name},{"source_dtype",w.source_dtype},{"device_dtype","F32"},
+        result.push_back({{"name",w.name},{"source_dtype",w.source_dtype},{"device_dtype",w.device_dtype},
             {"shape",{w.rows,w.columns}},{"offset",w.offset},{"bytes",w.bytes},{"alias_of",w.alias_of},
             {"effective_sha256",w.effective_sha256}});
+        if (precision_study || w.device_dtype != "F32") {
+            result.back()["device_payload_sha256"] = w.device_payload_sha256;
+        }
     }
     return result;
 }
-inline json arithmetic(const minillm::cuda::CudaRuntime& runtime) {
+inline json arithmetic(const minillm::cuda::CudaRuntime& runtime, bool precision_study = false) {
     json types = json::object();
     const auto records = runtime.weight_manifest();
     for (const auto& w : records) {
         if (w.alias_of.empty()) { types[w.source_dtype] = types.value(w.source_dtype,0) + 1; }
     }
-    return {{"source_weight_dtype",records.at(0).source_dtype},{"source_tensor_counts",types},{"device_weight_dtype","F32"},
+    json result = {{"source_weight_dtype",records.at(0).source_dtype},{"source_tensor_counts",types},{"device_weight_dtype","F32"},
         {"activation_dtype","F32"},{"kv_dtype","F16"},{"kv_rounding","nearest_even"},{"qk_pv_accumulation_dtype","F32"},
         {"softmax_exponential_dtype","F32"},{"softmax_denominator_dtype","F64"},
         {"gemm_compute","CUBLAS_COMPUTE_32F_PEDANTIC"},{"fast_math",false}};
+    const bool half = runtime.config().precision_mode == minillm::cuda::PrecisionMode::f16_matrix_f32acc;
+    if (half || precision_study) {
+        result["precision_mode"] = minillm::cuda::precision_mode_name(runtime.config().precision_mode);
+        result["device_weight_dtype"] = half ? "F16_matrices_F32_norms" : "F32";
+        result["matrix_operand_dtype"] = half ? "F16" : "F32";
+        result["matrix_accumulation_dtype"] = "F32";
+        result["matrix_output_dtype"] = "F32";
+        result["norm_weight_dtype"] = "F32";
+        result["gemm_compute"] = half ? "CUBLAS_COMPUTE_32F" : "CUBLAS_COMPUTE_32F_PEDANTIC";
+        result["math_mode"] = half ? "CUBLAS_DEFAULT_MATH|CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION" :
+                                    "CUBLAS_PEDANTIC_MATH";
+    }
+    return result;
 }
 }

@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
                 "              [--context 2048] [--batch 128] [--chunk 128] [--sequences 4]\n"
                 "              [--device 0] [--device-budget-bytes 0] [--ignore-eos]\n"
                 "              [--device-time] [--output NEW_REPORT.json]\n"
-                "              [--cuda-precision f32-pedantic]（f16-matrix-f32acc 尚未实现）\n";
+                "              [--cuda-precision f32-pedantic|f16-matrix-f32acc]\n";
             return options.has("--help") ? 0 : 1;
         }
         const auto output_path = options.get("--output");
@@ -31,9 +31,6 @@ int main(int argc, char** argv) {
         }
         CudaRuntimeConfig config;
         config.precision_mode = parse_precision_mode(options.get("--cuda-precision", "f32-pedantic"));
-        if (config.precision_mode != PrecisionMode::f32_pedantic) {
-            throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
-        }
         config.model_path = options.get("--model");
         config.device = static_cast<int>(options.integer("--device",0,0,INT_MAX));
         config.max_sequences = static_cast<std::size_t>(options.integer("--sequences",4,1,4));

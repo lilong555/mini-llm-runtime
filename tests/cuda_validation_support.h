@@ -68,6 +68,16 @@ inline std::vector<Batch> teacher_batches(const json& contract, const TeacherCas
     }
     return result;
 }
+inline std::vector<Batch> precision_batches(const json& contract, const json& numerical, const TeacherCase& c) {
+    auto recipe = contract;
+    auto positions = numerical.at("positions").get<std::set<std::int32_t>>();
+    positions.insert(static_cast<std::int32_t>(c.chunk)-1);
+    positions.insert(static_cast<std::int32_t>(c.chunk));
+    positions.insert(static_cast<std::int32_t>(c.length)-1);
+    std::erase_if(positions,[&](auto p) { return p < 0 || std::size_t(p) >= c.length; });
+    recipe["teacher_forcing"]["positions"] = positions;
+    return teacher_batches(recipe,c);
+}
 inline std::string batch_digest(const std::vector<Batch>& batches) {
     static_assert(std::endian::native == std::endian::little && sizeof(std::int32_t) == 4);
     std::vector<std::int32_t> words;
@@ -177,4 +187,6 @@ inline json compare(const std::vector<float>& actual, const std::vector<float>& 
 
 json run_full_validation(const std::string& model, const std::string& reference, const json& contract,
                          const std::filesystem::path& output);
+json run_precision_validation(const std::string& model, const json& contract, const json& experiment,
+                              const std::filesystem::path& output);
 }

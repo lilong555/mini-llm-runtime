@@ -54,6 +54,39 @@ TEST(validation_interleaved_chunk_uses_independent_corpora) {
     }
 }
 
+TEST(validation_precision_matrix_and_boundary_positions) {
+    auto contract = fixture();
+    const json numerical = {{"lengths",{16,128,1536}},{"chunk_tokens",{16,128}},{"sequence_counts",{1,4}},
+        {"positions",{0,1,15,16,31,32,127,128,255,256,1535}}};
+    contract["teacher_forcing"] = numerical;
+    const auto cases = teacher_cases(contract);
+    CHECK(cases.size() == 48);
+    std::size_t rows = 0;
+    for (const auto& c : cases) {
+        const auto batches = precision_batches(contract,numerical,c);
+        std::vector<std::set<std::int32_t>> selected(c.sequences);
+        std::size_t count = 0;
+        for (const auto& batch : batches) {
+            CHECK(batch.size() <= c.chunk);
+            for (const auto& token : batch) {
+                CHECK(token.position == std::int32_t(count/c.sequences));
+                CHECK(token.sequence == std::int32_t(count%c.sequences));
+                if (token.logits) { selected[std::size_t(token.sequence)].insert(token.position); ++rows; }
+                ++count;
+            }
+        }
+        CHECK(count == c.length*c.sequences);
+        auto expected = numerical.at("positions").get<std::set<std::int32_t>>();
+        expected.insert(std::int32_t(c.chunk)-1); expected.insert(std::int32_t(c.chunk));
+        expected.insert(std::int32_t(c.length)-1);
+        std::erase_if(expected,[&](auto p) { return p < 0 || std::size_t(p) >= c.length; });
+        for (const auto& positions : selected) { CHECK(positions == expected); }
+    }
+    CHECK(rows == 840);
+    const auto short_batch = precision_batches(contract,numerical,{0,16,128,1});
+    CHECK(short_batch.size() == 1 && short_batch[0].back().logits);
+}
+
 TEST(validation_digest_includes_batch_boundaries_and_flags) {
     const auto contract = fixture();
     auto batches = teacher_batches(contract,{0,33,33,1});
@@ -100,6 +133,16 @@ TEST(validation_score_ties_and_nonfinite_are_explicit) {
         test::throws<std::runtime_error>([&] { score({value,1.0F}); });
     }
     test::throws<std::runtime_error>([] { compare({1.0F},{1.0F,2.0F},thresholds()); });
+}
+
+TEST(validation_matching_tokens_do_not_exempt_cosine_gate) {
+    for (const auto& rows : std::vector<std::pair<std::vector<float>,std::vector<float>>>{
+        {{1.0F,0.02F},{1.0F,0.0F}}, {{1.0F,1.0F,0.03F},{1.0F,1.0F,0.0F}}}) {
+        const auto result = compare(rows.first,rows.second,thresholds());
+        CHECK(result.at("all_finite") && result.at("argmax_equal"));
+        CHECK(result.at("rmse").get<double>() < 0.05 && result.at("max_absolute").get<double>() < 0.5);
+        CHECK(result.at("cosine").get<double>() < 0.9999 && !result.at("passed").get<bool>());
+    }
 }
 
 int main() { return test::run(); }

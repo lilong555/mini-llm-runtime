@@ -40,7 +40,7 @@ extern "C" cudaError_t __wrap_cudaMemcpyAsync(void* to, const void* from, std::s
 #endif
 
 namespace {
-std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f) {
+std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f, float norm_scale = 1.0f) {
     return fixture.write(true,[](gguf_context* info) {
         const char* tokens[]{"a","b","c","d","e","f","g","<|endoftext|>","<|im_end|>"};
         const char* merges[]{"a b"};
@@ -54,7 +54,7 @@ std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f) {
         gguf_set_val_u32(info,"tokenizer.ggml.eos_token_id",8);
         gguf_set_val_bool(info,"tokenizer.ggml.add_bos_token",false);
         gguf_set_val_bool(info,"tokenizer.ggml.add_eos_token",false);
-    },{},{},GGML_TYPE_F32,false,std::numeric_limits<float>::infinity(),scale);
+    },{},{},GGML_TYPE_F32,false,std::numeric_limits<float>::infinity(),scale,norm_scale);
 }
 CudaRuntimeConfig config_for(const std::string& path) { return {path,0,4,16,8,0}; }
 std::int32_t best(const std::vector<float>& values) {
@@ -243,15 +243,79 @@ TEST(runtime_initialization_failure_releases_resources) {
     test::throws<std::invalid_argument>([&] { CudaRuntime runtime(oversized); });
 }
 
-TEST(runtime_unimplemented_precision_is_rejected_before_model_or_device_loading) {
+TEST(runtime_invalid_precision_is_rejected_before_model_or_device_loading) {
     auto config = config_for("不存在的模型文件");
     CHECK(config.precision_mode == PrecisionMode::f32_pedantic);
     const auto before = allocation_stats();
-    for (const auto mode : {PrecisionMode::f16_matrix_f32acc, static_cast<PrecisionMode>(99)}) {
-        config.precision_mode = mode;
-        test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
-    }
+    config.precision_mode = static_cast<PrecisionMode>(99);
+    test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
     unchanged_allocations(before);
+}
+
+TEST(runtime_half_groups_metadata_clear_preflight_and_timing) {
+    Qwen3Fixture fixture;
+    const auto path = model_path(fixture,0.01f);
+    auto config = config_for(path);
+    config.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    CudaRuntime runtime(config);
+    Runtime cpu({path,16,1,4,8,1,KernelMode::scalar});
+    for (const auto& w : runtime.weight_manifest()) {
+        CHECK(w.source_dtype == "F32");
+        CHECK(w.device_dtype == (w.name.ends_with("_norm.weight") ? "F32" : "F16"));
+        CHECK(w.device_payload_sha256.size() == 64);
+    }
+    const std::vector<InputToken> batch{{1,0,3,false},{2,0,0,true},{3,1,3,true},{4,1,0,false}};
+    const auto allocations = allocation_stats();
+    const auto expected = cpu.forward(batch);
+    const auto actual = runtime.forward(batch,CudaOutputMode::debug_logits);
+    CHECK(actual.samples.size() == 2 && actual.logits.size() == 2 && !actual.device_elapsed_ms);
+    CHECK(actual.samples[0].input_index == 1 && actual.samples[1].input_index == 2);
+    for (std::size_t i = 0; i < actual.logits.size(); ++i) { near(actual.logits[i].values,expected[i].values); }
+    CHECK(runtime.diagnostics().matrix_cast_calls == 4*runtime.dimensions().layers+1);
+    const auto before = runtime.diagnostics();
+    test::throws<std::invalid_argument>([&] { runtime.forward(std::array<InputToken,1>{{{1,3,0,true}}}); });
+    CHECK(runtime.diagnostics().matrix_cast_calls == before.matrix_cast_calls);
+    CHECK(runtime.diagnostics().sequence_lengths == before.sequence_lengths && runtime.state() == CudaRuntimeState::ready);
+    runtime.clear_sequence(0); runtime.clear_sequence(3);
+    const auto timed = runtime.forward(batch,CudaOutputMode::debug_logits,true);
+    CHECK(timed.device_elapsed_ms && timed.logits[0].values == actual.logits[0].values);
+    CHECK(timed.logits[1].values == actual.logits[1].values);
+    runtime.clear_sequence(0); runtime.clear_sequence(3);
+#ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+    observed_h2d = observed_d2h = completions = 0;
+#endif
+    const auto greedy = runtime.forward(batch);
+    CHECK(greedy.logits.empty() && greedy.samples.size() == 2);
+#ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+    CHECK(observed_h2d == 56 && observed_d2h == 16 && completions == 1);
+#endif
+    CHECK(runtime.diagnostics().matrix_cast_calls == 3*(4*runtime.dimensions().layers+1));
+    const auto casts = runtime.diagnostics().matrix_cast_calls;
+    CHECK(runtime.forward(std::array<InputToken,1>{{{1,2,0,false}}}).samples.empty());
+    CHECK(runtime.diagnostics().matrix_cast_calls-casts == 4*runtime.dimensions().layers);
+    CHECK(runtime.diagnostics().weight_h2d_bytes == before.weight_h2d_bytes);
+    CHECK(runtime.diagnostics().intermediate_d2h_bytes == 0 && runtime.diagnostics().intermediate_h2d_bytes == 0);
+    unchanged_allocations(allocations);
+}
+
+TEST(runtime_half_activation_cast_overflow_is_fail_stop) {
+    Qwen3Fixture fixture;
+    auto config = config_for(model_path(fixture,0.01f,1e8f));
+    config.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    const auto allocations = allocation_stats();
+    {
+        CudaRuntime runtime(config);
+        const std::array<InputToken,1> input{{{1,0,0,true}}};
+        test::throws<Error>([&] { runtime.forward(input,CudaOutputMode::debug_logits); });
+        const auto failed = runtime.diagnostics();
+        CHECK(failed.state == CudaRuntimeState::poisoned && failed.matrix_cast_calls > 0);
+        CHECK(failed.completed_forwards == 0 && failed.post_launch_failures == 1 && failed.live_kv_tokens == 0);
+        test::throws<Error>([&] { runtime.forward(input); });
+        test::throws<Error>([&] { runtime.clear_sequence(0); });
+        CHECK(runtime.diagnostics().matrix_cast_calls == failed.matrix_cast_calls);
+    }
+    const auto released = allocation_stats();
+    CHECK(released.allocations-allocations.allocations == 4 && released.releases-allocations.releases == 4);
 }
 
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE

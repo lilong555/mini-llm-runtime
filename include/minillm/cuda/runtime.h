@@ -54,6 +54,7 @@ struct CudaDeviceInfo {
 struct CudaWeightInfo {
     std::string name, source_dtype, alias_of, effective_sha256;
     std::size_t rows, columns, offset, bytes;
+    std::string device_dtype = "F32", device_payload_sha256;
 };
 
 struct CudaDiagnostics {
@@ -67,6 +68,7 @@ struct CudaDiagnostics {
     std::size_t owned_device_allocations = 0, owned_device_bytes = 0;
     std::uint64_t completed_forwards = 0, post_launch_failures = 0;
     std::uint64_t model_load_ns = 0, storage_initialization_ns = 0, weight_decode_upload_ns = 0;
+    std::uint64_t matrix_cast_calls = 0;
 };
 
 // execution/KV 状态单调用者、不可重入；tokenizer 可在外部词表锁下与 forward 并行。

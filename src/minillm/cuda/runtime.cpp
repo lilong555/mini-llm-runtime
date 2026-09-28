@@ -22,9 +22,6 @@ std::uint64_t elapsed(Clock::time_point start) {
 }
 CudaRuntimeConfig checked(CudaRuntimeConfig config) {
     precision_mode_name(config.precision_mode);
-    if (config.precision_mode != PrecisionMode::f32_pedantic) {
-        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
-    }
     if (config.model_path.empty() || config.device < 0 || config.max_sequences == 0 ||
         config.max_sequences > CudaRuntimeConfig::max_supported_sequences) {
         throw std::invalid_argument("CUDA 模型路径、设备或 sequence 上限无效，最多支持 4 个序列");
@@ -108,7 +105,8 @@ struct CudaRuntime::Impl {
     LayerExecutor layers;
     Events events;
     CudaDeviceInfo device;
-    DeviceTensorView<const float> embedding_weight, output_weight, output_norm;
+    MatrixWeightView embedding_weight, output_weight;
+    DeviceTensorView<const float> output_norm;
     std::uint64_t metadata_h2d = 0, token_d2h = 0, status_d2h = 0, debug_d2h = 0;
     std::uint64_t completed = 0, failed = 0;
 
@@ -119,8 +117,8 @@ struct CudaRuntime::Impl {
           slots(config.batch_tokens), selected(config.batch_tokens), output_ids(config.batch_tokens),
           storage(model,limits(config),config.device), storage_initialization_ns(elapsed(storage_started)),
           layers(storage), events(config.device), device(read_device(storage.context())),
-          embedding_weight(storage.weight("token_embd.weight")), output_weight(storage.weight("output.weight")),
-          output_norm(storage.weight("output_norm.weight")) {
+          embedding_weight(storage.matrix_weight("token_embd.weight")), output_weight(storage.matrix_weight("output.weight")),
+          output_norm(storage.norm_weight("output_norm.weight")) {
         detail::as_int(storage.kv_view().rows);
         if (storage.allocated_bytes() != storage.plan().total_bytes) { throw Error("CUDA 实分配与内存计划不符"); }
     }
@@ -170,8 +168,10 @@ struct CudaRuntime::Impl {
             upload(Workspace::slots,slots,tokens.size());
             if (chosen) { upload(Workspace::selected_rows,selected,chosen); }
             const auto hidden = storage.workspace<float>(Workspace::hidden,tokens.size());
-            gather_rows(context,embedding_weight,
-                        detail::read_only(storage.workspace<std::int32_t>(Workspace::tokens,tokens.size())),hidden,status);
+            std::visit([&](auto weight) {
+                gather_rows(context,weight,
+                    detail::read_only(storage.workspace<std::int32_t>(Workspace::tokens,tokens.size())),hidden,status);
+            },embedding_weight);
             for (std::size_t layer = 0; layer < d.layers; ++layer) { layers.enqueue(layer,tokens.size(),summary.max_context); }
             if (chosen) {
                 const auto normalized = storage.workspace<float>(Workspace::normalized,tokens.size());
@@ -180,7 +180,7 @@ struct CudaRuntime::Impl {
                 rms_norm(context,detail::read_only(hidden),output_norm,normalized,d.rms_epsilon);
                 gather_rows(context,detail::read_only(normalized),
                     detail::read_only(storage.workspace<std::int32_t>(Workspace::selected_rows,chosen)),selected_hidden,status);
-                matrix_multiply(context,detail::read_only(selected_hidden),output_weight,logits);
+                matrix_multiply(context,storage.prepare_matrix_input(detail::read_only(selected_hidden)),output_weight,logits);
                 // embedding gather 已完成，输入 ID 区域可复用为紧凑的输出 ID。
                 const auto output = storage.workspace<std::int32_t>(Workspace::tokens,chosen);
                 argmax(context,detail::read_only(logits),output,status);
@@ -243,7 +243,8 @@ std::vector<CudaWeightInfo> CudaRuntime::weight_manifest() const {
     result.reserve(impl_->storage.plan().weights.size());
     for (const auto& w : impl_->storage.plan().weights) {
         const char* type = w.source_type == WeightType::q8_0 ? "Q8_0" : w.source_type == WeightType::f16 ? "F16" : "F32";
-        result.push_back({w.name,type,w.alias_of,w.effective_sha256,w.rows,w.columns,w.offset,w.bytes});
+        result.push_back({w.name,type,w.alias_of,w.effective_sha256,w.rows,w.columns,w.offset,w.bytes,
+                          w.device_storage_type == StorageType::f16 ? "F16" : "F32",w.device_payload_sha256});
     }
     return result;
 }
@@ -268,6 +269,7 @@ CudaDiagnostics CudaRuntime::diagnostics() const {
     result.live_sequences = p.state.live_sequences(); result.live_kv_tokens = p.state.live_tokens();
     result.kv_capacity_tokens = p.config.max_sequences*p.config.max_model_len;
     result.resident = public_plan(p.storage.plan());
+    result.matrix_cast_calls = p.storage.matrix_cast_calls();
     result.weight_h2d_bytes = p.storage.uploaded_bytes(); result.rope_h2d_bytes = p.storage.rope_uploaded_bytes();
     result.metadata_h2d_bytes = p.metadata_h2d; result.token_d2h_bytes = p.token_d2h;
     result.status_d2h_bytes = p.status_d2h; result.debug_d2h_bytes = p.debug_d2h;

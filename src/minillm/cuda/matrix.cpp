@@ -47,4 +47,15 @@ void matrix_multiply(const CudaContext& context, DeviceTensorView<const std::uin
     multiply(context, x, weights, output);
 }
 
+void matrix_multiply(const CudaContext& context, const MatrixWeightView& x,
+                     const MatrixWeightView& weights, DeviceTensorView<float> output) {
+    std::visit([&](auto input, auto weight) {
+        if constexpr (std::is_same_v<decltype(input), decltype(weight)>) {
+            matrix_multiply(context, input, weight, output);
+        } else {
+            throw std::invalid_argument("CUDA 矩阵输入与权重 dtype 不一致");
+        }
+    }, x, weights);
+}
+
 } // namespace minillm::cuda
