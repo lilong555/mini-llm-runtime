@@ -741,13 +741,17 @@
 - 验证：源码检查确认当前字段与逐值断言一致，timing 仍使用 `memcmp`；
   原模型采集的逐值相等检查已通过，未据此声称原采集执行了逐位检查。
 
-## ENG-069：远端公开状态与私有仓库约束冲突
+## ENG-069：仓库发布规则与远端公开状态不一致
 
-- 状态：待用户确认；本轮仅本地提交，未推送。
-- 影响：继续向当前远端推送会公开本轮源码，与项目要求的私有交付范围不一致。
-- 复现或证据：同步前执行 `gh repo view --json visibility,isPrivate`，
-  返回 `{"isPrivate":false,"visibility":"PUBLIC"}`。
-- 原因：当前远端可见性为公开；未查明何时或由谁设置，不推断是本轮操作导致。
-- 解决方法或下一步：不擅自修改可见性，不推送本轮提交；等待用户确认私有同步范围，
-  或明确授权向公开仓库发布。
-- 验证：本轮只读检查确认远端状态，未执行可见性修改、`git push` 或 Release 发布。
+- 状态：已解决，限定于当前发布规则与远端可见性的一致性。
+- 影响：`AGENTS.md` 的默认私有要求与公开交付文档冲突，导致已完成的本地提交暂未同步。
+- 复现或证据：`AGENTS.md` 曾要求 `Keep this repository private unless the user explicitly requests otherwise.`；
+  README 与 `docs/VERSION_CONTROL.md` 已声明公开，`ENG-030` 保留既有公开授权记录。
+  用户现明确要求“修正项目的全部私有约束，变成公开约束”。
+- 原因：执行指令中的默认策略未与公开发布决定同步，不是远端被本轮操作意外公开。
+- 解决方法：`AGENTS.md`、版本控制和产物政策统一要求保持 `PUBLIC`，允许按公开范围
+  同步源码、文档和合规证据；仍禁止发布凭据、模型权重、构建产物及本地运行状态。
+  历史记录与冻结源码快照不重写，也不作为当前约束。
+- 验证：`gh repo view --json nameWithOwner,visibility,isPrivate,url` 确认
+  `lilong555/mini-llm-runtime` 为 `"visibility":"PUBLIC"`、`"isPrivate":false`，
+  无需更改远端设置；当前执行规则与发布文档均采用公开策略。
