@@ -4,12 +4,13 @@
 
 规范为 [CUDA-PREC-001](NEXT_OPT_SPEC.md)，路线为 [PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)。
 M4-0 的决策、已有时间线拆解和实验预注册已完成。第一组配置入口已通过本机验收；
-F16 存储、转换、矩阵执行与三层性能结果尚未提供，不作显存或速度改善声明。
+底层 F16 存储、转换与矩阵边界已实现，完整模型接入和三层实验尚未完成，
+不作显存或速度改善声明。
 
 | 模式 | 当前执行能力 | 默认 |
 | --- | --- | --- |
 | `f32-pedantic` | 原自有 CUDA 模型与 Serving；矩阵输入、权重、累加、输出均为 F32 | 是 |
-| `f16-matrix-f32acc` | 预留名称；模型、存储和 CLI 在执行前明确拒绝 | 否 |
+| `f16-matrix-f32acc` | 内部 storage/cast/GEMM 可验证；Runtime、Serving 和 CLI 仍在执行前拒绝 | 否 |
 
 模式枚举不依赖 CUDA 头文件。Serving、CUDA CLI 和两个 CUDA benchmark 均识别
 `--cuda-precision`；CPU 与上游后端显式使用该参数时失败。
@@ -241,7 +242,38 @@ WHERE n.value LIKE 'cudaMemcpyAsync%' GROUP BY phase,direction;
 验证身份为 `57268f93aecc7c947146d60a3d61a03d84f46a1b` 加
 `final/source-state.json`、`final/source-snapshot.zip`；`final/verification.json`
 记录源码、二进制、模型、冻结输入与原始报告摘要，不把 dirty 构建重标为 clean build。
-独立修复自身的 CI run `36406587106` 已通过；精度合同的 CI 单独核对。
+独立修复自身的 CI run `36406587106` 已通过；精度合同 `5a934a1` 自身的
+CI run `36409279196` 五个任务均通过。这些 CI 不包含 GPU 上板执行。
 
-下一项为同一 owner 下的 F16 typed arena、有限 staging、RN-even 转换、half gather 和
-cuBLAS 矩阵边界。完整模型只在这些门禁通过后接入，遵守一个主设计与一次小修订的停止线。
+## 底层矩阵边界
+
+`CudaStorage` 仍独占 weight/workspace/KV arena。候选大矩阵采用 F16、norm 为 F32，
+同一 tied embedding/head 共用物理权重。`effective_sha256` 保留解码 F32 含义，
+`device_payload_sha256` 单独校验实际设备载荷；旧 `weight()` 拒绝把 F16 地址解释为 F32。
+每个完整行 staging 块的 F32 与 F16 总量受 8 MiB 限制；上传异常先同步，再释放 staging。
+
+`matrix_input(M,K)` 返回实际行数、列数及 stride=K，容量来自最大 scratch。
+`cast_matrix_input()` 使用 device RN-even 并将非有限值与溢出写入既有 status；
+half gather 先屏蔽非法索引，再解码至 F32。cuBLAS 候选使用 F16 operands、F32
+累加和输出，并禁止 reduced-precision reduction；context 与 operand 类型不匹配时拒绝。
+
+底层原始验证位于 `.run/cuda-precision-001/matrix-boundary/`，不是独立 canonical bundle。
+
+| 验证 | 结果与范围 |
+| --- | --- |
+| 最终 CTest | 22/22 套、376 次用例执行 |
+| Matrix / ops / storage | 13/13、14/14、15/15 |
+| RN-even | 全部有限 half 位模式、相邻有限值中点及两侧 float 邻域、溢出边界 |
+| GEMM | 非方阵、padding、guard、非对齐 shape，舍入后 operands 的 FP64 对照 |
+| Scratch | 同 stream 的四组输入、Q/K/V 和 gate/up 复用；执行期间无新设备分配或释放 |
+| 内存检查 | 上述三套 memcheck 均为 0 错误、0 泄漏 |
+| F32 实模型回归 | S1/S4 共 2/2；128 次 GPU logits 摘要与合同验收一致，6 组短 golden 通过 |
+| F32 自有 CUDA HTTP | 12/12，精度字段、资源与停服单终态通过 |
+
+本组身份为 `5a934a1958965729436fc45d83197c5cc984bd24` 加该目录的 source
+snapshot，`verification.json` 固定源码、二进制、设备、输入与所有原始报告摘要。
+本机 CUDA Runtime 为 12080，cuBLAS 为 120805，设备为 RTX 4070 Laptop、SM 8.9。
+
+这组结果尚未验证真实 Q8_0 全量 F16 载荷、16 个正式 shape 的 cast-inclusive 时间，
+也未验证 F16 完整模型或 Serving。Runtime 的候选拒绝保持有效，Tensor Core 使用仍为
+`unverified`。下一项是在既有微基准中接入冻结的 16-shape 子协议，随后才进入模型接入。

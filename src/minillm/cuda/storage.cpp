@@ -1,4 +1,5 @@
 #include "storage.h"
+#include "minillm/kernels.h"
 
 extern "C" {
 #include "hash/sha256/sha256.h"
@@ -40,9 +41,6 @@ std::string digest(sha256_t& state) {
 
 MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     precision_mode_name(limits.precision_mode);
-    if (limits.precision_mode != PrecisionMode::f32_pedantic) {
-        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
-    }
     dimension(limits.max_sequences); dimension(limits.max_model_len); dimension(limits.max_batch_tokens);
     const auto& d = model.dimensions();
     if (limits.max_model_len > d.trained_context) {
@@ -54,12 +52,16 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     const auto weight = [&](const std::string& name) {
         const auto t = model.source().tensor(name);
         dimension(t.rows); dimension(t.columns);
-        if (checked_product(t.columns, sizeof(float)) > weight_staging_bytes) {
+        const bool half = limits.precision_mode == PrecisionMode::f16_matrix_f32acc &&
+                          !name.ends_with("_norm.weight");
+        const auto width = half ? sizeof(std::uint16_t) : sizeof(float);
+        if (checked_product(t.columns, sizeof(float) + (half ? sizeof(std::uint16_t) : 0)) > weight_staging_bytes) {
             throw std::length_error("单行权重超过 8 MiB staging 上限：" + name);
         }
-        const auto bytes = checked_product(checked_product(t.rows, t.columns), sizeof(float));
+        const auto bytes = checked_product(checked_product(t.rows, t.columns), width);
         const auto offset = align(p.weight_bytes);
-        p.weights.push_back({name, t.type, t.rows, t.columns, offset, bytes, {}, {}});
+        p.weights.push_back({name, t.type, t.rows, t.columns, offset, bytes, {}, {},
+                             half ? StorageType::f16 : StorageType::f32, {}});
         p.weight_payload = add(p.weight_payload, bytes);
         p.weight_bytes = add(offset, bytes);
     };
@@ -82,7 +84,8 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     const auto region = [&](Workspace id, const char* name, std::size_t rows, std::size_t columns,
                             StorageType type, std::size_t& category) {
         dimension(columns);
-        const auto bytes = checked_product(checked_product(rows, columns), std::size_t{4});
+        const auto bytes = checked_product(checked_product(rows, columns),
+                                            type == StorageType::f16 ? std::size_t{2} : std::size_t{4});
         const auto offset = align(p.workspace_bytes);
         p.regions.push_back({id, name, type, rows, columns, offset, bytes});
         p.workspace_bytes = add(offset, bytes);
@@ -118,6 +121,10 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     region(Workspace::status, "status", 1, 2, StorageType::i32, p.metadata_bytes);
     region(Workspace::rope_coefficients, "rope_coefficients", limits.max_model_len, d.head_dim,
            StorageType::f32, p.rope_bytes);
+    if (limits.precision_mode == PrecisionMode::f16_matrix_f32acc) {
+        region(Workspace::matrix_input, "matrix_input", b, std::max({d.embedding, q, d.feed_forward}),
+               StorageType::f16, p.activation_bytes);
+    }
     p.workspace_bytes = align(p.workspace_bytes);
     // [sequence][layer][K_or_V][position][kv_head * head_dim]，物理元素为 FP16。
     p.kv_bytes = checked_product(checked_product(checked_product(limits.max_sequences, d.layers), 2),
@@ -157,7 +164,7 @@ void check_memory_budget(const MemoryPlan& p, MemoryInfo available) {
 }
 
 CudaStorage::CudaStorage(const Qwen3Model& model, StorageLimits limits, int device)
-    : plan_(make_memory_plan(model, limits)), context_(device, plan_.cublas_bytes) {
+    : plan_(make_memory_plan(model, limits)), context_(device, plan_.cublas_bytes, limits.precision_mode) {
     available_ = context_.memory_info();
     // free 已扣除 context/cuBLAS，仍用含显式 cuBLAS workspace 的完整计划比较，保守预留。
     check_memory_budget(plan_, available_);
@@ -217,17 +224,27 @@ void CudaStorage::initialize_rope() {
 
 void CudaStorage::upload(const Qwen3Model& model) {
     const auto started = std::chrono::steady_clock::now();
-    std::vector<float> staging(weight_staging_bytes / sizeof(float));
-    try {
-        for (auto& w : plan_.weights) {
-            if (!w.alias_of.empty()) {
-                w.effective_sha256 = plan_.weights.front().effective_sha256;
-                continue;
-            }
-            const auto source = model.source().tensor(w.name);
-            const auto rows_per_chunk = staging.size() / w.columns;
-            sha256_t state;
+    for (auto& w : plan_.weights) {
+        if (!w.alias_of.empty()) {
+            w.effective_sha256 = plan_.weights.front().effective_sha256;
+            w.device_payload_sha256 = plan_.weights.front().device_payload_sha256;
+            continue;
+        }
+        const auto source = model.source().tensor(w.name);
+        const bool half = w.device_storage_type == StorageType::f16;
+        const auto width = half ? sizeof(std::uint16_t) : sizeof(float);
+        const auto rows_per_chunk = std::min(w.rows,
+            weight_staging_bytes / (w.columns * (sizeof(float) + (half ? width : 0))));
+        const auto capacity = rows_per_chunk * w.columns;
+        std::vector<float> staging(capacity);
+        std::vector<std::uint16_t> half_staging(half ? capacity : 0);
+        weight_staging_peak_bytes_ = std::max(weight_staging_peak_bytes_,
+            staging.capacity() * sizeof(float) + half_staging.capacity() * sizeof(std::uint16_t));
+        // 异常同步必须发生在本轮 host staging 析构之前。
+        try {
+            sha256_t state, payload_state;
             sha256_init(&state);
+            if (half) { sha256_init(&payload_state); }
             for (std::size_t first = 0; first < w.rows; first += rows_per_chunk) {
                 const auto count = std::min(rows_per_chunk, w.rows - first);
                 for (std::size_t row = 0; row < count; ++row) {
@@ -238,30 +255,66 @@ void CudaStorage::upload(const Qwen3Model& model) {
                                  [](float v) { return std::isfinite(v); })) {
                     throw Error("权重包含非有限有效值：" + w.name);
                 }
-                const auto bytes = elements * sizeof(float);
-                sha256_update(&state, reinterpret_cast<const unsigned char*>(staging.data()), bytes);
-                check_cuda(cudaMemcpyAsync(weights_.data() + w.offset + first * w.columns * sizeof(float),
-                                          staging.data(), bytes, cudaMemcpyHostToDevice, context_.stream()), "上传有效权重");
+                sha256_update(&state, reinterpret_cast<const unsigned char*>(staging.data()), elements * sizeof(float));
+                if (half) {
+                    for (std::size_t i = 0; i < elements; ++i) {
+                        half_staging[i] = float_to_half(staging[i]);
+                        if ((half_staging[i] & 0x7c00U) == 0x7c00U) {
+                            throw Error("权重 F16 转换溢出：" + w.name);
+                        }
+                    }
+                }
+                const void* data = half ? static_cast<const void*>(half_staging.data()) : staging.data();
+                const auto bytes = elements * width;
+                if (half) { sha256_update(&payload_state, static_cast<const unsigned char*>(data), bytes); }
+                check_cuda(cudaMemcpyAsync(weights_.data() + w.offset + first * w.columns * width,
+                                          data, bytes, cudaMemcpyHostToDevice, context_.stream()), "上传有效权重");
                 context_.synchronize();
                 uploaded_bytes_ += bytes;
                 ++upload_chunks_;
                 max_upload_chunk_bytes_ = std::max(max_upload_chunk_bytes_, bytes);
             }
             w.effective_sha256 = digest(state);
-        }
-    } catch (...) { finish_noexcept(context_); throw; }
+            w.device_payload_sha256 = half ? digest(payload_state) : w.effective_sha256;
+        } catch (...) { finish_noexcept(context_); throw; }
+    }
     weight_decode_upload_ns_ = static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now()-started).count());
 }
 
-DeviceTensorView<const float> CudaStorage::weight(const std::string& name) const {
+const WeightRecord& CudaStorage::weight_record(const std::string& name) const {
     for (const auto& w : plan_.weights) {
-        if (w.name == name) {
-            return {reinterpret_cast<const float*>(weights_.data() + w.offset), w.rows, w.columns,
-                    w.columns, w.bytes / sizeof(float), context_.device()};
-        }
+        if (w.name == name) { return w; }
     }
     throw std::out_of_range("未知设备权重：" + name);
+}
+DeviceTensorView<const float> CudaStorage::weight(const std::string& name) const {
+    const auto& w = weight_record(name);
+    if (w.device_storage_type != StorageType::f32) {
+        throw std::invalid_argument("F16 权重不能作为 F32 view：" + name);
+    }
+    return {reinterpret_cast<const float*>(weights_.data() + w.offset), w.rows, w.columns,
+            w.columns, w.bytes / sizeof(float), context_.device()};
+}
+DeviceTensorView<const float> CudaStorage::norm_weight(const std::string& name) const {
+    if (!name.ends_with("_norm.weight")) { throw std::invalid_argument("不是 norm 权重：" + name); }
+    return weight(name);
+}
+MatrixWeightView CudaStorage::matrix_weight(const std::string& name) const {
+    const auto& w = weight_record(name);
+    if (name.ends_with("_norm.weight")) { throw std::invalid_argument("不是矩阵权重：" + name); }
+    if (w.device_storage_type == StorageType::f32) { return weight(name); }
+    return DeviceTensorView<const std::uint16_t>{
+        reinterpret_cast<const std::uint16_t*>(weights_.data() + w.offset), w.rows, w.columns,
+        w.columns, w.bytes / sizeof(std::uint16_t), context_.device()};
+}
+DeviceTensorView<std::uint16_t> CudaStorage::matrix_input(std::size_t rows, std::size_t columns) {
+    const auto& r = region(Workspace::matrix_input);
+    if (rows == 0 || rows > r.rows || columns == 0 || columns > r.columns) {
+        throw std::invalid_argument("matrix input scratch 形状超过容量");
+    }
+    return {reinterpret_cast<std::uint16_t*>(workspace_.data() + r.offset), rows, columns,
+            columns, r.bytes / sizeof(std::uint16_t), context_.device()};
 }
 const WorkspaceRegion& CudaStorage::region(Workspace id) const {
     for (const auto& r : plan_.regions) { if (r.id == id) { return r; } }

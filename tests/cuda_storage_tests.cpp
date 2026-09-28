@@ -1,5 +1,7 @@
 #include "qwen3_fixture.h"
 #include "storage.h"
+#include "ops.h"
+#include "tensor_validation.h"
 #include "nlohmann/json.hpp"
 
 extern "C" {
@@ -108,39 +110,58 @@ void upload(const CudaContext& c, void* device, const void* host, std::size_t by
 json verify_weights(const Qwen3Model& model, const CudaStorage& storage) {
     json records = json::array();
     std::vector<float> expected(weight_staging_bytes / sizeof(float)), actual(expected.size());
+    std::vector<std::uint16_t> rounded(expected.size());
+    const auto pointer = [&](const WeightRecord& w) -> const void* {
+        if (w.device_storage_type == StorageType::f16) {
+            return std::get<DeviceTensorView<const std::uint16_t>>(storage.matrix_weight(w.name)).data;
+        }
+        return storage.weight(w.name).data;
+    };
     std::size_t bytes_verified = 0;
     for (const auto& w : storage.plan().weights) {
-        const auto view = storage.weight(w.name);
-        CHECK(reinterpret_cast<std::uintptr_t>(view.data) % 256 == 0);
+        const auto* data = static_cast<const std::byte*>(pointer(w));
+        const bool half = w.device_storage_type == StorageType::f16;
+        const auto width = half ? sizeof(std::uint16_t) : sizeof(float);
+        CHECK(reinterpret_cast<std::uintptr_t>(data) % 256 == 0);
         if (!w.alias_of.empty()) {
-            CHECK(view.data == storage.weight(w.alias_of).data);
+            CHECK(data == pointer(storage.plan().weights.front()));
             CHECK(w.effective_sha256 == storage.plan().weights.front().effective_sha256);
+            CHECK(w.device_payload_sha256 == storage.plan().weights.front().device_payload_sha256);
         } else {
             const auto source = model.source().tensor(w.name);
             const auto chunk = expected.size() / w.columns;
-            sha256_t state;
+            sha256_t state, payload;
             sha256_init(&state);
+            sha256_init(&payload);
             for (std::size_t first = 0; first < w.rows; first += chunk) {
                 const auto count = std::min(chunk, w.rows - first);
-                const auto bytes = count * w.columns * sizeof(float);
+                const auto elements = count * w.columns, bytes = elements * width;
                 for (std::size_t row = 0; row < count; ++row) {
                     decode_row(source.type, source.row(first + row), expected.data() + row * w.columns, w.columns);
                 }
-                download(storage.context(), actual.data(), view.data + first * w.columns, bytes);
-                CHECK(std::memcmp(expected.data(), actual.data(), bytes) == 0);
-                sha256_update(&state, reinterpret_cast<const unsigned char*>(actual.data()), bytes);
+                sha256_update(&state, reinterpret_cast<const unsigned char*>(expected.data()), elements * sizeof(float));
+                if (half) {
+                    for (std::size_t i = 0; i < elements; ++i) { rounded[i] = float_to_half(expected[i]); }
+                }
+                download(storage.context(), actual.data(), data + first * w.columns * width, bytes);
+                const void* reference = half ? static_cast<const void*>(rounded.data()) : expected.data();
+                CHECK(std::memcmp(reference, actual.data(), bytes) == 0);
+                sha256_update(&payload, reinterpret_cast<const unsigned char*>(actual.data()), bytes);
                 bytes_verified += bytes;
             }
             CHECK(hash(state) == w.effective_sha256);
+            CHECK(hash(payload) == w.device_payload_sha256);
         }
         records.push_back({{"name", w.name}, {"shape", {w.rows, w.columns}}, {"source_dtype", dtype(w.source_type)},
-                           {"device_dtype", "F32"}, {"offset", w.offset}, {"bytes", w.bytes},
-                           {"alias_of", w.alias_of}, {"effective_sha256", w.effective_sha256}});
+                           {"device_dtype", half ? "F16" : "F32"}, {"offset", w.offset}, {"bytes", w.bytes},
+                           {"alias_of", w.alias_of}, {"effective_sha256", w.effective_sha256},
+                           {"device_payload_sha256", w.device_payload_sha256}});
     }
     CHECK(bytes_verified == storage.plan().weight_payload);
     CHECK(storage.uploaded_bytes() == bytes_verified);
     CHECK(storage.max_upload_chunk_bytes() > 0);
     CHECK(storage.max_upload_chunk_bytes() <= weight_staging_bytes);
+    CHECK(storage.weight_staging_peak_bytes() <= weight_staging_bytes);
     return {{"verified_unique_bytes", bytes_verified}, {"records", records}};
 }
 
@@ -149,7 +170,7 @@ void check_layout(const MemoryPlan& p) {
     for (const auto& w : p.weights) {
         if (!w.alias_of.empty()) { continue; }
         CHECK(w.offset % 256 == 0 && w.offset >= end);
-        CHECK(w.bytes == w.rows * w.columns * sizeof(float));
+        CHECK(w.bytes == w.rows * w.columns * (w.device_storage_type == StorageType::f16 ? 2 : 4));
         end = w.offset + w.bytes;
         payload += w.bytes;
     }
@@ -159,7 +180,7 @@ void check_layout(const MemoryPlan& p) {
     std::size_t workspace_payload = 0;
     for (const auto& r : p.regions) {
         CHECK(r.offset % 256 == 0 && r.offset >= end);
-        CHECK(r.bytes == r.rows * r.columns * 4);
+        CHECK(r.bytes == r.rows * r.columns * (r.type == StorageType::f16 ? 2 : 4));
         end = r.offset + r.bytes;
         workspace_payload += r.bytes;
     }
@@ -237,18 +258,16 @@ TEST(storage_limits_and_budget_boundaries) {
     test::throws<Error>([&] { check_memory_budget(p, roomy); });
 }
 
-TEST(storage_unimplemented_precision_is_rejected_before_device_allocation) {
+TEST(storage_invalid_precision_is_rejected_before_device_allocation) {
     Qwen3Fixture fixture;
     Qwen3Model model(fixture.write());
     auto limits = small;
     CHECK(limits.precision_mode == PrecisionMode::f32_pedantic);
     CHECK(make_memory_plan(model, limits).limits.precision_mode == limits.precision_mode);
     const auto before = allocation_stats();
-    for (const auto mode : {PrecisionMode::f16_matrix_f32acc, static_cast<PrecisionMode>(99)}) {
-        limits.precision_mode = mode;
-        test::throws<std::invalid_argument>([&] { make_memory_plan(model, limits); });
-        test::throws<std::invalid_argument>([&] { CudaStorage storage(model, limits); });
-    }
+    limits.precision_mode = static_cast<PrecisionMode>(99);
+    test::throws<std::invalid_argument>([&] { make_memory_plan(model, limits); });
+    test::throws<std::invalid_argument>([&] { CudaStorage storage(model, limits); });
     same_allocations(before, allocation_stats());
 }
 
@@ -286,6 +305,26 @@ TEST(storage_allocation_failures_release_partial_owners) {
         verify_weights(model, recovered);
     }
 }
+
+TEST(storage_half_allocation_failures_release_partial_owners) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    auto limits = small;
+    limits.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    for (int fail = 1; fail <= 4; ++fail) {
+        const auto before = allocation_stats();
+        {
+            allocation_failure::Injection injection(fail);
+            test::throws<Error>([&] { CudaStorage storage(model, limits); });
+        }
+        const auto after = allocation_stats();
+        CHECK(after.allocation_calls - before.allocation_calls == std::size_t(fail));
+        CHECK(after.allocations - before.allocations == std::size_t(fail - 1));
+        CHECK(after.releases - before.releases == std::size_t(fail - 1));
+    }
+    CudaStorage recovered(model, limits);
+    verify_weights(model, recovered);
+}
 #endif
 
 TEST(storage_f32_f16_tied_and_untied_upload) {
@@ -296,6 +335,126 @@ TEST(storage_f32_f16_tied_and_untied_upload) {
             CudaStorage storage(model, small);
             verify_weights(model, storage);
             test::throws<std::out_of_range>([&] { storage.weight("missing"); });
+            auto limits = small;
+            limits.precision_mode = PrecisionMode::f16_matrix_f32acc;
+            CudaStorage half(model, limits);
+            check_layout(half.plan());
+            verify_weights(model, half);
+            for (std::size_t i = 0; i < half.plan().weights.size(); ++i) {
+                const auto& w = half.plan().weights[i];
+                const bool norm = w.name.ends_with("_norm.weight");
+                CHECK(w.device_storage_type == (norm ? StorageType::f32 : StorageType::f16));
+                CHECK(w.effective_sha256 == storage.plan().weights[i].effective_sha256);
+                if (norm) {
+                    CHECK(half.norm_weight(w.name).data == half.weight(w.name).data);
+                    test::throws<std::invalid_argument>([&] { half.matrix_weight(w.name); });
+                } else {
+                    test::throws<std::invalid_argument>([&] { half.weight(w.name); });
+                    test::throws<std::invalid_argument>([&] { half.norm_weight(w.name); });
+                }
+            }
+            CHECK(half.allocated_bytes() == half.plan().total_bytes && half.allocations() == 4);
+            const auto scratch = half.matrix_input(8, 8);
+            const auto smaller = half.matrix_input(2, 4);
+            CHECK(scratch.data == smaller.data && smaller.stride == 4 && smaller.columns == 4);
+            CHECK(scratch.capacity == smaller.capacity && scratch.capacity == 64);
+            CHECK(reinterpret_cast<std::uintptr_t>(smaller.data) % 256 == 0);
+            test::throws<std::invalid_argument>([&] { half.matrix_input(9, 4); });
+            test::throws<std::invalid_argument>([&] { half.matrix_input(1, 9); });
+            test::throws<std::invalid_argument>([&] { half.matrix_input(0, 4); });
+            test::throws<std::invalid_argument>([&] { half.matrix_input(1, 0); });
+            test::throws<std::out_of_range>([&] { storage.matrix_input(1, 4); });
+        }
+    }
+}
+
+TEST(storage_half_overflow_and_budget_release_owners) {
+    Qwen3Fixture fixture;
+    auto limits = small;
+    limits.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    for (float value : {65520.0f, -65520.0f, std::numeric_limits<float>::infinity(),
+                         std::numeric_limits<float>::quiet_NaN()}) {
+        Qwen3Model model(fixture.write(true, {}, {}, {}, GGML_TYPE_F32, true, value));
+        const auto before = allocation_stats();
+        test::throws<Error>([&] { CudaStorage storage(model, limits); });
+        const auto after = allocation_stats();
+        CHECK(after.allocations - before.allocations == 4);
+        CHECK(after.releases - before.releases == 4);
+    }
+    Qwen3Model model(fixture.write());
+    limits.device_budget_bytes = make_memory_plan(model, limits).total_bytes - 1;
+    const auto before = allocation_stats();
+    test::throws<Error>([&] { CudaStorage storage(model, limits); });
+    const auto after = allocation_stats();
+    CHECK(after.allocations - before.allocations == 1 && after.releases - before.releases == 1);
+}
+
+TEST(storage_half_matrix_groups_reuse_actual_shape_scratch) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    auto limits = small;
+    limits.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    CudaStorage storage(model, limits);
+    const auto& context = storage.context();
+    const auto status = storage.workspace<std::int32_t>(Workspace::status, 1);
+    struct Group { std::size_t columns; std::vector<std::string> weights; };
+    const std::array<Group, 4> groups{{
+        {4, {"attn_q", "attn_k", "attn_v"}}, {8, {"attn_output"}},
+        {4, {"ffn_gate", "ffn_up"}}, {6, {"ffn_down"}}
+    }};
+    constexpr std::size_t m = 2;
+    std::vector<DeviceBuffer<float>> inputs, outputs;
+    std::vector<std::vector<float>> host_inputs;
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        const auto& group = groups[i];
+        host_inputs.emplace_back(m * group.columns);
+        auto& values = host_inputs.back();
+        for (std::size_t j = 0; j < values.size(); ++j) { values[j] = float(int(i * 3 + j) - 7) / 31; }
+        inputs.emplace_back(values.size());
+        upload(context, inputs.back().data(), values.data(), inputs.back().bytes());
+        for (const auto& name : group.weights) {
+            const auto weight = std::get<DeviceTensorView<const std::uint16_t>>(
+                storage.matrix_weight("blk.0." + name + ".weight"));
+            outputs.emplace_back(m * weight.rows);
+        }
+    }
+    const auto before = allocation_stats();
+    reset_status(context, status);
+    std::size_t output_index = 0;
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        const auto& group = groups[i];
+        const auto scratch = storage.matrix_input(m, group.columns);
+        cast_matrix_input(context, matrix_view(std::as_const(inputs[i]), m, group.columns), scratch, status);
+        for (const auto& name : group.weights) {
+            const auto w = std::get<DeviceTensorView<const std::uint16_t>>(
+                storage.matrix_weight("blk.0." + name + ".weight"));
+            matrix_multiply(context, minillm::cuda::detail::read_only(scratch), w,
+                             matrix_view(outputs[output_index++], m, w.rows));
+        }
+    }
+    context.synchronize();
+    same_allocations(before, allocation_stats());
+    std::array<std::int32_t, 2> errors{};
+    download(context, errors.data(), status.data, sizeof(errors));
+    CHECK(errors[0] == 0 && errors[1] == INT_MAX);
+    output_index = 0;
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        for (const auto& name : groups[i].weights) {
+            const auto w = model.source().tensor("blk.0." + name + ".weight");
+            const auto& buffer = outputs[output_index++];
+            std::vector<float> actual(buffer.size()), row(w.columns);
+            download(context, actual.data(), buffer.data(), buffer.bytes());
+            for (std::size_t n = 0; n < w.rows; ++n) {
+                decode_row(w.type, w.row(n), row.data(), w.columns);
+                for (std::size_t r = 0; r < m; ++r) {
+                    double expected = 0;
+                    for (std::size_t k = 0; k < w.columns; ++k) {
+                        expected += double(half_to_float(float_to_half(host_inputs[i][r * w.columns + k]))) *
+                                    half_to_float(float_to_half(row[k]));
+                    }
+                    CHECK(std::abs(double(actual[r * w.rows + n]) - expected) <= unit_atol + unit_rtol * std::abs(expected));
+                }
+            }
         }
     }
 }

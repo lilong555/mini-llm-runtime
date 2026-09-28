@@ -25,7 +25,10 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 - M4-1 第一组：精度枚举、配置预检和模式元数据已实现，通过五种构建、
   74/74 套 CTest（1470 次用例执行）、CPU 模型 13/13、CUDA 短模型 S1/S4
   2/2 及三后端各 12/12 HTTP。身份与原始记录见 [精度研究](PRECISION_STUDY.md)。
-  F16 存储、转换与矩阵实现尚未提供；选择预留模式明确失败。
+  合同提交 `5a934a1` 的 CI run `36409279196` 五任务通过。
+- M4-1 第二组底层：F16 arena、载荷摘要、RN-even cast、half gather 和 F32acc
+  cuBLAS 边界通过 22/22 套 CTest（376 次用例执行）及三套 memcheck。
+  16 个正式 shape 探针与完整 F16 模型尚未提供；Runtime/Serving 仍拒绝候选模式。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
 - M3-1 本机与实验门禁已完成：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
   自有 CUDA、CPU、上游 CUDA、独立核心、ASan/UBSan 五种构建共 74/74 套 CTest 通过；
@@ -65,7 +68,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
 | M3-1 | 本机与实验已验收 | GPU HTTP/SSE、生命周期、资源、12 进程基线和一次 NSys；发布候选 CI 见证据索引 |
 | M4-0 | 入口检查与合同已定义 | 已有时间线离线分解，16 个矩阵 shape、6 个模型 workload、两条 Serving trace |
-| M4-1 | 第一组通过本机验收 | 精度配置入口；F16 执行与三层性能尚未实现或采集 |
+| M4-1 | 合同与底层边界通过验收 | F16 存储、转换和 GEMM 已实现；真实 shape 探针、完整候选模型及三层结果尚未完成 |
 | M4-2 | 未进入 | 仅 Primary 停止且独立目标 workload 的 attention 份额满足门槛时考虑 |
 | M4-3 | 未进入 | 一项研究完成后的功能冻结、作品表达与 upstream |
 

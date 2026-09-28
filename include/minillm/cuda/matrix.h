@@ -2,6 +2,8 @@
 
 #include "minillm/cuda/context.h"
 
+#include <variant>
+
 namespace minillm::cuda {
 
 // dtype 由 T 固定；stride 和 capacity 以元素计。host 只能传递设备指针，不能解引用。
@@ -14,6 +16,9 @@ struct DeviceTensorView {
     std::size_t capacity;
     int device;
 };
+
+using MatrixWeightView = std::variant<DeviceTensorView<const float>,
+                                      DeviceTensorView<const std::uint16_t>>;
 
 template<class T, class Memory>
 DeviceTensorView<T> matrix_view(DeviceBuffer<T, Memory>& buffer, std::size_t rows,
@@ -31,5 +36,8 @@ DeviceTensorView<const T> matrix_view(const DeviceBuffer<T, Memory>& buffer, std
 // 仅入队，不在矩阵调用内部同步；返回结果前调用 CudaContext::synchronize。
 void matrix_multiply(const CudaContext& context, DeviceTensorView<const float> x,
                      DeviceTensorView<const float> weights, DeviceTensorView<float> output);
+// uint16_t 保存 IEEE F16 位模式；累加和输出为 F32，要求候选精度 context。
+void matrix_multiply(const CudaContext& context, DeviceTensorView<const std::uint16_t> x,
+                     DeviceTensorView<const std::uint16_t> weights, DeviceTensorView<float> output);
 
 } // namespace minillm::cuda

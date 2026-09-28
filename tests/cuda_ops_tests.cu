@@ -1,6 +1,7 @@
 #include "test_support.h"
 #include "ops.h"
 #include "tensor_validation.h"
+#include "minillm/kernels.h"
 
 #include <algorithm>
 #include <array>
@@ -69,6 +70,123 @@ void reference_norm(std::span<float> input, std::span<const float> weight, float
     const double denominator = std::sqrt(sum / double(input.size()) + epsilon);
     for (std::size_t i = 0; i < input.size(); ++i) { input[i] = float((double(input[i]) / denominator) * weight[i]); }
 }
+}
+
+TEST(ops_half_cast_all_finite_patterns_midpoints_and_neighbors) {
+    CudaContext context;
+    std::vector<float> input;
+    for (std::uint32_t bits = 0; bits < 0x7c00; ++bits) {
+        const auto value = minillm::half_to_float(static_cast<std::uint16_t>(bits));
+        input.push_back(value); input.push_back(-value);
+        if (bits < 0x7bff) {
+            const float next = minillm::half_to_float(static_cast<std::uint16_t>(bits + 1));
+            const float midpoint = (value + next) / 2;
+            for (float v : {std::nextafter(midpoint, 0.0f), midpoint, std::nextafter(midpoint, next)}) {
+                input.push_back(v); input.push_back(-v);
+            }
+        }
+    }
+    input.push_back(std::nextafter(65520.0f, 0.0f));
+    input.push_back(-std::nextafter(65520.0f, 0.0f));
+    DeviceBuffer<float> x(input.size());
+    DeviceBuffer<std::uint16_t> y(input.size());
+    DeviceBuffer<std::int32_t> status(2);
+    upload(context, x, input);
+    reset_status(context, matrix_view(status, 1, 2));
+    cast_matrix_input(context, read_only(matrix_view(x, 1, input.size())), matrix_view(y, 1, input.size()),
+                       matrix_view(status, 1, 2));
+    const auto actual = download(context, y);
+    for (std::size_t i = 0; i < input.size(); ++i) { CHECK(actual[i] == minillm::float_to_half(input[i])); }
+    check_status(context, status);
+}
+
+TEST(ops_half_cast_strides_guards_and_nonfinite_status) {
+    CudaContext context;
+    constexpr std::size_t rows = 3, columns = 37, xs = 40, ys = 42;
+    std::vector<float> input(rows * xs, std::numeric_limits<float>::quiet_NaN());
+    for (std::size_t r = 0; r < rows; ++r) {
+        for (std::size_t c = 0; c < columns; ++c) { input[r * xs + c] = float(r * 19 + c) / 31; }
+    }
+    DeviceBuffer<float> x(input.size());
+    DeviceBuffer<std::uint16_t> y(rows * ys + 2 * guard);
+    DeviceBuffer<std::int32_t> status(2);
+    constexpr std::uint16_t sentinel = 0x7e00;
+    upload(context, x, input);
+    upload(context, y, std::vector<std::uint16_t>(y.size(), sentinel));
+    reset_status(context, matrix_view(status, 1, 2));
+    cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), padded(y, rows, columns, ys),
+                       matrix_view(status, 1, 2));
+    const auto actual = download(context, y);
+    for (std::size_t i = 0; i < actual.size(); ++i) {
+        if (i < guard || i >= guard + rows * ys || (i - guard) % ys >= columns) {
+            CHECK(actual[i] == sentinel);
+        } else {
+            const auto at = i - guard;
+            CHECK(actual[i] == minillm::float_to_half(input[(at / ys) * xs + at % ys]));
+        }
+    }
+    check_status(context, status);
+    for (float bad : {65520.0f, -65520.0f, std::numeric_limits<float>::infinity(),
+                      -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::quiet_NaN()}) {
+        input[xs] = bad;
+        upload(context, x, input);
+        reset_status(context, matrix_view(status, 1, 2));
+        cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), padded(y, rows, columns, ys),
+                           matrix_view(status, 1, 2));
+        check_status(context, status, int(DeviceError::nonfinite), 1);
+        CHECK((download(context, y)[guard + ys] & 0x7c00U) == 0x7c00U);
+    }
+    auto invalid = matrix_view(y, rows, columns);
+    invalid.capacity = 1;
+    test::throws<std::invalid_argument>([&] {
+        cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), invalid, matrix_view(status, 1, 2));
+    });
+    invalid = matrix_view(y, rows, columns);
+    invalid.data = reinterpret_cast<std::uint16_t*>(x.data());
+    test::throws<std::invalid_argument>([&] {
+        cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), invalid, matrix_view(status, 1, 2));
+    });
+    invalid = matrix_view(y, rows, columns);
+    invalid.data = reinterpret_cast<std::uint16_t*>(status.data());
+    test::throws<std::invalid_argument>([&] {
+        cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), invalid, matrix_view(status, 1, 2));
+    });
+    invalid = matrix_view(y, 1, columns);
+    test::throws<std::invalid_argument>([&] {
+        cast_matrix_input(context, read_only(matrix_view(x, rows, columns, xs)), invalid, matrix_view(status, 1, 2));
+    });
+}
+
+TEST(ops_half_gather_masks_indices_and_preserves_padding) {
+    CudaContext context;
+    constexpr std::size_t columns = 37, xs = 40, ys = 42, rows = 4;
+    std::vector<std::uint16_t> source(3 * xs, 0x7e00);
+    for (std::size_t r = 0; r < 3; ++r) {
+        for (std::size_t c = 0; c < columns; ++c) { source[r * xs + c] = minillm::float_to_half(float(r * 19 + c) / 31); }
+    }
+    DeviceBuffer<std::uint16_t> x(source.size());
+    DeviceBuffer<float> y(rows * ys + 2 * guard);
+    DeviceBuffer<std::int32_t> ids(rows * 2), status(2);
+    upload(context, x, source);
+    for (const auto indices : {std::vector<std::int32_t>{2,99,2,99,0,99,1,99},
+                              std::vector<std::int32_t>{2,99,-1,99,3,99,0,99}}) {
+        upload(context, ids, indices);
+        upload(context, y, std::vector<float>(y.size(), guard_value));
+        reset_status(context, matrix_view(status, 1, 2));
+        gather_rows(context, read_only(matrix_view(x, 3, columns, xs)), read_only(matrix_view(ids, rows, 1, 2)),
+                     padded(y, rows, columns, ys), matrix_view(status, 1, 2));
+        const auto actual = download(context, y);
+        check_guards(actual, rows, columns, ys);
+        for (std::size_t r = 0; r < rows; ++r) {
+            for (std::size_t c = 0; c < columns; ++c) {
+                const auto index = indices[r * 2];
+                if (index < 0 || index >= 3) { CHECK(std::isnan(actual[guard + r * ys + c])); }
+                else { CHECK(actual[guard + r * ys + c] == minillm::half_to_float(source[std::size_t(index) * xs + c])); }
+            }
+        }
+        check_status(context, status, indices[2] < 0 ? int(DeviceError::invalid_index) : 0,
+                      indices[2] < 0 ? 1 : INT_MAX);
+    }
 }
 
 TEST(ops_gather_strides_duplicates_and_real_width) {

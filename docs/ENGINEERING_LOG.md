@@ -677,3 +677,15 @@
   三份服务日志均没有排空等待超时。源码、二进制、模型与结果摘要记录在
   `.run/http-shutdown-drain/verification.json`，初始失败与前提未建立的记录均保留。
   本组不产生 FP16、吞吐或延迟改善结论。
+
+## ENG-065：精度存储测试的命名空间歧义
+
+- 状态：已解决，限定于新增 CUDA 存储测试的编译。
+- 影响：新增存储测试无法编译，阻止底层 F16 路径验收。
+- 复现或证据：`cmake --build build/wsl-own-cuda --parallel 4` 返回
+  `tests/cuda_storage_tests.cpp:411:38: error: reference to ‘detail’ is ambiguous`。
+- 原因：测试同时引入 `minillm` 与 `minillm::cuda`，两者均有 `detail`。
+- 解决方法：对 CUDA `read_only` 使用完整命名空间，不改变数值门槛或产品执行。
+- 验证：`.run/cuda-precision-001/matrix-boundary/final-build.log` 构建成功；
+  `final-ctest.xml` 的 22/22 套 CTest、376 次用例执行通过。
+  其中 storage 为 15/15，包含 scratch 输入组复用；storage memcheck 为 0 错误、0 泄漏。

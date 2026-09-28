@@ -3,6 +3,7 @@
 #include "tensor_validation.h"
 
 #include <cub/block/block_reduce.cuh>
+#include <cuda_fp16.h>
 #include <math_constants.h>
 
 #include <algorithm>
@@ -41,7 +42,23 @@ __global__ void finite_kernel(DeviceTensorView<const float> input, std::int32_t*
     }
 }
 
-__global__ void gather_kernel(DeviceTensorView<const float> source,
+__global__ void cast_kernel(DeviceTensorView<const float> input, DeviceTensorView<std::uint16_t> output,
+                             std::int32_t* status) {
+    const auto count = input.rows * input.columns;
+    for (std::size_t i = std::size_t(blockIdx.x) * blockDim.x + threadIdx.x; i < count;
+         i += std::size_t(blockDim.x) * gridDim.x) {
+        const auto row = i / input.columns, column = i % input.columns;
+        const float value = input.data[row * input.stride + column];
+        const auto half = __float2half_rn(value);
+        output.data[row * output.stride + column] = __half_as_ushort(half);
+        if (!isfinite(value) || !isfinite(__half2float(half))) {
+            record_error(status, DeviceError::nonfinite, static_cast<int>(row));
+        }
+    }
+}
+
+template<class T>
+__global__ void gather_kernel(DeviceTensorView<const T> source,
                               DeviceTensorView<const std::int32_t> indices,
                               DeviceTensorView<float> output, std::int32_t* status) {
     const auto count = output.rows * output.columns;
@@ -53,7 +70,12 @@ __global__ void gather_kernel(DeviceTensorView<const float> source,
             output.data[row * output.stride + column] = CUDART_NAN_F;
             if (column == 0) { record_error(status, DeviceError::invalid_index, static_cast<int>(row)); }
         } else {
-            output.data[row * output.stride + column] = source.data[std::size_t(index) * source.stride + column];
+            const auto value = source.data[std::size_t(index) * source.stride + column];
+            if constexpr (std::is_same_v<T, std::uint16_t>) {
+                output.data[row * output.stride + column] = __half2float(__ushort_as_half(value));
+            } else {
+                output.data[row * output.stride + column] = value;
+            }
         }
     }
 }
@@ -208,9 +230,24 @@ void check_finite(const CudaContext& context, DeviceTensorView<const float> inpu
     check_cuda(cudaGetLastError(), "finite-check kernel");
 }
 
-void gather_rows(const CudaContext& context, DeviceTensorView<const float> source,
-                 DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
-                 DeviceTensorView<std::int32_t> status) {
+void cast_matrix_input(const CudaContext& context, DeviceTensorView<const float> input,
+                       DeviceTensorView<std::uint16_t> output, DeviceTensorView<std::int32_t> status) {
+    const auto x = validate(input, context.device()), y = validate(output, context.device());
+    const auto error = status_range(status, context.device());
+    require(input.rows == output.rows && input.columns == output.columns, "CUDA cast 形状不一致");
+    require(!overlaps(x, y) && !overlaps(error, x) && !overlaps(error, y),
+            "CUDA cast 输入、输出或 status 重叠");
+    const auto count = checked_product(input.rows, input.columns);
+    DeviceScope scope(context.device());
+    cast_kernel<<<grid_for(count), threads, 0, context.stream()>>>(input, output, status.data);
+    check_cuda(cudaGetLastError(), "matrix input F16 cast kernel");
+}
+
+namespace {
+template<class T>
+void gather(const CudaContext& context, DeviceTensorView<const T> source,
+            DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
+            DeviceTensorView<std::int32_t> status) {
     const auto x = validate(source, context.device()), ids = validate(indices, context.device());
     const auto y = validate(output, context.device()), error = status_range(status, context.device());
     require(indices.columns == 1 && output.rows == indices.rows && output.columns == source.columns,
@@ -221,6 +258,19 @@ void gather_rows(const CudaContext& context, DeviceTensorView<const float> sourc
     DeviceScope scope(context.device());
     gather_kernel<<<grid_for(count), threads, 0, context.stream()>>>(source, indices, output, status.data);
     check_cuda(cudaGetLastError(), "gather kernel");
+}
+}
+
+void gather_rows(const CudaContext& context, DeviceTensorView<const float> source,
+                 DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
+                 DeviceTensorView<std::int32_t> status) {
+    gather(context, source, indices, output, status);
+}
+
+void gather_rows(const CudaContext& context, DeviceTensorView<const std::uint16_t> source,
+                 DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
+                 DeviceTensorView<std::int32_t> status) {
+    gather(context, source, indices, output, status);
 }
 
 void rms_norm(const CudaContext& context, DeviceTensorView<const float> input,

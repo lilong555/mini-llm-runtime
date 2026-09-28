@@ -17,20 +17,22 @@ struct StorageLimits {
     PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
 };
 
+enum class StorageType { f32, i32, f16 };
 struct WeightRecord {
     std::string name;
     WeightType source_type;
     std::size_t rows, columns, offset, bytes;
     std::string alias_of;
     std::string effective_sha256;
+    StorageType device_storage_type = StorageType::f32;
+    std::string device_payload_sha256;
 };
 
 enum class Workspace {
     hidden, normalized, query, key, value, attention, projected, gate, up, down,
     selected_hidden, scores, probabilities, logits, tokens, positions, slots,
-    selected_rows, pending_lengths, samples, status, rope_coefficients
+    selected_rows, pending_lengths, samples, status, rope_coefficients, matrix_input
 };
-enum class StorageType { f32, i32 };
 struct WorkspaceRegion {
     Workspace id;
     std::string name;
@@ -70,6 +72,7 @@ public:
     std::size_t uploaded_bytes() const noexcept { return uploaded_bytes_; }
     std::size_t upload_chunks() const noexcept { return upload_chunks_; }
     std::size_t max_upload_chunk_bytes() const noexcept { return max_upload_chunk_bytes_; }
+    std::size_t weight_staging_peak_bytes() const noexcept { return weight_staging_peak_bytes_; }
     std::size_t rope_uploaded_bytes() const noexcept { return rope_uploaded_bytes_; }
     std::uint64_t weight_decode_upload_ns() const noexcept { return weight_decode_upload_ns_; }
     std::size_t allocated_bytes() const noexcept {
@@ -80,6 +83,9 @@ public:
                std::size_t(kv_.size() != 0) + std::size_t(context_.workspace_bytes() != 0);
     }
     DeviceTensorView<const float> weight(const std::string& name) const;
+    DeviceTensorView<const float> norm_weight(const std::string& name) const;
+    MatrixWeightView matrix_weight(const std::string& name) const;
+    DeviceTensorView<std::uint16_t> matrix_input(std::size_t rows, std::size_t columns);
     const WorkspaceRegion& region(Workspace id) const;
     template<class T> DeviceTensorView<T> workspace(Workspace id, std::size_t rows) {
         static_assert(std::is_same_v<T, float> || std::is_same_v<T, std::int32_t>);
@@ -95,6 +101,7 @@ public:
     DeviceTensorView<std::uint16_t> kv_view() noexcept;
 
 private:
+    const WeightRecord& weight_record(const std::string& name) const;
     void upload(const Qwen3Model& model);
     void initialize_rope();
     // context 先构造、最后析构；本类析构及构造失败路径先完成在途工作。
@@ -103,6 +110,7 @@ private:
     MemoryInfo available_{};
     DeviceBuffer<std::byte> weights_, workspace_, kv_;
     std::size_t uploaded_bytes_ = 0, upload_chunks_ = 0, max_upload_chunk_bytes_ = 0;
+    std::size_t weight_staging_peak_bytes_ = 0;
     std::size_t rope_uploaded_bytes_ = 0;
     std::uint64_t weight_decode_upload_ns_ = 0;
 };

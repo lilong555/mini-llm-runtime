@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minillm/cuda/device_buffer.h"
+#include "minillm/cuda/precision.h"
 
 namespace minillm::cuda {
 
@@ -13,7 +14,8 @@ struct MemoryInfo {
 class CudaContext {
 public:
     static constexpr std::size_t default_workspace_bytes = 4 * 1024 * 1024;
-    explicit CudaContext(int device = 0, std::size_t workspace_bytes = default_workspace_bytes);
+    explicit CudaContext(int device = 0, std::size_t workspace_bytes = default_workspace_bytes,
+                         PrecisionMode precision = PrecisionMode::f32_pedantic);
     ~CudaContext();
     CudaContext(const CudaContext&) = delete;
     CudaContext& operator=(const CudaContext&) = delete;
@@ -22,12 +24,14 @@ public:
     // 调用方不得改变 handle 的 stream、workspace、pointer mode 或算术模式。
     cublasHandle_t handle() const noexcept { return handle_; }
     std::size_t workspace_bytes() const noexcept { return workspace_.bytes(); }
+    PrecisionMode precision_mode() const noexcept { return precision_; }
     MemoryInfo memory_info() const;
     void synchronize() const;
 
 private:
     void cleanup() noexcept;
     int device_;
+    PrecisionMode precision_;
     cudaStream_t stream_ = nullptr;
     cublasHandle_t handle_ = nullptr;
     DeviceBuffer<std::byte> workspace_;

@@ -11,10 +11,16 @@ enum class DeviceError : std::int32_t { nonfinite = 1, invalid_index = 2, invali
 void reset_status(const CudaContext& context, DeviceTensorView<std::int32_t> status);
 void check_finite(const CudaContext& context, DeviceTensorView<const float> input,
                   DeviceTensorView<std::int32_t> status);
+// RN-even 转换，正常下溢允许；NaN/Inf 或溢出记录 status，不截断或回退。
+void cast_matrix_input(const CudaContext& context, DeviceTensorView<const float> input,
+                       DeviceTensorView<std::uint16_t> output, DeviceTensorView<std::int32_t> status);
 
 // source[N,D]、indices[M,1]、output[M,D]，允许重复索引，不允许输出与输入重叠。
 // 设备索引非法时先屏蔽读取，再将对应输出行写为 NaN 并记录错误。
 void gather_rows(const CudaContext& context, DeviceTensorView<const float> source,
+                 DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
+                 DeviceTensorView<std::int32_t> status);
+void gather_rows(const CudaContext& context, DeviceTensorView<const std::uint16_t> source,
                  DeviceTensorView<const std::int32_t> indices, DeviceTensorView<float> output,
                  DeviceTensorView<std::int32_t> status);
 

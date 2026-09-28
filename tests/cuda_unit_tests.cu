@@ -1,9 +1,11 @@
 #include "test_support.h"
 #include "minillm/cuda/matrix.h"
+#include "minillm/kernels.h"
 
 #include <cuda_runtime.h>
 
 #include <array>
+#include <climits>
 #include <limits>
 #include <type_traits>
 #include <utility>
@@ -45,14 +47,18 @@ __global__ void prepare_input(float* data, int count) {
     if (i < count) { data[i] = static_cast<float>(i - 3) * 0.25f; }
 }
 
-void upload(const CudaContext& context, DeviceBuffer<float>& buffer, const std::vector<float>& host) {
+template<class T>
+void upload(const CudaContext& context, DeviceBuffer<T>& buffer, const std::vector<T>& host) {
     CHECK(buffer.size() == host.size());
     check_cuda(cudaMemcpyAsync(buffer.data(), host.data(), buffer.bytes(),
                               cudaMemcpyHostToDevice, context.stream()), "上传测试矩阵");
 }
 
+template<class Operand = float>
 void run_matrix(std::size_t m, std::size_t n, std::size_t k, bool padded) {
-    CudaContext context;
+    constexpr bool half = std::is_same_v<Operand, std::uint16_t>;
+    CudaContext context(0, CudaContext::default_workspace_bytes,
+                        half ? PrecisionMode::f16_matrix_f32acc : PrecisionMode::f32_pedantic);
     const auto xs = k + (padded ? 3 : 0);
     const auto ws = k + (padded ? 5 : 0);
     const auto ys = n + (padded ? 7 : 0);
@@ -71,9 +77,20 @@ void run_matrix(std::size_t m, std::size_t n, std::size_t k, bool padded) {
             w[i * ws + j] = static_cast<float>(static_cast<int>((i * 17 + j * 3) % 37) - 18) / 29.0f;
         }
     }
-    DeviceBuffer<float> dx(x.size()), dw(w.size()), dy(y.size());
-    upload(context, dx, x);
-    upload(context, dw, w);
+    std::vector<Operand> operands_x(x.size()), operands_w(w.size());
+    const auto convert = [](std::vector<float>& input, std::vector<Operand>& output) {
+        for (std::size_t i = 0; i < input.size(); ++i) {
+            if constexpr (half) {
+                output[i] = minillm::float_to_half(input[i]);
+                input[i] = minillm::half_to_float(output[i]);
+            } else { output[i] = input[i]; }
+        }
+    };
+    convert(x, operands_x); convert(w, operands_w);
+    DeviceBuffer<Operand> dx(x.size()), dw(w.size());
+    DeviceBuffer<float> dy(y.size());
+    upload(context, dx, operands_x);
+    upload(context, dw, operands_w);
     upload(context, dy, y);
     auto output = matrix_view(dy, m, n, ys);
     output.data += guard;
@@ -190,6 +207,56 @@ TEST(matrix_known_asymmetric_values_and_stream_order) {
 TEST(matrix_padded_rectangular_and_guards) { run_matrix(7, 19, 33, true); }
 TEST(matrix_non_warp_aligned_shape) { run_matrix(5, 37, 131, false); }
 TEST(matrix_projection_shape) { run_matrix(2, 2048, 1024, false); }
+
+TEST(matrix_half_fp32acc_rectangular_projection_and_guards) {
+    run_matrix<std::uint16_t>(7, 19, 33, true);
+    run_matrix<std::uint16_t>(5, 37, 131, false);
+    run_matrix<std::uint16_t>(2, 2048, 1024, false);
+}
+
+TEST(matrix_precision_policy_and_half_preflight) {
+    CudaContext baseline;
+    CudaContext candidate(0, CudaContext::default_workspace_bytes, PrecisionMode::f16_matrix_f32acc);
+    cublasMath_t math{};
+    check_cublas(cublasGetMathMode(candidate.handle(), &math), "候选 math mode");
+    CHECK(math == static_cast<cublasMath_t>(CUBLAS_DEFAULT_MATH |
+                                           CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION));
+    check_cublas(cublasGetMathMode(baseline.handle(), &math), "基线 math mode");
+    CHECK(math == CUBLAS_PEDANTIC_MATH);
+    int version = 0;
+    check_cublas(cublasGetVersion(candidate.handle(), &version), "cuBLAS 版本");
+    std::cout << "cuBLAS version=" << version << '\n';
+    DeviceBuffer<std::uint16_t> dx(32), dw(32);
+    DeviceBuffer<float> dy(32), f32(32);
+    const auto x = matrix_view(std::as_const(dx), 2, 3), w = matrix_view(std::as_const(dw), 4, 3);
+    const auto y = matrix_view(dy, 2, 4);
+    test::throws<std::invalid_argument>([&] { matrix_multiply(baseline, x, w, y); });
+    test::throws<std::invalid_argument>([&] {
+        matrix_multiply(candidate, matrix_view(std::as_const(f32), 2, 3),
+                         matrix_view(std::as_const(f32), 4, 3), y);
+    });
+    for (int failure = 0; failure < 9; ++failure) {
+        auto invalid = x;
+        switch (failure) {
+        case 0: invalid.rows = 0; break;
+        case 1: invalid.stride = 2; break;
+        case 2: invalid.capacity = 5; break;
+        case 3: invalid.data = nullptr; break;
+        case 4: invalid.device = 99; break;
+        case 5: invalid.columns = 2; break;
+        case 6: invalid.stride = std::size_t(INT_MAX) + 1; break;
+        case 7: invalid.data = reinterpret_cast<const std::uint16_t*>(
+                    reinterpret_cast<const char*>(dx.data()) + 1); break;
+        case 8: invalid.data = reinterpret_cast<const std::uint16_t*>(dy.data()); break;
+        }
+        test::throws<std::invalid_argument>([&] { matrix_multiply(candidate, invalid, w, y); });
+    }
+    const auto before = allocation_stats();
+    test::throws<std::invalid_argument>([] {
+        CudaContext invalid(0, CudaContext::default_workspace_bytes, static_cast<PrecisionMode>(99));
+    });
+    CHECK(before.allocations == allocation_stats().allocations);
+}
 
 TEST(matrix_preflight_rejects_invalid_descriptors) {
     CudaContext context;

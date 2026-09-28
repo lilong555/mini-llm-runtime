@@ -83,7 +83,9 @@ void DeviceMemory::release(void* pointer, int device) noexcept {
     }
 }
 
-CudaContext::CudaContext(int device, std::size_t workspace_bytes) : device_(device) {
+CudaContext::CudaContext(int device, std::size_t workspace_bytes, PrecisionMode precision)
+    : device_(device), precision_(precision) {
+    precision_mode_name(precision_);
     if (workspace_bytes < 16 * 1024) {
         throw std::invalid_argument("cuBLAS workspace 至少需要 16 KiB");
     }
@@ -93,7 +95,9 @@ CudaContext::CudaContext(int device, std::size_t workspace_bytes) : device_(devi
         check_cublas(cublasCreate(&handle_), "cublasCreate");
         check_cublas(cublasSetStream(handle_, stream_), "cublasSetStream");
         check_cublas(cublasSetPointerMode(handle_, CUBLAS_POINTER_MODE_HOST), "cublasSetPointerMode");
-        check_cublas(cublasSetMathMode(handle_, CUBLAS_PEDANTIC_MATH), "cublasSetMathMode");
+        const auto math = precision_ == PrecisionMode::f32_pedantic ? CUBLAS_PEDANTIC_MATH :
+            static_cast<cublasMath_t>(CUBLAS_DEFAULT_MATH | CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION);
+        check_cublas(cublasSetMathMode(handle_, math), "cublasSetMathMode");
         check_cublas(cublasSetAtomicsMode(handle_, CUBLAS_ATOMICS_NOT_ALLOWED), "cublasSetAtomicsMode");
         workspace_ = DeviceBuffer<std::byte>(workspace_bytes, device_);
         // cublasSetStream 会重置 workspace；绑定顺序固定为 stream 后 workspace。
