@@ -288,6 +288,7 @@ TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
     const std::vector<minillm::InputToken> input{{1,0,3,false},{2,0,0,true},{3,1,3,true},{4,1,0,false}};
     const auto expected = reference.forward(input);
     auto runner = make_runner(path, config);
+    CHECK(runner->info().precision_mode == "f32-pedantic");
     CHECK(runner->info().model_load_ns > 0 && runner->info().storage_initialization_ns > 0);
     CHECK(runner->info().weight_decode_upload_ns > 0 &&
           runner->info().weight_decode_upload_ns <= runner->info().storage_initialization_ns);

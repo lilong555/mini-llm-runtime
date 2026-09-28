@@ -1,5 +1,6 @@
 #pragma once
 
+#include "minillm/cuda/precision.h"
 #include "minillm/model_types.h"
 
 #include <memory>
@@ -21,6 +22,7 @@ struct CudaRuntimeConfig {
     std::size_t max_model_len = 2048;
     std::size_t batch_tokens = max_supported_batch_tokens;
     std::size_t device_budget_bytes = 0;
+    PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
 };
 
 struct CudaMemoryPlan {

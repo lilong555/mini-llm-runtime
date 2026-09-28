@@ -384,10 +384,11 @@ int main(int argc, char** argv) {
     json report = {{"schema_version",1},{"benchmark","minillm-cuda-micro"},{"status","failed"},{"cases",json::array()}};
     std::string output;
     try {
-        Options options(argc,argv,{"--model","--input","--output","--trial","--manifest"});
+        Options options(argc,argv,{"--model","--input","--output","--trial","--manifest","--cuda-precision"});
         if (options.has("--help")) {
             std::cout << "mini-cuda-kernel-bench --model MODEL.gguf --input INPUT.json --output NEW_REPORT.json\n"
-                         "                       [--trial 0..4] [--manifest MANIFEST.json]\n";
+                         "                       [--trial 0..4] [--manifest MANIFEST.json]\n"
+                         "                       [--cuda-precision f32-pedantic]（f16-matrix-f32acc 尚未实现）\n";
             return 0;
         }
         const auto candidate = options.get("--output");
@@ -395,6 +396,11 @@ int main(int argc, char** argv) {
         const auto parent = std::filesystem::path(candidate).parent_path();
         if (!parent.empty()) { std::filesystem::create_directories(parent); }
         output = candidate;
+        const auto precision = gpu::parse_precision_mode(options.get("--cuda-precision", "f32-pedantic"));
+        if (precision != gpu::PrecisionMode::f32_pedantic) {
+            throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+        }
+        report["precision_mode"] = gpu::precision_mode_name(precision);
         const auto input_hash = cuda_reports::file_hash(options.get("--input"));
         if (input_hash != "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c") {
             throw std::invalid_argument("micro 冻结输入摘要不符");

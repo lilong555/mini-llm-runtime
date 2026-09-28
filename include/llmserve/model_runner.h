@@ -37,6 +37,7 @@ struct ModelInfo {
     std::optional<std::uint64_t> model_load_ns = std::nullopt;
     std::optional<std::uint64_t> storage_initialization_ns = std::nullopt;
     std::optional<std::uint64_t> weight_decode_upload_ns = std::nullopt;
+    std::optional<std::string> precision_mode = std::nullopt;
 };
 
 struct BackendCapabilities {

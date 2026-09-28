@@ -1,8 +1,10 @@
 #pragma once
 
 #include "llmserve/telemetry.h"
+#include "minillm/cuda/precision.h"
 
 #include <cstddef>
+#include <optional>
 #include <string>
 
 namespace llmserve {
@@ -37,6 +39,7 @@ struct ModelConfig {
     bool scalar_kernels = false;
     int device = 0;
     std::size_t device_budget_bytes = 0;
+    std::optional<minillm::cuda::PrecisionMode> cuda_precision = std::nullopt;
 };
 
 std::string policy_name(SchedulingPolicy policy);

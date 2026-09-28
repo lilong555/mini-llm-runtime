@@ -243,6 +243,17 @@ TEST(runtime_initialization_failure_releases_resources) {
     test::throws<std::invalid_argument>([&] { CudaRuntime runtime(oversized); });
 }
 
+TEST(runtime_unimplemented_precision_is_rejected_before_model_or_device_loading) {
+    auto config = config_for("不存在的模型文件");
+    CHECK(config.precision_mode == PrecisionMode::f32_pedantic);
+    const auto before = allocation_stats();
+    for (const auto mode : {PrecisionMode::f16_matrix_f32acc, static_cast<PrecisionMode>(99)}) {
+        config.precision_mode = mode;
+        test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
+    }
+    unchanged_allocations(before);
+}
+
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
 TEST(runtime_checked_completion_failure_is_fail_stop) {
     Qwen3Fixture fixture;

@@ -327,6 +327,15 @@ def executable_guards(executable):
                                     capture_output=True, encoding="utf-8")
             assert result.returncode == 1 and audit.read(output)["status"] == "failed"
             assert ("冻结" if changed else "模型") in result.stderr
+        for index, (precision, message) in enumerate((
+                ("f16-matrix-f32acc", "尚未实现"), ("bf16", "--cuda-precision 必须"),
+                ("f32-pedantic", "冻结"))):
+            output = root / f"precision-{index}.json"
+            result = subprocess.run([executable, "--model", str(model), "--input", str(recipe),
+                                     "--output", str(output), "--cuda-precision", precision],
+                                    capture_output=True, encoding="utf-8", timeout=10)
+            assert result.returncode == 1 and audit.read(output)["status"] == "failed"
+            assert message in result.stderr, result.stderr
         print("[PASS] executable_guards")
 
 

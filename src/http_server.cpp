@@ -214,7 +214,7 @@ json metrics_json(const Engine& engine) {
     return {
         {"ready", s.ready}, {"backend", m.backend}, {"model", m.model}, {"device", m.device},
         {"gpu", m.gpu}, {"threads", m.threads}, {"gpu_layers", m.gpu_layers},
-        {"kernel_mode", m.kernel_mode}, {"policy", policy_name(c.policy)},
+        {"kernel_mode", m.kernel_mode}, {"precision_mode", m.precision_mode}, {"policy", policy_name(c.policy)},
         {"telemetry_mode", telemetry_mode_name(c.telemetry_mode)}, {"telemetry_capacity", c.telemetry_capacity},
         {"llama_commit", "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"},
         {"context_tokens", c.context_tokens}, {"max_model_len", c.max_model_len},

@@ -13,7 +13,8 @@ class MiniCudaRunner final : public ModelRunner {
 public:
     MiniCudaRunner(const ModelConfig& model, const EngineConfig& engine)
         : runtime_({model.path, model.device, engine.max_active, engine.max_model_len,
-                    engine.batch_tokens, model.device_budget_bytes}) {
+                    engine.batch_tokens, model.device_budget_bytes,
+                    model.cuda_precision.value_or(minillm::cuda::PrecisionMode::f32_pedantic)}) {
         info_ = {"minillm-cuda", std::filesystem::path(model.path).stem().string(), "qwen3",
                  runtime_.device_info().name, engine.context_tokens, runtime_.dimensions().vocabulary,
                  true, model.threads, 0, "cuda-f32"};
@@ -24,6 +25,7 @@ public:
         info_.model_load_ns = initial.model_load_ns;
         info_.storage_initialization_ns = initial.storage_initialization_ns;
         info_.weight_decode_upload_ns = initial.weight_decode_upload_ns;
+        info_.precision_mode = minillm::cuda::precision_mode_name(runtime_.config().precision_mode);
         resident_ = {std::nullopt, initial.resident.kv_bytes, KvLayout::contiguous,
                      initial.kv_capacity_tokens, 0, initial.owned_device_bytes};
     }

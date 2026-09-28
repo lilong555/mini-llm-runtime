@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minillm/cuda/matrix.h"
+#include "minillm/cuda/precision.h"
 #include "minillm/qwen3_model.h"
 
 #include <string>
@@ -13,6 +14,7 @@ struct StorageLimits {
     std::size_t max_model_len = 2048;
     std::size_t max_batch_tokens = 128;
     std::size_t device_budget_bytes = 0;
+    PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
 };
 
 struct WeightRecord {

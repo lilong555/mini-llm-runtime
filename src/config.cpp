@@ -40,6 +40,11 @@ std::string policy_name(SchedulingPolicy policy) {
 }
 
 void validate_mini_cuda_config(const ModelConfig& model, const EngineConfig& engine) {
+    const auto precision = model.cuda_precision.value_or(minillm::cuda::PrecisionMode::f32_pedantic);
+    minillm::cuda::precision_mode_name(precision);
+    if (precision != minillm::cuda::PrecisionMode::f32_pedantic) {
+        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+    }
     engine.validate();
     if (model.path.empty() || model.device < 0 || model.threads < 1 || model.threads > 256) {
         throw std::invalid_argument("mini-cuda 需要模型路径、非负 device 和 1..256 threads");

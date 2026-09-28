@@ -148,6 +148,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--server", type=Path)
 parser.add_argument("--bench", type=Path)
 parser.add_argument("--cuda-enabled", action="store_true")
+parser.add_argument("--cuda-cli", type=Path)
 args = parser.parse_args()
 if args.server:
     for options, message in (
@@ -159,6 +160,10 @@ if args.server:
         (["--prefix-tokens", "16"], "prefix"),
         (["--gpu-layers", "1"], "gpu_layers"),
         (["--kernel", "scalar"], "scalar"),
+        (["--cuda-precision", "f16-matrix-f32acc"], "尚未实现"),
+        (["--cuda-precision", "fp16"], "--cuda-precision 必须"),
+        (["--cuda-precision", "f32-pedantic"],
+         "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
         ([], "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
     ):
         result = subprocess.run([str(args.server), "--backend", "mini-cuda", "--model",
@@ -167,6 +172,23 @@ if args.server:
         assert result.returncode != 0 and message in result.stderr, (options, result.stderr)
         passed += 1
         print(f"[PASS] cuda-cli-{options or 'defaults'}")
+    for backend in ("mini", "llama"):
+        for precision in ("f32-pedantic", "f16-matrix-f32acc"):
+            result = subprocess.run([str(args.server), "--backend", backend, "--model", "absent.gguf",
+                                     "--cuda-precision", precision],
+                                    capture_output=True, encoding="utf-8", timeout=10, check=False)
+            assert result.returncode != 0 and "--cuda-precision 仅适用于 mini-cuda" in result.stderr
+            passed += 1
+            print(f"[PASS] precision-backend-{backend}-{precision}")
+if args.cuda_cli:
+    for precision, message in (("f16-matrix-f32acc", "尚未实现"), ("tf32", "--cuda-precision 必须"),
+                               ("f32-pedantic", "无法读取文件")):
+        result = subprocess.run([str(args.cuda_cli), "--model", "absent-precision-model.gguf",
+                                 "--cuda-precision", precision],
+                                capture_output=True, encoding="utf-8", timeout=10, check=False)
+        assert result.returncode != 0 and message in result.stderr, result.stderr
+        passed += 1
+        print(f"[PASS] model-cli-precision-{precision}")
 if args.bench:
     class Tokenizer(http.server.BaseHTTPRequestHandler):
         def reply(self, value):

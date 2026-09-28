@@ -16,12 +16,13 @@ using cuda_reports::json;
 int main(int argc, char** argv) {
     try {
         Options options(argc,argv,{"--model","--prompt","--tokens","--context","--batch","--sequences","--device",
-            "--device-budget-bytes","--chunk","--output"},{"--help","--ignore-eos","--device-time"});
+            "--device-budget-bytes","--chunk","--output","--cuda-precision"},{"--help","--ignore-eos","--device-time"});
         if (options.has("--help") || !options.has("--model")) {
             std::cout << "mini-cuda-llm --model MODEL.gguf [--prompt TEXT] [--tokens 32]\n"
                 "              [--context 2048] [--batch 128] [--chunk 128] [--sequences 4]\n"
                 "              [--device 0] [--device-budget-bytes 0] [--ignore-eos]\n"
-                "              [--device-time] [--output NEW_REPORT.json]\n";
+                "              [--device-time] [--output NEW_REPORT.json]\n"
+                "              [--cuda-precision f32-pedantic]（f16-matrix-f32acc 尚未实现）\n";
             return options.has("--help") ? 0 : 1;
         }
         const auto output_path = options.get("--output");
@@ -29,6 +30,10 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("--output 必须是尚不存在的新文件");
         }
         CudaRuntimeConfig config;
+        config.precision_mode = parse_precision_mode(options.get("--cuda-precision", "f32-pedantic"));
+        if (config.precision_mode != PrecisionMode::f32_pedantic) {
+            throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+        }
         config.model_path = options.get("--model");
         config.device = static_cast<int>(options.integer("--device",0,0,INT_MAX));
         config.max_sequences = static_cast<std::size_t>(options.integer("--sequences",4,1,4));
@@ -89,6 +94,7 @@ int main(int argc, char** argv) {
         const auto allocations_after = allocation_stats();
         runtime.clear_sequence(0);
         const json report = {{"schema_version",1},{"status","passed"},{"backend","minillm-cuda"},
+            {"precision_mode",precision_mode_name(runtime.config().precision_mode)},
             {"execution","项目 CUDA forward；cuBLAS GEMM；llama.cpp 仅提供词表"},
             {"model_sha256",model_sha},{"arithmetic",cuda_reports::arithmetic(runtime)},
             {"device",cuda_reports::device(runtime.device_info())},{"kv_layout","contiguous"},{"streams",1},

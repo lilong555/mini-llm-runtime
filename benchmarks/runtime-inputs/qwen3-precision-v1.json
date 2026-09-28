@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "protocol_id": "precision-experiment-v1",
+  "spec_id": "CUDA-PREC-001",
+  "audit_head": "6ca7d2dfeccb38b11b7596a552046651afcb693e",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "validation_contract": {
+    "path": "tests/data/qwen3_validation_cases.json",
+    "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+  },
+  "baseline_mode": "f32-pedantic",
+  "candidate_mode": "f16-matrix-f32acc",
+  "default_mode": "f32-pedantic",
+  "gpu": {
+    "device": 0,
+    "max_sequences": 4,
+    "max_model_len": 2048,
+    "batch_tokens": 128,
+    "streams": 1,
+    "kv_layout": "contiguous",
+    "kv_dtype": "F16"
+  },
+  "precision": {
+    "baseline": {
+      "matrix_weights": "F32",
+      "matrix_operands": "F32",
+      "matrix_accumulation": "F32",
+      "matrix_output": "F32",
+      "gemm_compute": "CUBLAS_COMPUTE_32F_PEDANTIC",
+      "math_mode": "CUBLAS_PEDANTIC_MATH"
+    },
+    "candidate": {
+      "matrix_weights": "F16",
+      "matrix_operands": "F16",
+      "matrix_accumulation": "F32",
+      "matrix_output": "F32",
+      "gemm_compute": "CUBLAS_COMPUTE_32F",
+      "math_mode": "CUBLAS_DEFAULT_MATH|CUBLAS_MATH_DISALLOW_REDUCED_PRECISION_REDUCTION",
+      "rounding": "nearest_even",
+      "nonfinite_policy": "error_no_clamp_no_fallback",
+      "max_cast_scratch_bytes": 786432,
+      "max_weight_staging_bytes": 8388608,
+      "cast_groups_per_layer": 4,
+      "cast_for_selected_lm_head": 1,
+      "tensor_core_usage_requires_evidence": true
+    },
+    "unchanged": {
+      "norm_weights": "F32",
+      "hidden_residual": "F32",
+      "qk_pv_accumulation": "F32",
+      "softmax_denominator": "F64",
+      "attention_algorithm": "qk_softmax_pv",
+      "tied_weight_allocation": "one",
+      "source_effective_sha256": "per_tensor_decoded_f32_bytes"
+    }
+  },
+  "measurement": {
+    "independent_trials": 3,
+    "warmup": 2,
+    "measured_repeats": 3,
+    "profiler": "none",
+    "clock": "steady_clock",
+    "statistics_unit": "independent_trial_median",
+    "same_binary_per_layer": true,
+    "one_precision_per_process": true,
+    "reference_model_resident": false,
+    "initialization": "separate",
+    "retain_all_samples": true,
+    "trial_mode_order": [
+      ["f32-pedantic", "f16-matrix-f32acc"],
+      ["f16-matrix-f32acc", "f32-pedantic"],
+      ["f32-pedantic", "f16-matrix-f32acc"]
+    ]
+  },
+  "micro": {
+    "rows": [1, 4, 32, 128],
+    "matrices": [
+      {"role": "Q", "N": 2048, "K": 1024, "seeds": [1, 3, 7, 9]},
+      {"role": "gate", "N": 3072, "K": 1024, "seeds": [37, 39, 43, 45]},
+      {"role": "down", "N": 1024, "K": 3072, "seeds": [55, 57, 61, 63]},
+      {"role": "LM_head", "N": 151936, "K": 1024, "seeds": [64, 66, 70, 72]}
+    ],
+    "layer": 0,
+    "shape_count": 16,
+    "input": "dense_modular_f32",
+    "input_recipe": {
+      "modulus": 127,
+      "offset": 63,
+      "index_multiplier": 17,
+      "seed_multiplier": 13,
+      "denominator": 4096
+    },
+    "inner_iterations": 20,
+    "timing_boundaries": ["gemm_only", "cast_inclusive"],
+    "case_order": "matrix_then_rows_reverse_on_odd_trials",
+    "qkv_shared_cast": "unit_group_check",
+    "oracle": "cpu_fp64_using_same_rounded_operands",
+    "real_shape_coverage": "all_output_elements",
+    "atol": 0.0002,
+    "rtol": 0.0002,
+    "fp32_unit_roundoff": 5.960464477539063e-8,
+    "accumulation_bound_multiplier": 4,
+    "error_bound": "atol+rtol*abs(reference)+4*(K*u/(1-K*u))*sum(abs(x16*w16))"
+  },
+  "model": {
+    "token_ids": [1900, 220, 15, 13, 13850, 323, 37852, 5185, 13, 220, 1900, 220, 15, 13, 13850, 323],
+    "workloads": [
+      {"name": "prefill-128", "mode": "prefill", "tokens": 128, "chunk": 128, "logits_rows": 1},
+      {"name": "prefill-512-chunk32", "mode": "prefill", "tokens": 512, "chunk": 32, "logits_rows": 1},
+      {"name": "decode-prefix16", "mode": "fixed_context_decode", "prefix_tokens": 16, "effective_length": 17},
+      {"name": "decode-prefix1536", "mode": "fixed_context_decode", "prefix_tokens": 1536, "effective_length": 1537},
+      {"name": "decode-batch4-prefix256", "mode": "independent_sequences", "sequences": 4, "prefix_tokens": 256},
+      {"name": "mixed16+2", "mode": "mixed", "prefill_tokens": 16, "decode_sequences": 2, "prefix_tokens": 256,
+       "input_rows": 18, "logits_rows": 3}
+    ],
+    "setup": "clear_and_rebuild_independent_prefix_outside_timing",
+    "setup_chunk_tokens": 128,
+    "logits_selection": "last_row_per_sequence",
+    "timing": "host_forward_to_token_ns_including_sampling",
+    "chunked_timing": "sum_all_measured_prefill_forwards",
+    "device_events": false
+  },
+  "numerical": {
+    "corpus_ids": ["zh", "en", "repeated", "special"],
+    "lengths": [16, 128, 1536],
+    "chunk_tokens": [16, 128],
+    "sequence_counts": [1, 4],
+    "configuration_count": 48,
+    "expansion": "repeat_seed_then_truncate",
+    "positions": [0, 1, 15, 16, 31, 32, 127, 128, 255, 256, 1535],
+    "include_positions": ["chunk_tokens-1", "chunk_tokens", "length-1"],
+    "position_filter": "sorted_unique_0_le_position_lt_length",
+    "rmse_exclusive": 0.05,
+    "max_absolute_exclusive": 0.5,
+    "cosine_min_inclusive": 0.9999,
+    "all_finite": true,
+    "argmax_require_equal_if": "reference_top1_minus_top2 > 2 * observed_max_absolute",
+    "stable_golden": "unchanged_exact_tokens",
+    "boundary_length": 2048,
+    "boundary_corpus": "repeated",
+    "state_checks": ["append", "clear", "reuse", "interleaved", "preflight", "poisoned"],
+    "continuation_tokens": 32,
+    "continuations": [
+      {"corpus": "zh", "prompt_tokens": 16},
+      {"corpus": "en", "prompt_tokens": 128},
+      {"corpus": "repeated", "prompt_tokens": 1536},
+      {"corpus": "special", "prompt_tokens": 128}
+    ]
+  },
+  "serving": {
+    "traces": [
+      {"name": "mixed-length", "path": "benchmarks/traces/cuda-serving-mixed-s20260926.jsonl",
+       "sha256": "caf9c4e5baf7ad6e159df7af514b080bf65ca8bd1fcb0e1e3c1304c2e29f81e4",
+       "reverse_trial_mode_order": false},
+      {"name": "burst-reuse", "path": "benchmarks/traces/cuda-serving-burst-s20260927.jsonl",
+       "sha256": "628a0fa4b215d89ac7b80ac355cb0fa5168374caf42052cdad978a82b65ce1d8",
+       "reverse_trial_mode_order": true}
+    ],
+    "policy": "mixed",
+    "context_credits": 8192,
+    "prefill_chunk": 32,
+    "credit_granularity": 16,
+    "queue_capacity": 64,
+    "event_buffer_size": 128,
+    "prefix_cache_entries": 0,
+    "prefix_cache_tokens": 0,
+    "telemetry": "off",
+    "tokens_per_request": 32,
+    "ignore_eos": true,
+    "arrival_scale": 1,
+    "ttft_slo_ms": 1000,
+    "mean_tpot_slo_ms": 100,
+    "same_precision_cross_trial_tokens": "exact",
+    "cross_precision_trace_tokens": "exact_for_product_eligibility",
+    "divergence_evidence": ["first_divergence", "teacher_forced_logits", "top1_top2_margin"]
+  },
+  "gates": {
+    "primary_workload": "prefill-128",
+    "primary_metric": "host_forward_to_token_ns",
+    "paired_gain": "1-T_f16/T_f32",
+    "median_gain_min": 0.10,
+    "every_trial_gain_min": 0.05,
+    "owned_device_bytes_reduction_min": 0.30,
+    "other_model_median_regression_max": 0.05,
+    "other_model_trials_above_regression_max": 1,
+    "serving_mixed_throughput_goodput_regression_max": 0.05,
+    "serving_latency_metrics": ["ttft_ms.p95", "mean_tpot_ms.p95", "request_max_itl_ms.p50"],
+    "serving_latency_median_regression_max": 0.05,
+    "also_report": ["all_request_max_itl_ms", "maximum_itl_ms"],
+    "new_failures_rejections_timeouts": 0,
+    "steady_device_allocation_free_calls": 0,
+    "steady_weight_hidden_transfers": 0,
+    "memory_only_requires_correctness_and_all_guardrails": true,
+    "decision_band_is_not_measured_aa_noise": true
+  },
+  "budget": {
+    "micro_processes": 6,
+    "model_processes": 6,
+    "serving_processes": 12,
+    "total_performance_processes": 24,
+    "new_nsys_captures": 1,
+    "ncu_sessions_if_needed": 1,
+    "ncu_kernel_comparisons_max": 2,
+    "primary_designs": 1,
+    "evidence_based_revisions": 1,
+    "canonical_bundles": 1,
+    "additional_trials_to_find_positive_result": 0
+  },
+  "outcomes": ["performance_success", "memory_only_success", "research_negative", "measurement_inconclusive",
+               "blocked_correctness"],
+  "promotion": {
+    "default_changes": false,
+    "backup_on_success": false,
+    "backup_requires_primary_stopped": true,
+    "backup_attention_share_min": 0.25,
+    "feature_freeze_after_adoptable_result": true
+  }
+}

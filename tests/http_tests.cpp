@@ -157,6 +157,7 @@ int main(int argc, char** argv) {
         CHECK(capabilities.at("synchronous_execute") == true);
         CHECK(capabilities.at("max_sequences") >= before.at("max_active"));
         if (before.at("backend") == "minillm-cuda") {
+            CHECK(before.at("precision_mode") == "f32-pedantic");
             CHECK(before.at("gpu") == true && before.at("gpu_layers") == 0 && before.at("kernel_mode") == "cuda-f32");
             CHECK(capabilities.at("prefix_copy") == false && capabilities.at("runtime_stage_profile") == false);
             CHECK(before.at("prefix_cache_entries") == 0 && before.at("prefix_cache_tokens") == 0);
@@ -170,10 +171,12 @@ int main(int argc, char** argv) {
             CHECK(before.at("initialization").at("weight_decode_upload_ns") <=
                   before.at("initialization").at("storage_initialization_ns"));
         } else if (before.at("backend") == "minillm") {
+            CHECK(before.at("precision_mode").is_null());
             CHECK(capabilities.at("prefix_copy") == true && capabilities.at("runtime_stage_profile") == true);
             CHECK(before.at("resources").at("layout") == "paged");
             CHECK(before.at("resources").at("live_tokens").is_null());
         } else {
+            CHECK(before.at("precision_mode").is_null());
             CHECK(before.at("backend") == "llama.cpp" && before.at("resources").is_null());
         }
         checks.push_back("backend_capabilities_and_resource_semantics");

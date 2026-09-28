@@ -497,6 +497,16 @@ def executable_preflight_guards(executable):
                                      "--output", str(report), "--backend", backend], encoding="utf-8", capture_output=True)
             assert result.returncode == 1 and audit.read(report)["status"] == "failed"
             assert {"backend": "--backend", "model": "模型摘要", "input": "冻结"}[name] in result.stderr
+        for index, (backend, precision, message) in enumerate((
+                ("cpu8", "f32-pedantic", "仅适用于"), ("cpu16", "f16-matrix-f32acc", "仅适用于"),
+                ("cuda", "f16-matrix-f32acc", "尚未实现"), ("cuda", "tf32", "--cuda-precision 必须"),
+                ("cuda", "f32-pedantic", "冻结"))):
+            report = root / f"precision-{index}.json"
+            result = subprocess.run([executable, "--model", str(model), "--input", str(recipe),
+                                     "--output", str(report), "--backend", backend, "--cuda-precision", precision],
+                                    encoding="utf-8", capture_output=True, timeout=10)
+            assert result.returncode == 1 and audit.read(report)["status"] == "failed"
+            assert message in result.stderr, result.stderr
         print("[PASS] executable_preflight_guards")
 
 

@@ -237,6 +237,21 @@ TEST(storage_limits_and_budget_boundaries) {
     test::throws<Error>([&] { check_memory_budget(p, roomy); });
 }
 
+TEST(storage_unimplemented_precision_is_rejected_before_device_allocation) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    auto limits = small;
+    CHECK(limits.precision_mode == PrecisionMode::f32_pedantic);
+    CHECK(make_memory_plan(model, limits).limits.precision_mode == limits.precision_mode);
+    const auto before = allocation_stats();
+    for (const auto mode : {PrecisionMode::f16_matrix_f32acc, static_cast<PrecisionMode>(99)}) {
+        limits.precision_mode = mode;
+        test::throws<std::invalid_argument>([&] { make_memory_plan(model, limits); });
+        test::throws<std::invalid_argument>([&] { CudaStorage storage(model, limits); });
+    }
+    same_allocations(before, allocation_stats());
+}
+
 TEST(storage_budget_failure_has_no_arena_allocation) {
     Qwen3Fixture fixture;
     Qwen3Model model(fixture.write());

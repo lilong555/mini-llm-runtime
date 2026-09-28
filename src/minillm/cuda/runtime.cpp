@@ -21,6 +21,10 @@ std::uint64_t elapsed(Clock::time_point start) {
     return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now()-start).count());
 }
 CudaRuntimeConfig checked(CudaRuntimeConfig config) {
+    precision_mode_name(config.precision_mode);
+    if (config.precision_mode != PrecisionMode::f32_pedantic) {
+        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+    }
     if (config.model_path.empty() || config.device < 0 || config.max_sequences == 0 ||
         config.max_sequences > CudaRuntimeConfig::max_supported_sequences) {
         throw std::invalid_argument("CUDA 模型路径、设备或 sequence 上限无效，最多支持 4 个序列");
@@ -32,7 +36,8 @@ CudaRuntimeConfig checked(CudaRuntimeConfig config) {
     return config;
 }
 StorageLimits limits(const CudaRuntimeConfig& config) {
-    return {config.max_sequences,config.max_model_len,config.batch_tokens,config.device_budget_bytes};
+    return {config.max_sequences,config.max_model_len,config.batch_tokens,config.device_budget_bytes,
+            config.precision_mode};
 }
 void finish_noexcept(const CudaContext& context) noexcept {
     try { context.synchronize(); }

@@ -77,9 +77,58 @@ def measurement_boundaries():
         if case["mode"] == "natural_generation":
             assert case["prefill_calls"] + case["decode_calls"] == case["output_tokens"]
 
+def precision_experiment_boundaries():
+    p = read("benchmarks/runtime-inputs/qwen3-precision-v1.json")
+    assert p["protocol_id"] == "precision-experiment-v1" and p["spec_id"] == "CUDA-PREC-001"
+    assert p["model_sha256"] == protocol["model_sha256"]
+    paths = [p["validation_contract"], *p["serving"]["traces"]]
+    for item in paths:
+        assert hashlib.sha256((ROOT / item["path"]).read_bytes()).hexdigest() == item["sha256"]
+    assert p["model"]["token_ids"] == protocol["token_ids"]
+    assert p["default_mode"] == p["baseline_mode"] == "f32-pedantic"
+    assert p["candidate_mode"] == "f16-matrix-f32acc"
+    assert p["measurement"]["independent_trials"] == 3
+    assert p["measurement"]["warmup"] == 2 and p["measurement"]["measured_repeats"] == 3
+    assert p["measurement"]["same_binary_per_layer"] and p["measurement"]["one_precision_per_process"]
+    assert p["gpu"] == dict(device=0, max_sequences=4, max_model_len=2048, batch_tokens=128,
+                            streams=1, kv_layout="contiguous", kv_dtype="F16")
+    micro = p["micro"]
+    assert micro["rows"] == [1, 4, 32, 128] and micro["inner_iterations"] == 20
+    assert micro["shape_count"] == len(micro["matrices"]) * len(micro["rows"]) == 16
+    assert [(x["role"], x["N"], x["K"]) for x in micro["matrices"]] == [
+        ("Q", 2048, 1024), ("gate", 3072, 1024), ("down", 1024, 3072), ("LM_head", 151936, 1024)]
+    old_micro = read("benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json")["matrix"]
+    for matrix in micro["matrices"]:
+        assert matrix["seeds"] == [old_micro["roles"].index(matrix["role"]) * len(old_micro["rows"])
+                                   + old_micro["rows"].index(m) + 1 for m in micro["rows"]]
+    assert micro["accumulation_bound_multiplier"] == 4
+    assert micro["fp32_unit_roundoff"] == 2 ** -24
+    numerical = p["numerical"]
+    assert numerical["configuration_count"] == (len(numerical["corpus_ids"]) * len(numerical["lengths"])
+                                                * len(numerical["chunk_tokens"]) * len(numerical["sequence_counts"])) == 48
+    assert numerical["lengths"] == [16, 128, 1536]
+    assert numerical["chunk_tokens"] == [16, 128] and numerical["sequence_counts"] == [1, 4]
+    for key in ("rmse_exclusive", "max_absolute_exclusive", "cosine_min_inclusive", "all_finite"):
+        assert numerical[key] == contract["thresholds"][key]
+    assert numerical["argmax_require_equal_if"] == contract["argmax"]["require_equal_if"]
+    assert len(p["model"]["workloads"]) == 6 and p["model"]["workloads"][0]["name"] == "prefill-128"
+    for work in p["model"]["workloads"]:
+        if work["mode"] == "fixed_context_decode":
+            assert work["effective_length"] == work["prefix_tokens"] + 1
+    assert p["gates"]["primary_metric"] == "host_forward_to_token_ns"
+    assert p["gates"]["median_gain_min"] == 0.10 and p["gates"]["every_trial_gain_min"] == 0.05
+    assert p["gates"]["owned_device_bytes_reduction_min"] == 0.30
+    assert p["serving"]["policy"] == "mixed" and p["serving"]["telemetry"] == "off"
+    assert p["budget"]["total_performance_processes"] == sum(
+        p["budget"][key] for key in ("micro_processes", "model_processes", "serving_processes")) == 24
+    assert p["budget"]["additional_trials_to_find_positive_result"] == 0
+    assert p["budget"]["new_nsys_captures"] == p["budget"]["ncu_sessions_if_needed"] == 1
+    assert not p["promotion"]["default_changes"] and not p["promotion"]["backup_on_success"]
+
 
 if __name__ == "__main__":
-    tests = [pinned_weights, golden_provenance, corpus_boundaries, measurement_boundaries]
+    tests = [pinned_weights, golden_provenance, corpus_boundaries, measurement_boundaries,
+             precision_experiment_boundaries]
     for test in tests:
         test()
         print(f"[PASS] {test.__name__}")

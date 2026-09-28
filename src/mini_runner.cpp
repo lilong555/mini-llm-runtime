@@ -110,6 +110,9 @@ private:
 } // namespace
 
 std::unique_ptr<ModelRunner> make_mini_runner(const ModelConfig& model, const EngineConfig& engine) {
+    if (model.cuda_precision) {
+        throw std::invalid_argument("cuda_precision 仅适用于 mini-cuda");
+    }
     engine.validate();
     if (model.gpu_layers != 0 || model.threads <= 0 || model.threads > 256 || model.path.empty()) {
         throw std::invalid_argument("MiniLLM requires a model path, CPU execution, and 1..256 threads");

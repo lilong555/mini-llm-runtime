@@ -39,6 +39,10 @@ std::string digest(sha256_t& state) {
 }
 
 MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
+    precision_mode_name(limits.precision_mode);
+    if (limits.precision_mode != PrecisionMode::f32_pedantic) {
+        throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
+    }
     dimension(limits.max_sequences); dimension(limits.max_model_len); dimension(limits.max_batch_tokens);
     const auto& d = model.dimensions();
     if (limits.max_model_len > d.trained_context) {

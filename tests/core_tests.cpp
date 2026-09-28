@@ -165,6 +165,9 @@ TEST(cuda_serving_configuration_is_checked_without_loading_a_model) {
     valid.prefill_chunk = 32;
     valid.prefix_cache_entries = valid.prefix_cache_tokens = 0;
     validate_mini_cuda_config(model, valid);
+    CHECK(!model.cuda_precision);
+    model.cuda_precision = minillm::cuda::PrecisionMode::f32_pedantic;
+    validate_mini_cuda_config(model, valid);
     for (int failure = 0; failure < 8; ++failure) {
         auto config = valid;
         switch (failure) {
@@ -179,7 +182,7 @@ TEST(cuda_serving_configuration_is_checked_without_loading_a_model) {
         }
         test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(model, config); });
     }
-    for (int failure = 0; failure < 5; ++failure) {
+    for (int failure = 0; failure < 7; ++failure) {
         auto invalid = model;
         switch (failure) {
         case 0: invalid.gpu_layers = 1; break;
@@ -187,9 +190,22 @@ TEST(cuda_serving_configuration_is_checked_without_loading_a_model) {
         case 2: invalid.device = -1; break;
         case 3: invalid.threads = 0; break;
         case 4: invalid.path.clear(); break;
+        case 5: invalid.cuda_precision = minillm::cuda::PrecisionMode::f16_matrix_f32acc; break;
+        case 6: invalid.cuda_precision = static_cast<minillm::cuda::PrecisionMode>(99); break;
         }
         test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(invalid, valid); });
     }
+}
+
+TEST(cuda_precision_names_are_explicit_without_cuda_dependencies) {
+    using namespace minillm::cuda;
+    for (const auto mode : {PrecisionMode::f32_pedantic, PrecisionMode::f16_matrix_f32acc}) {
+        CHECK(parse_precision_mode(precision_mode_name(mode)) == mode);
+    }
+    for (const auto name : {"", "fp16", "F32", "tf32", " f32-pedantic", "f32-pedantic "}) {
+        test::throws<std::invalid_argument>([&] { parse_precision_mode(name); });
+    }
+    test::throws<std::invalid_argument>([] { precision_mode_name(static_cast<PrecisionMode>(99)); });
 }
 
 TEST(half_conversion_all_finite_patterns) {

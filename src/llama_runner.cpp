@@ -208,6 +208,9 @@ private:
 
 std::unique_ptr<ModelRunner> make_llama_runner(const ModelConfig& model,
                                              const EngineConfig& engine) {
+    if (model.cuda_precision) {
+        throw std::invalid_argument("cuda_precision 仅适用于 mini-cuda");
+    }
     return std::make_unique<LlamaRunner>(model, engine);
 }
 

@@ -283,7 +283,7 @@ if(LLMSERVE_BUILD_TESTS)
             list(APPEND TELEMETRY_TEST_ARGS --server $<TARGET_FILE:llmserve>)
             list(APPEND TELEMETRY_TEST_ARGS --bench $<TARGET_FILE:llmserve-bench>)
             if(MINILLM_ENABLE_CUDA)
-                list(APPEND TELEMETRY_TEST_ARGS --cuda-enabled)
+                list(APPEND TELEMETRY_TEST_ARGS --cuda-enabled --cuda-cli $<TARGET_FILE:mini-cuda-llm>)
             endif()
         endif()
         add_test(NAME telemetry-validation COMMAND "${Python3_EXECUTABLE}"

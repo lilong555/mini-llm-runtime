@@ -28,11 +28,12 @@ json allocation_counts() {
 
 class Backend {
 public:
-    Backend(const std::string& name, const std::string& model) {
+    Backend(const std::string& name, const std::string& model, gpu::PrecisionMode precision) {
         const auto started = Clock::now();
         if (name == "cuda") {
             gpu::CudaRuntimeConfig config;
             config.model_path = model;
+            config.precision_mode = precision;
             cuda_ = std::make_unique<gpu::CudaRuntime>(config);
         } else {
             minillm::RuntimeConfig config;
@@ -108,7 +109,8 @@ public:
     }
     json metadata() const {
         const auto& d = dimensions();
-        return {{"dimensions", {{"embedding", d.embedding}, {"layers", d.layers}, {"heads", d.heads},
+        return {{"precision_mode", cuda_ ? json(gpu::precision_mode_name(cuda_->config().precision_mode)) : json(nullptr)},
+            {"dimensions", {{"embedding", d.embedding}, {"layers", d.layers}, {"heads", d.heads},
                     {"kv_heads", d.kv_heads}, {"head_dim", d.head_dim}, {"feed_forward", d.feed_forward},
                     {"vocabulary", d.vocabulary}, {"trained_context", d.trained_context}}},
             {"configuration", {{"max_sequences", 4}, {"max_model_len", 2048}, {"batch_tokens", 128},
@@ -140,10 +142,12 @@ int main(int argc, char** argv) {
                    {"workloads", json::array()}};
     std::string output;
     try {
-        Options options(argc, argv, {"--model", "--input", "--output", "--backend", "--manifest", "--order"});
+        Options options(argc, argv, {"--model", "--input", "--output", "--backend", "--manifest", "--order",
+                                    "--cuda-precision"});
         if (options.has("--help")) {
             std::cout << "mini-cuda-runtime-bench --model MODEL.gguf --input INPUT.json --output NEW_REPORT.json\n"
                 "                        --backend cpu8|cpu16|cuda [--manifest MANIFEST.json --order N]\n"
+                "                        [--cuda-precision f32-pedantic]（仅 cuda；f16-matrix-f32acc 尚未实现）\n"
                 "单进程构造一个 Runtime；12 个 workload，每项 2 次 warmup、3 次正式测量。\n";
             return 0;
         }
@@ -155,6 +159,13 @@ int main(int argc, char** argv) {
         const auto backend = options.get("--backend");
         if (backend != "cpu8" && backend != "cpu16" && backend != "cuda") {
             throw std::invalid_argument("--backend 必须为 cpu8、cpu16 或 cuda");
+        }
+        if (backend != "cuda" && options.has("--cuda-precision")) {
+            throw std::invalid_argument("--cuda-precision 仅适用于 cuda backend");
+        }
+        const auto precision = gpu::parse_precision_mode(options.get("--cuda-precision", "f32-pedantic"));
+        if (precision != gpu::PrecisionMode::f32_pedantic) {
+            throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
         }
         if (options.has("--manifest") != options.has("--order")) {
             throw std::invalid_argument("--manifest 与 --order 必须同时指定");
@@ -212,7 +223,7 @@ int main(int argc, char** argv) {
             if (level >= GGML_LOG_LEVEL_WARN) { std::cerr << text; }
         }, nullptr);
         report["before_initialization_allocations"] = allocation_counts();
-        Backend runtime(backend, options.get("--model"));
+        Backend runtime(backend, options.get("--model"), precision);
         report["runtime"] = runtime.metadata();
         for (const auto& id : input.at("token_ids")) {
             if (!id.is_number_integer() || id.get<std::int64_t>() < 0 ||

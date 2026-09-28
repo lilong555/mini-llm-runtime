@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
             "--context", "--max-model-len", "--batch-tokens", "--prefill-chunk", "--max-active",
             "--queue-capacity", "--prefix-entries", "--prefix-tokens", "--page-size", "--policy",
             "--kernel", "--shutdown-file", "--event-buffer", "--telemetry", "--telemetry-output",
-            "--telemetry-capacity", "--device", "--device-budget-bytes"});
+            "--telemetry-capacity", "--device", "--device-budget-bytes", "--cuda-precision"});
         if (options.has("--help") || !options.has("--model")) {
             std::cout << "llmserve --model MODEL.gguf [--backend mini|mini-cuda|llama] [--port 8000]\n"
                          "         [--threads 8] [--gpu-layers 0] [--context 8192]\n"
@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
                          "         [--event-buffer 128] [--shutdown-file PATH]\n"
                          "         [--telemetry off|batches|stages] [--telemetry-output PATH]\n"
                          "         [--telemetry-capacity 1024] [--device 0] [--device-budget-bytes 0]\n"
+                         "         [--cuda-precision f32-pedantic]（仅 mini-cuda；f16-matrix-f32acc 尚未实现）\n"
                          "mini-cuda 默认：max-active=4, batch-tokens=128, prefix-entries=0, prefix-tokens=0\n";
             return options.has("--help") ? 0 : 1;
         }
@@ -41,6 +42,9 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("--backend must be mini, mini-cuda or llama");
         }
         const bool own_cuda = backend == "mini-cuda";
+        if (!own_cuda && options.has("--cuda-precision")) {
+            throw std::invalid_argument("--cuda-precision 仅适用于 mini-cuda");
+        }
         llmserve::EngineConfig config;
         const auto telemetry = options.get("--telemetry", "off");
         if (telemetry != "off" && telemetry != "batches" && telemetry != "stages") {
@@ -78,6 +82,10 @@ int main(int argc, char** argv) {
         config.policy = policy == "mixed" ? llmserve::SchedulingPolicy::mixed : llmserve::SchedulingPolicy::prefill_first;
         config.validate();
         llmserve::ModelConfig model;
+        if (own_cuda) {
+            model.cuda_precision = minillm::cuda::parse_precision_mode(
+                options.get("--cuda-precision", "f32-pedantic"));
+        }
         model.path = options.get("--model");
         model.threads = static_cast<int>(options.integer("--threads", 8, 1, 256));
         model.gpu_layers = static_cast<int>(options.integer("--gpu-layers", backend == "llama" ? 99 : 0, 0, 10000));
