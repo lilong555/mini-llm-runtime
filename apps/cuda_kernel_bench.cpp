@@ -5,6 +5,7 @@
 #include "storage.h"
 #include "tensor_validation.h"
 #include "hash/hash.h"
+#include "minillm/parallel.h"
 
 #include <chrono>
 #include <climits>
@@ -90,13 +91,52 @@ json device(const gpu::CudaContext& context) {
     gpu::check_cublas(cublasGetVersion(context.handle(), &info.cublas_version), "micro cuBLAS 版本");
     return cuda_reports::device(info);
 }
-json weights(const gpu::CudaStorage& storage) {
+json weights(const gpu::CudaStorage& storage, bool precision_study = false) {
     std::vector<gpu::CudaWeightInfo> result;
     for (const auto& w : storage.plan().weights) {
         result.push_back({w.name, w.source_type == WeightType::q8_0 ? "Q8_0" : w.source_type == WeightType::f32 ? "F32" : "F16",
                           w.alias_of, w.effective_sha256, w.rows, w.columns, w.offset, w.bytes});
     }
-    return cuda_reports::weights(result);
+    auto report = cuda_reports::weights(result);
+    if (precision_study) {
+        for (std::size_t i = 0; i < result.size(); ++i) {
+            const auto& w = storage.plan().weights[i];
+            report[i]["device_dtype"] = w.device_storage_type == gpu::StorageType::f16 ? "F16" : "F32";
+            report[i]["device_payload_sha256"] = w.device_payload_sha256;
+        }
+    }
+    return report;
+}
+
+json verify_weight_payloads(const gpu::CudaStorage& storage) {
+    std::vector<std::byte> bytes(gpu::weight_staging_bytes);
+    std::size_t verified = 0, tensors = 0;
+    try {
+        for (const auto& w : storage.plan().weights) {
+            if (!w.alias_of.empty()) { continue; }
+            const void* pointer = w.device_storage_type == gpu::StorageType::f32 ?
+                static_cast<const void*>(storage.weight(w.name).data) :
+                std::get<gpu::DeviceTensorView<const std::uint16_t>>(storage.matrix_weight(w.name)).data;
+            sha256_t state;
+            sha256_init(&state);
+            for (std::size_t first = 0; first < w.bytes; first += bytes.size()) {
+                const auto count = std::min(bytes.size(), w.bytes - first);
+                gpu::check_cuda(cudaMemcpyAsync(bytes.data(), static_cast<const std::byte*>(pointer) + first,
+                    count, cudaMemcpyDeviceToHost, storage.context().stream()), "micro 权重载荷回读");
+                storage.context().synchronize();
+                sha256_update(&state, reinterpret_cast<const unsigned char*>(bytes.data()), count);
+                verified += count;
+            }
+            unsigned char digest[32];
+            sha256_final(&state, digest);
+            std::ostringstream text;
+            for (auto b : digest) { text << std::hex << std::setw(2) << std::setfill('0') << unsigned(b); }
+            if (text.str() != w.device_payload_sha256) { throw std::runtime_error("micro 权重载荷摘要不符：" + w.name); }
+            ++tensors;
+        }
+    } catch (...) { finish(storage.context()); throw; }
+    return {{"status","passed"},{"unique_tensors",tensors},{"d2h_bytes",verified},
+            {"staging_peak_bytes",storage.weight_staging_peak_bytes()}};
 }
 
 class Events {
@@ -160,6 +200,8 @@ struct Prepared {
     gpu::DeviceTensorView<float> x{}, y{};
     std::vector<float> input, output, norm, coefficients, probability_initial;
     std::vector<double> expected;
+    std::vector<double> absolute_sums;
+    std::string reference_hash, absolute_sums_hash;
     std::vector<std::pair<std::size_t,double>> points;
     std::vector<std::int32_t> status{0,0};
     Transfers transfers;
@@ -196,7 +238,8 @@ void attention_reference(Prepared& p, const Case& c, const ModelDimensions& d) {
     }
 }
 
-void prepare(Prepared& p, const Case& c, const Qwen3Model& model, gpu::CudaStorage& storage) {
+void prepare(Prepared& p, const Case& c, const Qwen3Model& model, gpu::CudaStorage& storage,
+             bool precision_study = false) {
     using W = gpu::Workspace;
     const auto& d = model.dimensions();
     W input = W::hidden, output = W::normalized;
@@ -224,9 +267,38 @@ void prepare(Prepared& p, const Case& c, const Qwen3Model& model, gpu::CudaStora
     p.output.resize(p.y.rows*p.y.columns);
     for (std::size_t i = 0; i < p.input.size(); ++i) { p.input[i] = input_value(i, c.seed); }
     if (c.operation == "matrix") {
-        const auto w = storage.weight(c.tensor);
-        if (w.rows != c.n || w.columns != c.k) { throw std::runtime_error("micro 矩阵形状与实际权重不一致"); }
+        std::visit([&](const auto& w) {
+            if (w.rows != c.n || w.columns != c.k) { throw std::runtime_error("micro 矩阵形状与实际权重不一致"); }
+        }, storage.matrix_weight(c.tensor));
         const auto source = model.source().tensor(c.tensor == "output.weight" && model.tied_output() ? "token_embd.weight" : c.tensor);
+        if (precision_study) {
+            p.expected.resize(p.output.size());
+            p.absolute_sums.resize(p.output.size());
+            const bool half = storage.plan().limits.precision_mode == gpu::PrecisionMode::f16_matrix_f32acc;
+            auto operands = p.input;
+            if (half) { for (auto& v : operands) { v = half_to_float(float_to_half(v)); } }
+            // 参照线程仅在准备阶段存在，不参与 GPU 计时；每个输出使用相同舍入后的 operands。
+            ParallelExecutor oracle(8);
+            oracle.run(c.n, 32, [&](std::size_t first, std::size_t last) {
+                std::vector<float> row(c.k);
+                for (std::size_t col = first; col < last; ++col) {
+                    decode_row(source.type, source.row(col), row.data(), c.k);
+                    if (half) { for (auto& v : row) { v = half_to_float(float_to_half(v)); } }
+                    for (std::size_t r = 0; r < c.m; ++r) {
+                        double sum = 0, absolute = 0;
+                        for (std::size_t k = 0; k < c.k; ++k) {
+                            const double product = double(operands[r*c.k+k]) * row[k];
+                            sum += product; absolute += std::abs(product);
+                        }
+                        p.expected[r*c.n+col] = sum;
+                        p.absolute_sums[r*c.n+col] = absolute;
+                    }
+                }
+            });
+            p.reference_hash = hash_sha256_hex(p.expected.data(), p.expected.size()*sizeof(double));
+            p.absolute_sums_hash = hash_sha256_hex(p.absolute_sums.data(), p.absolute_sums.size()*sizeof(double));
+            return;
+        }
         std::vector<float> weight(c.k);
         for (auto col : sample_columns(c.n)) {
             decode_row(source.type, source.row(col), weight.data(), c.k);
@@ -283,6 +355,103 @@ void prepare(Prepared& p, const Case& c, const Qwen3Model& model, gpu::CudaStora
             }
         }
     } else { attention_reference(p, c, d); }
+}
+
+json verify_precision(Prepared& p, const Case& c) {
+    constexpr double u = 0x1p-24;
+    const auto gamma = double(c.k)*u / (1-double(c.k)*u);
+    double maximum = -1, ratio = -1, squares = 0;
+    std::size_t worst_absolute = 0, worst_ratio = 0;
+    json first_nonfinite = nullptr;
+    for (std::size_t i = 0; i < p.output.size(); ++i) {
+        if (!std::isfinite(p.output[i]) || !std::isfinite(p.expected[i]) || !std::isfinite(p.absolute_sums[i])) {
+            if (first_nonfinite.is_null()) { first_nonfinite = i; }
+            continue;
+        }
+        const double error = std::abs(double(p.output[i])-p.expected[i]);
+        const double limit = 2e-4+2e-4*std::abs(p.expected[i])+4*gamma*p.absolute_sums[i];
+        if (error > maximum) { maximum = error; worst_absolute = i; }
+        if (error/limit > ratio) { ratio = error/limit; worst_ratio = i; }
+        squares += error*error;
+    }
+    const auto point = [&](std::size_t i) {
+        return json{{"index",i},{"actual",p.output[i]},{"reference",p.expected[i]},{"sum_absolute_products",p.absolute_sums[i]}};
+    };
+    const bool valid = first_nonfinite.is_null() && ratio >= 0 && ratio <= 1;
+    return {{"passed",valid},{"all_finite",first_nonfinite.is_null()},{"first_nonfinite",first_nonfinite},
+        {"checked_elements",p.output.size()},{"max_absolute",maximum},{"max_tolerance_ratio",ratio},
+        {"rmse",std::sqrt(squares/double(p.output.size()))},{"worst_absolute",point(worst_absolute)},
+        {"worst_ratio",point(worst_ratio)},{"reference_sha256",p.reference_hash},
+        {"absolute_sums_sha256",p.absolute_sums_hash},
+        {"output_sha256",hash_sha256_hex(p.output.data(),p.output.size()*sizeof(float))}};
+}
+
+void run_precision_case(json& report, const Case& c, const Qwen3Model& model, gpu::CudaStorage& storage,
+                        Events& events, const json& recipe) {
+    report = describe(c, model.dimensions());
+    report["status"] = "running"; report["samples"] = json::array();
+    const auto& context = storage.context();
+    const bool half = context.precision_mode() == gpu::PrecisionMode::f16_matrix_f32acc;
+    const auto status = storage.workspace<std::int32_t>(gpu::Workspace::status,1);
+    Prepared p(context);
+    const auto preparation = Clock::now();
+    prepare(p,c,model,storage,true);
+    report["preparation_host_ns"] = elapsed(preparation);
+    report["preparation_transfers"] = p.transfers.since({});
+    report["input_sha256"] = hash_sha256_hex(p.input.data(),p.input.size()*sizeof(float));
+    const auto weight = storage.matrix_weight(c.tensor);
+    const auto scratch = half ? storage.matrix_input(c.m,c.k) : gpu::DeviceTensorView<std::uint16_t>{};
+    const auto before = allocations();
+    report["before_allocations"] = before;
+    const auto calls = recipe.at("micro").at("inner_iterations").get<std::size_t>();
+    for (std::size_t iteration = 0; iteration < repetitions; ++iteration) {
+        for (const auto* boundary : {"gemm_only", "cast_inclusive"}) {
+            const bool inclusive = std::string_view(boundary) == "cast_inclusive";
+            const auto setup = Clock::now();
+            const auto transfers_before = p.transfers;
+            upload(context,p.x,p.input,p.transfers);
+            gpu::reset_status(context,status);
+            if (half && !inclusive) { gpu::cast_matrix_input(context,read_only(p.x),scratch,status); }
+            context.synchronize();
+            const auto setup_ns = elapsed(setup);
+            const auto transfers_ready = p.transfers;
+            const auto started = Clock::now();
+            gpu::check_cuda(cudaEventRecord(events.start,context.stream()), "precision micro 开始计时");
+            for (std::size_t call = 0; call < calls; ++call) {
+                if (half) {
+                    if (inclusive) { gpu::cast_matrix_input(context,read_only(p.x),scratch,status); }
+                    gpu::matrix_multiply(context,read_only(scratch),
+                        std::get<gpu::DeviceTensorView<const std::uint16_t>>(weight),p.y);
+                } else {
+                    gpu::matrix_multiply(context,read_only(p.x),std::get<gpu::DeviceTensorView<const float>>(weight),p.y);
+                }
+            }
+            gpu::check_cuda(cudaEventRecord(events.stop,context.stream()), "precision micro 停止计时");
+            context.synchronize();
+            const auto host_ns = elapsed(started);
+            const auto transfers_done = p.transfers;
+            const auto validation = Clock::now();
+            float device_ms = 0;
+            gpu::check_cuda(cudaEventElapsedTime(&device_ms,events.start,events.stop), "precision micro 读取 events");
+            download(context,status,p.status,p.transfers);
+            download(context,p.y,p.output,p.transfers);
+            const auto verification = verify_precision(p,c);
+            report["samples"].push_back({{"iteration",iteration},{"phase",iteration < 2 ? "warmup" : "measured"},
+                {"boundary",boundary},{"calls",calls},{"setup_cast_calls",half && !inclusive ? 1 : 0},
+                {"measured_cast_calls",half && inclusive ? calls : 0},{"setup_host_ns",setup_ns},
+                {"host_enqueue_to_completion_ns",host_ns},{"device_interval_ms",device_ms},
+                {"validation_host_ns",elapsed(validation)},{"verification",verification},{"device_status",p.status},
+                {"setup_transfers",transfers_ready.since(transfers_before)},
+                {"measured_transfers",transfers_done.since(transfers_ready)},
+                {"validation_transfers",p.transfers.since(transfers_done)}});
+            if (!verification.at("passed").get<bool>() || p.status[0] != 0 || p.status[1] != INT_MAX ||
+                !std::isfinite(device_ms) || device_ms <= 0) {
+                throw std::runtime_error("precision micro 数值或设备状态失败：" + c.name);
+            }
+            if (before != allocations()) { throw std::runtime_error("precision micro 稳态设备分配或释放变化"); }
+        }
+    }
+    report["after_allocations"] = allocations(); report["status"] = "passed";
 }
 
 json verify(Prepared& p) {
@@ -388,7 +557,8 @@ int main(int argc, char** argv) {
         if (options.has("--help")) {
             std::cout << "mini-cuda-kernel-bench --model MODEL.gguf --input INPUT.json --output NEW_REPORT.json\n"
                          "                       [--trial 0..4] [--manifest MANIFEST.json]\n"
-                         "                       [--cuda-precision f32-pedantic]（f16-matrix-f32acc 尚未实现）\n";
+                         "                       [--cuda-precision f32-pedantic|f16-matrix-f32acc]\n"
+                         "precision-experiment-v1 为 16-shape 对照；旧协议仅支持 F32。\n";
             return 0;
         }
         const auto candidate = options.get("--output");
@@ -397,31 +567,37 @@ int main(int argc, char** argv) {
         if (!parent.empty()) { std::filesystem::create_directories(parent); }
         output = candidate;
         const auto precision = gpu::parse_precision_mode(options.get("--cuda-precision", "f32-pedantic"));
-        if (precision != gpu::PrecisionMode::f32_pedantic) {
-            throw std::invalid_argument("f16-matrix-f32acc 尚未实现；当前仅支持 f32-pedantic");
-        }
         report["precision_mode"] = gpu::precision_mode_name(precision);
         const auto input_hash = cuda_reports::file_hash(options.get("--input"));
-        if (input_hash != "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c") {
+        const bool precision_study = input_hash == precision_input_sha256;
+        if (!precision_study && input_hash != "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c") {
             throw std::invalid_argument("micro 冻结输入摘要不符");
         }
         const auto recipe = read(options.get("--input"));
+        if (!precision_study && precision != gpu::PrecisionMode::f32_pedantic) {
+            throw std::invalid_argument("F16 micro 需要 precision-experiment-v1 冻结输入");
+        }
         const auto model_hash = cuda_reports::file_hash(options.get("--model"));
-        if (recipe.at("protocol_id") != "qwen3-cuda-micro-v0" ||
+        if (recipe.at("protocol_id") != (precision_study ? "precision-experiment-v1" : "qwen3-cuda-micro-v0") ||
             model_hash != "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031") {
             throw std::invalid_argument("micro 输入或模型身份不符");
         }
-        const auto trial = options.integer("--trial",0,0,4);
+        const auto trial = options.integer("--trial",0,0,precision_study ? 2 : 4);
+        if (precision_study) { report["schema_version"] = 2; report["protocol_id"] = "precision-experiment-v1"; }
         report["model_sha256"] = model_hash; report["input_sha256"] = input_hash; report["trial"] = trial;
         report["protocol"] = recipe.at("measurement"); report["run_identity"] = nullptr;
         if (options.has("--manifest")) {
             const auto manifest = read(options.get("--manifest"));
             const auto binary = cuda_reports::file_hash(std::filesystem::canonical(argv[0]));
-            if (manifest.at("benchmark") != "minillm-cuda-micro" || manifest.at("schema_version") != 1 ||
+            const auto slot_index = precision_study ?
+                trial*2 + ((precision == gpu::PrecisionMode::f16_matrix_f32acc) != bool(trial % 2)) : trial;
+            const auto& slot = manifest.at("reports").at(slot_index);
+            if (manifest.at("benchmark") != "minillm-cuda-micro" || manifest.at("schema_version") != (precision_study ? 2 : 1) ||
                 manifest.at("binary").at("sha256") != binary || manifest.at("model").at("sha256") != model_hash ||
                 manifest.at("input").at("sha256") != input_hash ||
-                manifest.at("reports").at(trial).at("trial") != trial ||
-                manifest.at("reports").at(trial).at("file") != std::filesystem::path(output).filename().string()) {
+                slot.at("trial") != trial || slot.at("file") != std::filesystem::path(output).filename().string() ||
+                (precision_study && (slot.at("precision_mode") != gpu::precision_mode_name(precision) ||
+                                     manifest.at("protocol_id") != "precision-experiment-v1"))) {
                 throw std::invalid_argument("micro manifest 身份不符");
             }
             report["run_identity"] = {{"run_id",manifest.at("run_id")},
@@ -439,29 +615,44 @@ int main(int argc, char** argv) {
             report["dimensions"] = {{"embedding",d.embedding},{"layers",d.layers},{"heads",d.heads},{"kv_heads",d.kv_heads},
                 {"head_dim",d.head_dim},{"feed_forward",d.feed_forward},{"vocabulary",d.vocabulary},
                 {"rms_epsilon",d.rms_epsilon},{"rope_base",d.rope_base}};
-            report["memory_plan"] = memory(gpu::make_memory_plan(model,{}));
+            gpu::StorageLimits limits;
+            limits.precision_mode = precision;
+            report["memory_plan"] = memory(gpu::make_memory_plan(model,limits));
             const auto storage_start = Clock::now();
-            gpu::CudaStorage storage(model);
+            gpu::CudaStorage storage(model,limits);
             report["storage_initialization_ns"] = elapsed(storage_start);
             report["weight_decode_upload_ns"] = storage.weight_decode_upload_ns();
             report["weight_h2d_bytes"] = storage.uploaded_bytes();
             report["rope_h2d_bytes"] = storage.rope_uploaded_bytes();
             report["owned_device_bytes"] = storage.allocated_bytes();
             if (storage.allocated_bytes() != storage.plan().total_bytes) { throw std::runtime_error("micro 内存计划与分配不符"); }
-            report["weights"] = weights(storage); report["device"] = device(storage.context());
+            report["weights"] = weights(storage,precision_study); report["device"] = device(storage.context());
             report["arithmetic"] = {{"source_weight_dtype","Q8_0"},{"device_weight_dtype","F32"},{"activation_dtype","F32"},
                 {"kv_dtype","F16"},{"kv_rounding","nearest_even"},{"qk_pv_accumulation_dtype","F32"},
                 {"softmax_exponential_dtype","F32"},{"softmax_denominator_dtype","F64"},
                 {"gemm_compute","CUBLAS_COMPUTE_32F_PEDANTIC"},{"fast_math",false}};
+            if (precision_study) {
+                const bool half = precision == gpu::PrecisionMode::f16_matrix_f32acc;
+                auto& arithmetic = report["arithmetic"];
+                arithmetic["device_weight_dtype"] = half ? "F16_matrices_F32_norms" : "F32";
+                arithmetic["matrix_operand_dtype"] = half ? "F16" : "F32";
+                arithmetic["matrix_accumulation_dtype"] = "F32";
+                arithmetic["matrix_output_dtype"] = "F32";
+                arithmetic["gemm_compute"] = half ? "CUBLAS_COMPUTE_32F" : "CUBLAS_COMPUTE_32F_PEDANTIC";
+                arithmetic["math_mode"] = recipe.at("precision").at(half ? "candidate" : "baseline").at("math_mode");
+                arithmetic["tensor_core_usage"] = "unverified";
+                report["weight_validation"] = verify_weight_payloads(storage);
+            }
             Events events(storage.context());
             const auto kv_start = Clock::now();
-            report["kv_initialization_transfers"] = initialize_kv(storage);
+            report["kv_initialization_transfers"] = precision_study ? Transfers{}.since({}) : initialize_kv(storage);
             report["kv_initialization_ns"] = elapsed(kv_start);
             report["before_cases_allocations"] = allocations();
             if (trial % 2) { std::reverse(cases.begin(),cases.end()); }
             for (const auto& c : cases) {
                 report["cases"].push_back(json::object());
-                run_case(report["cases"].back(),c,model,storage,events);
+                if (precision_study) { run_precision_case(report["cases"].back(),c,model,storage,events,recipe); }
+                else { run_case(report["cases"].back(),c,model,storage,events); }
                 std::cout << c.name << " 通过\n" << std::flush;
             }
             report["after_cases_allocations"] = allocations();
@@ -474,6 +665,7 @@ int main(int argc, char** argv) {
         cuda_reports::write(output,report);
         return 0;
     } catch (const std::exception& e) {
+        report["after_destruction_allocations"] = allocations();
         report["error"] = e.what();
         if (!output.empty()) {
             try { cuda_reports::write(output,report); }

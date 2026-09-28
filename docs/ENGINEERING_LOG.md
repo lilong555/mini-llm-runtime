@@ -689,3 +689,15 @@
 - 验证：`.run/cuda-precision-001/matrix-boundary/final-build.log` 构建成功；
   `final-ctest.xml` 的 22/22 套 CTest、376 次用例执行通过。
   其中 storage 为 15/15，包含 scratch 输入组复用；storage memcheck 为 0 错误、0 泄漏。
+
+## ENG-066：精度反例依赖固定 tensor 下标
+
+- 状态：已解决，限定于精度反例的 tensor 定位。
+- 影响：新增 norm dtype 反例没有实际修改数据，测试报告未拒绝无效证据，阻止微基准验收。
+- 复现或证据：`python3 tests/cuda_micro_validation_tests.py --executable build/wsl-own-cuda/bin/mini-cuda-kernel-bench`
+  在 `precision_wrong_dtype_mirror_hash_and_cast_boundaries_are_rejected` 报告
+  `AssertionError: 无效 micro 证据未被拒绝`；尚未运行正式性能进程。
+- 原因：共享旧 fixture 的下标 1 是 F16 tied output，不是 norm；设为 F16 不改变数据。
+- 解决方法：按 `output_norm.weight`、`output.weight` 名称定位相应反例，不依赖 tensor 顺序。
+- 验证：带真实 executable 的微基准反例 13/13 通过；自有 CUDA 与 CPU 的
+  37/37 套 CTest、679 次用例执行通过，见 `.run/cuda-precision-001/micro-validation/`。

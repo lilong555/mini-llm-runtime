@@ -2,6 +2,7 @@
 #include "test_support.h"
 
 #include <fstream>
+#include <filesystem>
 #include <map>
 #include <set>
 
@@ -99,6 +100,24 @@ TEST(micro_rope_norm_and_sampling_boundaries) {
     auto invalid = input;
     invalid["matrix"]["roles"][0] = "unknown";
     test::throws<std::invalid_argument>([&] { make_cases(invalid,dimensions()); });
+}
+
+TEST(precision_micro_is_the_frozen_matrix_subset) {
+    const auto path = std::filesystem::path(__FILE__).parent_path().parent_path() /
+        "benchmarks/runtime-inputs/qwen3-precision-v1.json";
+    std::ifstream file(path);
+    auto spec = json::parse(file);
+    const auto cases = make_cases(spec, dimensions()), old = make_cases(input, dimensions());
+    CHECK(cases.size() == 16);
+    for (const auto& c : cases) {
+        const auto it = std::find_if(old.begin(), old.end(), [&](const Case& item) { return item.name == c.name; });
+        CHECK(it != old.end() && describe(*it, dimensions()) == describe(c, dimensions()));
+    }
+    auto d = dimensions();
+    --d.embedding;
+    test::throws<std::invalid_argument>([&] { make_cases(spec, d); });
+    spec["micro"]["matrices"][0]["seeds"].erase(0);
+    test::throws<std::invalid_argument>([&] { make_cases(spec, dimensions()); });
 }
 
 int main(int argc, char** argv) {

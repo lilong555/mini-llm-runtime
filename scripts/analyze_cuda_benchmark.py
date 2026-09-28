@@ -154,7 +154,9 @@ def allocation_snapshot(value, expected):
             "项目 device allocation/free 计数变化或字段无效")
 
 
-def memory_plan(runtime):
+def memory_plan(runtime, *, precision_mode=None):
+    require(precision_mode in (None, "f32-pedantic", "f16-matrix-f32acc"), "未知矩阵精度")
+    half = precision_mode == "f16-matrix-f32acc"
     dims = runtime["dimensions"]
     weights = runtime["weights"]
     require(isinstance(weights, list) and len(weights) == 311, "权重清单不完整")
@@ -163,17 +165,25 @@ def memory_plan(runtime):
     types = Counter()
     for record in weights:
         name = record["name"]
-        require(isinstance(name, str) and name not in seen and record["device_dtype"] == "F32"
+        device_dtype = "F16" if half and isinstance(name, str) and not name.endswith("_norm.weight") else "F32"
+        require(isinstance(name, str) and name not in seen and record["device_dtype"] == device_dtype
                 and digest(record["effective_sha256"]), "权重身份、类型或摘要无效")
+        if precision_mode is not None:
+            require(digest(record["device_payload_sha256"]), "实际设备载荷摘要缺失")
+            if device_dtype == "F32":
+                require(record["device_payload_sha256"] == record["effective_sha256"], "F32 载荷与有效权重不一致")
         shape = record["shape"]
         require(isinstance(shape, list) and len(shape) == 2 and all(integer(v, 1) for v in shape)
                 and integer(record["offset"]) and integer(record["bytes"], 1)
-                and record["bytes"] == 4 * math.prod(shape), "权重尺寸无效")
+                and record["bytes"] == (2 if device_dtype == "F16" else 4) * math.prod(shape), "权重尺寸无效")
         alias = record["alias_of"]
         if alias:
             require(alias in seen, "权重别名目标缺失")
             for key in ("shape", "offset", "bytes", "effective_sha256", "source_dtype"):
                 require(identical(record[key], seen[alias][key]), f"共享权重字段不符：{key}")
+            if precision_mode is not None:
+                for key in ("device_dtype", "device_payload_sha256"):
+                    require(identical(record[key], seen[alias][key]), f"共享设备载荷不符：{key}")
         else:
             require(record["offset"] == (end + 255) // 256 * 256, "权重 arena 存在重叠或空洞")
             end = record["offset"] + record["bytes"]
@@ -191,6 +201,10 @@ def memory_plan(runtime):
     widths = [embedding, embedding, q, kv, kv, q, embedding, ffn, ffn, embedding, embedding,
               dims["heads"] * 2048, dims["heads"] * 2048, dims["vocabulary"], 1, 1, 1, 1]
     sizes = [128 * width * 4 for width in widths] + [4 * 4, 128 * 3 * 4, 2 * 4, 2048 * dims["head_dim"] * 4]
+    if half:
+        scratch = 128 * max(embedding, q, ffn) * 2
+        sizes.append(scratch)
+        categories["activations_bytes"] += scratch
     workspace_end = 0
     for size in sizes:
         workspace_end = (workspace_end + 255) // 256 * 256 + size

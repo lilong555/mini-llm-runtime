@@ -14,6 +14,8 @@ namespace cuda_micro {
 
 using json = nlohmann::ordered_json;
 inline constexpr std::size_t calls_per_sample = 32, repetitions = 5, max_length = 2048, max_batch = 128;
+inline constexpr const char* precision_input_sha256 =
+    "3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8";
 
 struct Case {
     std::string name, operation, role, tensor;
@@ -40,6 +42,31 @@ inline std::vector<std::size_t> sample_columns(std::size_t count) {
 }
 
 inline std::vector<Case> make_cases(const json& recipe, const minillm::ModelDimensions& d) {
+    if (recipe.at("protocol_id") == "precision-experiment-v1") {
+        std::vector<Case> result;
+        const auto rows = recipe.at("micro").at("rows").get<std::vector<std::size_t>>();
+        for (const auto& matrix : recipe.at("micro").at("matrices")) {
+            const auto role = matrix.at("role").get<std::string>();
+            std::string tensor;
+            std::size_t n = 0, k = d.embedding;
+            if (role == "Q") { tensor = "blk.0.attn_q.weight"; n = d.heads * d.head_dim; }
+            else if (role == "gate") { tensor = "blk.0.ffn_gate.weight"; n = d.feed_forward; }
+            else if (role == "down") { tensor = "blk.0.ffn_down.weight"; n = d.embedding; k = d.feed_forward; }
+            else if (role == "LM_head") { tensor = "output.weight"; n = d.vocabulary; }
+            else { throw std::invalid_argument("precision micro 矩阵角色无效"); }
+            if (matrix.at("N") != n || matrix.at("K") != k || matrix.at("seeds").size() != rows.size()) {
+                throw std::invalid_argument("precision micro 模型尺寸或 seed 数量不符");
+            }
+            for (std::size_t i = 0; i < rows.size(); ++i) {
+                Case c{"matrix-" + role + "-m" + std::to_string(rows[i]), "matrix", role, tensor, rows[i], n, k};
+                if (c.m == 0 || c.m > max_batch) { throw std::invalid_argument("precision micro 行数无效"); }
+                c.seed = matrix.at("seeds").at(i).get<std::size_t>();
+                result.push_back(std::move(c));
+            }
+        }
+        if (result.size() != 16) { throw std::invalid_argument("precision micro 必须包含 16 个 shape"); }
+        return result;
+    }
     std::vector<Case> result;
     const auto rows = recipe.at("matrix").at("rows").get<std::vector<std::size_t>>();
     const auto add = [&](Case item) {

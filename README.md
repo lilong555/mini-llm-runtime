@@ -73,7 +73,8 @@ bash scripts/dev.sh own-cuda serve --port 8001
 该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。[自有 GPU Serving 基线](benchmarks/results/cuda-serving-001/README.md) 包含 12 个独立服务进程、288 个成功请求和一次完整时间线，保留 SLO 未达标及吞吐不确定项；生命周期与性能分别验收。
 
 自有 CUDA 的精度参数为 `--cuda-precision f32-pedantic`，省略时相同。
-`f16-matrix-f32acc` 是尚不可执行的预留模式，会明确报错；CPU 与上游后端拒绝该参数。
+完整模型入口尚不支持 `f16-matrix-f32acc`，会明确报错；CPU 与上游后端拒绝该参数。
+矩阵微基准在固定 `precision-experiment-v1` 子协议中支持两种模式。
 [精度研究](docs/PRECISION_STUDY.md) 区分已验证能力、实验合同与待验证候选。
 
 ### Windows / PowerShell

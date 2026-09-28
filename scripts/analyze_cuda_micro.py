@@ -18,6 +18,12 @@ from analyze_cuda_benchmark import (ValidationError, artifact, digest, finite, i
 BENCHMARK = "minillm-cuda-micro"
 PROTOCOL_ID = "qwen3-cuda-micro-v0"
 INPUT_SHA256 = "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c"
+PRECISION_INPUT_SHA256 = "3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8"
+PRECISION_PROTOCOL = "precision-experiment-v1"
+PRECISION_MODES = ("f32-pedantic", "f16-matrix-f32acc")
+PRECISION_STATISTICS = dict(independent_trials=3, process_median_repeats=3, calls_per_sample=20,
+    statistics_unit="independent_trial_median", comparison=True, confidence_interval=None,
+    hardware_dram_bandwidth=None)
 MODEL_SHA256 = common.MODEL_SHA256
 DIMENSIONS = dict(embedding=1024, layers=28, heads=16, kv_heads=8, head_dim=128, feed_forward=3072,
                   vocabulary=151936, rms_epsilon=struct.unpack("<f", struct.pack("<f", 1e-6))[0],
@@ -33,7 +39,11 @@ STATISTICS = dict(independent_trials=5, process_median_repeats=3, calls_per_samp
 ZERO_ALLOCATIONS = dict(allocation_calls=0, allocations=0, release_calls=0, releases=0, allocated_bytes=0)
 
 
-def schedule():
+def schedule(precision=False):
+    if precision:
+        return [dict(trial=trial, precision_mode=mode, file=f"micro-t{trial}-{mode}.json",
+                     order="reverse" if trial % 2 else "canonical")
+                for trial in range(3) for mode in (PRECISION_MODES[::-1] if trial % 2 else PRECISION_MODES)]
     return [dict(trial=i, file=f"cuda-micro-t{i}.json", order="reverse" if i % 2 else "canonical") for i in range(5)]
 
 
@@ -46,6 +56,24 @@ def sample_columns(count):
 
 
 def make_cases(spec, d):
+    if spec["protocol_id"] == PRECISION_PROTOCOL:
+        # 借用既有形状生成器，仅保留冻结的矩阵子集和原 seed。
+        legacy = dict(matrix=dict(rows=spec["micro"]["rows"], roles=[m["role"] for m in spec["micro"]["matrices"]]),
+                      ops=dict(rms_norm_roles=[], rope_roles=[], attention_contexts=[], mixed=dict(prefix_tokens=[])))
+        result = _make_cases(legacy, d)
+        for i, matrix in enumerate(spec["micro"]["matrices"]):
+            for j, m in enumerate(spec["micro"]["rows"]):
+                case = result[i * 4 + j]
+                require((case["m"], case["n"], case["k"]) == (m, matrix["N"], matrix["K"]), "precision shape 不符")
+                case["input_seed"] = matrix["seeds"][j]
+        require(len(result) == 16, "precision 必须包含 16 个 shape")
+        return result
+    result = _make_cases(spec, d)
+    require(len(result) == 375 and len({v["name"] for v in result}) == 375, "micro 用例集合无效")
+    return result
+
+
+def _make_cases(spec, d):
     result = []
     q, kv = d["heads"] * d["head_dim"], d["kv_heads"] * d["head_dim"]
     rows = spec["matrix"]["rows"]
@@ -91,7 +119,6 @@ def make_cases(spec, d):
                 attention("prefill", [0] * m, list(range(length - m, length)))
     for prefix in spec["ops"]["mixed"]["prefix_tokens"]:
         attention("mixed", [0] * 16 + [1, 2], list(range(16)) + [prefix, prefix])
-    require(len(result) == 375 and len({v["name"] for v in result}) == 375, "micro 用例集合无效")
     return result
 
 
@@ -167,21 +194,57 @@ def validate_verification(value, case):
     else:
         require(digest(value["reference_sha256"]), "全量 FP64 参照摘要缺失")
 
+def precision_arithmetic(mode, spec):
+    half = mode == PRECISION_MODES[1]
+    return dict(ARITHMETIC, device_weight_dtype="F16_matrices_F32_norms" if half else "F32",
+                matrix_operand_dtype="F16" if half else "F32", matrix_accumulation_dtype="F32",
+                matrix_output_dtype="F32", gemm_compute="CUBLAS_COMPUTE_32F" if half else ARITHMETIC["gemm_compute"],
+                math_mode=spec["precision"]["candidate" if half else "baseline"]["math_mode"],
+                tensor_core_usage="unverified")
+
+
+def validate_precision_verification(value, case):
+    require(value["passed"] is True and value["all_finite"] is True and value["first_nonfinite"] is None
+            and identical(value["checked_elements"], case["output_elements"]), "precision 未完成全量 finite/FP64 验证")
+    for key in ("reference_sha256", "absolute_sums_sha256", "output_sha256"):
+        require(digest(value[key]), "precision 数值摘要缺失")
+    for key in ("max_absolute", "max_tolerance_ratio", "rmse"):
+        require(finite(value[key]) and value[key] >= 0, "precision 数值误差无效")
+    require(value["max_tolerance_ratio"] <= 1 and value["rmse"] <= value["max_absolute"] + 1e-12,
+            "precision 数值门槛失败")
+    gamma = case["k"] * 2**-24 / (1 - case["k"] * 2**-24)
+    for name in ("worst_absolute", "worst_ratio"):
+        p = value[name]
+        require(integer(p["index"]) and p["index"] < case["output_elements"]
+                and all(finite(p[k]) for k in ("actual", "reference", "sum_absolute_products"))
+                and p["sum_absolute_products"] >= abs(p["reference"]), "precision 最坏元素无效")
+        error = abs(p["actual"] - p["reference"])
+        limit = 2e-4 + 2e-4 * abs(p["reference"]) + 4 * gamma * p["sum_absolute_products"]
+        require(error <= limit and error <= value["max_absolute"] + 1e-12, "precision FP64 元素超出固定界限")
+        actual, reported = (error, value["max_absolute"]) if name == "worst_absolute" else (
+            error / limit, value["max_tolerance_ratio"])
+        require(abs(actual - reported) <= 1e-12, "precision 最坏元素与摘要不符")
+
 
 def validate_report(report, spec):
-    require(identical(report["schema_version"], 1) and report["benchmark"] == BENCHMARK
-            and report["status"] == "passed" and report["input_sha256"] == INPUT_SHA256
+    precision = spec["protocol_id"] == PRECISION_PROTOCOL
+    mode = report.get("precision_mode") if precision else None
+    require(not precision or mode in PRECISION_MODES and report["protocol_id"] == PRECISION_PROTOCOL, "精度模式或协议不符")
+    calls = 20 if precision else 32
+    require(identical(report["schema_version"], 2 if precision else 1) and report["benchmark"] == BENCHMARK
+            and report["status"] == "passed" and report["input_sha256"] == (PRECISION_INPUT_SHA256 if precision else INPUT_SHA256)
             and report["model_sha256"] == MODEL_SHA256, "micro 报告状态或身份无效")
-    require(integer(report["trial"]) and report["trial"] < 5
+    require(integer(report["trial"]) and report["trial"] < (3 if precision else 5)
             and identical(report["protocol"], spec["measurement"]), "trial 或计时协议无效")
-    require(identical(report["dimensions"], DIMENSIONS) and identical(report["arithmetic"], ARITHMETIC),
+    require(identical(report["dimensions"], DIMENSIONS) and
+            identical(report["arithmetic"], precision_arithmetic(mode, spec) if precision else ARITHMETIC),
             "模型维度或算术配置不符")
     d = report["device"]
     require(isinstance(d["name"], str) and d["name"] and isinstance(d["uuid"], str) and len(d["uuid"]) == 36
             and isinstance(d["compute_capability"], list) and len(d["compute_capability"]) == 2
             and all(integer(v) for v in d["compute_capability"])
             and all(integer(d[k], 1) for k in ("driver_version", "runtime_version", "cublas_version")), "设备身份无效")
-    plan, payload, _ = common.memory_plan(report)
+    plan, payload, _ = common.memory_plan(report, precision_mode=mode)
     require(identical(plan, report["memory_plan"]) and identical(report["owned_device_bytes"], plan["total_owned_bytes"])
             and identical(report["weight_h2d_bytes"], payload)
             and identical(report["rope_h2d_bytes"], plan["rope_bytes"]), "内存计划或初始化传输不符")
@@ -193,9 +256,15 @@ def validate_report(report, spec):
     for key in ("before_cases_allocations", "after_cases_allocations"):
         common.allocation_snapshot(report[key], steady)
     common.allocation_snapshot(report["after_destruction_allocations"], dict(steady, release_calls=4, releases=4))
-    require(identical(report["kv_initialization_transfers"],
+    require(identical(report["kv_initialization_transfers"], transfers() if precision else
                       transfers(h2d_bytes=4 * 2048 * (2 * 1024 * 4 + 2 * 4), d2h_bytes=8, h2d_calls=256, d2h_calls=1)),
             "layer 0 全容量 KV 初始化传输不符")
+    if precision:
+        verification = report["weight_validation"]
+        require(verification["status"] == "passed" and identical(verification["unique_tensors"], 310)
+                and identical(verification["d2h_bytes"], payload)
+                and integer(verification["staging_peak_bytes"], 1) and verification["staging_peak_bytes"] <= 8*1024**2,
+                "全量设备载荷验证或 staging 超出上限")
     planned = make_cases(spec, report["dimensions"])
     if report["trial"] % 2:
         planned.reverse()
@@ -213,26 +282,40 @@ def validate_report(report, spec):
         require(integer(actual["preparation_host_ns"], 1), "用例准备时间无效")
         copy = expected_transfers(case)
         require(identical(actual["preparation_transfers"], copy["preparation"]), "准备阶段传输不符")
-        require(len(actual["samples"]) == 5, "warmup 或 measured 样本缺失")
+        require(len(actual["samples"]) == (10 if precision else 5), "warmup 或 measured 样本缺失")
         host, device, verifications = [], [], []
+        boundaries = {b: dict(host_ns_per_call=[], device_ns_per_call=[]) for b in ("gemm_only", "cast_inclusive")}
         for index, sample in enumerate(actual["samples"]):
-            require(identical(sample["iteration"], index) and sample["phase"] == ("warmup" if index < 2 else "measured")
-                    and identical(sample["calls"], 32), "样本顺序、阶段或 API 调用数量不符")
+            iteration = index // 2 if precision else index
+            require(identical(sample["iteration"], iteration) and sample["phase"] == ("warmup" if iteration < 2 else "measured")
+                    and identical(sample["calls"], calls), "样本顺序、阶段或 API 调用数量不符")
+            if precision:
+                boundary = "gemm_only" if index % 2 == 0 else "cast_inclusive"
+                half = mode == PRECISION_MODES[1]
+                require(sample["boundary"] == boundary and identical(sample["setup_cast_calls"], int(half and index % 2 == 0))
+                        and identical(sample["measured_cast_calls"], calls if half and index % 2 else 0)
+                        and identical(sample["device_status"], [0, 2**31-1]), "转换计时边界或 device status 不符")
             for key in ("setup_host_ns", "host_enqueue_to_completion_ns", "validation_host_ns"):
                 require(integer(sample[key], 1), "host 计时字段无效")
             require(finite(sample["device_interval_ms"]) and sample["device_interval_ms"] > 0, "CUDA event 区间无效")
             for phase in ("setup", "measured", "validation"):
                 require(identical(sample[phase + "_transfers"], copy[phase]), "计时边界或显式传输计数不符")
-            validate_verification(sample["verification"], case)
+            (validate_precision_verification if precision else validate_verification)(sample["verification"], case)
             verifications.append(sample["verification"])
-            if index >= 2:
-                host.append(sample["host_enqueue_to_completion_ns"] / 32)
-                device.append(sample["device_interval_ms"] * 1e6 / 32)
+            if iteration >= 2:
+                h, t = sample["host_enqueue_to_completion_ns"] / calls, sample["device_interval_ms"] * 1e6 / calls
+                host.append(h); device.append(t)
+                if precision:
+                    boundaries[boundary]["host_ns_per_call"].append(h)
+                    boundaries[boundary]["device_ns_per_call"].append(t)
         require(all(identical(v, verifications[0]) for v in verifications), "相同输入的重复输出或参照发生变化")
         result[case["name"]] = dict(host_ns_per_call=host, device_ns_per_call=device,
                                    verification=verifications[0])
-    return dict(trial=report["trial"], cases=result, samples=1875, api_calls=60000,
-                measured_samples=1125, measured_api_calls=36000, owned_device_bytes=plan["total_owned_bytes"])
+        if precision:
+            result[case["name"]]["boundaries"] = boundaries
+    return dict(trial=report["trial"], cases=result, samples=160 if precision else 1875,
+                api_calls=3200 if precision else 60000, measured_samples=96 if precision else 1125,
+                measured_api_calls=1920 if precision else 36000, owned_device_bytes=plan["total_owned_bytes"])
 
 
 BOOTSTRAP_RANKS = sorted(sorted(indices)[2] for indices in itertools.product(range(5), repeat=5))
@@ -252,6 +335,8 @@ def trial_statistics(samples):
 
 
 def summarize(reports, spec):
+    if spec["protocol_id"] == PRECISION_PROTOCOL:
+        return summarize_precision(reports, spec)
     require(identical([r["trial"] for r in reports], list(range(5))), "独立 trial 缺失、重复或顺序不符")
     audited = [validate_report(report, spec) for report in reports]
     for key in ("device", "weights", "memory_plan", "dimensions", "arithmetic"):
@@ -270,22 +355,70 @@ def summarize(reports, spec):
                 statistics=STATISTICS, data_path_gates="passed", cases=cases,
                 end_to_end_speedup=None, hardware_dram_bandwidth=None, profiler_complete=False, gpu_serving=False)
 
+def summarize_precision(reports, spec):
+    planned = schedule(True)
+    require(identical([(r["trial"], r["precision_mode"]) for r in reports],
+                      [(s["trial"], s["precision_mode"]) for s in planned]), "precision 配对 trial 缺失或顺序不符")
+    audited = [validate_report(report, spec) for report in reports]
+    for key in ("device", "dimensions"):
+        require(all(identical(r[key], reports[0][key]) for r in reports), f"precision 进程身份不一致：{key}")
+    by_mode = {mode: [i for i, r in enumerate(reports) if r["precision_mode"] == mode] for mode in PRECISION_MODES}
+    for indices in by_mode.values():
+        for key in ("weights", "memory_plan", "arithmetic"):
+            require(all(identical(reports[i][key], reports[indices[0]][key]) for i in indices), "同精度身份发生变化")
+    base, candidate = reports[0], reports[1]
+    source_keys = ("name", "shape", "source_dtype", "effective_sha256", "alias_of")
+    require(identical([{k: w[k] for k in source_keys} for w in base["weights"]],
+                      [{k: w[k] for k in source_keys} for w in candidate["weights"]]), "跨精度源有效权重不一致")
+    cases = []
+    for case in make_cases(spec, DIMENSIONS):
+        modes = {mode: [audited[i]["cases"][case["name"]] for i in indices] for mode, indices in by_mode.items()}
+        for values in modes.values():
+            require(all(identical(v["verification"], values[0]["verification"]) for v in values),
+                    "同精度跨 trial 输出不一致")
+        comparisons = {}
+        for boundary in ("gemm_only", "cast_inclusive"):
+            comparisons[boundary] = {}
+            for clock in ("host_ns_per_call", "device_ns_per_call"):
+                samples = {mode: [v["boundaries"][boundary][clock] for v in values] for mode, values in modes.items()}
+                medians = {mode: [statistics.median(v) for v in values] for mode, values in samples.items()}
+                gains = [1-c/b for b, c in zip(medians[PRECISION_MODES[0]], medians[PRECISION_MODES[1]])]
+                comparisons[boundary][clock] = dict(samples=samples, trial_medians=medians, paired_gains=gains,
+                                                     median_paired_gain=statistics.median(gains))
+        cases.append(dict(case, comparisons=comparisons,
+                          verification={mode: values[0]["verification"] for mode, values in modes.items()}))
+    owned = {mode: reports[indices[0]]["owned_device_bytes"] for mode, indices in by_mode.items()}
+    reduction = 1-owned[PRECISION_MODES[1]]/owned[PRECISION_MODES[0]]
+    return dict(schema_version=2, benchmark=BENCHMARK, protocol_id=PRECISION_PROTOCOL, status="micro_measured",
+                independent_trials=3, process_count=6, case_count=16, raw_samples=960, measured_samples=576,
+                api_calls=19200, measured_api_calls=11520, statistics=PRECISION_STATISTICS,
+                data_path_gates="passed", cases=cases, owned_device_bytes=owned,
+                memory_reduction=reduction, memory_gate=reduction >= spec["gates"]["owned_device_bytes_reduction_min"],
+                end_to_end_speedup=None, product_eligible=False, tensor_core_usage="unverified",
+                full_model_numerics=False, gpu_serving=False)
+
 
 def validate_bundle(directory):
     manifest_path = artifact(directory, "manifest.json")
     manifest = read(manifest_path)
-    require(identical(manifest["schema_version"], 1) and manifest["benchmark"] == BENCHMARK
-            and manifest["protocol_id"] == PROTOCOL_ID and identical(manifest["reports"], schedule())
-            and identical(manifest["statistics"], STATISTICS), "manifest 或完整独立 trial 计划不符")
+    precision = manifest["protocol_id"] == PRECISION_PROTOCOL
+    input_hash = PRECISION_INPUT_SHA256 if precision else INPUT_SHA256
+    plan = schedule(precision)
+    require(identical(manifest["schema_version"], 2 if precision else 1) and manifest["benchmark"] == BENCHMARK
+            and manifest["protocol_id"] == (PRECISION_PROTOCOL if precision else PROTOCOL_ID)
+            and identical(manifest["reports"], plan)
+            and identical(manifest["statistics"], PRECISION_STATISTICS if precision else STATISTICS),
+            "manifest 或完整独立 trial 计划不符")
     require(manifest["dependencies"]["llama_commit"] == common.LLAMA_COMMIT
             and manifest["build"]["own_cuda"] == "ON" and manifest["build"]["upstream_cuda"] == "OFF"
             and manifest["build"]["type"] in ("Release", "RelWithDebInfo"), "构建配置或依赖不符")
     require(manifest["model"]["sha256"] == MODEL_SHA256 and digest(manifest["binary"]["sha256"])
-            and manifest["input"]["sha256"] == INPUT_SHA256, "模型、二进制或输入身份不符")
+            and manifest["input"]["sha256"] == input_hash, "模型、二进制或输入身份不符")
     files = common.source_archive(directory, manifest["source"])
     require(all(name in files for name in ("apps/cuda_kernel_bench.cpp", "apps/cuda_micro_protocol.h",
                 "src/minillm/cuda/attention.cu", "scripts/analyze_cuda_micro.py")), "缺少 micro 源码")
-    require(files["benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json"]["sha256"] == INPUT_SHA256,
+    input_name = "qwen3-precision-v1.json" if precision else "qwen3-cuda-micro-v0.json"
+    require(files[f"benchmarks/runtime-inputs/{input_name}"]["sha256"] == input_hash,
             "源码中的 micro 输入不符")
     availability, seen = [], set()
 
@@ -301,17 +434,17 @@ def validate_bundle(directory):
 
     for name in ("manifest.json", "collection-status.json", manifest["source"]["state_file"], manifest["source"]["snapshot"]["path"]):
         check(name)
-    spec_path = check(manifest["input"]["path"], INPUT_SHA256)
+    spec_path = check(manifest["input"]["path"], input_hash)
     spec = read(spec_path)
     for item in manifest["artifacts"]:
         check(item["path"], item["sha256"])
     for local, source in (("verify.py", "scripts/analyze_cuda_micro.py"), ("analyze_cuda_benchmark.py", "scripts/analyze_cuda_benchmark.py")):
         require(local in seen and sha(artifact(directory, local)) == files[source]["sha256"], "归档复核工具不属于采集源码")
     collection = read(artifact(directory, "collection-status.json"))
-    require(collection["status"] == "passed" and identical(collection["planned_reports"], 5)
-            and len(collection["reports"]) == 5, "采集失败或缺少独立进程")
+    require(collection["status"] == "passed" and identical(collection["planned_reports"], len(plan))
+            and len(collection["reports"]) == len(plan), "采集失败或缺少独立进程")
     reports = []
-    for slot, record in zip(schedule(), collection["reports"]):
+    for slot, record in zip(plan, collection["reports"]):
         require(record["file"] == slot["file"] and identical(record["exit_code"], 0), "进程顺序或状态不符")
         report = read(check(record["file"], record["sha256"]))
         require(identical(report["trial"], slot["trial"]) and identical(report["run_identity"], dict(
@@ -325,14 +458,42 @@ def validate_bundle(directory):
         require(identical(process["trial"], slot["trial"]) and identical(process["exit_code"], 0)
                 and isinstance(process["before"], dict) and isinstance(process["after"], dict)
                 and isinstance(process["arguments"], list) and process["arguments"], "进程环境或原始命令无效")
+        if precision:
+            require(report["precision_mode"] == slot["precision_mode"]
+                    and process["precision_mode"] == slot["precision_mode"], "进程 precision 身份不符")
+            arguments = process["arguments"]
+            require(arguments.count("--cuda-precision") == 1
+                    and arguments[arguments.index("--cuda-precision")+1] == slot["precision_mode"],
+                    "原始命令未选择声明的 precision")
         reports.append(report)
     summary = summarize(reports, spec)
     summary.update(run_id=manifest["run_id"], source_state_sha256=manifest["source"]["worktree_state_sha256"])
     return dict(summary=summary, availability=dict(schema_version=1, status="AVAILABLE", artifacts=availability),
-                weights=reports[0]["weights"], memory=reports[0]["memory_plan"])
+                weights={r["precision_mode"]: r["weights"] for r in reports} if precision else reports[0]["weights"],
+                memory={r["precision_mode"]: r["memory_plan"] for r in reports} if precision else reports[0]["memory_plan"])
 
 
 def analysis_text(summary):
+    if summary.get("protocol_id") == PRECISION_PROTOCOL:
+        lines = ["# FP16 矩阵精度微基准", "",
+                 "- 同一 GPU、checkpoint 和二进制，3 组配对进程；16 个 shape，每个边界 2 次预热、3 次测量。",
+                 "- 每个样本含 20 次 GEMM，cast-inclusive 在候选中额外含 20 次转换；不是 20 个独立 trial。",
+                 "- 表中是各 trial 中位数的配对改善中位数，负数代表退化；不是完整模型或 Serving 加速。",
+                 "- CUDA event 区间包含提交间隙。全量设备权重回读与 FP64 全输出 oracle 在计时外。",
+                 "- 未锁频，Tensor Core 使用未验证；不产生产品晋升结论。", "",
+                 "| 用例 | F32 GEMM host us | F16 GEMM host us | GEMM 改善 % | 含转换改善 % | 含转换各轮改善 % |",
+                 "| --- | ---: | ---: | ---: | ---: | --- |"]
+        for c in summary["cases"]:
+            gemm = c["comparisons"]["gemm_only"]["host_ns_per_call"]
+            cast = c["comparisons"]["cast_inclusive"]["host_ns_per_call"]
+            med = gemm["trial_medians"]
+            gains = ", ".join(f"{100*g:.2f}" for g in cast["paired_gains"])
+            lines.append(f"| {c['name']} | {statistics.median(med[PRECISION_MODES[0]])/1000:.3f} | "
+                         f"{statistics.median(med[PRECISION_MODES[1]])/1000:.3f} | "
+                         f"{100*gemm['median_paired_gain']:.2f} | {100*cast['median_paired_gain']:.2f} | {gains} |")
+        lines += ["", f"项目 owned allocation 减少 {100*summary['memory_reduction']:.2f}%；"
+                  "完整模型数值、模型主指标和 Serving 护栏尚未验收。"]
+        return "\n".join(lines) + "\n"
     lines = ["# 自有 CUDA 真实形状微基准", "",
              "- 375 个用例，5 个独立进程；每项 2 次 warmup、3 次测量，每个样本连续调用 32 次 API。",
              "- 表中数值为每次 API 调用的区间均摊值，不是单个 kernel 的纯执行时间；CUDA events 包含提交空隙。",
@@ -360,12 +521,13 @@ def main():
     mode.add_argument("--schedule", action="store_true")
     parser.add_argument("--input")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--precision", action="store_true", help="生成冻结 precision 三组配对进程计划")
     args = parser.parse_args()
     try:
         if args.schedule:
-            result = dict(reports=schedule(), statistics=STATISTICS)
+            result = dict(reports=schedule(args.precision), statistics=PRECISION_STATISTICS if args.precision else STATISTICS)
         elif args.report:
-            require(args.input and sha(args.input) == INPUT_SHA256, "单进程复核需要冻结的 --input")
+            require(args.input and sha(args.input) in (INPUT_SHA256, PRECISION_INPUT_SHA256), "单进程复核需要冻结的 --input")
             audit = validate_report(read(args.report), read(args.input))
             result = {key: value for key, value in audit.items() if key != "cases"}
             result.update(status="passed", case_count=len(audit["cases"]))
@@ -376,7 +538,7 @@ def main():
                     "memory-plan.json": result["memory"], "analysis.md": analysis_text(result["summary"]),
                     "summary.json": result["summary"]})
             result = dict(status=result["summary"]["status"], case_count=result["summary"]["case_count"],
-                          independent_trials=5, measured_samples=result["summary"]["measured_samples"],
+                          independent_trials=result["summary"]["independent_trials"], measured_samples=result["summary"]["measured_samples"],
                           artifacts=len(result["availability"]["artifacts"]))
         print(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False))
         return 0

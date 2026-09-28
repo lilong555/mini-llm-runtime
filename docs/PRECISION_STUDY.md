@@ -10,13 +10,13 @@ M4-0 的决策、已有时间线拆解和实验预注册已完成。第一组配
 | 模式 | 当前执行能力 | 默认 |
 | --- | --- | --- |
 | `f32-pedantic` | 原自有 CUDA 模型与 Serving；矩阵输入、权重、累加、输出均为 F32 | 是 |
-| `f16-matrix-f32acc` | 内部 storage/cast/GEMM 可验证；Runtime、Serving 和 CLI 仍在执行前拒绝 | 否 |
+| `f16-matrix-f32acc` | 内部 storage/cast/GEMM 和矩阵微基准可运行；Runtime、Serving、模型 CLI 仍拒绝 | 否 |
 
 模式枚举不依赖 CUDA 头文件。Serving、CUDA CLI 和两个 CUDA benchmark 均识别
 `--cuda-precision`；CPU 与上游后端显式使用该参数时失败。
 `ModelInfo` 与 `/metrics` 的 `precision_mode` 单独标识精度，非自有 CUDA 后端为 null。
 旧 F32 算术合同、有效权重摘要、模型输入和验证门槛保持不变。
-新实验 JSON 尚未接入执行器，不能交给旧基准入口运行并当作新实验。
+新实验 JSON 已接入矩阵微基准的显式子协议；旧输入仍采用原 375-case F32 合同。
 
 ## 冻结合同
 
@@ -276,4 +276,30 @@ snapshot，`verification.json` 固定源码、二进制、设备、输入与所�
 
 这组结果尚未验证真实 Q8_0 全量 F16 载荷、16 个正式 shape 的 cast-inclusive 时间，
 也未验证 F16 完整模型或 Serving。Runtime 的候选拒绝保持有效，Tensor Core 使用仍为
-`unverified`。下一项是在既有微基准中接入冻结的 16-shape 子协议，随后才进入模型接入。
+`unverified`。
+
+## 微基准入口
+
+```bash
+pwsh -NoProfile -File scripts/Benchmark-CudaMicro.ps1 \
+  -PrecisionStudy -OutputDirectory .run/cuda-precision-001/micro
+```
+
+`-PreflightOnly` 只校验来源、构建、输入及六进程计划，不启动性能采样。
+完整采样固定 trial 顺序为 F32/F16、F16/F32、F32/F16，奇数 trial 反转 shape 顺序。
+每个 shape 有五次重复，每次依次执行 GEMM-only、cast-inclusive；前两次为预热。
+两种边界都包含 20 次 GEMM，候选 cast-inclusive 另含 20 次转换，F32 两种边界不转换。
+host 区间从 event 提交前持续到 checked completion；CUDA events 包围同 stream 的调用序列，
+其中可能包含提交空隙。两者都不解释为单 kernel duration。
+
+每进程初始化后逐字节回读 310 个唯一权重 tensor 并检查实际载荷摘要，不将回读计入稳态。
+FP64 oracle 检查所有输出，候选使用相同舍入后的 W/X；计算中位数前不删除失败或慢样本。
+每个 shape 的准备阶段使用已有八线程 CPU executor 计算 FP64 dot 与绝对乘积和，
+该 executor 在 GPU 计时前析构。原始报告保存准备、重置、验证用时和分阶段传输，
+以及每个样本的最坏绝对误差、最坏误差界比例、RMSE 与全输出摘要。
+CPU oracle 造成的采样间隔和本机未锁频是微基准限制，不能把该执行节奏当作模型稳态。
+
+当前入口通过自有 CUDA/CPU 的 37/37 套 CTest、679 次用例执行；
+含真实 executable 的 13 项微基准反例覆盖漏计转换、漏样本、类型/载荷错误、
+跨轮不确定输出、负收益保留和目录迁移。验证位于 `.run/cuda-precision-001/micro-validation/`。
+该入口尚无正式采样结果，不能据此晋升完整模型候选。

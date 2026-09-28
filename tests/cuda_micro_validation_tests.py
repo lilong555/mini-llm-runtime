@@ -21,6 +21,8 @@ from cuda_benchmark_validation_tests import GPU
 
 SPEC_PATH = ROOT / "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json"
 SPEC = audit.read(SPEC_PATH)
+PRECISION_PATH = ROOT / "benchmarks/runtime-inputs/qwen3-precision-v1.json"
+PRECISION = audit.read(PRECISION_PATH)
 
 
 def invalid(function):
@@ -80,6 +82,119 @@ def reports():
         result.append(report)
     return result
 
+
+def precision_fixture(mode):
+    report = deepcopy(BASE)
+    report.update(schema_version=2, protocol_id=audit.PRECISION_PROTOCOL, precision_mode=mode,
+                  input_sha256=audit.PRECISION_INPUT_SHA256, protocol=deepcopy(PRECISION["measurement"]),
+                  arithmetic=audit.precision_arithmetic(mode, PRECISION), kv_initialization_transfers=audit.transfers(),
+                  cases=[])
+    half = mode == audit.PRECISION_MODES[1]
+    seen, end = {}, 0
+    for weight in report["weights"]:
+        weight["device_dtype"] = "F16" if half and not weight["name"].endswith("_norm.weight") else "F32"
+        weight["bytes"] = (2 if weight["device_dtype"] == "F16" else 4) * weight["shape"][0] * weight["shape"][1]
+        weight["device_payload_sha256"] = (hashlib.sha256(("half"+weight["effective_sha256"]).encode()).hexdigest()
+                                          if weight["device_dtype"] == "F16" else weight["effective_sha256"])
+        weight["offset"] = seen[weight["alias_of"]]["offset"] if weight["alias_of"] else (end+255)//256*256
+        if not weight["alias_of"]:
+            end = weight["offset"]+weight["bytes"]
+        seen[weight["name"]] = weight
+    plan, payload, _ = audit.common.memory_plan(report, precision_mode=mode)
+    report.update(memory_plan=plan, weight_h2d_bytes=payload, owned_device_bytes=plan["total_owned_bytes"],
+                  weight_validation=dict(status="passed", unique_tensors=310, d2h_bytes=payload, staging_peak_bytes=8388606))
+    steady = dict(audit.ZERO_ALLOCATIONS, allocation_calls=4, allocations=4, allocated_bytes=plan["total_owned_bytes"])
+    report["before_cases_allocations"] = deepcopy(steady)
+    report["after_cases_allocations"] = deepcopy(steady)
+    report["after_destruction_allocations"] = dict(steady, release_calls=4, releases=4)
+    for case in audit.make_cases(PRECISION, audit.DIMENSIONS):
+        digest = hashlib.sha256((case["name"]+mode).encode()).hexdigest()
+        point = dict(index=0, actual=0.0, reference=0.0, sum_absolute_products=0.0)
+        verification = dict(passed=True, all_finite=True, first_nonfinite=None, checked_elements=case["output_elements"],
+                            max_absolute=0.0, max_tolerance_ratio=0.0, rmse=0.0, worst_absolute=deepcopy(point),
+                            worst_ratio=deepcopy(point), reference_sha256=digest, absolute_sums_sha256=digest,
+                            output_sha256=digest)
+        copy = audit.expected_transfers(case)
+        actual = dict(deepcopy(case), status="passed", input_sha256=audit.case_input_hash(case),
+                      before_allocations=deepcopy(steady), after_allocations=deepcopy(steady),
+                      preparation_host_ns=10, preparation_transfers=copy["preparation"], samples=[])
+        for iteration in range(5):
+            for boundary in ("gemm_only", "cast_inclusive"):
+                actual["samples"].append(dict(iteration=iteration, boundary=boundary,
+                    phase="warmup" if iteration < 2 else "measured", calls=20,
+                    setup_cast_calls=int(half and boundary == "gemm_only"),
+                    measured_cast_calls=20 if half and boundary == "cast_inclusive" else 0,
+                    setup_host_ns=10, host_enqueue_to_completion_ns=10000 if half else 20000,
+                    device_interval_ms=0.008 if half else 0.018, validation_host_ns=100,
+                    verification=deepcopy(verification), device_status=[0, 2**31-1],
+                    **{phase+"_transfers": deepcopy(copy[phase]) for phase in ("setup", "measured", "validation")}))
+        report["cases"].append(actual)
+    return report
+
+
+def precision_reports():
+    result = []
+    for slot in audit.schedule(True):
+        report = precision_fixture(slot["precision_mode"])
+        report["trial"] = slot["trial"]
+        if slot["trial"] % 2:
+            report["cases"].reverse()
+        result.append(report)
+    return result
+
+
+def precision_shapes_pairing_memory_and_negative_results():
+    assert audit.sha(PRECISION_PATH) == audit.PRECISION_INPUT_SHA256
+    old = {c["name"]: c for c in audit.make_cases(SPEC, audit.DIMENSIONS)}
+    for c in audit.make_cases(PRECISION, audit.DIMENSIONS):
+        assert c == old[c["name"]]
+    values = precision_reports()
+    summary = audit.summarize(values, PRECISION)
+    assert summary["process_count"] == 6 and summary["case_count"] == 16 and summary["raw_samples"] == 960
+    assert summary["owned_device_bytes"] == dict(zip(audit.PRECISION_MODES, (3449229312, 2258046976)))
+    assert summary["memory_gate"] and not summary["product_eligible"]
+    for r in values:
+        if r["precision_mode"] == audit.PRECISION_MODES[1]:
+            for c in r["cases"]:
+                for s in c["samples"]:
+                    if s["boundary"] == "cast_inclusive":
+                        s["host_enqueue_to_completion_ns"] = 40000
+    summary = audit.summarize(values, PRECISION)
+    assert all(c["comparisons"]["cast_inclusive"]["host_ns_per_call"]["paired_gains"] == [-1, -1, -1]
+               for c in summary["cases"])
+    invalid(lambda: audit.summarize(values[:-1], PRECISION))
+    values[-1]["cases"][0]["samples"][0]["verification"]["output_sha256"] = "0"*64
+    invalid(lambda: audit.summarize(values, PRECISION))
+
+
+def precision_wrong_dtype_mirror_hash_and_cast_boundaries_are_rejected():
+    base = precision_fixture(audit.PRECISION_MODES[1])
+    for change in ("dtype", "norm", "payload", "source", "alias", "memory", "staging", "readback",
+                   "cast", "precast", "status", "subset", "ratio", "bound", "finite", "calls", "copy"):
+        r = deepcopy(base)
+        weights = {w["name"]: w for w in r["weights"]}
+        s = r["cases"][0]["samples"][1]
+        v = s["verification"]
+        if change == "dtype": r["weights"][0]["device_dtype"] = "F32"
+        elif change == "norm": weights["output_norm.weight"]["device_dtype"] = "F16"
+        elif change == "payload": r["weights"][0]["device_payload_sha256"] = None
+        elif change == "source": weights["output_norm.weight"]["device_payload_sha256"] = "0"*64
+        elif change == "alias": weights["output.weight"]["device_payload_sha256"] = "0"*64
+        elif change == "memory": r["memory_plan"]["total_owned_bytes"] = 3449229312
+        elif change == "staging": r["weight_validation"]["staging_peak_bytes"] = 8*1024**2+1
+        elif change == "readback": r["weight_validation"]["d2h_bytes"] -= 2
+        elif change == "cast": s["measured_cast_calls"] = 0
+        elif change == "precast": s["setup_cast_calls"] = 1
+        elif change == "status": s["device_status"][0] = 1
+        elif change == "subset": v["checked_elements"] = 24
+        elif change == "ratio": v["max_tolerance_ratio"] = 1.00001
+        elif change == "bound": v["worst_ratio"]["actual"] = 1
+        elif change == "finite": v["all_finite"] = 1
+        elif change == "calls": s["calls"] = 32
+        elif change == "copy": s["measured_transfers"]["h2d_calls"] = 1
+        invalid(lambda: audit.validate_report(r, PRECISION))
+    # 精度扩展不能使旧 F32 协议接受 half 存储。
+    invalid(lambda: audit.common.memory_plan(base))
 
 def frozen_shapes_inputs_and_sample_counts():
     assert audit.sha(SPEC_PATH) == audit.INPUT_SHA256
@@ -210,7 +325,7 @@ def independent_trials_not_calls_or_inner_repeats():
     invalid(lambda: audit.summarize(sequence, SPEC))
 
 
-def bundle_fixture(root):
+def bundle_fixture(root, precision=False):
     def write(name, value):
         (root / name).write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
         return audit.sha(root / name)
@@ -219,7 +334,8 @@ def bundle_fixture(root):
                                              "apps/cuda_kernel_bench.cpp", "apps/cuda_micro_protocol.h",
                                              "src/minillm/cuda/attention.cu")}
     for name in ("scripts/analyze_cuda_micro.py", "scripts/analyze_cuda_benchmark.py",
-                 "benchmarks/runtime-inputs/qwen3-cuda-v0.json", "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json"):
+                 "benchmarks/runtime-inputs/qwen3-cuda-v0.json", "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json",
+                 "benchmarks/runtime-inputs/qwen3-precision-v1.json"):
         sources[name] = (ROOT / name).read_bytes()
     scope = ["apps", "src", "scripts", "benchmarks/runtime-inputs"]
     files = [dict(path=name, sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw)) for name, raw in sources.items()]
@@ -227,28 +343,47 @@ def bundle_fixture(root):
     with zipfile.ZipFile(root / "source-snapshot.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for name, raw in sources.items():
             archive.writestr(name, raw)
-    shutil.copyfile(SPEC_PATH, root / "input.json")
+    shutil.copyfile(PRECISION_PATH if precision else SPEC_PATH, root / "input.json")
     shutil.copyfile(ROOT / "scripts/analyze_cuda_micro.py", root / "verify.py")
     shutil.copyfile(ROOT / "scripts/analyze_cuda_benchmark.py", root / "analyze_cuda_benchmark.py")
-    manifest = dict(schema_version=1, benchmark=audit.BENCHMARK, protocol_id=audit.PROTOCOL_ID, run_id="synthetic-fixture",
-        reports=audit.schedule(), statistics=audit.STATISTICS, dependencies=dict(llama_commit=audit.common.LLAMA_COMMIT),
+    manifest = dict(schema_version=2 if precision else 1, benchmark=audit.BENCHMARK,
+        protocol_id=audit.PRECISION_PROTOCOL if precision else audit.PROTOCOL_ID, run_id="synthetic-fixture",
+        reports=audit.schedule(precision), statistics=audit.PRECISION_STATISTICS if precision else audit.STATISTICS,
+        dependencies=dict(llama_commit=audit.common.LLAMA_COMMIT),
         build=dict(own_cuda="ON", upstream_cuda="OFF", type="RelWithDebInfo"),
-        model=dict(sha256=audit.MODEL_SHA256), binary=dict(sha256="0" * 64), input=dict(path="input.json", sha256=audit.INPUT_SHA256),
+        model=dict(sha256=audit.MODEL_SHA256), binary=dict(sha256="0" * 64),
+        input=dict(path="input.json", sha256=audit.PRECISION_INPUT_SHA256 if precision else audit.INPUT_SHA256),
         source=dict(scope=scope, state_file="source-state.json", worktree_state_sha256=state_hash,
                     snapshot=dict(path="source-snapshot.zip", sha256=audit.sha(root / "source-snapshot.zip"))),
         artifacts=[dict(path=name, sha256=audit.sha(root / name)) for name in ("verify.py", "analyze_cuda_benchmark.py")])
     manifest_hash = write("manifest.json", manifest)
     identity = dict(run_id=manifest["run_id"], manifest_sha256=manifest_hash, source_state_sha256=state_hash, binary_sha256="0" * 64)
     completed = []
-    for slot, report in zip(audit.schedule(), reports()):
+    for slot, report in zip(audit.schedule(precision), precision_reports() if precision else reports()):
         report["run_identity"] = identity
         record = dict(file=slot["file"], exit_code=0, sha256=write(slot["file"], report), artifacts=[])
         for suffix in (".stdout.txt", ".stderr.txt", ".process.json"):
             name = slot["file"] + suffix
             content = dict(trial=slot["trial"], exit_code=0, before={}, after={}, arguments=["fixture"])
+            if precision:
+                content.update(precision_mode=slot["precision_mode"], arguments=["--cuda-precision", slot["precision_mode"]])
             record["artifacts"].append(dict(path=name, sha256=write(name, content)))
         completed.append(record)
-    write("collection-status.json", dict(status="passed", planned_reports=5, reports=completed))
+    write("collection-status.json", dict(status="passed", planned_reports=6 if precision else 5, reports=completed))
+
+
+def precision_bundle_is_portable_and_rejects_missing_evidence():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        bundle_fixture(root, True)
+        result = audit.validate_bundle(root)
+        assert result["summary"]["case_count"] == 16 and result["summary"]["memory_gate"]
+        proc = subprocess.run([sys.executable, str(root / "verify.py"), "--directory", str(root)],
+                              cwd=root.parent, capture_output=True, encoding="utf-8")
+        assert proc.returncode == 0, proc.stderr
+        report = root / audit.schedule(True)[1]["file"]
+        report.unlink()
+        invalid(lambda: audit.validate_bundle(root))
 
 
 def portable_bundle_and_missing_tampered_artifacts():
@@ -328,7 +463,7 @@ def executable_guards(executable):
             assert result.returncode == 1 and audit.read(output)["status"] == "failed"
             assert ("冻结" if changed else "模型") in result.stderr
         for index, (precision, message) in enumerate((
-                ("f16-matrix-f32acc", "尚未实现"), ("bf16", "--cuda-precision 必须"),
+                ("f16-matrix-f32acc", "冻结"), ("bf16", "--cuda-precision 必须"),
                 ("f32-pedantic", "冻结"))):
             output = root / f"precision-{index}.json"
             result = subprocess.run([executable, "--model", str(model), "--input", str(recipe),
@@ -336,6 +471,15 @@ def executable_guards(executable):
                                     capture_output=True, encoding="utf-8", timeout=10)
             assert result.returncode == 1 and audit.read(output)["status"] == "failed"
             assert message in result.stderr, result.stderr
+        for index, (input_path, mode, message) in enumerate((
+                (SPEC_PATH, "f16-matrix-f32acc", "需要 precision-experiment-v1"),
+                (PRECISION_PATH, "f16-matrix-f32acc", "模型"),
+                (PRECISION_PATH, "f32-pedantic", "模型"))):
+            output = root / f"protocol-{index}.json"
+            result = subprocess.run([executable, "--model", str(model), "--input", str(input_path),
+                                     "--output", str(output), "--cuda-precision", mode],
+                                    capture_output=True, encoding="utf-8", timeout=10)
+            assert result.returncode == 1 and message in result.stderr
         print("[PASS] executable_guards")
 
 
@@ -347,7 +491,9 @@ if __name__ == "__main__":
              dimensions_recipe_weights_and_causal_metadata_are_checked, timing_and_copy_boundaries_cannot_be_changed,
              numerical_points_metrics_and_full_output_contract_are_checked, allocation_release_and_memory_plan_are_exact,
              independent_trials_not_calls_or_inner_repeats, portable_bundle_and_missing_tampered_artifacts,
-             publication_failure_preserves_existing_summary]
+             publication_failure_preserves_existing_summary, precision_shapes_pairing_memory_and_negative_results,
+             precision_wrong_dtype_mirror_hash_and_cast_boundaries_are_rejected,
+             precision_bundle_is_portable_and_rejects_missing_evidence]
     for test in tests:
         test()
         print(f"[PASS] {test.__name__}")
