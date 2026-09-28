@@ -6,9 +6,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <csignal>
 #include <filesystem>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <regex>
 #include <set>
 #include <thread>
@@ -21,6 +24,36 @@ using namespace std::chrono_literals;
 volatile std::sig_atomic_t interrupted = 0;
 
 void signal_handler(int) { interrupted = 1; }
+
+struct ResponseDrain {
+    std::mutex mutex;
+    std::condition_variable changed;
+    std::size_t active = 0;
+    bool stopping = false;
+};
+
+class ResponseLease {
+public:
+    explicit ResponseLease(ResponseDrain& drain) : drain_(drain) {
+        std::lock_guard lock(drain_.mutex);
+        if (drain_.stopping) {
+            throw RequestError(503, "unavailable", "HTTP 服务正在停止");
+        }
+        ++drain_.active;
+    }
+    ~ResponseLease() {
+        {
+            std::lock_guard lock(drain_.mutex);
+            --drain_.active;
+        }
+        drain_.changed.notify_all();
+    }
+    ResponseLease(const ResponseLease&) = delete;
+    ResponseLease& operator=(const ResponseLease&) = delete;
+
+private:
+    ResponseDrain& drain_;
+};
 
 json usage_json(const Usage& usage) {
     return {{"prompt_tokens", usage.prompt_tokens}, {"completion_tokens", usage.completion_tokens},
@@ -217,6 +250,7 @@ json metrics_json(const Engine& engine) {
 } // namespace
 
 bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
+    ResponseDrain responses;
     httplib::Server server;
     const auto threads = std::min<std::size_t>(256, engine.config().queue_capacity + 16);
     server.new_task_queue = [threads] { return new httplib::ThreadPool(8, threads, 64); };
@@ -274,6 +308,7 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
         }
     });
     server.Post("/v1/completions", [&](const auto& request, auto& response) {
+        auto lease = std::make_shared<ResponseLease>(responses);
         const auto body = parse_body(request);
         auto handle = engine.submit(parse_request(body, request, engine));
         response.set_header("X-Request-ID", handle->id());
@@ -311,7 +346,8 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
                         return true;
                     }
                 },
-                [handle](bool) {
+                // 租约保留到 HTTP response 释放，不能把 Engine 终态入队当作 SSE 已写完。
+                [handle, lease](bool) {
                     if (!handle->finished()) {
                         handle->cancel();
                     }
@@ -354,7 +390,17 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
         while (!stop.stop_requested()) {
             std::error_code error;
             if (interrupted || (!shutdown_file.empty() && std::filesystem::exists(shutdown_file, error))) {
+                {
+                    std::lock_guard lock(responses.mutex);
+                    responses.stopping = true;
+                }
                 engine.stop();
+                {
+                    std::unique_lock lock(responses.mutex);
+                    if (!responses.changed.wait_for(lock, 6s, [&] { return responses.active == 0; })) {
+                        std::cerr << "HTTP 停服等待响应超时；关闭仍未完成的连接\n";
+                    }
+                }
                 server.stop();
                 return;
             }

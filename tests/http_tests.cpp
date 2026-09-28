@@ -106,7 +106,13 @@ StreamResult stream(httplib::Client& client, json body, const std::string& id = 
                 return true;
             });
         });
-    CHECK(response && response->status == 200 && output.done == 1 && output.terminal == 1);
+    if (!response || response->status != 200 || output.done != 1 || output.terminal != 1) {
+        throw std::runtime_error("SSE 响应不完整：" + json{
+            {"request_id", id}, {"http_status", response ? json(response->status) : json(nullptr)},
+            {"transport_error", httplib::to_string(response.error())},
+            {"done", output.done}, {"terminals", output.terminal},
+            {"tokens", output.tokens.size()}, {"terminal_error", output.error}}.dump());
+    }
     return output;
 }
 
@@ -364,14 +370,21 @@ int main(int argc, char** argv) {
             const auto count = before.at("max_active").get<std::size_t>() + 2;
             CHECK(count <= before.at("queue_capacity").get<std::size_t>());
             std::vector<std::future<StreamResult>> stopping;
+            json at_stop;
             for (std::size_t i = 0; i < count; ++i) {
                 stopping.push_back(std::async(std::launch::async, [&, i] {
                     httplib::Client other("127.0.0.1", port);
                     other.set_read_timeout(180);
                     return stream(other, long_stream, "http-stop-" + std::to_string(i));
                 }));
+                // 先确认 HTTP worker 已接纳本请求，避免把 transport 排队误当 Engine 排队。
+                for (int attempt = 0; attempt < 400; ++attempt) {
+                    at_stop = get(client, "/metrics");
+                    if (at_stop.at("outstanding_requests").get<std::size_t>() >= i + 1) { break; }
+                    std::this_thread::sleep_for(5ms);
+                }
+                if (at_stop.at("outstanding_requests").get<std::size_t>() < i + 1) { break; }
             }
-            json at_stop;
             for (int i = 0; i < 400; ++i) {
                 at_stop = get(client, "/metrics");
                 if (at_stop.at("outstanding_requests") == count &&
@@ -384,13 +397,23 @@ int main(int argc, char** argv) {
                 at_stop.at("waiting_requests").get<std::size_t>() > 0;
             std::ofstream marker(shutdown_file);
             marker.close();
-            CHECK(marker && active_and_queued);
-            for (auto& task : stopping) {
-                const auto stopped = task.get();
-                CHECK(stopped.error == "cancelled" && stopped.terminal == 1 && stopped.done == 1);
-            }
             report["shutdown"] = {{"requests", count}, {"active", at_stop.at("active_requests")},
-                                   {"queued", at_stop.at("waiting_requests")}, {"single_terminals", count}};
+                                   {"queued", at_stop.at("waiting_requests")}, {"single_terminals", 0},
+                                   {"active_and_queued", active_and_queued}, {"at_stop", at_stop},
+                                   {"responses", json::array()}};
+            std::size_t valid = 0;
+            for (std::size_t i = 0; i < stopping.size(); ++i) {
+                try {
+                    const auto stopped = stopping[i].get();
+                    report["shutdown"]["responses"].push_back({{"request_index", i}, {"error", stopped.error},
+                        {"terminal", stopped.terminal}, {"done", stopped.done}, {"tokens", stopped.tokens.size()}});
+                    if (stopped.error == "cancelled" && stopped.terminal == 1 && stopped.done == 1) { ++valid; }
+                } catch (const std::exception& failure) {
+                    report["shutdown"]["responses"].push_back({{"request_index", i}, {"failure", failure.what()}});
+                }
+            }
+            report["shutdown"]["single_terminals"] = valid;
+            CHECK(marker && active_and_queued && valid == count);
             checks.push_back("shutdown_active_and_queued_single_terminals");
         }
         report["passed"] = checks.size();

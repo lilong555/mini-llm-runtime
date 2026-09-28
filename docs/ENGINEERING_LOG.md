@@ -645,3 +645,35 @@
 - 原因：`src/scheduler.cpp` 的 prefill_first 在仍有 prefill 时不安排 decode；该策略的正式采集中 mixed batch 均为 0。mean TPOT 把长停顿分摊到整个输出序列，不能替代最大 ITL。突发负载吞吐还受固定到达间隔影响。
 - 解决方法或下一步：保留 mixed 默认策略与 prefill_first 对照，不更改 SLO 或负载、不补跑挑选结果。后续策略优化需另行满足 M3-2 的单项研究进入条件。
 - 验证：12 个正式进程的 288 请求全部成功、9216 token 跨轮次一致；SLO 未达标请求没有删除。burst-reuse 吞吐差异约 0.28% 且配对方向不稳定，保持 `measurement_inconclusive`。单次 NSys 的 batch/显式传输/单 stream 检查通过，不外推为通用策略加速。
+
+## ENG-064：停服时监听关闭早于 SSE 终态写出
+
+- 状态：已解决，限定于已接纳响应的有界停服排空；不保证已断连客户端收到终态。
+- 影响：已接纳的活动或排队请求可能在停服时收到不完整的 chunked response，
+  缺少唯一终态或 `[DONE]`。这是 HTTP 生命周期问题，不是 FP16 数值或调度优化。
+- 复现条件或证据：2026-09-28 的
+  `.run/cuda-precision-001/contract/cpu-http.json` 在前 11 项通过后报告
+  `tests/http_tests.cpp:109: response && response->status == 200 && output.done == 1 && output.terminal == 1`。
+  对应源码快照、二进制和报告摘要保存在
+  `.run/cuda-precision-001/contract/diagnostics/cpu-http-shutdown/`。
+  固定依赖 `911f6cdc8ab8a530b2bee09ee61471a6f3178eeb` 的 checkout 干净；
+  `httplib::Server::write_content_with_provider()` 以监听 socket 无效作为退出条件。
+  首次修复复验 `.run/http-shutdown-drain/cpu-http.json` 在
+  `tests/http_tests.cpp:393: marker && active_and_queued` 失败；
+  该次未建立活动与排队并存的前提，不计作终态排空通过或失败。
+- 原因：原停服路径在 `engine.stop()` 后立即调用 `server.stop()`。
+  Engine 完成逻辑终态入队不代表 HTTP worker 已发出终态和 chunked 结束帧；
+  关闭监听会让尚未完成的 provider 提前退出。初次失败未保存各 socket 的错误详情，
+  不据此声称排除了所有其他传输故障。
+- 解决方法或下一步：停止接纳新的 completion，沿用 Engine 停机；用响应租约等待
+  已接纳的 SSE response 释放后关闭监听。等待上限为 6 秒，超过时记录诊断后执行关闭，
+  不无限等待慢客户端。不改变 token 数学、KV、scheduler、依赖或精度默认值。
+  HTTP 验证保留每个停服请求的 transport/error/终态信息，不放宽完整流判定。
+  停服测试逐个确认请求已被 Engine 接纳，仍要求最终有原定数量的活动与排队请求；
+  保留触发停服时的完整资源快照，避免只记录没有上下文的布尔断言。
+- 验证：独立修复分支的自有 CUDA、CPU、上游 CUDA 构建通过，三份 CTest 共
+  52/52 套、926 次用例执行通过。三个后端的真实 HTTP 各 12/12，通过停服的
+  10/6/10 个请求均有一个取消终态与一个 `[DONE]`；服务进程正常退出，
+  三份服务日志均没有排空等待超时。源码、二进制、模型与结果摘要记录在
+  `.run/http-shutdown-drain/verification.json`，初始失败与前提未建立的记录均保留。
+  本组不产生 FP16、吞吐或延迟改善结论。
