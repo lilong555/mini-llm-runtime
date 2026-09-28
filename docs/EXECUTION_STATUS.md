@@ -28,8 +28,11 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   合同提交 `5a934a1` 的 CI run `36409279196` 五任务通过。
 - M4-1 第二组底层：F16 arena、载荷摘要、RN-even cast、half gather 和 F32acc
   cuBLAS 边界通过 22/22 套 CTest（376 次用例执行）及三套 memcheck。
-  冻结的 16-shape 微基准入口已实现，37/37 套 CTest（679 次用例执行）及六进程预检通过；
-  正式采样尚未执行，完整 F16 模型尚未提供；Runtime/Serving 仍拒绝候选模式。
+  冻结的 16-shape 微基准入口通过 37/37 套 CTest（679 次用例执行）。
+  `03492ca` 的六进程正式采样及离线复核通过，自身 CI run `36416066381` 五任务通过。
+  owned bytes 从 3,449,229,312 降至 2,258,046,976（34.53%）；M128 body 三类 shape
+  含转换改善中位数为 53.61% 至 61.50%，保留小 M 的逆序退化。
+  当前决定进入全模型数值验证，尚无端到端速度或产品晋升结论；Runtime/Serving 仍拒绝候选模式。
 - M3-0 已完成：兼容修复与基点 CI 已确认，M1 冻结，产物政策已明确。
 - M3-1 本机与实验门禁已完成：adapter、清理契约、backend/脚本、资源快照与 schema v2 已接通。
   自有 CUDA、CPU、上游 CUDA、独立核心、ASan/UBSan 五种构建共 74/74 套 CTest 通过；
@@ -51,7 +54,8 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   `measurement_inconclusive`。一次 NSys 覆盖 288 次完整 forward、201216 次 kernel，
   batch 关联、单 stream、紧凑传输与无逐请求 Runtime 重建通过。
   基准扩展的 own-CUDA/CPU CTest 共 37/37 通过。
-- M3-1 采集与验证已停止；M4 未补跑 M1，尚无新增正式性能进程、NSys 或 NCU。
+- M3-1 采集与验证已停止；M4 未补跑 M1，已用 6/24 个正式性能进程，
+  新增 NSys 与 NCU 均为 0；微基准不追加 trial。
 
 ## 阶段门禁
 
@@ -69,7 +73,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
 | M3-1 | 本机与实验已验收 | GPU HTTP/SSE、生命周期、资源、12 进程基线和一次 NSys；发布候选 CI 见证据索引 |
 | M4-0 | 入口检查与合同已定义 | 已有时间线离线分解，16 个矩阵 shape、6 个模型 workload、两条 Serving trace |
-| M4-1 | 合同、底层边界与微基准入口通过验收 | F16 存储、转换和 GEMM 已实现；16-shape 正式采样、完整候选模型及三层结果尚未完成 |
+| M4-1 | 合同、底层边界与微基准通过验收 | 六进程 16-shape 结果支持进入全模型数值验证；模型和 Serving 尚未完成 |
 | M4-2 | 未进入 | 仅 Primary 停止且独立目标 workload 的 attention 份额满足门槛时考虑 |
 | M4-3 | 未进入 | 一项研究完成后的功能冻结、作品表达与 upstream |
 
