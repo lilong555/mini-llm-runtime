@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "protocol_id": "gpu-kv-experiment-v1",
+  "spec_id": "GPU-KV-001",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "validation_contract": "tests/data/qwen3_validation_cases.json",
+  "precision_mode": "f32-pedantic",
+  "limits": {
+    "device": 0,
+    "max_sequences": 4,
+    "max_model_len": 2048,
+    "batch_tokens": 128,
+    "physical_capacity_tokens": 8192,
+    "page_tokens": 16,
+    "streams": 1
+  },
+  "measurement": {
+    "independent_trials": 3,
+    "warmup": 2,
+    "measured_repeats": 3,
+    "calls_per_sample": 32,
+    "case_order": "canonical_then_reverse_on_odd_trials",
+    "pair_order": ["AB", "BA", "AB"],
+    "arm_A": "contiguous",
+    "arm_B": "paged",
+    "micro_order_offset": 0,
+    "model_order_offset": 1,
+    "serving_order_offsets": [0, 1],
+    "profiler": "none",
+    "micro_clock": "cuda_events_and_host_enqueue_to_completion",
+    "model_primary": "host_forward_to_token_ns",
+    "model_device_events": false,
+    "statistics_unit": "independent_trial_median",
+    "retain_all_samples": true
+  },
+  "micro": {
+    "rows": [1, 4, 32],
+    "effective_contexts": [128, 1536],
+    "layer": 0,
+    "seed": 20260928,
+    "input_recipe": "cuda_micro::input_value",
+    "kv_recipe": "cuda_micro::kv_value",
+    "kv_rounding": "nearest_even",
+    "page_mapping": "reverse_physical_ids",
+    "m1": "slot0_position_L_minus_1",
+    "m4": "four_independent_slots_position_L_minus_1",
+    "m32": "slot0_positions_L_minus_32_through_L_minus_1",
+    "table_transfer": "separate_2048_byte_full_table_probe",
+    "atol": 0.0002,
+    "rtol": 0.0002,
+    "cross_layout_output": "bitwise_sha256"
+  },
+  "token_ids": [785, 15592, 13598, 14324, 323, 6529, 1584, 304, 4938, 13],
+  "workloads": [
+    {"name": "prefill-128", "mode": "prefill", "tokens": 128},
+    {"name": "long-prefill-1536-chunk128", "mode": "prefill", "tokens": 1536, "chunk": 128},
+    {"name": "decode-prefix1536", "mode": "fixed_context_decode", "prefix_tokens": 1536, "effective_length": 1537},
+    {"name": "decode-batch4-prefix256", "mode": "independent_sequences", "sequences": 4, "prefix_tokens": 256}
+  ],
+  "serving": {
+    "policy": "mixed",
+    "prefill_chunk": 32,
+    "page_tokens": 16,
+    "prefix_cache_entries": 0,
+    "prefix_cache_tokens": 0,
+    "queue_capacity": 64,
+    "warmup": {"prompt": "Hello", "max_tokens": 8, "ignore_eos": true},
+    "same_capacity": {
+      "trace": "benchmarks/traces/cuda-serving-mixed-s20260926.jsonl",
+      "trace_sha256": "caf9c4e5baf7ad6e159df7af514b080bf65ca8bd1fcb0e1e3c1304c2e29f81e4",
+      "max_active": 4,
+      "context_tokens": 8192
+    },
+    "same_budget": {
+      "trace": "benchmarks/traces/gpu-kv-capacity-v1.jsonl",
+      "trace_sha256": "75df8355e3978a174c4094c0b0acf84309103975a8f447a1b265b684748cd5ba",
+      "kv_subsystem_budget_bytes": 301989888,
+      "contiguous": {"max_active": 1, "context_tokens": 2048},
+      "paged": {"max_active": 4, "context_tokens": 2560},
+      "prompt_lengths": [1536, 128, 128, 128],
+      "max_output_tokens": 32,
+      "groups": 6,
+      "arrival_s": 0,
+      "ignore_eos": true,
+      "timeout_ms": 120000,
+      "ttft_slo_ms": 1000,
+      "tpot_slo_ms": 100,
+      "request_id_prefix": "gpu-kv-capacity-"
+    },
+    "pressure": {
+      "prompt_lengths": [1536, 1536, 128, 128],
+      "max_output_tokens": 32,
+      "max_active": 4,
+      "context_tokens": 2560,
+      "expected_commitment_tokens": 3456,
+      "performance_sample": false
+    }
+  },
+  "adoption": {
+    "primary": "coexisting_heterogeneous_requests_within_288_MiB_KV_budget",
+    "model_paired_median_regression_percent_max": 10,
+    "model_trials_over_10_percent_max": 1,
+    "serving_throughput_median_regression_percent_max": 10,
+    "tail_latency": "retain_TTFT_P95_mean_TPOT_P95_request_max_ITL_P95",
+    "address_or_table_revisions_max": 1,
+    "no_speedup_required": true
+  },
+  "budget": {
+    "micro_processes": 6,
+    "model_processes": 6,
+    "serving_processes": 12,
+    "nsys_captures": 1,
+    "ncu_sessions": 1,
+    "canonical_bundles": 1
+  }
+}

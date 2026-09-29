@@ -825,3 +825,19 @@
 - 验证：`memcheck-model-verified.log` 为 S1/S4 2/2、0 错误、0 泄漏；
   16 个 case、173 行 contiguous/paged 完整 logits 逐位相同。
   源码、二进制与模型摘要见同阶段 `execution-identity.json`。
+
+## ENG-074：分页基准拒绝测试的错误文案断言不符
+
+- 状态：已解决，限定于新增测试的诊断断言。
+- 影响：两个新增 CLI 测试错误地报告失败；非法布局实际已被拒绝，不影响设备执行。
+- 复现或证据：`.run/gpu-kv-001/experiment-preflight/ctest-own-cuda.log` 和
+  `ctest-own-cuda.xml` 为 21/23，两个基准验证测试均报告
+  `CUDA KV layout 必须为 contiguous 或 paged`。
+  `initial-cli-test-source-snapshot.zip` 保留首次测试源码。
+- 原因：测试假定共用布局解析器的诊断包含 `--kv-layout`，与既有诊断合同不符。
+- 解决方法或下一步：断言匹配解析器的实际错误信息，继续要求非零退出和失败报告；
+  保持产品解析器及已固定的基准二进制不变。
+- 验证：同目录 `ctest-own-cuda-verified.xml` 为 23/23，
+  `ctest-core-verified.xml` 为 12/12；两套 CLI 拒绝检查通过。
+  `verification-source-snapshot.zip` 绑定最终测试源码，六个采集二进制摘要未变。
+  首次失败记录不覆盖。

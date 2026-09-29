@@ -507,6 +507,25 @@ def executable_preflight_guards(executable):
                                     encoding="utf-8", capture_output=True, timeout=10)
             assert result.returncode == 1 and audit.read(report)["status"] == "failed"
             assert message in result.stderr, result.stderr
+        kv_input = ROOT / "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"
+        legacy_input = ROOT / "benchmarks/runtime-inputs/qwen3-cuda-v0.json"
+        for index, (input_path, backend, layout, precision, message) in enumerate((
+                (legacy_input, "cuda", "paged", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (legacy_input, "cuda", "contiguous", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (kv_input, "cpu8", "paged", None, "仅支持 CUDA"),
+                (kv_input, "cpu16", "contiguous", None, "仅支持 CUDA"),
+                (kv_input, "cuda", "paged", "f16-matrix-f32acc", "尚未实现"),
+                (kv_input, "cuda", "invalid", "f32-pedantic", "CUDA KV layout 必须"),
+                (kv_input, "cuda", "paged", "f32-pedantic", "模型摘要"),
+                (kv_input, "cuda", "contiguous", "f32-pedantic", "模型摘要"))):
+            report = root / f"kv-{index}.json"
+            command = [executable, "--model", str(model), "--input", str(input_path),
+                       "--output", str(report), "--backend", backend, "--kv-layout", layout]
+            if precision:
+                command += ["--cuda-precision", precision]
+            result = subprocess.run(command, encoding="utf-8", capture_output=True, timeout=10)
+            assert result.returncode == 1 and audit.read(report)["status"] == "failed"
+            assert message in result.stderr, result.stderr
         print("[PASS] executable_preflight_guards")
 
 

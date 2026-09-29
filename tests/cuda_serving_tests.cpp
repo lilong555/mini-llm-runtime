@@ -7,6 +7,7 @@
 #include "llama.h"
 #include "../apps/options.h"
 #include "../apps/cuda_reports.h"
+#include "../apps/cuda_benchmark.h"
 
 #include <array>
 #include <atomic>
@@ -350,6 +351,116 @@ json check_paged_pressure(const std::string& path, EngineConfig config,
         {"resident_kv_payload_bytes",resident.resident_kv_payload_bytes},{"page_table_bytes",resident.page_table_bytes},
         {"owned_device_bytes",resident.owned_device_bytes},{"first_tokens",a.tokens},{"second_tokens",b.tokens}};
 }
+
+json check_budget_group(const std::string& path, EngineConfig config,
+                        const std::vector<std::vector<Token>>& prompts,
+                        const std::vector<std::vector<Token>>& expected,
+                        CudaKvLayout layout, bool pressure, std::size_t budget) {
+    config.telemetry_mode = TelemetryMode::batches;
+    config.telemetry_capacity = 256;
+    auto gate = std::make_shared<test::RunnerGate>();
+    Engine engine(config,std::make_unique<test::GatedRunner>(make_runner(path,config,layout),gate));
+    const auto resident = *engine.statistics().resources;
+    const auto kv_bytes = resident.resident_kv_payload_bytes+resident.page_table_bytes.value_or(0);
+    CHECK(kv_bytes <= budget);
+    const auto allocated = minillm::cuda::allocation_stats();
+    std::vector<std::shared_ptr<RequestHandle>> handles;
+    try {
+        handles.push_back(engine.submit(request(prompts[0],32)));
+        gate->wait_until_sampled();
+        for (std::size_t i = 1; i < prompts.size(); ++i) { handles.push_back(engine.submit(request(prompts[i],32))); }
+    } catch (...) { gate->release(); throw; }
+    gate->release();
+    json outputs = json::array();
+    for (std::size_t i = 0; i < handles.size(); ++i) {
+        const auto result = collect(handles[i]);
+        CHECK(result.terminal.status == 200 && result.tokens == expected[i]);
+        outputs.push_back(result.tokens);
+    }
+    engine.stop();
+    const auto stats = engine.statistics();
+    CHECK(stats.completed == 4 && stats.failed == 0 && stats.kv_used_blocks == 0);
+    CHECK(stats.resources->live_tokens == 0 && stats.resources->owned_device_bytes == resident.owned_device_bytes);
+    CHECK(stats.resources->state_valid && stats.resources->reusable);
+    CHECK(minillm::cuda::allocation_stats().allocation_calls == allocated.allocation_calls);
+    const auto& capture = engine.telemetry();
+    CHECK(capture.dropped == 0);
+    json witness = nullptr, timeline = json::array();
+    std::size_t peak_pages = 0, peak_tail = 0, waiting = 0;
+    for (std::size_t i = 0; i < capture.recorded; ++i) {
+        const auto& batch = capture.batches[i];
+        CHECK(batch.completed && batch.runner_completed);
+        const auto& r = *batch.resources_after;
+        CHECK(r.owned_device_bytes == resident.owned_device_bytes && r.capacity_tokens == config.context_tokens);
+        json lengths = json::array();
+        for (std::size_t s = 0; s < batch.sequences; ++s) {
+            const auto& slice = batch.slices[s];
+            lengths.push_back({{"sequence",slice.sequence},{"length",slice.context_before+slice.tokens}});
+        }
+        if (layout == CudaKvLayout::paged) {
+            CHECK(r.live_kv_pages && *r.live_kv_pages <= batch.reserved_unique_blocks);
+            peak_pages = std::max(peak_pages,*r.live_kv_pages);
+            CHECK(*r.live_kv_pages*16 >= *r.live_tokens);
+            peak_tail = std::max(peak_tail,*r.live_kv_pages*16-*r.live_tokens);
+        }
+        if (batch.waiting_requests) { ++waiting; }
+        json row{{"batch_id",batch.batch_id},{"active_requests",batch.active_requests},
+            {"waiting_requests",batch.waiting_requests},{"reserved_pages",batch.reserved_unique_blocks},
+            {"live_tokens",r.live_tokens},{"live_pages",r.live_kv_pages},{"slice_lengths",lengths}};
+        if (batch.active_requests == 4 && batch.sequences == 4 && witness.is_null()) { witness = row; }
+        timeline.push_back(std::move(row));
+    }
+    if (layout == CudaKvLayout::paged) {
+        CHECK(stats.resources->live_kv_pages == 0);
+        if (pressure) { CHECK(waiting > 0 && witness.is_null() && stats.max_batch_sequences < 4); }
+        else { CHECK(!witness.is_null()); }
+    } else { CHECK(witness.is_null() && stats.max_batch_sequences == 1 && waiting > 0); }
+    return {{"layout",minillm::cuda::kv_layout_name(layout)},{"pressure",pressure},
+        {"max_active",config.max_active},{"capacity_tokens",config.context_tokens},
+        {"budget_bytes",budget},{"kv_subsystem_bytes",kv_bytes},
+        {"resident_kv_payload_bytes",resident.resident_kv_payload_bytes},{"page_table_bytes",resident.page_table_bytes},
+        {"owned_device_bytes",resident.owned_device_bytes},{"non_kv_owned_bytes",*resident.owned_device_bytes-kv_bytes},
+        {"four_live_witness",witness},{"waiting_batches",waiting},
+        {"peak_assigned_pages",layout == CudaKvLayout::paged ? json(peak_pages) : json(nullptr)},
+        {"peak_tail_slack_tokens",layout == CudaKvLayout::paged ? json(peak_tail) : json(nullptr)},
+        {"min_free_pool_pages",layout == CudaKvLayout::paged ? json(config.context_tokens/16-peak_pages) : json(nullptr)},
+        {"completed",stats.completed},{"failed",stats.failed},
+        {"input_token_ids",prompts},{"token_ids",outputs},{"timeline",timeline}};
+}
+
+json check_budget_capacity(const std::string& path, const json& spec) {
+    const auto& budget = spec.at("serving").at("same_budget");
+    const auto limit = budget.at("kv_subsystem_budget_bytes").get<std::size_t>();
+    std::vector<std::vector<Token>> prompts, expected, pressure_prompts, pressure_expected;
+    {
+        CudaRuntime reference({path,0,1,2048,128,0});
+        for (const auto length : budget.at("prompt_lengths")) {
+            std::vector<Token> tokens(length.get<std::size_t>());
+            for (std::size_t p = 0; p < tokens.size(); ++p) { tokens[p] = cuda_benchmark::fixed_token(spec,p); }
+            prompts.push_back(std::move(tokens));
+            expected.push_back(reference_tokens(reference,prompts.back(),32,128));
+        }
+    }
+    pressure_prompts = {prompts[0],prompts[0],prompts[1],prompts[1]};
+    pressure_expected = {expected[0],expected[0],expected[1],expected[1]};
+    json results = json::array();
+    for (auto layout : {CudaKvLayout::contiguous,CudaKvLayout::paged}) {
+        EngineConfig config;
+        config.max_active = layout == CudaKvLayout::paged ? 4 : 1;
+        config.max_model_len = 2048;
+        config.context_tokens = layout == CudaKvLayout::paged ? 2560 : 2048;
+        config.batch_tokens = 128; config.prefill_chunk = 32;
+        config.prefix_cache_entries = config.prefix_cache_tokens = 0;
+        results.push_back(check_budget_group(path,config,prompts,expected,layout,false,limit));
+        if (layout == CudaKvLayout::contiguous) {
+            CHECK(results.back().at("kv_subsystem_bytes").get<std::size_t>()*2 > limit);
+        } else {
+            CHECK(results[0].at("non_kv_owned_bytes") == results[1].at("non_kv_owned_bytes"));
+            results.push_back(check_budget_group(path,config,pressure_prompts,pressure_expected,layout,true,limit));
+        }
+    }
+    return results;
+}
 }
 
 TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
@@ -616,10 +727,10 @@ int main(int argc, char** argv) {
                 {"backend", "minillm-cuda"}, {"checks", json::array()}};
     std::filesystem::path output;
     try {
-        Options options(argc, argv, {"--model", "--contract", "--output", "--kv-layout"});
+        Options options(argc, argv, {"--model", "--contract", "--output", "--kv-layout", "--kv-study"});
         if (options.has("--help")) {
             std::cout << "llmserve-cuda-serving-tests [--model MODEL --contract JSON --output NEW_REPORT.json]\n"
-                         "                            [--kv-layout contiguous|paged]\n";
+                         "                            [--kv-layout contiguous|paged] 或 [--kv-study INPUT.json]\n";
             return 0;
         }
         if (!options.has("--model")) { return test::run(); }
@@ -639,6 +750,23 @@ int main(int argc, char** argv) {
         CHECK(report["model_sha256"] == contract.at("model").at("sha256"));
         report["contract_sha256"] = cuda_reports::file_hash(contract_path);
         report["binary_sha256"] = cuda_reports::file_hash(argv[0]);
+        if (options.has("--kv-study")) {
+            if (options.has("--kv-layout")) { throw std::invalid_argument("--kv-study 独立比较两种布局，不能指定 --kv-layout"); }
+            const auto input_path = options.get("--kv-study");
+            CHECK(cuda_reports::file_hash(input_path) == cuda_benchmark::gpu_kv_input_sha256);
+            std::ifstream input_file(input_path);
+            const auto input = json::parse(input_file);
+            report["spec_id"] = "GPU-KV-001";
+            report["protocol_id"] = input.at("protocol_id");
+            report["input_sha256"] = cuda_reports::file_hash(input_path);
+            report["scope"] = "同预算的确定性功能验证，不是性能采样";
+            report["checks"] = check_budget_capacity(path,input);
+            report["status"] = "passed";
+            report["passed"] = report["checks"].size();
+            cuda_reports::write(output,report);
+            std::cout << "GPU KV 同预算容量与压力验证通过\n";
+            return 0;
+        }
         std::vector<std::vector<Token>> prompts, expected, pressure_prompts, pressure_expected;
         {
             CudaRuntime reference({path, 0, 1, 2048, 128, 0});

@@ -17,7 +17,8 @@ fusion、Graph、async 或新的精度路径。
 | 分页 QK/PV、完整层与 Runtime 事务 | 已实现；与连续布局共用数学，checked completion 后提交 |
 | Paged C++ 模型 | 可执行，仅 F32 矩阵；S1/S4 真实模型逐位对照通过 |
 | Paged CLI/Serving | 已接入；显式选择布局，Serving 信用与物理容量一致，默认仍连续 |
-| 采用决定 | 尚未具备产品资格，无容量或性能实测结论 |
+| 指定预算的请求共存与压力进展 | 确定性真实模型验证通过；不代表吞吐结论 |
+| 采用决定 | 正式性能护栏尚未验证，不判为产品可采用 |
 
 `PageTableState` 只持有 active/pending table、free IDs 和本批 journal。
 所有容器在构造时预留；不持有设备地址，不保存第二份 token length，
@@ -243,6 +244,7 @@ resident 保留至 owner 析构。schema v2 的历史连续记录仍可读；
 验证身份为 `33a8fb7` 加固定 dirty snapshot，原始输出位于
 `.run/gpu-kv-001/serving/`。源码范围包含执行核心、测试和脚本，共 143 个文件；
 `verification.json` 登记 37 个原始文件，确认验证期间源码和二进制未变。
+第四组提交 `6d3d87d` 自身 CI run `36546952201` 五任务通过。
 
 | 检查 | 结果 |
 | --- | --- |
@@ -276,9 +278,71 @@ owned 为 2,803,308,544 bytes；清理只归还页 ID，不释放 slab。
 | `execution-identity.json` | `7e160fd624874014050ba4c0fb12dcd5aaef244073f5cc5fb14addde17f3cc40` |
 | `verification.json` | `bb7200dbd6d1acaaead64ddd024abad1dddc9de4e616ebec32ed310b94ca5e77` |
 
+## 实验协议与入口预检
+
+[冻结输入](../benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json) 的协议为
+`gpu-kv-experiment-v1`，SHA-256 为
+`77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e`。
+它固定六类 attention、四个模型 workload、两条 Serving trace、顺序、计时边界、
+288 MiB KV 子系统预算和 10% 性能护栏。旧协议、旧输入与既有 SLO 不变。
+
+`mini-cuda-kernel-bench` 和 `mini-cuda-runtime-bench` 接受这份输入及
+`--kv-layout contiguous|paged`；仅允许 F32。没有 manifest 的运行明确标为
+`diagnostic_single_process`，不能计作三轮正式结果。旧协议拒绝布局参数，
+CPU 模型基准拒绝新协议，FP16 不能进入本研究。
+
+预检身份为 `6d3d87d` 加固定 dirty snapshot，记录位于
+`.run/gpu-kv-001/experiment-preflight/`。入口执行身份见 `execution-identity.json`；
+CLI 拒绝测试另有初始和最终源码快照，基准二进制不变。
+
+| 检查 | 结果 |
+| --- | --- |
+| 独立核心 / own-CUDA CTest | 12/12、23/23；首次文案断言失败保留，见 `ENG-074` |
+| Micro | 两布局各六类、各 30 个样本，输出 SHA 逐一相同 |
+| 分页 micro memcheck | 0 错误、0 泄漏；该计时不与普通连续运行比较 |
+| Model | 两布局各四项、各 175 次 forward；输入摘要、上下文和 token 完全一致 |
+| 模型执行边界 | 稳态无新增设备分配、无权重或 hidden 往返；setup 与计时区间分开 |
+| 同容量 allocation | 连续 3,449,229,312 bytes；分页 3,449,231,360 bytes，仅多 2 KiB table |
+| 页表传输 | micro 单列每次 2 KiB 上传；模型进程合计 358,400 bytes，含 setup |
+| 既有回归身份 | 63 个产品源码文件、5 个既有二进制与第四组相同；模型/HTTP 不冒充本轮重跑 |
+
+M4 的 micro 使用倒序物理页号直接读取分页 KV。M32 的 query 位置为
+`L-32...L-1`，不是所有 query 都读取长度 L。模型侧四项的计时区间页表传输
+分别为 10,240、122,880、10,240、10,240 bytes，均包含两次预热和三次测量重复；
+两个 decode workload 的 prefix setup 另有 122,880、81,920 bytes。
+页分配、映射维护和必要上传均在对应 forward 计时内，不只报告独立上传 probe。
+
+### 同预算功能结果
+
+指定组为 `[1536,128,128,128]` 个 prompt token，各输出 32 token。
+每次仅常驻一个 Runtime；独立 reference、连续臂、分页臂、压力反例顺序执行。
+三组各四个请求全部完成，共 384 个 Serving 输出 token 与独立参照相同。
+
+| 配置 | KV 子系统实分配 | 非 KV owned | 观察 |
+| --- | ---: | ---: | --- |
+| 连续 S1 / capacity 2048 | 234,881,024 bytes | 2,509,705,216 bytes | 单 slot 顺序完成，有 101 个等待 batch |
+| 分页 S4 / capacity 2560 | 293,603,328 bytes | 2,509,705,216 bytes | 四请求同时 live，全部完成 |
+| 分页压力组 | 同上 | 同上 | 承诺 3456 token 超过池容量，等待 31 batch 后全部完成 |
+
+两臂均在 301,989,888-byte 预算内。分页第 49 批有四个 active request，
+长度为 `[1537,32,32,32]`，live tokens 为 1633、assigned 为 103 页、reserved 为 128 页。
+普通组峰值 assigned 为 128 页、最大末页空隙为 56 token、最少 free pool 为 32 页；
+压力组对应为 118 页、41 token、42 页。三个极值不要求出现在同一批。
+末页空隙与空闲池分开统计；停止后 live tokens/pages 归零，resident 保留。
+
+这是特定异长请求组合的功能与容量证据，不是“四倍吞吐”，也不保留四条
+2048-token 请求同时执行的能力。分页臂在此比较中实际分配更多 KV；
+结论针对当前等长静态槽，不证明优于所有连续分配器。
+
+`verification.json` 登记 28 个文件，SHA-256 为
+`1ab7f7f3ea87bfdceb776b897ffcb584469b924320af36c831663a83231a2350`。
+本组原始计时保留，但不用于正式收益或性能护栏判定。
+
 ## 剩余门禁
 
-模型与 Serving 分页路径已接通，下一项为固定协议的同容量代价和同预算容量实验。
+模型与 Serving 分页路径、固定实验入口和指定容量功能检查已通过。
+正式采集器及分析器尚未支持本协议；须扩展既有 micro/model/policy 工具并验证后再采样，
+不能直接运行旧模型 70 进程协议或 mixed/prefill_first 对照。
 保持 mixed、F32、单 stream、同步完成与保守 reservation；不引入 incremental admission、
 prefix sharing、fusion 或新的 scheduler。可执行不等于已通过最终采用门槛。
 

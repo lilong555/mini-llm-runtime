@@ -28,12 +28,15 @@ json allocation_counts() {
 
 class Backend {
 public:
-    Backend(const std::string& name, const std::string& model, gpu::PrecisionMode precision) {
+    Backend(const std::string& name, const std::string& model, gpu::PrecisionMode precision,
+            gpu::CudaKvLayout layout = gpu::CudaKvLayout::contiguous) {
         const auto started = Clock::now();
         if (name == "cuda") {
             gpu::CudaRuntimeConfig config;
             config.model_path = model;
             config.precision_mode = precision;
+            config.kv_layout = layout;
+            if (layout == gpu::CudaKvLayout::paged) { config.kv_capacity_tokens = 8192; }
             cuda_ = std::make_unique<gpu::CudaRuntime>(config);
         } else {
             minillm::RuntimeConfig config;
@@ -99,6 +102,11 @@ public:
                 throw std::runtime_error("CUDA 基准逻辑 KV 状态不一致");
             }
             result["cuda"] = cuda_reports::diagnostics(state);
+            if (cuda_->config().kv_layout == gpu::CudaKvLayout::paged) {
+                std::size_t pages = 0;
+                for (auto length : lengths) { pages += (length+15)/16; }
+                if (state.live_kv_pages != pages) { throw std::runtime_error("分页基准实际页数不一致"); }
+            }
         } else {
             std::size_t pages = 0;
             for (const auto length : lengths) { pages += (length + 15) / 16; }
@@ -118,7 +126,8 @@ public:
                 {"kernel", cuda_ ? json(nullptr) : json("auto")},
                 {"effective_kernel", cuda_ ? json(nullptr) : json(minillm::kernel_name(cpu_->config().kernels))},
                 {"device", cuda_ ? json(0) : json(nullptr)}, {"streams", cuda_ ? json(1) : json(nullptr)},
-                {"kv_layout", cuda_ ? "contiguous" : "paged"}, {"page_tokens", cuda_ ? json(nullptr) : json(16)}}},
+                {"kv_layout", cuda_ ? json(gpu::kv_layout_name(cuda_->config().kv_layout)) : json("paged")},
+                {"page_tokens", cuda_ && cuda_->config().kv_layout == gpu::CudaKvLayout::contiguous ? json(nullptr) : json(16)}}},
             {"device", cuda_ ? cuda_reports::device(cuda_->device_info()) : json(nullptr)},
             {"arithmetic", cuda_ ? cuda_reports::arithmetic(*cuda_) :
                 json{{"source_weight_dtype", "Q8_0"}, {"effective_weight_dtype", "F32"}, {"activation_dtype", "F32"},
@@ -143,12 +152,12 @@ int main(int argc, char** argv) {
     std::string output;
     try {
         Options options(argc, argv, {"--model", "--input", "--output", "--backend", "--manifest", "--order",
-                                    "--cuda-precision"});
+                                    "--cuda-precision", "--kv-layout"});
         if (options.has("--help")) {
             std::cout << "mini-cuda-runtime-bench --model MODEL.gguf --input INPUT.json --output NEW_REPORT.json\n"
                 "                        --backend cpu8|cpu16|cuda [--manifest MANIFEST.json --order N]\n"
-                "                        [--cuda-precision f32-pedantic]（仅 cuda；f16-matrix-f32acc 尚未实现）\n"
-                "单进程构造一个 Runtime；12 个 workload，每项 2 次 warmup、3 次正式测量。\n";
+                "                        [--cuda-precision f32-pedantic] [--kv-layout contiguous|paged]\n"
+                "旧协议为 12 个 workload；gpu-kv-experiment-v1 为 4 个 workload，仅支持 CUDA。\n";
             return 0;
         }
         const auto candidate = options.get("--output");
@@ -172,14 +181,23 @@ int main(int argc, char** argv) {
         }
         const auto input = read(options.get("--input"));
         const auto input_hash = cuda_reports::file_hash(options.get("--input"));
+        const bool kv_study = input_hash == gpu_kv_input_sha256;
+        const auto layout = gpu::parse_kv_layout(options.get("--kv-layout","contiguous"));
+        if (options.has("--kv-layout") && !kv_study) {
+            throw std::invalid_argument("--kv-layout 需要冻结的 gpu-kv-experiment-v1 输入");
+        }
+        if (kv_study && (backend != "cuda" || input.at("protocol_id") != "gpu-kv-experiment-v1" ||
+                         input.at("workloads").size() != 4)) {
+            throw std::invalid_argument("GPU KV 模型实验仅支持 CUDA 的四个冻结 workload");
+        }
         // 原始冻结 recipe 的摘要由采集器与分析器共同核对；应用也拒绝配置缩减。
-        if (input_hash != input_sha256 || input.at("schema_version") != 1 ||
+        if (!kv_study && (input_hash != input_sha256 || input.at("schema_version") != 1 ||
             input.at("protocol_id") != "qwen3-cuda-model-v0" ||
             input.at("gpu") != json{{"device", 0}, {"max_sequences", 4}, {"max_model_len", 2048},
                 {"batch_tokens", 128}, {"streams", 1}, {"kv_layout", "contiguous"}, {"page_tokens", nullptr}} ||
             input.at("cpu") != json{{"threads", {8, 16}}, {"kernel", "auto"}, {"page_tokens", 16}} ||
             input.at("measurement").at("independent_trials") != 5 || input.at("measurement").at("warmup") != 2 ||
-            input.at("measurement").at("measured_repeats") != 3 || input.at("workloads").size() != 12) {
+            input.at("measurement").at("measured_repeats") != 3 || input.at("workloads").size() != 12)) {
             throw std::invalid_argument("输入不是冻结的 qwen3-cuda-model-v0 配置");
         }
         const auto model_hash = cuda_reports::file_hash(options.get("--model"));
@@ -187,13 +205,17 @@ int main(int argc, char** argv) {
             model_hash != "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031") {
             throw std::invalid_argument("模型摘要与固定 Q8_0 checkpoint 不符");
         }
-        const auto works = make_workloads(input);
+        auto works = make_workloads(input);
         report["backend"] = backend;
         report["input_sha256"] = input_hash;
         report["model_sha256"] = model_hash;
         report["run_identity"] = nullptr;
         report["process"] = nullptr;
         report["scope"] = "diagnostic_single_process";
+        if (kv_study) {
+            report["protocol_id"] = "gpu-kv-experiment-v1";
+            report["kv_layout"] = gpu::kv_layout_name(layout);
+        }
         if (options.has("--manifest")) {
             const auto manifest = read(options.get("--manifest"));
             const auto order = static_cast<std::size_t>(options.integer("--order", 0, 0, 10000));
@@ -204,11 +226,18 @@ int main(int argc, char** argv) {
                 manifest.at("model").at("sha256") != model_hash ||
                 manifest.at("binary").at("sha256") != binary_hash ||
                 slot.at("order") != order || slot.at("backend") != backend ||
+                (kv_study && (manifest.at("protocol_id") != "gpu-kv-experiment-v1" ||
+                              slot.at("kv_layout") != gpu::kv_layout_name(layout))) ||
                 slot.at("file") != std::filesystem::path(output).filename().string()) {
                 throw std::invalid_argument("基准进程与 manifest 身份不一致");
             }
             report["scope"] = "paired_model_baseline";
             report["process"] = slot;
+            if (kv_study) {
+                const auto trial = slot.at("trial").get<std::size_t>();
+                if (trial > 2) { throw std::invalid_argument("GPU KV 模型实验只有三个独立 trial"); }
+                if (trial % 2) { std::reverse(works.begin(),works.end()); }
+            }
             report["run_identity"] = {{"run_id", manifest.at("run_id")},
                 {"manifest_sha256", cuda_reports::file_hash(options.get("--manifest"))},
                 {"source_state_sha256", manifest.at("source").at("worktree_state_sha256")},
@@ -218,12 +247,13 @@ int main(int argc, char** argv) {
             {"primary", "host_forward_to_token_ns"}, {"profiler", "none"}, {"device_events", false},
             {"setup", "clear_and_rebuild_independent_prefix_outside_timing"},
             {"sampling", "finite_check_and_greedy_argmax_inside_timing"}, {"reference_model_resident", false},
-            {"generation_stop", "ignore_eos_fixed_32"}, {"input_digest", "sha256_count_u32le_token_position_sequence_logits_i32le"}};
+            {"generation_stop", kv_study ? "fixed_inputs_no_generation_loop" : "ignore_eos_fixed_32"},
+            {"input_digest", "sha256_count_u32le_token_position_sequence_logits_i32le"}};
         llama_log_set([](ggml_log_level level, const char* text, void*) {
             if (level >= GGML_LOG_LEVEL_WARN) { std::cerr << text; }
         }, nullptr);
         report["before_initialization_allocations"] = allocation_counts();
-        Backend runtime(backend, options.get("--model"), precision);
+        Backend runtime(backend, options.get("--model"), precision, layout);
         report["runtime"] = runtime.metadata();
         for (const auto& id : input.at("token_ids")) {
             if (!id.is_number_integer() || id.get<std::int64_t>() < 0 ||

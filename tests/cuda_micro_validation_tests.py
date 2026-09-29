@@ -480,6 +480,20 @@ def executable_guards(executable):
                                      "--output", str(output), "--cuda-precision", mode],
                                     capture_output=True, encoding="utf-8", timeout=10)
             assert result.returncode == 1 and message in result.stderr
+        kv_input = ROOT / "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"
+        for index, (input_path, layout, precision, message) in enumerate((
+                (SPEC_PATH, "paged", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (PRECISION_PATH, "contiguous", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (kv_input, "paged", "f16-matrix-f32acc", "需要 precision-experiment-v1"),
+                (kv_input, "invalid", "f32-pedantic", "CUDA KV layout 必须"),
+                (kv_input, "paged", "f32-pedantic", "模型"),
+                (kv_input, "contiguous", "f32-pedantic", "模型"))):
+            output = root / f"kv-{index}.json"
+            result = subprocess.run([executable, "--model", str(model), "--input", str(input_path),
+                                     "--output", str(output), "--cuda-precision", precision,
+                                     "--kv-layout", layout], capture_output=True, encoding="utf-8", timeout=10)
+            assert result.returncode == 1 and audit.read(output)["status"] == "failed"
+            assert message in result.stderr, result.stderr
         print("[PASS] executable_guards")
 
 
