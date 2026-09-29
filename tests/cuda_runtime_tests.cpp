@@ -252,6 +252,24 @@ TEST(runtime_invalid_precision_is_rejected_before_model_or_device_loading) {
     unchanged_allocations(before);
 }
 
+TEST(runtime_paged_and_invalid_capacity_fail_before_model_or_device_loading) {
+    auto config = config_for("missing-paged-model.gguf");
+    CHECK(config.kv_layout == CudaKvLayout::contiguous && config.kv_capacity_tokens == 0);
+    const auto before = allocation_stats();
+    config.kv_layout = CudaKvLayout::paged;
+    config.kv_capacity_tokens = 32;
+    try { CudaRuntime runtime(config); CHECK(false); }
+    catch (const std::invalid_argument& error) {
+        CHECK(std::string(error.what()).find("尚未接通") != std::string::npos);
+    }
+    config.kv_layout = CudaKvLayout::contiguous;
+    test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
+    config.kv_capacity_tokens = 0;
+    config.page_tokens = 32;
+    test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
+    unchanged_allocations(before);
+}
+
 TEST(runtime_half_groups_metadata_clear_preflight_and_timing) {
     Qwen3Fixture fixture;
     const auto path = model_path(fixture,0.01f);

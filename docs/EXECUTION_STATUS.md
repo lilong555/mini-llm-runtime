@@ -17,8 +17,14 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   构建产物、依赖 checkout 和本地运行状态仍排除。
 - FP16 研究以 `blocked_correctness` 收束；[研究预发布](../benchmarks/results/cuda-precision-001/README.md)
   提供一个公开 canonical bundle，不开放 F16 Serving。
-- GPU 分页尚未实现；M4-0 的候选 smoke 与用户审阅整合待完成。
+- M4-0 技术候选 `e7e2ced` 自身 CI run `36517808344` 五任务通过；
+  own-CUDA 22/22 CTest、真实 token 与 HTTP 12/12 smoke 通过。
+  [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 等待用户审阅；
   不自动合并 main、不移动历史 tag，不重采旧性能矩阵。
+- 分页实施分支为 `feat/cuda-paged-kv`。M4-1 第一组 host 页状态与配置合同已本机验收：
+  9 个 host 用例、固定 seed 10,000 次状态操作、三种配置 47/47 CTest、
+  原 F32 模型 S1/S4 2/2 与 HTTP 12/12 通过，见 [分页研究](GPU_KV_STUDY.md)。
+  设备页池、table 与直接分页 attention 尚未接入；paged 模型与存储入口仍明确拒绝。
 - 仅新增共享 GPU 页池、设备块表与直接分页访问，保留 contiguous 默认、
   F32 数学、P=16、S≤4、L≤2048、B≤128 和保守 admission。
   Fusion、prefix sharing、Graph、async 与新精度路线均不进入本轮。
@@ -99,8 +105,8 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | PREC-M4-0 | 已完成 | 已有时间线离线分解与冻结精度合同 |
 | PREC-M4-1 | 研究收束，`blocked_correctness` | 模型边界可执行；长续写 cosine 未达门槛；公开 raw 保留失败，Serving 拒绝候选 |
 | PREC-M4-2 | 不执行 | 旧融合 attention 备选不属于活跃路线 |
-| M4-0 | 进行中 | 已含独立排空修复与公开规则；候选 smoke、用户审阅整合待完成 |
-| M4-1 | 未实现 | 共享容量、独占页、device table、直接分页 store/QK/PV |
+| M4-0 | 技术已验收，等待审阅 | `e7e2ced` 自身 CI 与本机 smoke 通过；PR #2 未合并 |
+| M4-1 | 第一组本机验收 | host 独占页事务、配置、pending lengths 已提供；设备页池/table/store/QK/PV 尚未接通 |
 | M4-2 | 未进入 | 同容量与同预算的有限实验、采用决定，不新增功能 |
 | M4-3 | 未进入 | 功能冻结、作品表达与 upstream |
 
@@ -162,4 +168,4 @@ Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/resu
 - `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json`：375 个真实形状、五个独立 trial、每样本 32 次 API 调用、FP64 对照与计时边界。
 - `benchmarks/runtime-inputs/qwen3-precision-v1.json`：同一 GPU/模型的 F32/F16 对照合同，
   48 个数值配置、16 个微基准 shape、6 个模型 workload、两条既有 Serving trace、主指标与停止线。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。当前入口为 GPU-KV-001 的 M4-0，分页尚未实现。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 已完成 host 状态的本机验收，下一项为设备 slab/table 与 KV write；尚无分页模型能力。

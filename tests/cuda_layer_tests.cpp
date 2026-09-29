@@ -70,6 +70,8 @@ TEST(batch_state_prepare_commit_clear_and_preflight_failure) {
     const auto summary = state.prepare(batch);
     CHECK(summary.tokens == 3 && summary.logits == 2 && summary.max_context == 2);
     CHECK(state.live_tokens() == 0 && state.phase() == BatchPhase::prepared);
+    CHECK((std::vector<std::size_t>(state.pending_lengths().begin(),state.pending_lengths().end()) ==
+           std::vector<std::size_t>{1,0,2}));
     test::throws<Error>([&] { state.clear(0); });
     test::throws<Error>([&] { state.prepare(batch); });
     test::throws<Error>([&] { state.commit(); });
@@ -77,6 +79,7 @@ TEST(batch_state_prepare_commit_clear_and_preflight_failure) {
     CHECK(state.live_tokens() == 0);
     state.prepare(batch); state.start();
     CHECK(state.live_tokens() == 0);
+    CHECK(state.pending_lengths()[0] == 1 && state.pending_lengths()[2] == 2);
     test::throws<Error>([&] { state.clear(0); });
     state.commit();
     CHECK(lengths(state) == (std::vector<std::size_t>{1,0,2}));

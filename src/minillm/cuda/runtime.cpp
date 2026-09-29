@@ -22,6 +22,11 @@ std::uint64_t elapsed(Clock::time_point start) {
 }
 CudaRuntimeConfig checked(CudaRuntimeConfig config) {
     precision_mode_name(config.precision_mode);
+    checked_kv_capacity(config.kv_layout, config.max_sequences, config.max_model_len,
+                        config.kv_capacity_tokens, config.page_tokens);
+    if (config.kv_layout == CudaKvLayout::paged) {
+        throw std::invalid_argument("分页 CUDA 模型路径尚未接通，不能启用 paged");
+    }
     if (config.model_path.empty() || config.device < 0 || config.max_sequences == 0 ||
         config.max_sequences > CudaRuntimeConfig::max_supported_sequences) {
         throw std::invalid_argument("CUDA 模型路径、设备或 sequence 上限无效，最多支持 4 个序列");
@@ -34,7 +39,7 @@ CudaRuntimeConfig checked(CudaRuntimeConfig config) {
 }
 StorageLimits limits(const CudaRuntimeConfig& config) {
     return {config.max_sequences,config.max_model_len,config.batch_tokens,config.device_budget_bytes,
-            config.precision_mode};
+            config.precision_mode,config.kv_layout,config.kv_capacity_tokens,config.page_tokens};
 }
 void finish_noexcept(const CudaContext& context) noexcept {
     try { context.synchronize(); }

@@ -9,7 +9,7 @@ namespace minillm::cuda {
 enum class BatchPhase { ready, prepared, executing, poisoned };
 struct BatchSummary { std::size_t tokens, logits, max_context; };
 
-// 仅管理连续 KV 的逻辑长度，不拥有设备存储。commit 的调用方必须已检查设备完成。
+// KV 的唯一逻辑长度账本，不拥有设备存储。commit 的调用方必须已检查设备完成。
 class BatchState {
 public:
     BatchState(StorageLimits limits, std::size_t vocabulary);
@@ -21,6 +21,8 @@ public:
     void clear(std::int32_t sequence);
     BatchPhase phase() const noexcept { return phase_; }
     std::span<const std::size_t> lengths() const noexcept { return lengths_; }
+    // 仅 prepared/executing 时有效；提交、撤销或下次 prepare 后不得继续借用。
+    std::span<const std::size_t> pending_lengths() const noexcept { return pending_; }
     std::size_t live_sequences() const noexcept;
     std::size_t live_tokens() const noexcept;
 

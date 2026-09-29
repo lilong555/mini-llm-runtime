@@ -31,6 +31,7 @@ if(MINILLM_ENABLE_CUDA)
         src/minillm/cuda/storage.cpp
         src/minillm/cuda/ops.cu
         src/minillm/cuda/batch_state.cpp
+        src/minillm/cuda/page_table.cpp
         src/minillm/cuda/attention.cu
         src/minillm/cuda/layer.cpp
         src/minillm/cuda/runtime.cpp
@@ -187,6 +188,16 @@ endif()
 
 if(LLMSERVE_BUILD_TESTS)
     enable_testing()
+    add_executable(minillm-gpu-page-table-tests
+        tests/gpu_page_table_tests.cpp src/minillm/cuda/page_table.cpp)
+    target_include_directories(minillm-gpu-page-table-tests PRIVATE include src/minillm/cuda)
+    if(MSVC)
+        target_compile_options(minillm-gpu-page-table-tests PRIVATE /W4 /permissive- /utf-8)
+    else()
+        target_compile_options(minillm-gpu-page-table-tests PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+    endif()
+    add_test(NAME gpu-page-table COMMAND minillm-gpu-page-table-tests)
+    set_tests_properties(gpu-page-table PROPERTIES TIMEOUT 30 LABELS "host;kv")
     if(MINILLM_ENABLE_CUDA)
         add_executable(minillm-cuda-unit-tests tests/cuda_unit_tests.cu)
         target_link_libraries(minillm-cuda-unit-tests PRIVATE minillm_cuda)

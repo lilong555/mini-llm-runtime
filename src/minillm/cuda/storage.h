@@ -2,6 +2,7 @@
 
 #include "minillm/cuda/matrix.h"
 #include "minillm/cuda/precision.h"
+#include "minillm/cuda/kv_layout.h"
 #include "minillm/qwen3_model.h"
 
 #include <string>
@@ -15,6 +16,9 @@ struct StorageLimits {
     std::size_t max_batch_tokens = 128;
     std::size_t device_budget_bytes = 0;
     PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
+    CudaKvLayout kv_layout = CudaKvLayout::contiguous;
+    std::size_t kv_capacity_tokens = 0;
+    std::size_t page_tokens = kv_page_tokens;
 };
 
 enum class StorageType { f32, i32, f16 };

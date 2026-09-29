@@ -759,7 +759,7 @@
 
 ## ENG-070：默认分支展示与已完成的 GPU Serving 不一致
 
-- 状态：未解决，等待候选验收与用户审阅整合。
+- 状态：未解决，候选已验收，等待用户审阅整合。
 - 影响：默认 README 不能展示现有自有 CUDA 模型与 Serving；旧基点也不包含已知
   HTTP 排空修复。不能将 feature 分支能力表述为 main 已有能力。
 - 复现或证据：2026-09-29 的 `git fetch origin` 后，
@@ -771,4 +771,27 @@
   `GPU-KV-001` 是唯一新增路线，尚未实现的分页不计作发布能力。
 - 验证：活跃入口指向 `PROJECT_PLAN_V4_KV.md` 与 `NEXT_SPEC_V3.md`，
   两者 SHA-256 与用户提供文件一致；旧精度版 V4 摘要保持不变。
+  候选 `e7e2ced` 自身 CI run `36517808344` 五任务成功；本机 own-CUDA
+  22/22 套 CTest、8-token golden 和 HTTP 12/12 通过。停服时 3 active + 3 queued
+  均收到唯一取消终态和 `[DONE]`，服务正常退出；证据为
+  `.run/gpu-kv-001/release-smoke-e7e2ced/verification.json`。
+  [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 已就绪等待审阅，
+  PR CI run `36517815149` 五任务同样通过。
   默认分支整合尚未发生，因此不标记已解决。
+
+## ENG-071：页状态测试的分配拦截触发编译告警
+
+- 状态：已解决，限定于 host 页状态测试的编译告警。
+- 影响：host 页状态测试通过，但 GCC 11 优化构建产生
+  `warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]`。
+- 复现或证据：首次 `cmake --build build/wsl-core --parallel 2` 与 own-CUDA 构建，
+  诊断指向 `tests/gpu_page_table_tests.cpp` 中 `std::make_unique<PageTableState>` 的清理路径。
+- 原因：测试用 malloc/free 实现普通 new/delete 拦截以禁止事务内分配；
+  编译器内联 delete 后对辅助 unique_ptr 的 new/free 配对发出告警。
+- 解决方法或下一步：状态随机测试用 `std::optional<PageTableState>::emplace`
+  在原位销毁和重建，不为测试对象额外分配。保留对实际 vector 分配的拦截，
+  不关闭编译告警，不改变产品 allocator。
+- 验证：`.run/gpu-kv-001/host-state/build-core.log`、`build-cuda.log`、
+  `build-asan.log` 均构建成功且没有该告警；三种配置 CTest 共 47/47 通过。
+  ASan/UBSan 的 host 9/9 用例包含禁止事务分配及 10,000 次状态操作，
+  无 sanitizer 错误；未据此声称尚未实现的设备分页已通过内存检查。

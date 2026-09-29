@@ -271,6 +271,25 @@ TEST(storage_invalid_precision_is_rejected_before_device_allocation) {
     same_allocations(before, allocation_stats());
 }
 
+TEST(storage_paged_rejection_and_explicit_contiguous_capacity) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    auto limits = small;
+    const auto original = make_memory_plan(model,limits);
+    limits.kv_capacity_tokens = limits.max_sequences * limits.max_model_len;
+    CHECK(make_memory_plan(model,limits).total_bytes == original.total_bytes);
+    const auto before = allocation_stats();
+    --limits.kv_capacity_tokens;
+    test::throws<std::invalid_argument>([&] { CudaStorage storage(model,limits); });
+    limits.kv_layout = CudaKvLayout::paged;
+    limits.kv_capacity_tokens = 16;
+    try { CudaStorage storage(model,limits); CHECK(false); }
+    catch (const std::invalid_argument& error) {
+        CHECK(std::string(error.what()).find("尚未接通") != std::string::npos);
+    }
+    same_allocations(before,allocation_stats());
+}
+
 TEST(storage_budget_failure_has_no_arena_allocation) {
     Qwen3Fixture fixture;
     Qwen3Model model(fixture.write());

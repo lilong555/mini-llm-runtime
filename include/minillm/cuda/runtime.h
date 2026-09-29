@@ -1,6 +1,7 @@
 #pragma once
 
 #include "minillm/cuda/precision.h"
+#include "minillm/cuda/kv_layout.h"
 #include "minillm/model_types.h"
 
 #include <memory>
@@ -23,6 +24,9 @@ struct CudaRuntimeConfig {
     std::size_t batch_tokens = max_supported_batch_tokens;
     std::size_t device_budget_bytes = 0;
     PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
+    CudaKvLayout kv_layout = CudaKvLayout::contiguous;
+    std::size_t kv_capacity_tokens = 0;
+    std::size_t page_tokens = kv_page_tokens;
 };
 
 struct CudaMemoryPlan {

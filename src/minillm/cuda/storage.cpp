@@ -43,6 +43,11 @@ std::string digest(sha256_t& state) {
 
 MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     precision_mode_name(limits.precision_mode);
+    checked_kv_capacity(limits.kv_layout, limits.max_sequences, limits.max_model_len,
+                        limits.kv_capacity_tokens, limits.page_tokens);
+    if (limits.kv_layout == CudaKvLayout::paged) {
+        throw std::invalid_argument("分页 CUDA 设备存储尚未接通，不能使用连续布局代替");
+    }
     dimension(limits.max_sequences); dimension(limits.max_model_len); dimension(limits.max_batch_tokens);
     const auto& d = model.dimensions();
     if (limits.max_model_len > d.trained_context) {
