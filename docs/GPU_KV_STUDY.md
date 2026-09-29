@@ -14,8 +14,9 @@ fusion、Graph、async 或新的精度路径。
 | 内部配置 | `CudaKvLayout`、capacity、P=16，边界校验不依赖 CUDA |
 | 长度账本 | 唯一 `BatchState`，提供只读 pending lengths |
 | 设备 slab/table 与分页 store | 已实现；同一 store 数学使用不同地址策略 |
-| 分页 QK/PV、完整层与 Runtime 事务 | 尚未接通 |
-| Paged 模型/Serving | 不可用；Runtime/LayerExecutor 明确拒绝，不回退连续布局 |
+| 分页 QK/PV、完整层与 Runtime 事务 | 已实现；与连续布局共用数学，checked completion 后提交 |
+| Paged C++ 模型 | 可执行，仅 F32 矩阵；S1/S4 真实模型逐位对照通过 |
+| Paged CLI/Serving | 尚未接入；默认继续使用连续布局 |
 | 采用决定 | 尚未具备产品资格，无容量或性能实测结论 |
 
 `PageTableState` 只持有 active/pending table、free IDs 和本批 journal。
@@ -34,9 +35,9 @@ fusion、Graph、async 或新的精度路径。
 | poison | 隔离旧页与本批新页；不能通过 clear、commit 或再次 prepare 恢复 |
 | clear | 只允许 ready；归还该 sequence 的页，清 host table，标记 dirty |
 
-Host 计数不是 GPU 显存释放。将来 clear 归还的是池内 page ID，
-resident slab 仍由 `CudaStorage` 持有。当前 host 逻辑通过不能替代设备地址、
-NaN 尾部、完整模型或 Serving 页池验证。
+Host 计数不是 GPU 显存释放。clear 归还的是池内 page ID，
+resident slab 仍由 `CudaStorage` 持有。host、设备和模型验证分别记录，
+不能替代尚未接通的 Serving 页池验证。
 
 ## 发布候选
 
@@ -114,6 +115,7 @@ table 初始化为 -1，slab 初始化为 FP16 NaN。`kv_table_bytes` 属于 met
 
 验证身份为 `48d43ad` 加固定 dirty snapshot，raw 位于
 `.run/gpu-kv-001/device-storage/`。没有把它重标为最终提交的 clean build 测量。
+第二组提交 `c27da9b` 自身 CI run `36527206669` 五任务通过。
 
 | 检查 | 结果 |
 | --- | --- |
@@ -168,11 +170,68 @@ build/wsl-own-cuda/bin/minillm-cuda-storage-tests \
 | `source-snapshot.zip` | `e6ce8454de69a72ef522bc86bb7f001ccca77e476191ab9604b334a00341376d` |
 | `execution-identity.json` | `6e1ec95642d6d206040d7b7c74d6ae0c3b6082d03f18285287f96aabd7039038` |
 
+## 分页模型验收
+
+`ContiguousKvAccess` 和 `PagedKvAccess` 为同一 store/QK/PV 的编译期地址策略。
+分页 kernel 直接读取 block table；没有将历史 KV gather 为连续数组。
+QK 先处理 causal mask，再解析可见页；PV 只访问当前 query 可见的 token。
+非法页号累计 status 并屏蔽非法读写，保留所有必要的 warp 归约。
+softmax、FMA 顺序、权重精度和同步完成点不变。
+
+`CudaRuntime` 复用 `BatchState` 的 pending lengths 准备页表，在开始执行时保留页，
+按需上传映射；完成 stream/status 检查后无分配地提交页和长度。
+clear 同时归还页和清长度，设备表延迟至下次执行上传。
+初始化、预检与执行后错误不混淆；执行后失败使两种状态同时 poison，
+相关页不再复用，resident 保留至 owner 析构。
+
+验证身份为 `c27da9b` 加固定 dirty snapshot，raw 位于
+`.run/gpu-kv-001/runtime/`。这是本机正确性验证，不是最终提交的 clean build 测量，
+也没有使用正式性能预算。
+
+| 检查 | 结果 |
+| --- | --- |
+| 独立核心 / own-CUDA CTest | 12/12、23/23 |
+| Layer / Runtime 单测 | 13/13、15/15 |
+| Layer / Runtime memcheck | 均为 0 错误、0 泄漏 |
+| 真实 Qwen3 连续/分页对照 | S1/S4 2/2；16 case、173 行完整 logits 逐位相同 |
+| 真实模型 memcheck | 同一 16 case、173 行对照通过，0 错误、0 泄漏；首次错误路径调用保留，见 `ENG-073` |
+| 长上下文 | 1536-token 前缀的 32-token 冻结续写、2048-token 边界及越界预检通过 |
+| 多序列与复用 | mixed、交错 S4、case 间 clear/reuse、六组短 golden 通过 |
+| 原 F32 模型 | S1/S4 2/2；128 条 GPU SHA 比较记录与第二组一致，六组 golden 相同 |
+| 原 F32 HTTP | 12/12；停服时 3 active + 3 queued，六个完整单终态 |
+
+真实两臂按同一 S 顺序构造，不同时常驻两套模型；基准臂生成续写轨迹，
+分页臂重放相同输入和批次形状。S1 的两臂 capacity 均为 2048；
+S4 的连续/paged capacity 分别为 8192/2560，仅用于数值和资源检查，
+不能据此宣称同等最长并发能力或显存收益。
+两臂共 282 次完整 forward，稳态无新增项目设备分配、权重或 hidden 往返。
+分页 S1/S4 的 table H2D 分别为 27,648/16,384 bytes；clear 后 live pages 为零，
+owned allocation 保持不变。
+
+单测另覆盖随机页号、15/16/17、127/128/129、1536/2048、未写尾部 NaN、
+非法页/未来页、表与输出重叠，以及页池不足后的可继续执行。
+四类 post-launch 故障为完成检查、首次 table H2D、后续 metadata H2D、
+损坏设备表；均不提交本批长度或结果，live pages 为 null，拒绝 clear/forward，
+owner 析构后项目分配与释放配对。这些是受控注入，不是致命设备错误的恢复承诺。
+
+模型入口及普通检查命令见 [CUDA Runtime](CUDA_RUNTIME.md#分页研究接口)。
+Serving 分页配置、容量/信用与资源发布仍属于下一组，不继承上述模型验收结论。
+
+`verification.json` 登记 27 个原始文件；检查源码快照、二进制未变、
+F32 输出未变以及普通/memcheck 的 173 行分页摘要一致。
+
+| 身份文件 | SHA-256 |
+| --- | --- |
+| `source-state.json` | `23cce7dd7242f7f9629a782eb7b0f19d37cac3b83c20a22f79ed98b3df0b181c` |
+| `source-snapshot.zip` | `02208b7868628d06d35debb5f7fff69e334236c554eb85cad10159dcc248570f` |
+| `execution-identity.json` | `f8dfa67d09c9be9997a3150ccb26a01eb7356e5b9e469a5a35762a7abc3aa54f` |
+| `verification.json` | `bb637ed8a8cef6241351fc7cbd2d26e6fda5f8feec6ef56b70b511fba0e07227` |
+
 ## 剩余门禁
 
-共享数学的直接分页 attention、Runtime 页事务与 Serving 容量/信用接线尚未完成。
-下一项为分页 QK/PV、checked completion 后的页/长度提交，以及失败后的隔离；
-全模型入口在完整路径接通前继续拒绝 paged。
+Serving 容量/信用接线、布局配置与页指标尚未完成。
+下一项复用当前 Engine 的保守 reservation，并使逻辑 credit 与物理页池容量一致；
+不引入 incremental admission、prefix sharing 或新的 scheduler。
 
 正式性能预算仍为 micro 0/6、model 0/6、Serving 0/12；新增 NSys 0/1、NCU 0/1。
 同容量 8192-token 的执行代价与同 288 MiB KV 预算的异长请求能力分别验收。

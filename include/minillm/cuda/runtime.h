@@ -33,6 +33,7 @@ struct CudaMemoryPlan {
     std::size_t weights_bytes = 0, workspace_bytes = 0, kv_bytes = 0, library_workspace_bytes = 0;
     std::size_t activations_bytes = 0, attention_scratch_bytes = 0, logits_bytes = 0;
     std::size_t metadata_bytes = 0, rope_bytes = 0, padding_bytes = 0, total_owned_bytes = 0;
+    std::size_t kv_table_bytes = 0; // 已包含在 workspace/metadata 中。
 };
 
 struct CudaSample {
@@ -73,6 +74,9 @@ struct CudaDiagnostics {
     std::uint64_t completed_forwards = 0, post_launch_failures = 0;
     std::uint64_t model_load_ns = 0, storage_initialization_ns = 0, weight_decode_upload_ns = 0;
     std::uint64_t matrix_cast_calls = 0;
+    CudaKvLayout kv_layout = CudaKvLayout::contiguous;
+    std::optional<std::size_t> page_size_tokens, capacity_pages, live_kv_pages;
+    std::uint64_t page_table_h2d_bytes = 0;
 };
 
 // execution/KV 状态单调用者、不可重入；tokenizer 可在外部词表锁下与 forward 并行。
@@ -90,6 +94,7 @@ public:
     CudaRuntimeState state() const noexcept;
     // 最后 committed 长度；poisoned 时不能作为有效设备状态对外发布。
     std::size_t live_kv_tokens() const noexcept;
+    std::optional<std::size_t> live_kv_pages() const noexcept;
     std::vector<CudaWeightInfo> weight_manifest() const;
     std::vector<std::int32_t> tokenize(std::string_view text) const;
     std::string token_piece(std::int32_t token) const;

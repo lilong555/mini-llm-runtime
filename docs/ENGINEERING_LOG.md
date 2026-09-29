@@ -811,3 +811,17 @@
   存储单测 19/19，包含两个入口对 contiguous 的显式拒绝。
   `storage-memcheck.log` 的单测及真实页池检查 20/20、`layer-memcheck.log` 的
   12/12 均通过，均为 0 错误、0 泄漏。初始失败及其源码快照保留。
+
+## ENG-073：模型 memcheck 命令使用不存在的模型路径
+
+- 状态：已解决，限定于本次验证调用错误。
+- 影响：首次模型 memcheck 没有执行设备检查，不能计作验收通过。
+- 复现或证据：`.run/gpu-kv-001/runtime/memcheck-model.log` 保留
+  `无法读取文件：models/Qwen3-0.6B-Q8_736token0.gguf` 和
+  `Target application terminated before first instrumented API call`。
+- 原因：调用参数中的文件名误写，不是模型加载或分页实现缺陷。
+- 解决方法：使用 manifest 固定的 `models/Qwen3-0.6B-Q8_0.gguf`，
+  在新的 `paged-model-memcheck-verified/` 目录执行同一二进制；不覆盖首次失败报告。
+- 验证：`memcheck-model-verified.log` 为 S1/S4 2/2、0 错误、0 泄漏；
+  16 个 case、173 行 contiguous/paged 完整 logits 逐位相同。
+  源码、二进制与模型摘要见同阶段 `execution-identity.json`。

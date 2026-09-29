@@ -48,4 +48,12 @@ void causal_attention(const CudaContext& context, DeviceTensorView<const std::ui
                       DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
                       DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status);
 
+void causal_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
+                      PagedKvMapping mapping, std::size_t layer,
+                      DeviceTensorView<const float> query, std::size_t query_heads,
+                      DeviceTensorView<const std::int32_t> slots,
+                      DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
+                      DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
+                      DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status);
+
 }

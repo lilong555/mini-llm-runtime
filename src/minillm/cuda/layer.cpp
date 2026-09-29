@@ -7,9 +7,6 @@ LayerExecutor::LayerExecutor(CudaStorage& storage)
     : storage_(storage), dimensions_(storage.plan().dimensions),
       kv_shape_{storage.plan().limits.max_sequences, dimensions_.layers, storage.plan().limits.max_model_len,
                 dimensions_.kv_heads, dimensions_.head_dim} {
-    if (storage.plan().limits.kv_layout == CudaKvLayout::paged) {
-        throw std::invalid_argument("分页 CUDA layer 尚未接通，不能执行连续 attention");
-    }
     layers_.reserve(dimensions_.layers);
     for (std::size_t layer = 0; layer < dimensions_.layers; ++layer) {
         const auto prefix = "blk." + std::to_string(layer) + ".";
@@ -40,7 +37,8 @@ void LayerExecutor::enqueue(std::size_t layer, std::size_t tokens, std::size_t m
     const auto positions = read_only(storage_.workspace<std::int32_t>(Workspace::positions, tokens));
     const auto status = storage_.workspace<std::int32_t>(Workspace::status, 1);
     const auto coefficients = read_only(storage_.workspace<float>(Workspace::rope_coefficients, kv_shape_.max_length));
-    const auto kv = storage_.kv_view();
+    const bool paged = storage_.plan().limits.kv_layout == CudaKvLayout::paged;
+    const auto kv = paged ? storage_.paged_kv_view() : storage_.kv_view();
     rms_norm(context, read_only(hidden), w.attention_norm, normalized, dimensions_.rms_epsilon);
     const auto qkv_input = storage_.prepare_matrix_input(read_only(normalized));
     matrix_multiply(context, qkv_input, w.query, query);
@@ -50,9 +48,17 @@ void LayerExecutor::enqueue(std::size_t layer, std::size_t tokens, std::size_t m
     rms_norm(context, read_only(key), w.key_norm, key, dimensions_.rms_epsilon);
     rope(context, query, positions, coefficients, status);
     rope(context, key, positions, coefficients, status);
-    store_kv(context, kv, kv_shape_, layer, read_only(key), read_only(value), slots, positions, status);
-    causal_attention(context, read_only(kv), kv_shape_, layer, read_only(query), dimensions_.heads,
-                     slots, positions, max_context, scores, probabilities, attention, status);
+    if (paged) {
+        const PagedKvMapping mapping{storage_.kv_block_table(),storage_.plan().physical_pages,
+                                     storage_.plan().limits.page_tokens};
+        store_kv(context, kv, kv_shape_, mapping, layer, read_only(key), read_only(value), slots, positions, status);
+        causal_attention(context, read_only(kv), kv_shape_, mapping, layer, read_only(query), dimensions_.heads,
+                         slots, positions, max_context, scores, probabilities, attention, status);
+    } else {
+        store_kv(context, kv, kv_shape_, layer, read_only(key), read_only(value), slots, positions, status);
+        causal_attention(context, read_only(kv), kv_shape_, layer, read_only(query), dimensions_.heads,
+                         slots, positions, max_context, scores, probabilities, attention, status);
+    }
     matrix_multiply(context, storage_.prepare_matrix_input(read_only(attention)), w.output, projected);
     residual_add(context, hidden, read_only(projected));
     rms_norm(context, read_only(hidden), w.ffn_norm, normalized, dimensions_.rms_epsilon);

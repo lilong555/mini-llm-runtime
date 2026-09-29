@@ -324,7 +324,7 @@ TEST(storage_paged_pool_and_table_are_counted_once) {
         download(storage.context(),data.data(),slab.data,plan.kv_bytes);
         CHECK(std::all_of(data.begin(),data.end(),[](auto value) { return value == 0xffff; }));
         test::throws<std::invalid_argument>([&] { storage.kv_view(); });
-        test::throws<std::invalid_argument>([&] { LayerExecutor layer(storage); });
+        LayerExecutor layer(storage);
     }
     {
         CudaStorage storage(model,{4,65,8,0});

@@ -237,26 +237,219 @@ private:
     std::filesystem::path output_;
     std::vector<Scenario> cases_;
 };
+
+class PagedValidation {
+    struct Case {
+        Scenario input;
+        std::size_t continuation = 0;
+        std::vector<std::int32_t> golden;
+    };
+public:
+    PagedValidation(std::string path, const json& contract, std::filesystem::path output)
+        : path_(std::move(path)), output_(std::move(output)) {
+        report_ = {{"schema_version",1},{"spec_id","GPU-KV-001"},{"passed",false},
+            {"reference","同一 F32 Runtime 的 contiguous 布局，按相同批次逐位比较"},
+            {"performance_baseline",false},{"comparisons",json::array()},{"cases",json::array()},
+            {"configurations",json::array()},{"first_failure",nullptr}};
+        for (auto& c : scenarios(contract)) { cases_.push_back({std::move(c),0,{}}); }
+        auto recipe = contract;
+        recipe["teacher_forcing"]["positions"] = {0,1,15,16,17,32,127,128,129,255,1535,2047};
+        for (const auto length : {128u,1536u,2048u}) {
+            const cuda_validation::TeacherCase c{1,length,length == 128 ? 16u : 128u,1};
+            cases_.push_back({{cuda_validation::case_id(recipe,c),1,
+                cuda_validation::teacher_batches(recipe,c),{},{}},length == 1536 ? 32u : 0u,{}});
+        }
+        for (std::size_t s : {1u,4u}) {
+            for (std::size_t i = 0; i < contract.at("stable_greedy").size(); ++i) {
+                const auto& golden = contract.at("stable_greedy").at(i);
+                const auto ids = golden.at("input_token_ids").get<std::vector<std::int32_t>>();
+                Case c{{"golden-"+std::to_string(i),s,{},{},{}},8,
+                    golden.at("expected_token_ids").get<std::vector<std::int32_t>>()};
+                for (std::size_t first = 0; first < ids.size(); first += 2) {
+                    Batch batch;
+                    for (auto p = first; p < std::min(first+2,ids.size()); ++p) {
+                        batch.push_back({ids[p],std::int32_t(p),0,p+1==ids.size()});
+                    }
+                    c.input.batches.push_back(std::move(batch));
+                }
+                cases_.push_back(std::move(c));
+            }
+        }
+    }
+
+    void run(std::size_t sequences) {
+        // 两个布局顺序构造；仅在 host 保留参照 logits 和冻结的续写输入。
+        for (const auto layout : {CudaKvLayout::contiguous,CudaKvLayout::paged}) {
+            CudaRuntimeConfig config{path_,0,sequences,2048,128,0};
+            config.kv_layout = layout;
+            if (layout == CudaKvLayout::paged) { config.kv_capacity_tokens = sequences == 1 ? 2048 : 2560; }
+            CudaRuntime runtime(config);
+            const auto before = runtime.diagnostics();
+            const auto allocations = allocation_stats();
+            for (auto& c : cases_) {
+                auto& input = c.input;
+                if (input.sequences != sequences) { continue; }
+                clear(runtime);
+                std::vector<std::int32_t> generated;
+                const auto prompt_batches = input.batches.size();
+                if (layout == CudaKvLayout::contiguous) {
+                    for (const auto& batch : input.batches) {
+                        auto result = runtime.forward(batch,CudaOutputMode::debug_logits);
+                        validate_samples(batch,result);
+                        input.cpu.push_back(std::move(result.logits));
+                    }
+                    if (c.continuation) {
+                        auto next = argmax(input.cpu.back().at(0).values);
+                        auto position = input.batches.back().back().position+1;
+                        generated.push_back(next);
+                        for (std::size_t step = 1; step < c.continuation; ++step) {
+                            input.batches.push_back({{next,position++,0,true}});
+                            auto result = runtime.forward(input.batches.back(),CudaOutputMode::debug_logits);
+                            validate_samples(input.batches.back(),result);
+                            next = result.samples.at(0).token;
+                            generated.push_back(next);
+                            input.cpu.push_back(std::move(result.logits));
+                        }
+                    }
+                    json batches = json::array();
+                    for (const auto& batch : input.batches) {
+                        json tokens = json::array();
+                        for (const auto& token : batch) {
+                            tokens.push_back({{"token",token.token},{"position",token.position},
+                                {"sequence",token.sequence},{"logits",token.logits}});
+                        }
+                        batches.push_back(std::move(tokens));
+                    }
+                    report_["cases"].push_back({{"id",input.id},{"max_sequences",sequences},
+                        {"prompt_batches",prompt_batches},{"continuation_tokens",c.continuation},
+                        {"batches",batches},{"batch_sha256",cuda_validation::batch_digest(input.batches)},
+                        {"generated_tokens",generated},{"golden",c.golden}});
+                } else {
+                    const auto prefill_batches = input.batches.size()-(c.continuation ? c.continuation-1 : 0);
+                    for (std::size_t i = 0; i < input.batches.size(); ++i) {
+                        const auto& batch = input.batches[i];
+                        const bool timed = input.id == "zh-33";
+                        const auto result = runtime.forward(batch,CudaOutputMode::debug_logits,timed);
+                        CHECK(!timed || (result.device_elapsed_ms && *result.device_elapsed_ms >= 0));
+                        validate_samples(batch,result);
+                        CHECK(result.logits.size() == input.cpu[i].size());
+                        for (std::size_t row = 0; row < result.logits.size(); ++row) {
+                            const auto& actual = result.logits[row].values;
+                            const auto& expected = input.cpu[i][row].values;
+                            const auto& token = batch[result.samples[row].input_index];
+                            const bool equal = actual.size() == expected.size() &&
+                                std::memcmp(actual.data(),expected.data(),actual.size()*sizeof(float)) == 0;
+                            const auto a = cuda_validation::score(actual), e = cuda_validation::score(expected);
+                            json comparison{{"case",input.id},{"max_sequences",sequences},{"batch",i},
+                                {"sequence",token.sequence},{"position",token.position},
+                                {"input_index",result.samples[row].input_index},{"actual",a},{"reference",e},
+                                {"bitwise_equal",equal},{"passed",equal}};
+                            report_["comparisons"].push_back(comparison);
+                            if (!equal) {
+                                report_["first_failure"] = comparison;
+                                cuda_reports::write(output_/"first-failure-logits.json",
+                                    {{"comparison",comparison},{"contiguous",expected},{"paged",actual}});
+                                save();
+                            }
+                            CHECK(equal);
+                        }
+                        if (c.continuation && i+1 >= prefill_batches) { generated.push_back(result.samples.at(0).token); }
+                        const auto d = runtime.diagnostics();
+                        std::size_t pages = 0;
+                        for (auto length : d.sequence_lengths) { pages += (length+15)/16; }
+                        CHECK(runtime.live_kv_pages() == pages && pages <= *d.capacity_pages);
+                    }
+                }
+                CHECK(c.golden.empty() || generated == c.golden);
+                if (input.id == "en-l2048-c128-s1") {
+                    const auto valid = runtime.diagnostics();
+                    test::throws<std::invalid_argument>([&] {
+                        runtime.forward(std::array<InputToken,1>{{{785,2048,0,true}}});
+                    });
+                    const auto rejected = runtime.diagnostics();
+                    CHECK(rejected.state == CudaRuntimeState::ready);
+                    CHECK(rejected.sequence_lengths == valid.sequence_lengths);
+                    CHECK(rejected.live_kv_pages == valid.live_kv_pages);
+                    CHECK(rejected.completed_forwards == valid.completed_forwards);
+                    CHECK(rejected.metadata_h2d_bytes == valid.metadata_h2d_bytes);
+                    CHECK(rejected.page_table_h2d_bytes == valid.page_table_h2d_bytes);
+                }
+                save();
+            }
+            clear(runtime);
+            const auto after = runtime.diagnostics();
+            const auto end = allocation_stats();
+            CHECK(after.weight_h2d_bytes == before.weight_h2d_bytes && after.rope_h2d_bytes == before.rope_h2d_bytes);
+            CHECK(after.intermediate_h2d_bytes == 0 && after.intermediate_d2h_bytes == 0);
+            CHECK(after.state == CudaRuntimeState::ready && after.post_launch_failures == 0 && after.live_kv_tokens == 0);
+            CHECK(allocations.allocation_calls == end.allocation_calls && allocations.release_calls == end.release_calls);
+            CHECK(layout != CudaKvLayout::paged || (after.live_kv_pages == 0 && after.page_table_h2d_bytes > 0));
+            report_["configurations"].push_back({{"max_sequences",sequences},
+                {"layout",kv_layout_name(layout)},{"before",cuda_reports::diagnostics(before)},
+                {"after",cuda_reports::diagnostics(after)},{"device",cuda_reports::device(runtime.device_info())},
+                {"arithmetic",cuda_reports::arithmetic(runtime)},{"steady_device_allocations",0},{"passed",true}});
+            save();
+        }
+        for (auto& c : cases_) { if (c.input.sequences == sequences) { c.input.cpu.clear(); } }
+    }
+    void save() const { cuda_reports::write(output_/"paged-model-validation.json",report_); }
+    json finish(bool passed) {
+        report_["passed"] = passed;
+        save();
+        return {{"schema_version",1},{"status",passed ? "passed" : "failed"},{"passed",passed},
+            {"spec_id","GPU-KV-001"},{"paged_gpu_model",passed},{"full_corpus_contract",false},
+            {"performance_baseline",false},{"cases",report_.at("cases").size()},
+            {"bitwise_comparisons",report_.at("comparisons").size()}};
+    }
+private:
+    static void clear(CudaRuntime& runtime) {
+        const auto before = runtime.diagnostics();
+        for (std::size_t s = 0; s < runtime.config().max_sequences; ++s) { runtime.clear_sequence(std::int32_t(s)); }
+        const auto after = runtime.diagnostics();
+        CHECK(after.live_kv_tokens == 0 && after.owned_device_bytes == before.owned_device_bytes);
+        CHECK(after.kv_layout != CudaKvLayout::paged || after.live_kv_pages == 0);
+    }
+    static void validate_samples(const Batch& batch, const CudaForwardResult& result) {
+        std::size_t row = 0;
+        for (std::size_t i = 0; i < batch.size(); ++i) {
+            if (!batch[i].logits) { continue; }
+            const auto& sample = result.samples.at(row);
+            const auto& logits = result.logits.at(row++);
+            CHECK(sample.input_index == i && sample.sequence == batch[i].sequence);
+            CHECK(logits.sequence == sample.sequence && sample.token == argmax(logits.values));
+            CHECK(std::all_of(logits.values.begin(),logits.values.end(),[](float v) { return std::isfinite(v); }));
+        }
+        CHECK(row == result.samples.size() && row == result.logits.size());
+    }
+    std::string path_;
+    std::filesystem::path output_;
+    json report_;
+    std::vector<Case> cases_;
+};
 }
 
 int main(int argc, char** argv) {
     std::filesystem::path output;
     bool owns_output = false;
     try {
-        Options options(argc,argv,{"--model","--reference-model","--contract","--output","--precision-study"},{"--help","--full"});
+        Options options(argc,argv,{"--model","--reference-model","--contract","--output","--precision-study"},{"--help","--full","--paged-kv"});
         if (options.has("--help")) {
             std::cout << "minillm-cuda-model-tests --model MODEL --contract JSON --output NEW_DIRECTORY\n"
-                         "  --reference-model F32 [--full] 或 --precision-study INPUT_JSON\n";
+                         "  --reference-model F32 [--full] 或 --precision-study INPUT_JSON 或 --paged-kv\n";
             return 0;
         }
         const bool precision = options.has("--precision-study");
+        const bool paged = options.has("--paged-kv");
+        if (paged && (precision || options.has("--full") || options.has("--reference-model"))) {
+            throw std::invalid_argument("--paged-kv 不能与其他模型验证模式同时使用");
+        }
         if (precision && (options.has("--full") || options.has("--reference-model"))) {
             throw std::invalid_argument("--precision-study 不能与 --full 或 --reference-model 同时使用");
         }
         for (const auto* name : {"--model","--contract","--output"}) {
             if (options.get(name).empty()) { throw std::invalid_argument(std::string("缺少参数：")+name); }
         }
-        if (!precision && options.get("--reference-model").empty()) { throw std::invalid_argument("缺少参数：--reference-model"); }
+        if (!precision && !paged && options.get("--reference-model").empty()) { throw std::invalid_argument("缺少参数：--reference-model"); }
         output = options.get("--output");
         if (!output.parent_path().empty()) { std::filesystem::create_directories(output.parent_path()); }
         if (!std::filesystem::create_directory(output)) { throw std::runtime_error("模型验证目录必须尚不存在"); }
@@ -270,6 +463,16 @@ int main(int argc, char** argv) {
         llama_log_set([](ggml_log_level level, const char* text, void*) {
             if (level >= GGML_LOG_LEVEL_WARN) { std::cerr << text; }
         },nullptr);
+        if (paged) {
+            PagedValidation validation(options.get("--model"),contract,output);
+            test::cases().push_back({"cuda_paged_model_single_sequence",[&] { validation.run(1); }});
+            test::cases().push_back({"cuda_paged_model_four_sequences",[&] { validation.run(4); }});
+            const auto result = test::run();
+            auto summary = validation.finish(result == 0);
+            summary["model_sha256"] = model_sha;
+            cuda_reports::write(output/"validation-summary.json",summary);
+            return result;
+        }
         if (precision) {
             const auto experiment_path = options.get("--precision-study");
             const auto input_sha = cuda_reports::file_hash(experiment_path);

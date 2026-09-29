@@ -71,11 +71,6 @@ __device__ bool valid_metadata(int slot, int position, KvShape shape, std::size_
     return bits == 0;
 }
 
-__device__ std::size_t cache_row(KvShape shape, std::size_t slot, std::size_t layer,
-                                 std::size_t kind, std::size_t position) {
-    return ((slot * shape.layers + layer) * 2 + kind) * shape.max_length + position;
-}
-
 template<class Access>
 __global__ void store_kernel(DeviceTensorView<std::uint16_t> cache, KvShape shape, std::size_t layer,
                              DeviceTensorView<const float> key, DeviceTensorView<const float> value,
@@ -99,11 +94,12 @@ __global__ void store_kernel(DeviceTensorView<std::uint16_t> cache, KvShape shap
     }
 }
 
+template<class Access>
 __global__ void qk_kernel(DeviceTensorView<const std::uint16_t> cache, KvShape shape, std::size_t layer,
                           DeviceTensorView<const float> query, std::size_t query_heads,
                           DeviceTensorView<const std::int32_t> slots,
                           DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
-                          DeviceTensorView<float> scores, std::int32_t* status) {
+                          DeviceTensorView<float> scores, std::int32_t* status, Access access) {
     using Reduction = cub::WarpReduce<float, 32>;
     __shared__ typename Reduction::TempStorage temporary[warps];
     const auto tiles = (max_context + warps - 1) / warps;
@@ -111,14 +107,18 @@ __global__ void qk_kernel(DeviceTensorView<const std::uint16_t> cache, KvShape s
     const auto warp = threadIdx.x / 32, lane = threadIdx.x % 32;
     const auto position = (std::size_t(blockIdx.x) % tiles) * warps + warp;
     const int slot = slots.data[row * slots.stride], last = positions.data[row * positions.stride];
-    const bool valid = valid_metadata(slot, last, shape, max_context, status, static_cast<int>(row));
+    bool valid = valid_metadata(slot, last, shape, max_context, status, static_cast<int>(row));
     float sum = 0;
     if (valid && position <= std::size_t(last)) {
         const auto kv_head = head / (query_heads / shape.kv_heads);
-        const auto k_base = cache_row(shape, std::size_t(slot), layer, 0, position) * cache.stride + kv_head * shape.head_dim;
-        const auto q_base = row * query.stride + head * shape.head_dim;
-        for (std::size_t c = lane; c < shape.head_dim; c += 32) {
-            sum = fmaf(query.data[q_base + c], __half2float(__ushort_as_half(cache.data[k_base + c])), sum);
+        std::size_t k_row;
+        valid = access.row(std::size_t(slot), layer, 0, position, k_row, status, static_cast<int>(row));
+        if (valid) {
+            const auto k_base = k_row * cache.stride + kv_head * shape.head_dim;
+            const auto q_base = row * query.stride + head * shape.head_dim;
+            for (std::size_t c = lane; c < shape.head_dim; c += 32) {
+                sum = fmaf(query.data[q_base + c], __half2float(__ushort_as_half(cache.data[k_base + c])), sum);
+            }
         }
     }
     const float dot = Reduction(temporary[warp]).Sum(sum);
@@ -186,10 +186,12 @@ __global__ void softmax_kernel(KvShape shape, std::size_t query_heads,
     }
 }
 
+template<class Access>
 __global__ void pv_kernel(DeviceTensorView<const std::uint16_t> cache, KvShape shape, std::size_t layer,
                           std::size_t query_heads, DeviceTensorView<const std::int32_t> slots,
                           DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
-                          DeviceTensorView<float> probabilities, DeviceTensorView<float> output, std::int32_t* status) {
+                          DeviceTensorView<float> probabilities, DeviceTensorView<float> output,
+                          std::int32_t* status, Access access) {
     const auto task = std::size_t(blockIdx.x), row = task / query_heads, head = task % query_heads;
     const int slot = slots.data[row * slots.stride], last = positions.data[row * positions.stride];
     auto* result = output.data + row * output.stride + head * shape.head_dim;
@@ -202,7 +204,12 @@ __global__ void pv_kernel(DeviceTensorView<const std::uint16_t> cache, KvShape s
     for (std::size_t c = threadIdx.x; c < shape.head_dim; c += threads) {
         float sum = 0;
         for (std::size_t p = 0; p <= std::size_t(last); ++p) {
-            const auto index = cache_row(shape, std::size_t(slot), layer, 1, p) * cache.stride + kv_head * shape.head_dim + c;
+            std::size_t v_row;
+            if (!access.row(std::size_t(slot), layer, 1, p, v_row, status, static_cast<int>(row))) {
+                sum = CUDART_NAN_F;
+                break;
+            }
+            const auto index = v_row * cache.stride + kv_head * shape.head_dim + c;
             sum = fmaf(probability[p], __half2float(__ushort_as_half(cache.data[index])), sum);
         }
         result[c] = sum;
@@ -284,13 +291,16 @@ void causal_softmax(const CudaContext& context, KvShape shape, std::size_t query
     check_cuda(cudaGetLastError(), "FP64-denominator softmax kernel");
 }
 
-void causal_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
+namespace {
+template<class Access>
+void enqueue_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
                       std::size_t layer, DeviceTensorView<const float> query, std::size_t query_heads,
                       DeviceTensorView<const std::int32_t> slots,
                       DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
                       DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
-                      DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status) {
-    const auto kv = validate_cache(cache, shape, layer, context.device()), q = validate(query, context.device());
+                      DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status,
+                      detail::Range kv, Access access, std::span<const detail::Range> extra_inputs = {}) {
+    const auto q = validate(query, context.device());
     const auto s = validate(scores, context.device()), p = validate(probabilities, context.device());
     const auto y = validate(output, context.device()), error = status_range(status, context.device());
     const auto meta = validate_metadata(slots, positions, query.rows, context.device());
@@ -306,20 +316,48 @@ void causal_attention(const CudaContext& context, DeviceTensorView<const std::ui
         for (auto input : {kv, q, meta[0], meta[1]}) {
             require(!overlaps(outputs[i], input), "CUDA attention 输出与输入重叠");
         }
+        for (auto input : extra_inputs) {
+            require(!overlaps(outputs[i], input), "CUDA attention 输出与 block table 重叠");
+        }
         for (std::size_t j = 0; j < i; ++j) { require(!overlaps(outputs[i], outputs[j]), "CUDA attention 输出互相重叠"); }
     }
     const auto tasks = as_int(checked_product(query.rows, query_heads));
     const auto qk_blocks = as_int(checked_product(std::size_t(tasks), (max_context + warps - 1) / warps));
     DeviceScope scope(context.device());
     qk_kernel<<<static_cast<unsigned>(qk_blocks), threads, 0, context.stream()>>>(cache, shape, layer, query,
-        query_heads, slots, positions, max_context, scores, status.data);
+        query_heads, slots, positions, max_context, scores, status.data, access);
     check_cuda(cudaGetLastError(), "causal QK kernel");
     softmax_kernel<<<static_cast<unsigned>(tasks), threads, 0, context.stream()>>>(shape, query_heads, slots,
         positions, max_context, scores, probabilities, status.data);
     check_cuda(cudaGetLastError(), "FP64-denominator softmax kernel");
     pv_kernel<<<static_cast<unsigned>(tasks), threads, 0, context.stream()>>>(cache, shape, layer, query_heads,
-        slots, positions, max_context, probabilities, output, status.data);
+        slots, positions, max_context, probabilities, output, status.data, access);
     check_cuda(cudaGetLastError(), "causal PV kernel");
+}
+}
+
+void causal_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
+                      std::size_t layer, DeviceTensorView<const float> query, std::size_t query_heads,
+                      DeviceTensorView<const std::int32_t> slots,
+                      DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
+                      DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
+                      DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status) {
+    const auto kv = validate_cache(cache, shape, layer, context.device());
+    enqueue_attention(context,cache,shape,layer,query,query_heads,slots,positions,max_context,
+                      scores,probabilities,output,status,kv,detail::ContiguousKvAccess{shape});
+}
+
+void causal_attention(const CudaContext& context, DeviceTensorView<const std::uint16_t> cache, KvShape shape,
+                      PagedKvMapping mapping, std::size_t layer,
+                      DeviceTensorView<const float> query, std::size_t query_heads,
+                      DeviceTensorView<const std::int32_t> slots,
+                      DeviceTensorView<const std::int32_t> positions, std::size_t max_context,
+                      DeviceTensorView<float> scores, DeviceTensorView<float> probabilities,
+                      DeviceTensorView<float> output, DeviceTensorView<std::int32_t> status) {
+    const auto ranges = validate_paged_cache(cache,shape,mapping,layer,context.device());
+    enqueue_attention(context,cache,shape,layer,query,query_heads,slots,positions,max_context,
+                      scores,probabilities,output,status,ranges[0],detail::PagedKvAccess{shape,mapping},
+                      {&ranges[1],1});
 }
 
 }
