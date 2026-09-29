@@ -2,11 +2,15 @@
 
 ## 当前状态
 
-规范为 [CUDA-PREC-001](NEXT_OPT_SPEC.md)，路线为 [PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)。
-M4-0 的决策、已有时间线拆解和实验预注册已完成。第一组配置入口已通过本机验收；
+研究合同为 [CUDA-PREC-001](NEXT_OPT_SPEC.md)，历史计划为
+[精度版 PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)；本文 M4 编号仅属于该历史计划。
+项目唯一活跃路线为 [PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md)。
+精度研究的决策、已有时间线拆解和实验预注册已完成。第一组配置入口已通过本机验收；
 F16 存储、矩阵边界与完整模型研究路径可执行，项目 owned 显存实测减少 34.53%。
 完整模型数值门禁因长续写 cosine 失败，结论为 `blocked_correctness`，停止性能推进。
 Serving 不开放候选，模型/Serving 正式实验未执行；不作端到端速度或产品晋升声明。
+[单一原始包及复核入口](../benchmarks/results/cuda-precision-001/README.md) 已公开发布，
+公开下载、摘要、独立目录微基准复核及失败 logits 重算均通过。
 
 | 模式 | 当前执行能力 | 默认 |
 | --- | --- | --- |
@@ -167,8 +171,8 @@ Q/K/V 的同一输入有三个矩阵消费者，gate/up 有两个；候选每层
 
 该 Serving capture 没有 M=128 的 batch，因此不能据它验证预注册主指标 `prefill-128`。
 M=1/4/32/128 的 16 个真实 shape 探针仍是后续进入模型测量的必要证据。
-mixed 中 attention 份额较高不自动开启备选：Primary 尚未停止，
-且备选还需独立目标 workload 的可复验基线。没有 Tensor Core 使用证据，当前记为 `unverified`。
+mixed 中 attention 份额较高并不是单独 decode 的归因证据，也不构成启动融合路线的依据。
+没有 Tensor Core 使用证据，当前记为 `unverified`。
 
 ## 离线复现
 
@@ -309,7 +313,8 @@ CPU oracle 造成的采样间隔和本机未锁频是微基准限制，不能把
 六个正式进程使用 clean 提交 `03492ca9e3d7a4765ecaa659d109ff1757c8514f` 的同一二进制。
 其 CI run `36416066381` 五个任务通过；GPU 结果来自本机，不能由 CI 替代。
 原始记录位于 `.run/cuda-precision-001/micro/`，包含一个 manifest、六份报告及各进程环境，
-完整研究的 canonical bundle 尚未发布。独立目录的离线合同复核通过，不是第二次 GPU 执行。
+完整 raw 由 [canonical bundle](../benchmarks/results/cuda-precision-001/evidence.json) 定位。
+独立目录的离线合同复核通过，不是第二次 GPU 执行。
 
 | 身份 | SHA-256 |
 | --- | --- |
@@ -390,7 +395,7 @@ F16，不同时驻留两套权重。续写分叉后只在固定 F32 token 轨迹
 原始记录位于 `.run/cuda-precision-001/model-validation/`，`execution-identity.json`
 绑定运行源码快照、二进制、模型与输入。采集身份为 `a8a56de` 加
 `source-state.json` / `source-snapshot.zip`，不是 clean HEAD 采集。
-完整研究仍只使用一个最终 canonical bundle，本目录不是独立发布包。
+完整研究使用同一个 canonical bundle，本目录不是独立发布包。
 
 | 检查 | 结果 |
 | --- | --- |
@@ -419,8 +424,9 @@ near-tie 规则不豁免 cosine 门槛。自然轨迹未分叉，因此它与 F3
 **决定：`blocked_correctness`。** 按规范停止 Primary 的模型/Serving 性能采集，
 不放宽阈值、不更换 golden、不引入 BF16/TF32/自动 fallback。显存门槛虽通过，
 仍不符合 `memory_only_success` 或产品资格。正式预算保持 micro 6/6、model 0/6、
-Serving 0/12，新增 NSys 0/1、NCU 0/1。下一项仅为最终证据归档及独立判定 M4-2
-进入条件；若条件不成立，直接进入功能冻结。
+Serving 0/12，新增 NSys 0/1、NCU 0/1。研究原始证据已归档，不再恢复 Primary 性能采集。
+唯一后续实现规范为 [GPU-KV-001](NEXT_SPEC_V3.md)，研究共享容量与直接分页访问，
+保持 F32 数学；不启动精度版 V4 的融合 attention 备选。
 
 | 回归与内存检查 | 结果 |
 | --- | --- |
@@ -435,3 +441,16 @@ Serving 0/12，新增 NSys 0/1、NCU 0/1。下一项仅为最终证据归档及�
 `precision/first-numeric-failure-logits.json` 为
 `cbd0777a39cad561e891d02e6095a6c03b578a3faafcaee4bbef84382239635d`。
 `verification.json` 索引原始报告及最终回归身份；原数值失败不被后续 CTest 成功覆盖。
+
+## 研究交付
+
+Release `cuda-prec-001-20260928` 绑定实现 `103070a`，自身 CI run `36426140443`
+五任务成功；它是数值负结果的研究预发布，不是候选晋升。单包为 6,684,838 bytes、
+257 个文件，SHA-256 为
+`eaa77db15c7a7fefd5f145a5a6565abcbb11d13350fe3283e98bd0b53da23aa8`。
+全部 256 个列入 `SHA256SUMS` 的文件、独立目录微基准和公开下载均已复核。
+包中保存原始失败，而不是用最后一次成功回归覆盖失败。
+
+停止线使原计划的六个模型性能进程、十二个 Serving 对照进程和新增 Profiler 不执行。
+这些是有明确原因的未测项，不能填写为零退化、无收益或已验证性能。
+研究结论、边界、输入、身份与原始证据完整；产品数值资格仍然失败。

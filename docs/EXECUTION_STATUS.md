@@ -1,9 +1,27 @@
 # 项目执行状态
 
-决策入口为 [PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)，当前实施规范为
-[CUDA-PREC-001](NEXT_OPT_SPEC.md)。[CUDA-SERVE-001](NEXT_SPEC_V2.md) 与
+唯一活跃计划为 [PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md)，当前实施规范为
+[GPU-KV-001](NEXT_SPEC_V3.md)。[精度版 V4](PROJECT_PLAN_V4.md) 与
+[CUDA-PREC-001](NEXT_OPT_SPEC.md) 保留为已停止研究的历史合同。
+[CUDA-SERVE-001](NEXT_SPEC_V2.md) 与
 [CUDA-VS-001](NEXT_SPEC.md) 分别是冻结的 Serving 与 M1 模型规范；
 V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_POLICY.md)。
+
+## 当前门禁
+
+- M4 编号默认属于 `PLAN-V4-KV-20260928`；下文精度研究的旧编号显式加 `PREC`。
+- 技术基点 `103070a91f1451eee3ee92e9c691e519ba733539` 已包含 `57268f9` 的
+  HTTP 排空修复与公开交付规则；自身 CI run `36426140443` 五任务成功。
+  这不是新候选的 CI，也不能替代本机 GPU 验证。
+- 仓库保持 `PUBLIC`；源码、文档及检查后的证据公开，凭据、模型权重、
+  构建产物、依赖 checkout 和本地运行状态仍排除。
+- FP16 研究以 `blocked_correctness` 收束；[研究预发布](../benchmarks/results/cuda-precision-001/README.md)
+  提供一个公开 canonical bundle，不开放 F16 Serving。
+- GPU 分页尚未实现；M4-0 的候选 smoke 与用户审阅整合待完成。
+  不自动合并 main、不移动历史 tag，不重采旧性能矩阵。
+- 仅新增共享 GPU 页池、设备块表与直接分页访问，保留 contiguous 默认、
+  F32 数学、P=16、S≤4、L≤2048、B≤128 和保守 admission。
+  Fusion、prefix sharing、Graph、async 与新精度路线均不进入本轮。
 
 ## 基点与依赖
 
@@ -13,26 +31,26 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   对应 CI run `36233429810` 的五个任务全部通过。
 - 当前审计 HEAD：`6ca7d2dfeccb38b11b7596a552046651afcb693e`；
   与 `origin/main` 的 merge base 为 `68ac275913207975a88e2090c6617467e351301c`。
-- 实施分支：`perf/cuda-f16-matrix-path`。
+- 精度研究分支：`perf/cuda-f16-matrix-path`。
 - 实施基点包含独立 HTTP 停服修复 `57268f9`，对应 `ENG-064`：
   52/52 套 CTest、三后端 HTTP 各 12/12 通过，保留初始失败。
-  此修复不改变模型数学、KV 或 scheduler，后续精度 A/B 均使用它。
-- M4-1 受控 F16 矩阵边界研究已触发 `blocked_correctness` 停止线，F32 默认保持。
-  下一项为研究证据收束与 M4-2 进入条件判定；attention 仅作为 V4 条件备选，不做 GPU 分页。
-- M4-0：现有 NSys 的测量 batch、kernel 分组及关联拷贝已离线拆解，
+  此修复不改变模型数学、KV 或 scheduler，分页两臂均须包含它。
+- PREC-M4-1 受控 F16 矩阵边界研究已触发 `blocked_correctness` 停止线，F32 默认保持。
+  研究已公开归档；不进入旧精度计划的融合 attention 备选。
+- PREC-M4-0：现有 NSys 的测量 batch、kernel 分组及关联拷贝已离线拆解，
   [研究记录](PRECISION_STUDY.md) 与 [冻结输入](../benchmarks/runtime-inputs/qwen3-precision-v1.json)
   固定数值、主指标、护栏与 24 个正式性能进程预算。
-- M4-1 第一组：精度枚举、配置预检和模式元数据已实现，通过五种构建、
+- PREC-M4-1 第一组：精度枚举、配置预检和模式元数据已实现，通过五种构建、
   74/74 套 CTest（1470 次用例执行）、CPU 模型 13/13、CUDA 短模型 S1/S4
   2/2 及三后端各 12/12 HTTP。身份与原始记录见 [精度研究](PRECISION_STUDY.md)。
   合同提交 `5a934a1` 的 CI run `36409279196` 五任务通过。
-- M4-1 第二组底层：F16 arena、载荷摘要、RN-even cast、half gather 和 F32acc
+- PREC-M4-1 第二组底层：F16 arena、载荷摘要、RN-even cast、half gather 和 F32acc
   cuBLAS 边界通过 22/22 套 CTest（376 次用例执行）及三套 memcheck。
   冻结的 16-shape 微基准入口通过 37/37 套 CTest（679 次用例执行）。
   `03492ca` 的六进程正式采样及离线复核通过，自身 CI run `36416066381` 五任务通过。
   owned bytes 从 3,449,229,312 降至 2,258,046,976（34.53%）；M128 body 三类 shape
   含转换改善中位数为 53.61% 至 61.50%，保留小 M 的逆序退化。
-- M4-1 模型边界：同一 Runtime 已接入四组转换复用与 selected-row LM head；
+- PREC-M4-1 模型边界：同一 Runtime 已接入四组转换复用与 selected-row LM head；
   48 配置的 840 行、两模式 S1/S4 的 12 组短 golden 均通过。
   四组 32-token 续写没有 token 分叉，但 repeated/1536 的 step=19
   cosine 为 0.999885866，低于 0.9999。完整门禁失败，见 `ENG-067`。
@@ -58,8 +76,10 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   `measurement_inconclusive`。一次 NSys 覆盖 288 次完整 forward、201216 次 kernel，
   batch 关联、单 stream、紧凑传输与无逐请求 Runtime 重建通过。
   基准扩展的 own-CUDA/CPU CTest 共 37/37 通过。
-- M3-1 采集与验证已停止；M4 未补跑 M1，已用 6/24 个正式性能进程，
+- M3-1 采集与验证已停止；精度研究未补跑 M1，已用 6/24 个正式性能进程，
   新增 NSys 与 NCU 均为 0；微基准不追加 trial。
+- GPU-KV-001 正式性能预算尚未使用：micro 0/6、model 0/6、Serving 0/12，
+  新增 NSys 0/1，NCU 0/1。与精度研究的预算分开记录。
 
 ## 阶段门禁
 
@@ -76,14 +96,23 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | V2-M1 / Step 8 性能 | 已验收，测量不确定项保留 | 375 项微基准与正式 70 进程模型基线；正确性、数据路径和跨进程输出一致性通过，24 项比较中 10 项为 `measurement_inconclusive` |
 | V2-M1 / Step 9 | 已验收 | 完整模型 NSys、选定 kernel 的 NCU、五组件完整包及独立目录复验通过；工具回归、CPU 模型/HTTP 通过 |
 | M3-1 | 本机与实验已验收 | GPU HTTP/SSE、生命周期、资源、12 进程基线和一次 NSys；发布候选 CI 见证据索引 |
-| M4-0 | 入口检查与合同已定义 | 已有时间线离线分解，16 个矩阵 shape、6 个模型 workload、两条 Serving trace |
-| M4-1 | `blocked_correctness`，停止性能推进 | 模型边界可执行；长续写 cosine 未达冻结门槛；无产品晋升，研究证据待最终归档 |
-| M4-2 | 未进入 | 仅 Primary 停止且独立目标 workload 的 attention 份额满足门槛时考虑 |
-| M4-3 | 未进入 | 一项研究完成后的功能冻结、作品表达与 upstream |
+| PREC-M4-0 | 已完成 | 已有时间线离线分解与冻结精度合同 |
+| PREC-M4-1 | 研究收束，`blocked_correctness` | 模型边界可执行；长续写 cosine 未达门槛；公开 raw 保留失败，Serving 拒绝候选 |
+| PREC-M4-2 | 不执行 | 旧融合 attention 备选不属于活跃路线 |
+| M4-0 | 进行中 | 已含独立排空修复与公开规则；候选 smoke、用户审阅整合待完成 |
+| M4-1 | 未实现 | 共享容量、独占页、device table、直接分页 store/QK/PV |
+| M4-2 | 未进入 | 同容量与同预算的有限实验、采用决定，不新增功能 |
+| M4-3 | 未进入 | 功能冻结、作品表达与 upstream |
 
 当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、连续 FP16 KV、完整 28 层与 greedy。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。GPU Serving 已有独立的限定性能基线，GPU PagedAttention 尚未提供；不将旧模型基线作为 HTTP 证据。
 
 ## 可复核证据
+
+[CUDA-PREC-001](../benchmarks/results/cuda-precision-001/README.md) 的研究预发布
+`cuda-prec-001-20260928` 指向 `103070a`；单包 6,684,838 bytes、257 个文件。
+公开下载、256 项文件摘要、独立目录微基准复核与失败 logits 重算通过。
+micro 使用 clean `03492ca`，模型数值使用 `a8a56de` 加固定 dirty snapshot，
+不能将它们重标为 tag clean build 的测量。模型/Serving 正式性能未采集。
 
 [CUDA-SERVE-001](../benchmarks/results/cuda-serving-001/README.md) 的完整 raw、日志、
 源码快照、单次 NSys/SQLite、生命周期与旧失败记录使用一个外部 canonical bundle。
@@ -133,4 +162,4 @@ Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/resu
 - `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json`：375 个真实形状、五个独立 trial、每样本 32 次 API 调用、FP64 对照与计时边界。
 - `benchmarks/runtime-inputs/qwen3-precision-v1.json`：同一 GPU/模型的 F32/F16 对照合同，
   48 个数值配置、16 个微基准 shape、6 个模型 workload、两条既有 Serving trace、主指标与停止线。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。当前主线为 M4-1。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。当前入口为 GPU-KV-001 的 M4-0，分页尚未实现。

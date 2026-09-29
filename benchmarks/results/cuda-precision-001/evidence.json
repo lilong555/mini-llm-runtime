@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-PREC-001",
+  "outcome": "blocked_correctness",
+  "candidate_product_eligible": false,
+  "canonical_bundle": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-prec-001-20260928/cuda-prec-001-20260928.zip",
+    "sha256": "eaa77db15c7a7fefd5f145a5a6565abcbb11d13350fe3283e98bd0b53da23aa8",
+    "size_bytes": 6684838,
+    "files": 257,
+    "checksums_sha256": "af77b8c7748ebed70d528c69b4c6f020da31404a9303900a026a1658e6678490",
+    "execution_dependencies_included": false,
+    "public_download_verified": true
+  },
+  "release": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/tag/cuda-prec-001-20260928",
+    "implementation_commit": "103070a91f1451eee3ee92e9c691e519ba733539",
+    "ci_run": 36426140443,
+    "ci_jobs_passed": 5,
+    "purpose": "research_negative_not_candidate_product_promotion"
+  },
+  "collection_sources": {
+    "micro": {
+      "git_sha": "03492ca9e3d7a4765ecaa659d109ff1757c8514f",
+      "git_dirty": false,
+      "manifest": "micro/manifest.json",
+      "manifest_sha256": "93262e3fbb8fa8b5cd939e3275af7ec0ea175dbc6e7b5213e49484bd1e0c3261"
+    },
+    "model_numerical": {
+      "git_sha": "a8a56deb582d1ee64fb0774e97bd388d7f93917d",
+      "git_dirty": true,
+      "identity": "model-validation/execution-identity.json",
+      "source_state_sha256": "b79a9e177872e70a4a10d6028a605854431dbd967cb054a198ebf9ce23265a63",
+      "source_snapshot_sha256": "3411d80556d02ba98b512423692deec97445eaf51793f9e52fce47f1edf17c02",
+      "summary_sha256": "7485476ee97c5083589253620cee9bc7dc2333d8161002a220e9b82d52cd065e",
+      "failure_logits_sha256": "cbd0777a39cad561e891d02e6095a6c03b578a3faafcaee4bbef84382239635d"
+    }
+  },
+  "archive_revalidation": [
+    "sha256sum --check --quiet SHA256SUMS",
+    "python3 micro/verify.py --directory micro",
+    "README.md: offline math.fsum recomputation of the complete failed logits"
+  ],
+  "publication_checks": {
+    "archive_matches_public_download": true,
+    "all_256_listed_file_hashes_match": true,
+    "relocated_micro_summary_matches": true,
+    "failure_cosine_recomputed": 0.9998858663580924
+  },
+  "limits": [
+    "模型和 Serving 性能因数值停止线未执行，不等价于测得无收益。",
+    "显存减少不能豁免数值门禁，不判为 memory_only_success。",
+    "发布标签与原始采集身份分开；CI 不替代 GPU 数值验证。",
+    "一个 canonical bundle；旧 M1/M3-1 Profiler 沿用既有证据，不复制封包。",
+    "原始 reuse_bitwise_equal 字段实际为逐值比较，见 ENG-068。"
+  ]
+}

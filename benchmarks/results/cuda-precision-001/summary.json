@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-PREC-001",
+  "outcome": "blocked_correctness",
+  "candidate_product_eligible": false,
+  "decision": "stop_primary_after_frozen_numerical_gate_failure",
+  "default_precision": "f32-pedantic",
+  "micro": {
+    "process_count": 6,
+    "case_count": 16,
+    "raw_samples": 960,
+    "measured_samples": 576,
+    "owned_device_bytes": {
+      "f32-pedantic": 3449229312,
+      "f16-matrix-f32acc": 2258046976
+    },
+    "memory_reduction": 0.3453473887212518,
+    "memory_gate": true,
+    "tensor_core_usage": "unverified"
+  },
+  "numerical": {
+    "status": "failed",
+    "complete": true,
+    "totals": {
+      "teacher_cases": 48,
+      "teacher_rows": 840,
+      "comparisons": 1099,
+      "numeric_failures": 2,
+      "golden_failures": 0,
+      "argmax_divergences": 0,
+      "near_ties": 16
+    },
+    "extrema": {
+      "rmse_max": 0.0459538738433263,
+      "absolute_max": 0.20675325393676758,
+      "cosine_min": 0.9998858663580449
+    },
+    "distinct_failed_output_rows": 1,
+    "first_numeric_failure": {
+      "rmse": 0.04454669974760739,
+      "max_absolute": 0.1838979721069336,
+      "cosine": 0.9998858663580449,
+      "all_finite": true,
+      "actual_sha256": "a26aacd69c8672e94928c17c7debcbe3d8fe1a6ee4bb8e7197e4e03973053f5e",
+      "reference_sha256": "3c82ae6eacef318e842ba88bb58defdedc9255fcf2d89c28346f58272fa9e0f7",
+      "actual_argmax": 330,
+      "reference_argmax": 330,
+      "reference_margin": 0.1879119873046875,
+      "near_tie": true,
+      "argmax_equal": true,
+      "passed": false,
+      "case": "generation-repeated",
+      "step": 19,
+      "trajectory": "common_prefix"
+    },
+    "golden_groups": 12,
+    "continuation_groups": 4,
+    "continuation_tokens_equal": true,
+    "independent_cosine": 0.9998858663580924
+  },
+  "model_performance": {
+    "status": "not_run_correctness_stop",
+    "processes": 0
+  },
+  "serving_comparison": {
+    "status": "not_run_candidate_rejected",
+    "processes": 0
+  },
+  "new_profiler": {
+    "nsys_captures": 0,
+    "ncu_sessions": 0
+  },
+  "regression": {
+    "ctest_suites": 37,
+    "ctest_case_executions": 683,
+    "f32_short_model_checks": 2,
+    "f32_http_checks": 12,
+    "memcheck_errors": 0,
+    "memcheck_leaked_bytes": 0
+  },
+  "identities": {
+    "micro": {
+      "git_sha": "03492ca9e3d7a4765ecaa659d109ff1757c8514f",
+      "git_dirty": false,
+      "scope": [
+        "CMakeLists.txt",
+        ".gitattributes",
+        "cmake",
+        "apps",
+        "include",
+        "src",
+        "scripts",
+        "tests",
+        ".github",
+        "models/manifest.json",
+        "models/reference-manifest.json",
+        "benchmarks/runtime-inputs",
+        "docs/NEXT_SPEC.md",
+        "docs/NEXT_OPT_SPEC.md",
+        "docs/PRECISION_STUDY.md"
+      ],
+      "state_file": "source-state.json",
+      "worktree_state_sha256": "d165bbec9931e58c3c0f9a85e3622d9b9dc6cf5bae56cb0555772ddefb7e8e89",
+      "snapshot": {
+        "path": "source-snapshot.zip",
+        "sha256": "296ca5146306b136f8b7b3a75773093bb94e2fdc38b96fda2a78e5944ecb27c4"
+      }
+    },
+    "numerical_execution": {
+      "git_sha": "a8a56deb582d1ee64fb0774e97bd388d7f93917d",
+      "git_dirty": true,
+      "source_state_sha256": "b79a9e177872e70a4a10d6028a605854431dbd967cb054a198ebf9ce23265a63",
+      "source_snapshot_sha256": "3411d80556d02ba98b512423692deec97445eaf51793f9e52fce47f1edf17c02",
+      "artifacts": [
+        {
+          "path": "build/wsl-own-cuda/bin/minillm-cuda-model-tests",
+          "sha256": "5109a7d3bf8080c4c6123a25e94f86971e9da040beb8c8dbbc2798b867a550f1"
+        },
+        {
+          "path": "build/wsl-own-cuda/bin/minillm-cuda-runtime-tests",
+          "sha256": "fddf23e1b3cb51e6e9a0c95040f187a930a92202099454667379e485353c3d10"
+        },
+        {
+          "path": "build/wsl-own-cuda/bin/mini-cuda-llm",
+          "sha256": "1533660464a64f7e5f2ab4f19d533ff351b005c693d456297ba5efdbda2441d2"
+        },
+        {
+          "path": "build/wsl-own-cuda/bin/llmserve",
+          "sha256": "99410542a8fe87e6bb205717893207b13374080c760aeee036cefd1ac9d4042b"
+        },
+        {
+          "path": "models/Qwen3-0.6B-Q8_0.gguf",
+          "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
+        },
+        {
+          "path": "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+          "sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+        },
+        {
+          "path": "benchmarks/runtime-inputs/qwen3-precision-v1.json",
+          "sha256": "3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8"
+        },
+        {
+          "path": "tests/data/qwen3_validation_cases.json",
+          "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+        }
+      ],
+      "performance_measurement": false
+    },
+    "release_commit": "103070a91f1451eee3ee92e9c691e519ba733539",
+    "ci_run": 36426140443,
+    "ci_jobs_passed": 5
+  },
+  "limits": [
+    "fixed_corpus_is_not_general_model_quality",
+    "micro_is_not_model_or_serving_speedup",
+    "no_tensor_core_claim",
+    "reuse_values_equal_not_bitwise_despite_legacy_raw_field",
+    "no_memory_only_success_without_correctness"
+  ]
+}

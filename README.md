@@ -8,7 +8,8 @@ GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
                                              |
                          Qwen3: RMSNorm / RoPE / GQA / SwiGLU
                                              |
-                              FP16 Paged KV + Page Tables
+                       CPU: FP16 Paged KV + Page Tables
+                       CUDA: FP16 Contiguous KV
                                              |
                            LLM Serving
 HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
@@ -226,11 +227,16 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-当前路线见 [PROJECT_PLAN_V3](docs/PROJECT_PLAN_V3.md)，实施规范见 [CUDA-SERVE-001](docs/NEXT_SPEC_V2.md)，验收状态见 [执行状态](docs/EXECUTION_STATUS.md)。
+唯一活跃计划为 [PLAN-V4-KV-20260928](docs/PROJECT_PLAN_V4_KV.md)，实施规范为
+[GPU-KV-001](docs/NEXT_SPEC_V3.md)，实际进度见 [执行状态](docs/EXECUTION_STATUS.md)。
+GPU 分页尚未提供；计划能力不等于当前产品能力。
 
-1. M3-0：兼容修复、冻结 M1、明确 [产物政策](docs/ARTIFACT_POLICY.md)。
-2. M3-1：自有 CUDA Serving、生命周期与有界 HTTP 基线已提供。
-3. M3-2/M3-3：根据 Serving 证据选择一项优化，或满足 GPU 分页进入条件后启动。
+1. M4-0：已有 HTTP 排空修复、可展示入口与发布验收。
+2. M4-1：共享 GPU 页池、设备块表与直接分页 attention，保持 F32 数学和同步完成。
+3. M4-2：分别研究同容量的延迟代价与同预算的异长请求能力。
+4. M4-3：功能冻结、技术报告与基于实际问题的 upstream 工作。
 
-CPU 保持独立产品与数值参照。CUDA 模型、GPU Serving 与 GPU PagedAttention 分别验收，
-不以重复实验消除已冻结的测量不确定项。
+[FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
+结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。
+CPU 保持独立产品与数值参照；不追加 prefix、Graph、async 或新的精度路线。
+历史计划保留，但不作为当前实施入口。
