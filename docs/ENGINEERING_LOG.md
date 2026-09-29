@@ -841,3 +841,20 @@
   `ctest-core-verified.xml` 为 12/12；两套 CLI 拒绝检查通过。
   `verification-source-snapshot.zip` 绑定最终测试源码，六个采集二进制摘要未变。
   首次失败记录不覆盖。
+
+## ENG-075：协议摘要测试依赖字符串与 JSON 的混合比较
+
+- 状态：实现已修正，本机回归通过。
+- 影响：`3691d25` 的 Linux CPU 产品 CI 编译失败，Windows 产品任务被取消；
+  三个核心与 sanitizer 任务成功，不能将该提交标为五任务通过。
+- 复现或证据：CI run `36560431481` 的 GCC 13 在
+  `tests/cuda_benchmark_tests.cpp` 报告
+  `error: no match for ‘operator==’`，比较操作数为 `std::string` 与 `ordered_json`。
+  `.run/gpu-kv-001/experiment-preflight/ci-3691d25-failed.log` 保留原始诊断。
+- 原因：新增 trace 摘要测试直接比较 C++ 字符串和 JSON 值，依赖编译器与库的
+  混合类型重载解析；本机编译通过未覆盖该组合。
+- 解决方法或下一步：使用 `get<std::string>()` 明确取出摘要，再比较相同类型；
+  保持协议原始字节、哈希值、产品源码与基准二进制不变。
+- 验证：`.run/gpu-kv-001/experiment-compatibility/` 的 CPU 产品 16/16、
+  own-CUDA 23/23 CTest 通过，六个采集二进制摘要与入口预检相同。
+  跨平台结果以本条修正提交自身 CI 为准，不继承 `3691d25` 的检查状态。

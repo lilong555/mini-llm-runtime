@@ -139,7 +139,7 @@ TEST(gpu_kv_protocol_and_capacity_trace_are_frozen) {
     for (const auto& arm : {spec.at("serving").at("same_capacity"),capacity}) {
         std::ifstream trace_file(root/arm.at("trace").get<std::string>(),std::ios::binary);
         const std::string content((std::istreambuf_iterator<char>(trace_file)),{});
-        CHECK(hash_sha256_hex(content.data(),content.size()) == arm.at("trace_sha256"));
+        CHECK(hash_sha256_hex(content.data(),content.size()) == arm.at("trace_sha256").get<std::string>());
     }
     std::ifstream trace(root/capacity.at("trace").get<std::string>());
     std::string line;
