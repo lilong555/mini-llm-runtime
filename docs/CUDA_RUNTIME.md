@@ -1,6 +1,6 @@
 # 自有 CUDA Runtime
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。KV 默认连续，C++ 研究接口可选直接分页布局。[GPU Serving](CUDA_SERVING.md) 通过 MiniCudaRunner 复用现有 HTTP/Engine，目前仍仅使用连续布局，不支持 GPU prefix sharing。全量连续路径数值验收见 [CUDA 数值验证](CUDA_NUMERICS.md)，分页对照见 [GPU KV 研究](GPU_KV_STUDY.md)；M1 模型基线冻结，Serving 验收单列于 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。KV 默认连续，C++、CLI 与 Serving 可显式选择直接分页研究路径。[GPU Serving](CUDA_SERVING.md) 通过 MiniCudaRunner 复用现有 HTTP/Engine，不支持 GPU prefix sharing。全量连续路径数值验收见 [CUDA 数值验证](CUDA_NUMERICS.md)，分页对照见 [GPU KV 研究](GPU_KV_STUDY.md)；M1 模型基线冻结，Serving 验收单列于 [执行状态](EXECUTION_STATUS.md)。
 
 [模型性能对照](CUDA_BENCHMARKS.md) 提供同一 executable 的 CPU8、CPU16、CUDA 选择、独立前缀重建、完整 A/A 采集计划和严格统计复核。单进程报告不等同于正式性能基线。
 
@@ -54,6 +54,10 @@ build/wsl-own-cuda/bin/mini-cuda-llm \
 ```
 
 `--output` 必须是新文件；报告也写入 stdout。CLI 只生成 sequence 0，支持 chunked prefill 和逐 token decode，默认遵守 EOG，`--ignore-eos` 可固定输出数量。实际 KV 上限检查为 `prompt_tokens + completion_tokens - 1 <= Lmax`，最后一个输出无需再作为输入写入 KV。多序列通过 C++ 接口使用。
+
+CLI 的 `--kv-layout paged` 保持 `--context` 为每序列 Lmax，物理池按
+`S*ceil(Lmax/16)*16` 配置；不是 Serving 的全池 `--context` 语义。
+可变容量实验使用 C++ 配置或 Serving 入口。分页与 F16 矩阵的组合明确拒绝。
 
 报告包含模型 SHA-256、实际 source/device dtype、设备和版本、S/L/B、输入与输出 token、文本、每次 forward 和清理前后的 diagnostics。`host_forward_to_token_ns` 包含预检、必要 copy、GPU 执行、argmax 与完成检查，不含模型加载；可选 `device_elapsed_ms` 使用预创建 CUDA events，关闭时为 null。`model_load_ns`、`storage_initialization_ns` 与其内部的 `weight_decode_upload_ns` 单列，后两者不是可相加的独立阶段。
 
@@ -153,7 +157,7 @@ build/wsl-own-cuda/bin/minillm-cuda-model-tests \
 ```
 
 两种布局顺序构造，以相同批次和冻结续写轨迹逐位比较完整 logits。
-该入口验证模型正确性，不提供分页 CLI/HTTP，也不是性能采样；
+该入口验证模型正确性，不是 CLI/HTTP 验收或性能采样；
 同容量和同预算的采用门禁见 [GPU-KV-001](NEXT_SPEC_V3.md)。
 
 ## 完整模型验证

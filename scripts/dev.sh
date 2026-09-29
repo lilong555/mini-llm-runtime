@@ -69,10 +69,10 @@ case "${1:-help}" in
     fi
     ;;
   serving-check|serving-memcheck)
-    [[ $own_cuda == ON && $# -le 2 ]] || { echo '用法：bash scripts/dev.sh own-cuda serving-check [新报告路径]' >&2; exit 1; }
+    [[ $own_cuda == ON && $# -le 3 ]] || { echo '用法：bash scripts/dev.sh own-cuda serving-check [新报告路径] [contiguous|paged]' >&2; exit 1; }
     serving_command=("$build/bin/llmserve-cuda-serving-tests" --model "$model"
       --contract tests/data/qwen3_validation_cases.json
-      --output "${2:-.run/cuda-serving-model.json}")
+      --output "${2:-.run/cuda-serving-model.json}" --kv-layout "${3:-contiguous}")
     if [[ $1 == serving-memcheck ]]; then
       compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 "${serving_command[@]}"
     else
@@ -149,7 +149,7 @@ case "${1:-help}" in
     port=${2:-8015}
     http_report=${3:-"$report_prefix-http.json"}
     "$build/bin/llmserve" --model "$model" --backend "$backend" --gpu-layers "$gpu_layers" \
-      --port "$port" --shutdown-file "$state/stop" >"$state/server.log" 2>&1 &
+      --port "$port" --shutdown-file "$state/stop" "${@:4}" >"$state/server.log" 2>&1 &
     server_pid=$!
     trap 'touch "$state/stop"; wait "$server_pid" || true' EXIT
     ready=false
@@ -186,7 +186,7 @@ case "${1:-help}" in
     ;;
   *)
     echo '用法：bash scripts/dev.sh [cuda] {dependencies|model|build|test|validate|serve [服务参数]|http-test [端口]|check-http [端口] [报告路径]|benchmark -Trace 路径 [基准参数]|runtime-benchmark [基准参数]|smoke}'
-    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|serve [服务参数]|http-test [端口]|check-http [端口] [报告路径]|serving-check [报告路径]|serving-memcheck [报告路径]|benchmark -Trace 路径 [基准参数]|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate [生成参数]}'
+    echo '自有 CUDA：bash scripts/dev.sh own-cuda {build|test|serve [服务参数]|http-test [端口]|check-http [端口] [报告路径] [服务参数]|serving-check [报告路径] [contiguous|paged]|serving-memcheck [报告路径] [contiguous|paged]|benchmark -Trace 路径 [基准参数]|memcheck|storage-check|storage-memcheck|layer-check|layer-memcheck|model-check|model-full-check|model-memcheck|runtime-benchmark|micro-benchmark|runtime-profile|generate [生成参数]}'
     [[ ${1:-help} == help ]]
     ;;
 esac

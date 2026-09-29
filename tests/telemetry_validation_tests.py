@@ -16,7 +16,7 @@ analyzer = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(analyzer)
 
 
-def fixture(mode="batches", version=1, backend="minillm"):
+def fixture(mode="batches", version=1, backend="minillm", layout="contiguous"):
     engine = dict(telemetry_mode=mode, telemetry_capacity=4, metrics_backend="minillm", max_active=2,
                   queue_capacity=4, context_tokens=16, block_size=1, max_model_len=8, batch_tokens=4)
     rows = [dict(type="header", schema_version=1, clock="engine_relative_steady_ns", mode=mode,
@@ -78,15 +78,27 @@ def fixture(mode="batches", version=1, backend="minillm"):
                         resource["live_kv_pages"] = None
             if backend != "minillm" and "runner" in row:
                 row["runner"] = None
+    if layout == "paged":
+        assert version == 2 and backend == "minillm-cuda"
+        engine.update(kv_layout="paged", block_size=16, max_model_len=16, context_tokens=32)
+        rows[0]["capabilities"].update(kv_page_tokens=16, max_model_len=16)
+        for row in rows[1:]:
+            if row["type"] == "batch":
+                row["reserved_unique_blocks"] = 1
+            for key in ("resources_before", "resources_after", "resources_final"):
+                if key in row:
+                    resource = row[key]
+                    resource.update(layout="paged", capacity_tokens=32, page_table_bytes=8,
+                                    live_kv_pages=(resource["live_tokens"] + 15) // 16)
     return rows, report, engine
 
 
 passed = 0
 
 
-def check(name, mutate=None, mode="batches", version=1, backend="minillm"):
+def check(name, mutate=None, mode="batches", version=1, backend="minillm", layout="contiguous"):
     global passed
-    rows, report, engine = fixture(mode, version, backend)
+    rows, report, engine = fixture(mode, version, backend, layout)
     if mutate:
         mutate(rows, report, engine)
     try:
@@ -144,6 +156,20 @@ for name, mutate in (
 ):
     check(name, mutate, version=2, backend="minillm-cuda")
 
+check("v2-cuda-paged", version=2, backend="minillm-cuda", layout="paged")
+for name, mutate in (
+    ("paged-capacity", lambda r, *_: r[1]["resources_after"].update(capacity_tokens=16)),
+    ("paged-page-size", lambda r, _, e: e.update(block_size=8)),
+    ("paged-capability", lambda r, *_: r[0]["capabilities"].update(kv_page_tokens=8)),
+    ("paged-table-bytes", lambda r, *_: r[1]["resources_after"].update(page_table_bytes=0)),
+    ("paged-live-pages-null", lambda r, *_: r[1]["resources_after"].update(live_kv_pages=None)),
+    ("paged-tail-slack", lambda r, *_: r[1]["resources_after"].update(live_kv_pages=2)),
+    ("paged-credit", lambda r, *_: r[1].update(reserved_unique_blocks=0)),
+    ("paged-page-leak", lambda r, *_: r[-1]["resources_final"].update(live_kv_pages=1)),
+    ("paged-layout", lambda r, *_: r[1]["resources_after"].update(layout="contiguous")),
+):
+    check(name, mutate, version=2, backend="minillm-cuda", layout="paged")
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--server", type=Path)
 parser.add_argument("--bench", type=Path)
@@ -162,6 +188,12 @@ if args.server:
         (["--kernel", "scalar"], "scalar"),
         (["--cuda-precision", "f16-matrix-f32acc"], "未通过模型数值门禁"),
         (["--cuda-precision", "fp16"], "--cuda-precision 必须"),
+        (["--kv-layout", "other"], "CUDA KV layout 必须"),
+        (["--kv-layout", "paged", "--page-size", "8"], "P=16"),
+        (["--kv-layout", "paged", "--context", "8208"], "可寻址容量"),
+        (["--kv-layout", "paged", "--context", "2560"],
+         "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
+        (["--kv-layout", "paged", "--cuda-precision", "f16-matrix-f32acc"], "未通过模型数值门禁"),
         (["--cuda-precision", "f32-pedantic"],
          "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
         ([], "cannot open GGUF file" if args.cuda_enabled else "MINILLM_ENABLE_CUDA=ON"),
@@ -173,6 +205,12 @@ if args.server:
         passed += 1
         print(f"[PASS] cuda-cli-{options or 'defaults'}")
     for backend in ("mini", "llama"):
+        result = subprocess.run([str(args.server), "--backend", backend, "--model", "absent.gguf",
+                                 "--kv-layout", "paged"],
+                                capture_output=True, encoding="utf-8", timeout=10, check=False)
+        assert result.returncode != 0 and "--kv-layout 仅适用于 mini-cuda" in result.stderr
+        passed += 1
+        print(f"[PASS] layout-backend-{backend}")
         for precision in ("f32-pedantic", "f16-matrix-f32acc"):
             result = subprocess.run([str(args.server), "--backend", backend, "--model", "absent.gguf",
                                      "--cuda-precision", precision],

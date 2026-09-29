@@ -16,6 +16,7 @@
 using namespace llmserve;
 using namespace std::chrono_literals;
 using minillm::cuda::CudaRuntime;
+using minillm::cuda::CudaKvLayout;
 using cuda_reports::json;
 
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
@@ -47,8 +48,9 @@ extern "C" cudaError_t __wrap_cudaEventRecord(cudaEvent_t event, cudaStream_t st
 #endif
 
 namespace {
-std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f) {
-    return fixture.write(true, [](gguf_context* info) {
+std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f, std::uint32_t context = 16) {
+    return fixture.write(true, [context](gguf_context* info) {
+        gguf_set_val_u32(info,"qwen3.context_length",context);
         const char* tokens[]{"a","b","c","d","e","f","g","<|endoftext|>","<|im_end|>"};
         const char* merges[]{"a b"};
         const std::int32_t types[]{1,1,1,1,1,1,1,3,3};
@@ -74,8 +76,11 @@ EngineConfig config_for(std::size_t slots = 4) {
     config.prefix_cache_entries = config.prefix_cache_tokens = 0;
     return config;
 }
-std::unique_ptr<ModelRunner> make_runner(const std::string& path, const EngineConfig& config) {
-    return make_mini_cuda_runner({path, 0, 1}, config);
+std::unique_ptr<ModelRunner> make_runner(const std::string& path, const EngineConfig& config,
+                                       CudaKvLayout layout = CudaKvLayout::contiguous) {
+    ModelConfig model{path,0,1};
+    model.cuda_kv_layout = layout;
+    return make_mini_cuda_runner(model, config);
 }
 RequestInput request(std::vector<Token> prompt, std::size_t output = 4) {
     RequestInput input;
@@ -130,11 +135,13 @@ std::vector<Token> reference_tokens(CudaRuntime& runtime, const std::vector<Toke
 
 json check_engine_outputs(const std::string& path, EngineConfig config,
                           const std::vector<std::vector<Token>>& prompts,
-                          const std::vector<std::vector<Token>>& expected) {
+                          const std::vector<std::vector<Token>>& expected,
+                          CudaKvLayout layout = CudaKvLayout::contiguous) {
+    const bool paged = layout == CudaKvLayout::paged;
     config.telemetry_mode = TelemetryMode::stages;
     config.telemetry_capacity = 128;
     auto gate = std::make_shared<test::RunnerGate>();
-    auto runner = make_runner(path, config);
+    auto runner = make_runner(path, config, layout);
     const auto resident = *runner->resources();
     Engine engine(config, config.max_active == 1 ? std::move(runner) :
         std::make_unique<test::GatedRunner>(std::move(runner), gate));
@@ -188,6 +195,9 @@ json check_engine_outputs(const std::string& path, EngineConfig config,
     CHECK(stats.resources && stats.resources->live_tokens == 0 && stats.resources->state_valid && stats.resources->reusable);
     CHECK(stats.resources->resident_kv_payload_bytes == resident.resident_kv_payload_bytes);
     CHECK(stats.resources->owned_device_bytes == resident.owned_device_bytes);
+    CHECK(stats.resources->page_table_bytes == resident.page_table_bytes);
+    CHECK(!paged || (stats.resources->live_kv_pages == 0 &&
+                    resident.capacity_tokens == config.context_tokens && *resident.page_table_bytes > 0));
     const auto& capture = engine.telemetry();
     CHECK(capture.dropped == 0 && capture.recorded == stats.batches);
     std::size_t mapped_samples = 0;
@@ -195,7 +205,8 @@ json check_engine_outputs(const std::string& path, EngineConfig config,
         const auto& batch = capture.batches[i];
         CHECK(batch.completed && batch.runner_completed && !batch.runner.available);
         CHECK(batch.resources_before && batch.resources_after);
-        CHECK(!batch.resources_before->live_kv_pages && !batch.resources_after->live_kv_pages);
+        if (!paged) { CHECK(!batch.resources_before->live_kv_pages && !batch.resources_after->live_kv_pages); }
+        std::size_t added_pages = 0;
         CHECK(*batch.resources_after->live_tokens == *batch.resources_before->live_tokens +
               batch.prefill_tokens + batch.decode_tokens);
         for (std::size_t j = 0; j < batch.sequences; ++j) {
@@ -204,6 +215,11 @@ json check_engine_outputs(const std::string& path, EngineConfig config,
             CHECK(slice.emitted == (slice.logits_tokens == 1));
             CHECK(slice.sampled_token.has_value() == slice.emitted);
             mapped_samples += slice.emitted ? 1 : 0;
+            added_pages += (slice.context_before+slice.tokens+15)/16-(slice.context_before+15)/16;
+        }
+        if (paged) {
+            CHECK(*batch.resources_after->live_kv_pages == *batch.resources_before->live_kv_pages+added_pages);
+            CHECK(*batch.resources_after->live_kv_pages <= batch.reserved_unique_blocks);
         }
     }
     std::size_t output_count = reused.tokens.size();
@@ -213,23 +229,26 @@ json check_engine_outputs(const std::string& path, EngineConfig config,
         generations.push_back({{"input_token_ids", prompts[i]}, {"token_ids", outputs[i].tokens}});
     }
     CHECK(mapped_samples == output_count && stats.generated_tokens == output_count);
-    return {{"max_sequences", config.max_active}, {"batches", stats.batches}, {"mixed_batches", stats.mixed_batches},
+    return {{"max_sequences", config.max_active}, {"layout",minillm::cuda::kv_layout_name(layout)},
+        {"batches", stats.batches}, {"mixed_batches", stats.mixed_batches},
         {"max_batch_sequences", stats.max_batch_sequences}, {"mapped_samples", mapped_samples},
         {"tokenizations", tokenizations.load()}, {"live_tokens_after_stop", stats.resources->live_tokens},
         {"capacity_tokens", resident.capacity_tokens}, {"resident_kv_payload_bytes", resident.resident_kv_payload_bytes},
-        {"owned_device_bytes", resident.owned_device_bytes}, {"generations", generations},
+        {"owned_device_bytes", resident.owned_device_bytes}, {"page_table_bytes",resident.page_table_bytes},
+        {"live_kv_pages_after_stop",stats.resources->live_kv_pages},{"generations", generations},
         {"slot_reuse", true}, {"stage_profile_available", false}};
 }
 
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
-json check_post_launch_engine_failure(const std::string& path, EngineConfig config) {
+json check_post_launch_engine_failure(const std::string& path, EngineConfig config,
+                                     CudaKvLayout layout = CudaKvLayout::contiguous) {
     const auto before = minillm::cuda::allocation_stats();
     json result;
     {
         config.telemetry_mode = TelemetryMode::batches;
         config.telemetry_capacity = 32;
         auto gate = std::make_shared<test::RunnerGate>();
-        Engine engine(config, std::make_unique<test::GatedRunner>(make_runner(path, config), gate));
+        Engine engine(config, std::make_unique<test::GatedRunner>(make_runner(path, config, layout), gate));
         const auto resident = *engine.statistics().resources;
         const auto allocated = minillm::cuda::allocation_stats();
         std::vector<std::shared_ptr<RequestHandle>> handles;
@@ -254,6 +273,8 @@ json check_post_launch_engine_failure(const std::string& path, EngineConfig conf
         CHECK(stats.failed == handles.size() && stats.completed == 0 && !stats.ready);
         CHECK(stats.kv_used_blocks == 0 && stats.active_requests == 0 && stats.outstanding_requests == 0);
         CHECK(!stats.resources->state_valid && !stats.resources->reusable && !stats.resources->live_tokens);
+        CHECK(!stats.resources->live_kv_pages);
+        CHECK(stats.resources->page_table_bytes == resident.page_table_bytes);
         CHECK(stats.resources->resident_kv_payload_bytes == resident.resident_kv_payload_bytes);
         CHECK(stats.resources->owned_device_bytes == resident.owned_device_bytes);
         CHECK(minillm::cuda::allocation_stats().release_calls == allocated.release_calls);
@@ -270,7 +291,8 @@ json check_post_launch_engine_failure(const std::string& path, EngineConfig conf
             {"backend_error_terminals", stats.failed}, {"reserved_credit_blocks_after_failure", stats.kv_used_blocks},
             {"state_valid", stats.resources->state_valid}, {"reusable", stats.resources->reusable},
             {"live_tokens", stats.resources->live_tokens}, {"resident_kv_payload_bytes", resident.resident_kv_payload_bytes},
-            {"owned_device_bytes", resident.owned_device_bytes}};
+            {"owned_device_bytes", resident.owned_device_bytes},{"page_table_bytes",resident.page_table_bytes},
+            {"live_kv_pages",stats.resources->live_kv_pages},{"layout",minillm::cuda::kv_layout_name(layout)}};
     }
     const auto after = minillm::cuda::allocation_stats();
     CHECK(after.allocations - before.allocations == after.releases - before.releases);
@@ -278,6 +300,56 @@ json check_post_launch_engine_failure(const std::string& path, EngineConfig conf
     return result;
 }
 #endif
+
+json check_paged_pressure(const std::string& path, EngineConfig config,
+                         const std::vector<std::vector<Token>>& prompts,
+                         const std::vector<std::vector<Token>>& expected) {
+    CHECK(prompts.size() == 2 && expected.size() == 2 && config.max_active == 4);
+    std::size_t reserved = 0;
+    for (std::size_t i = 0; i < 2; ++i) { reserved += (prompts[i].size()+expected[i].size()+15)/16; }
+    CHECK(reserved > config.context_tokens/16);
+    config.telemetry_mode = TelemetryMode::batches;
+    config.telemetry_capacity = 128;
+    auto gate = std::make_shared<test::RunnerGate>();
+    Engine engine(config,std::make_unique<test::GatedRunner>(make_runner(path,config,CudaKvLayout::paged),gate));
+    const auto resident = *engine.statistics().resources;
+    const auto allocated = minillm::cuda::allocation_stats();
+    std::shared_ptr<RequestHandle> first, second;
+    try {
+        first = engine.submit(request(prompts[0],expected[0].size()));
+        gate->wait_until_sampled();
+        second = engine.submit(request(prompts[1],expected[1].size()));
+    } catch (...) { gate->release(); throw; }
+    gate->release();
+    const auto a = collect(first), b = collect(second);
+    CHECK(a.terminal.status == 200 && b.terminal.status == 200);
+    CHECK(a.tokens == expected[0] && b.tokens == expected[1]);
+    engine.stop();
+    const auto stats = engine.statistics();
+    CHECK(stats.failed == 0 && stats.completed == 2 && stats.kv_used_blocks == 0);
+    CHECK(stats.resources->live_tokens == 0 && stats.resources->live_kv_pages == 0);
+    CHECK(stats.resources->state_valid && stats.resources->reusable);
+    CHECK(stats.resources->owned_device_bytes == resident.owned_device_bytes);
+    CHECK(minillm::cuda::allocation_stats().allocation_calls == allocated.allocation_calls);
+    const auto& capture = engine.telemetry();
+    CHECK(capture.dropped == 0);
+    std::size_t waiting_batches = 0, peak_pages = 0;
+    for (std::size_t i = 0; i < capture.recorded; ++i) {
+        const auto& batch = capture.batches[i];
+        CHECK(batch.completed && batch.active_requests == 1);
+        CHECK(batch.reserved_unique_blocks <= config.context_tokens/16);
+        CHECK(*batch.resources_after->live_kv_pages <= batch.reserved_unique_blocks);
+        peak_pages = std::max(peak_pages,*batch.resources_after->live_kv_pages);
+        if (batch.waiting_requests) { ++waiting_batches; }
+    }
+    CHECK(waiting_batches > 0);
+    return {{"name","paged_capacity_wait_and_progress"},{"capacity_tokens",config.context_tokens},
+        {"max_sequences",config.max_active},{"total_request_commitment_pages",reserved},
+        {"waiting_batches",waiting_batches},{"peak_assigned_pages",peak_pages},
+        {"completed",stats.completed},{"failed",stats.failed},{"live_pages_after_stop",stats.resources->live_kv_pages},
+        {"resident_kv_payload_bytes",resident.resident_kv_payload_bytes},{"page_table_bytes",resident.page_table_bytes},
+        {"owned_device_bytes",resident.owned_device_bytes},{"first_tokens",a.tokens},{"second_tokens",b.tokens}};
+}
 }
 
 TEST(cuda_runner_mapping_compact_copy_and_ready_clear) {
@@ -372,6 +444,59 @@ TEST(cuda_engine_mixed_join_reuse_and_concurrent_tokenizer) {
     }
     check_engine_outputs(path, config_for(1), prompts, expected);
     check_engine_outputs(path, config_for(4), prompts, expected);
+    for (std::size_t slots : {1u,4u}) {
+        auto config = config_for(slots);
+        config.block_size = 16;
+        check_engine_outputs(path,config,prompts,expected,CudaKvLayout::paged);
+    }
+}
+
+TEST(cuda_paged_engine_capacity_mismatch_is_rejected_before_start) {
+    Qwen3Fixture fixture;
+    const auto path = model_path(fixture);
+    auto config = config_for();
+    config.block_size = 16;
+    for (int mode = 0; mode < 2; ++mode) {
+        auto bad = config;
+        if (mode == 0) { bad.block_size = 1; }
+        else { bad.context_tokens = 32; }
+        test::throws<std::invalid_argument>([&] { Engine engine(bad,make_runner(path,config,CudaKvLayout::paged)); });
+    }
+}
+
+TEST(cuda_paged_engine_pressure_waits_for_credit_and_page_reuse) {
+    Qwen3Fixture fixture;
+    const auto path = model_path(fixture,0.01f,64);
+    auto config = config_for();
+    config.max_model_len = config.context_tokens = 64;
+    config.block_size = 16;
+    const std::vector<std::vector<Token>> prompts{std::vector<Token>(33,1),std::vector<Token>(17,2)};
+    std::vector<std::vector<Token>> expected;
+    {
+        CudaRuntime reference({path,0,1,64,8,0});
+        for (const auto& prompt : prompts) { expected.push_back(reference_tokens(reference,prompt,8,2)); }
+    }
+    check_paged_pressure(path,config,prompts,expected);
+}
+
+TEST(cuda_paged_runner_counts_pages_and_quarantines_preflight_errors) {
+    Qwen3Fixture fixture;
+    const auto path = model_path(fixture);
+    auto config = config_for();
+    config.block_size = 16;
+    auto runner = make_runner(path,config,CudaKvLayout::paged);
+    CHECK(runner->capabilities().kv_page_tokens == 16);
+    CHECK(runner->resources()->page_table_bytes == 16 && runner->resources()->live_kv_pages == 0);
+    const auto bytes = runner->resources()->owned_device_bytes;
+    runner->execute(std::array<BatchToken,2>{{{1,0,3,true},{2,0,1,true}}});
+    CHECK(runner->resources()->live_kv_pages == 2 && runner->resources()->live_tokens == 2);
+    runner->clear_sequence(3);
+    runner->clear_sequence(3);
+    CHECK(runner->resources()->live_kv_pages == 1);
+    test::throws<std::invalid_argument>([&] { runner->execute(std::array<BatchToken,1>{{{1,2,1,true}}}); });
+    runner->clear_sequence(1);
+    CHECK(!runner->resources()->reusable && !runner->resources()->live_tokens && !runner->resources()->live_kv_pages);
+    CHECK(runner->resources()->owned_device_bytes == bytes && runner->resources()->page_table_bytes == 16);
 }
 
 TEST(cuda_engine_admission_boundary_and_clear) {
@@ -452,7 +577,11 @@ TEST(cuda_runner_nonfinite_engine_failure_has_single_terminal) {
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
 TEST(cuda_engine_post_launch_failure_does_not_emit_or_reuse) {
     Qwen3Fixture fixture;
-    check_post_launch_engine_failure(model_path(fixture), config_for());
+    const auto path = model_path(fixture);
+    check_post_launch_engine_failure(path, config_for());
+    auto config = config_for();
+    config.block_size = 16;
+    check_post_launch_engine_failure(path,config,CudaKvLayout::paged);
 }
 
 TEST(cuda_runner_post_launch_failure_retains_resident_until_owner_destruction) {
@@ -487,9 +616,10 @@ int main(int argc, char** argv) {
                 {"backend", "minillm-cuda"}, {"checks", json::array()}};
     std::filesystem::path output;
     try {
-        Options options(argc, argv, {"--model", "--contract", "--output"});
+        Options options(argc, argv, {"--model", "--contract", "--output", "--kv-layout"});
         if (options.has("--help")) {
-            std::cout << "llmserve-cuda-serving-tests [--model MODEL --contract JSON --output NEW_REPORT.json]\n";
+            std::cout << "llmserve-cuda-serving-tests [--model MODEL --contract JSON --output NEW_REPORT.json]\n"
+                         "                            [--kv-layout contiguous|paged]\n";
             return 0;
         }
         if (!options.has("--model")) { return test::run(); }
@@ -502,11 +632,14 @@ int main(int argc, char** argv) {
         std::ifstream contract_file(contract_path);
         const auto contract = json::parse(contract_file);
         const auto path = options.get("--model");
+        const auto layout = minillm::cuda::parse_kv_layout(options.get("--kv-layout","contiguous"));
+        report["kv_layout"] = minillm::cuda::kv_layout_name(layout);
+        if (layout == CudaKvLayout::paged) { report["spec_id"] = "GPU-KV-001"; }
         report["model_sha256"] = cuda_reports::file_hash(path);
         CHECK(report["model_sha256"] == contract.at("model").at("sha256"));
         report["contract_sha256"] = cuda_reports::file_hash(contract_path);
         report["binary_sha256"] = cuda_reports::file_hash(argv[0]);
-        std::vector<std::vector<Token>> prompts, expected;
+        std::vector<std::vector<Token>> prompts, expected, pressure_prompts, pressure_expected;
         {
             CudaRuntime reference({path, 0, 1, 2048, 128, 0});
             report["device"] = cuda_reports::device(reference.device_info());
@@ -517,6 +650,16 @@ int main(int argc, char** argv) {
                 expected.push_back(reference_tokens(reference, prompts.back(), 8, 2));
                 CHECK(expected.back() == item.at("expected_token_ids").get<std::vector<Token>>());
             }
+            if (layout == CudaKvLayout::paged) {
+                const auto seed = contract.at("corpus").at(1).at("seed_token_ids").get<std::vector<Token>>();
+                for (std::size_t length : {1536u,768u}) {
+                    std::vector<Token> tokens(length);
+                    for (std::size_t p = 0; p < length; ++p) { tokens[p] = seed[p%seed.size()]; }
+                    pressure_prompts.push_back(std::move(tokens));
+                    pressure_expected.push_back(reference_tokens(reference,pressure_prompts.back(),32,128));
+                }
+                report["pressure_input_token_ids"] = pressure_prompts;
+            }
         }
         CHECK(prompts.size() == 3);
         prompts.push_back(prompts[0]);
@@ -525,9 +668,17 @@ int main(int argc, char** argv) {
             auto config = config_for(slots);
             config.max_model_len = 2048;
             config.context_tokens = slots * config.max_model_len;
+            if (layout == CudaKvLayout::paged && slots == 4) { config.context_tokens = 2560; }
             config.batch_tokens = 128;
             config.block_size = 16;
-            report["checks"].push_back(check_engine_outputs(path, config, prompts, expected));
+            report["checks"].push_back(check_engine_outputs(path, config, prompts, expected, layout));
+        }
+        if (layout == CudaKvLayout::paged) {
+            auto config = config_for();
+            config.context_tokens = config.max_model_len = 2048;
+            config.block_size = 16;
+            config.batch_tokens = config.prefill_chunk = 128;
+            report["checks"].push_back(check_paged_pressure(path,config,pressure_prompts,pressure_expected));
         }
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
         auto fault_config = config_for();
@@ -535,7 +686,8 @@ int main(int argc, char** argv) {
         fault_config.context_tokens = 8192;
         fault_config.batch_tokens = 128;
         fault_config.block_size = 16;
-        report["checks"].push_back(check_post_launch_engine_failure(path, fault_config));
+        if (layout == CudaKvLayout::paged) { fault_config.context_tokens = 2560; }
+        report["checks"].push_back(check_post_launch_engine_failure(path, fault_config, layout));
 #endif
         report["status"] = "passed";
         report["passed"] = report["checks"].size();

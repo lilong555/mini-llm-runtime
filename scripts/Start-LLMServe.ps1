@@ -18,6 +18,7 @@ param(
     [ValidateRange(0, 10000)][int]$GpuLayers = $(if ($Backend -eq 'llama') { 99 } else { 0 }),
     [ValidateRange(0, 2147483647)][int]$Device = 0,
     [ValidateRange(0, 9223372036854775807)][long]$DeviceBudgetBytes = 0,
+    [ValidateSet('contiguous', 'paged')][string]$KvLayout = 'contiguous',
     [ValidateSet('auto', 'scalar')][string]$Kernel = 'auto',
     [ValidateSet('off', 'batches', 'stages')][string]$Telemetry = 'off',
     [ValidateRange(1, 16384)][int]$TelemetryCapacity = 1024,
@@ -28,8 +29,9 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
 $root = Split-Path -Parent $PSScriptRoot
 if ($Backend -ne 'mini-cuda' -and
-    ($PSBoundParameters.ContainsKey('Device') -or $PSBoundParameters.ContainsKey('DeviceBudgetBytes'))) {
-    throw 'Device 和 DeviceBudgetBytes 仅适用于 mini-cuda。'
+    ($PSBoundParameters.ContainsKey('Device') -or $PSBoundParameters.ContainsKey('DeviceBudgetBytes') -or
+     $PSBoundParameters.ContainsKey('KvLayout'))) {
+    throw 'Device、DeviceBudgetBytes 和 KvLayout 仅适用于 mini-cuda。'
 }
 if (-not $Executable) {
     $Executable = Get-ProductExecutable (Get-ProductDirectory $root $Backend) 'llmserve'
@@ -61,7 +63,9 @@ $argsList = @('--model', $Model, '--backend', $Backend, '--policy', $Policy, '--
     '--max-model-len', "$MaxModelLen", '--event-buffer', "$EventBuffer", '--gpu-layers', "$GpuLayers",
     '--kernel', $Kernel, '--shutdown-file', $marker)
 $argsList += @('--telemetry', $Telemetry, '--telemetry-capacity', "$TelemetryCapacity")
-if ($Backend -eq 'mini-cuda') { $argsList += @('--device', "$Device", '--device-budget-bytes', "$DeviceBudgetBytes") }
+if ($Backend -eq 'mini-cuda') {
+    $argsList += @('--device', "$Device", '--device-budget-bytes', "$DeviceBudgetBytes", '--kv-layout', $KvLayout)
+}
 if ($TelemetryOutput) { $argsList += @('--telemetry-output', $TelemetryOutput) }
 $arguments = $argsList | ForEach-Object {
     if ($_.Contains('"')) { throw 'Argument cannot contain a double quote.' }

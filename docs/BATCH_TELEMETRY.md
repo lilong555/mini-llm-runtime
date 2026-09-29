@@ -54,7 +54,11 @@ bash scripts/dev.sh serve --port 8081 --telemetry stages \
 | `reserved_unique_blocks` | Serving 容量信用，按输出上限预留 |
 | `resources_before/after` | 模型线程的 KV layout、nullable pages/tokens、capacity、resident payload 与状态 |
 
-`resources_after` 在缓存发布和本轮终态回收之前采集；`resources_final` 在全部活动与缓存引用释放后、runner 析构前采集。live 为零不代表 resident 已归还系统。CPU 报告真实 PagedKV pages/payload，未知 live tokens 为 null；own-CUDA 为 contiguous，pages 为 null、capacity 为 S×Lmax、live 为 committed tokens、owned device bytes 为项目 arena/workspace。poisoned 时 state_valid/reusable 为 false、live 为 null，resident 仍保留。llama.cpp 的物理快照为 null；不能从容量信用推算物理页、共享引用、COW 或进程 RSS。
+`resources_after` 在缓存发布和本轮终态回收之前采集；`resources_final` 在全部活动与缓存引用释放后、runner 析构前采集。live 为零不代表 resident 已归还系统。CPU 报告真实 PagedKV pages/payload，未知 live tokens 为 null；own-CUDA 的 live 为 committed tokens、owned device bytes 为项目 arena/workspace。连续 CUDA 的 pages 为 null、capacity 为 S×Lmax；分页 CUDA 的 pages 为实际分派数、capacity 为 Engine 全池信用，`page_table_bytes` 为设备表字节数，已包含在 owned 中。poisoned 时 state_valid/reusable 为 false、live tokens/pages 为 null，resident 仍保留。llama.cpp 的物理快照为 null；不能从容量信用推算物理页、共享引用、COW 或进程 RSS。
+
+新增字段沿用 schema v2，历史 v1/v2 连续记录仍可读取。分页 header 的
+`capabilities.kv_page_tokens=16`，分析配置须显式给出 `kv_layout=paged`；
+分析器检查页大小、物理容量、表大小、尾页载荷、每轮页增长与保守信用上限。
 
 `context_after` 根据调度输入计算；只有成功完成的 batch 才代表已经提交的上下文。异常记录的 `completed=false`，预期长度不能用作部分失败后的真实模型状态。
 

@@ -48,6 +48,8 @@ struct BackendCapabilities {
     bool prefix_copy = true;
     bool runtime_stage_profile = false;
     bool synchronous_execute = true;
+    // 非零表示物理页池必须与 Engine 的页大小、总信用容量完全一致。
+    std::size_t kv_page_tokens = 0;
 };
 
 class ModelRunner {

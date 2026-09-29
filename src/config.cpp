@@ -58,8 +58,12 @@ void validate_mini_cuda_config(const ModelConfig& model, const EngineConfig& eng
     if (engine.prefix_cache_entries != 0 || engine.prefix_cache_tokens != 0) {
         throw std::invalid_argument("mini-cuda 不支持 prefix cache；entries 和 tokens 必须均为 0");
     }
-    if (engine.max_model_len > std::numeric_limits<std::size_t>::max() / engine.max_active ||
-        engine.context_tokens > engine.max_active * engine.max_model_len) {
+    const auto layout = model.cuda_kv_layout.value_or(minillm::cuda::CudaKvLayout::contiguous);
+    minillm::cuda::kv_layout_name(layout);
+    if (layout == minillm::cuda::CudaKvLayout::paged) {
+        minillm::cuda::checked_kv_capacity(layout, engine.max_active, engine.max_model_len,
+                                          engine.context_tokens, engine.block_size);
+    } else if (engine.context_tokens > engine.max_active * engine.max_model_len) {
         throw std::invalid_argument("mini-cuda context credits 不得超过 max_active * max_model_len");
     }
 }

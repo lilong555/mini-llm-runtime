@@ -17,6 +17,12 @@ inline constexpr std::string_view kv_layout_name(CudaKvLayout layout) {
     throw std::invalid_argument("CUDA KV layout 无效");
 }
 
+inline CudaKvLayout parse_kv_layout(std::string_view name) {
+    if (name == "contiguous") { return CudaKvLayout::contiguous; }
+    if (name == "paged") { return CudaKvLayout::paged; }
+    throw std::invalid_argument("CUDA KV layout 必须为 contiguous 或 paged");
+}
+
 // 仅校验容量合同，不表示 paged 设备路径已经可执行；不依赖 CUDA 头文件。
 inline std::size_t checked_kv_capacity(CudaKvLayout layout, std::size_t sequences,
                                       std::size_t max_model_len, std::size_t capacity,

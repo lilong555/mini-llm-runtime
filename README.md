@@ -9,7 +9,7 @@ GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
                          Qwen3: RMSNorm / RoPE / GQA / SwiGLU
                                              |
                        CPU: FP16 Paged KV + Page Tables
-                       CUDA: FP16 Contiguous KV
+                       CUDA: FP16 Contiguous / Paged KV
                                              |
                            LLM Serving
 HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
@@ -22,7 +22,7 @@ HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
 
 MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
 
-自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
+自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → FP16 KV → greedy token`。KV 默认连续，也可显式选择共享页池和直接分页 attention；MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
 
 ## 能力边界
 
@@ -31,7 +31,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
 | Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
 | 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
-| CUDA 分页研究接口 | C++ Runtime 可选共享 FP16 页池、设备块表与直接分页 attention；尚未接入 CLI/HTTP，不改变连续默认 |
+| CUDA 分页研究路径 | C++ Runtime、CLI 与 Serving 可选共享 FP16 页池、设备块表与直接分页 attention；保守信用与物理容量一致，不改变连续默认 |
 | 自有 CUDA Serving | 现有 Engine/HTTP/SSE、动态 mixed batching、独立槽与 clear/reuse、poisoned fail-stop、模型线程资源快照 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
@@ -45,7 +45,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 
 支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。GPU 分页仅提供 [C++ 研究接口](docs/GPU_KV_STUDY.md)，尚无分页 Serving、容量或性能结论；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。[GPU 分页研究](docs/GPU_KV_STUDY.md) 尚无正式容量/延迟采用结论；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -230,7 +230,7 @@ benchmarks/          固定输入及实测报告
 
 唯一活跃计划为 [PLAN-V4-KV-20260928](docs/PROJECT_PLAN_V4_KV.md)，实施规范为
 [GPU-KV-001](docs/NEXT_SPEC_V3.md)，实际进度见 [执行状态](docs/EXECUTION_STATUS.md)。
-GPU 分页 C++ Runtime 已提供；Serving 容量接线和正式实验尚未完成，不作为默认产品路径。
+GPU 分页 Runtime、CLI 与 Serving 已提供；正式容量/延迟实验尚未完成，不作为默认路径。
 
 1. M4-0：已有 HTTP 排空修复、可展示入口与发布验收。
 2. M4-1：共享 GPU 页池、设备块表与直接分页 attention，保持 F32 数学和同步完成。

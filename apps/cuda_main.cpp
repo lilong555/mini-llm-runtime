@@ -16,13 +16,13 @@ using cuda_reports::json;
 int main(int argc, char** argv) {
     try {
         Options options(argc,argv,{"--model","--prompt","--tokens","--context","--batch","--sequences","--device",
-            "--device-budget-bytes","--chunk","--output","--cuda-precision"},{"--help","--ignore-eos","--device-time"});
+            "--device-budget-bytes","--chunk","--output","--cuda-precision","--kv-layout"},{"--help","--ignore-eos","--device-time"});
         if (options.has("--help") || !options.has("--model")) {
             std::cout << "mini-cuda-llm --model MODEL.gguf [--prompt TEXT] [--tokens 32]\n"
                 "              [--context 2048] [--batch 128] [--chunk 128] [--sequences 4]\n"
                 "              [--device 0] [--device-budget-bytes 0] [--ignore-eos]\n"
                 "              [--device-time] [--output NEW_REPORT.json]\n"
-                "              [--cuda-precision f32-pedantic|f16-matrix-f32acc]\n";
+                "              [--cuda-precision f32-pedantic|f16-matrix-f32acc] [--kv-layout contiguous|paged]\n";
             return options.has("--help") ? 0 : 1;
         }
         const auto output_path = options.get("--output");
@@ -37,6 +37,10 @@ int main(int argc, char** argv) {
         config.max_model_len = static_cast<std::size_t>(options.integer("--context",2048,1,INT_MAX));
         config.batch_tokens = static_cast<std::size_t>(options.integer("--batch",128,1,CudaRuntimeConfig::max_supported_batch_tokens));
         config.device_budget_bytes = static_cast<std::size_t>(options.integer("--device-budget-bytes",0,0,INT64_MAX));
+        config.kv_layout = parse_kv_layout(options.get("--kv-layout","contiguous"));
+        if (config.kv_layout == CudaKvLayout::paged) {
+            config.kv_capacity_tokens = config.max_sequences*((config.max_model_len+15)/16)*16;
+        }
         const auto chunk = static_cast<std::size_t>(options.integer("--chunk",static_cast<std::int64_t>(config.batch_tokens),
                                                                     1,static_cast<std::int64_t>(config.batch_tokens)));
         const auto count = static_cast<std::size_t>(options.integer("--tokens",32,1,4096));
@@ -94,7 +98,7 @@ int main(int argc, char** argv) {
             {"precision_mode",precision_mode_name(runtime.config().precision_mode)},
             {"execution","项目 CUDA forward；cuBLAS GEMM；llama.cpp 仅提供词表"},
             {"model_sha256",model_sha},{"arithmetic",cuda_reports::arithmetic(runtime)},
-            {"device",cuda_reports::device(runtime.device_info())},{"kv_layout","contiguous"},{"streams",1},
+            {"device",cuda_reports::device(runtime.device_info())},{"kv_layout",kv_layout_name(config.kv_layout)},{"streams",1},
             {"limits",{{"max_sequences",config.max_sequences},{"max_model_len",config.max_model_len},
                 {"batch_tokens",config.batch_tokens},{"device_budget_bytes",config.device_budget_bytes}}},
             {"input_token_ids",prompt},{"token_ids",generated},{"text",output},{"prompt_tokens",prompt.size()},
