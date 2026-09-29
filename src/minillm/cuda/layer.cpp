@@ -7,6 +7,9 @@ LayerExecutor::LayerExecutor(CudaStorage& storage)
     : storage_(storage), dimensions_(storage.plan().dimensions),
       kv_shape_{storage.plan().limits.max_sequences, dimensions_.layers, storage.plan().limits.max_model_len,
                 dimensions_.kv_heads, dimensions_.head_dim} {
+    if (storage.plan().limits.kv_layout == CudaKvLayout::paged) {
+        throw std::invalid_argument("分页 CUDA layer 尚未接通，不能执行连续 attention");
+    }
     layers_.reserve(dimensions_.layers);
     for (std::size_t layer = 0; layer < dimensions_.layers; ++layer) {
         const auto prefix = "blk." + std::to_string(layer) + ".";

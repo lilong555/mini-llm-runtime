@@ -1,5 +1,7 @@
 #include "qwen3_fixture.h"
 #include "storage.h"
+#include "page_table.h"
+#include "layer.h"
 #include "ops.h"
 #include "tensor_validation.h"
 #include "nlohmann/json.hpp"
@@ -271,7 +273,7 @@ TEST(storage_invalid_precision_is_rejected_before_device_allocation) {
     same_allocations(before, allocation_stats());
 }
 
-TEST(storage_paged_rejection_and_explicit_contiguous_capacity) {
+TEST(storage_kv_layout_contract_and_explicit_contiguous_capacity) {
     Qwen3Fixture fixture;
     Qwen3Model model(fixture.write());
     auto limits = small;
@@ -283,11 +285,134 @@ TEST(storage_paged_rejection_and_explicit_contiguous_capacity) {
     test::throws<std::invalid_argument>([&] { CudaStorage storage(model,limits); });
     limits.kv_layout = CudaKvLayout::paged;
     limits.kv_capacity_tokens = 16;
+    limits.precision_mode = PrecisionMode::f16_matrix_f32acc;
     try { CudaStorage storage(model,limits); CHECK(false); }
     catch (const std::invalid_argument& error) {
-        CHECK(std::string(error.what()).find("尚未接通") != std::string::npos);
+        CHECK(std::string(error.what()).find("F32") != std::string::npos);
     }
     same_allocations(before,allocation_stats());
+}
+
+TEST(storage_paged_pool_and_table_are_counted_once) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write(true,[](gguf_context* info) {
+        gguf_set_val_u32(info,"qwen3.context_length",65);
+    }));
+    StorageLimits limits{4,65,8,0};
+    const auto baseline = make_memory_plan(model,limits);
+    CHECK(baseline.kv_capacity_tokens == 260 && baseline.physical_pages == 0 && baseline.kv_table_bytes == 0);
+    limits.kv_layout = CudaKvLayout::paged; limits.kv_capacity_tokens = 80;
+    const auto plan = make_memory_plan(model,limits);
+    check_layout(plan);
+    CHECK(plan.physical_pages == 5 && plan.kv_capacity_tokens == 80 && plan.kv_table_bytes == 80);
+    CHECK(plan.kv_bytes == 80 * 2 * 2 * 4 * sizeof(std::uint16_t));
+    CHECK(plan.metadata_bytes == baseline.metadata_bytes + plan.kv_table_bytes);
+    CHECK(plan.total_bytes == baseline.total_bytes - baseline.kv_bytes + plan.kv_bytes +
+                             plan.workspace_bytes - baseline.workspace_bytes);
+    {
+        CudaStorage storage(model,limits);
+        CHECK(storage.allocated_bytes() == plan.total_bytes && storage.allocations() == 4);
+        CHECK(storage.page_table_h2d_bytes() == 0);
+        const auto table = storage.kv_block_table();
+        CHECK(table.rows == 4 && table.columns == 5 && table.capacity == 20);
+        std::vector<std::int32_t> table_data(20,0);
+        download(storage.context(),table_data.data(),table.data,plan.kv_table_bytes);
+        CHECK(table_data == std::vector<std::int32_t>(20,-1));
+        const auto slab = storage.paged_kv_view();
+        CHECK(slab.rows == 2 * 2 * 5 * 16 && slab.columns == 4);
+        std::vector<std::uint16_t> data(slab.capacity);
+        download(storage.context(),data.data(),slab.data,plan.kv_bytes);
+        CHECK(std::all_of(data.begin(),data.end(),[](auto value) { return value == 0xffff; }));
+        test::throws<std::invalid_argument>([&] { storage.kv_view(); });
+        test::throws<std::invalid_argument>([&] { LayerExecutor layer(storage); });
+    }
+    {
+        CudaStorage storage(model,{4,65,8,0});
+        test::throws<std::invalid_argument>([&] { storage.paged_kv_view(); });
+        test::throws<std::invalid_argument>([&] { storage.kv_block_table(); });
+        test::throws<std::invalid_argument>([&] { storage.upload_page_table({}); });
+    }
+    limits.device_budget_bytes = plan.total_bytes - 1;
+    const auto before = allocation_stats();
+    test::throws<Error>([&] { CudaStorage storage(model,limits); });
+    const auto after = allocation_stats();
+    CHECK(after.allocations - before.allocations == 1 && after.releases - before.releases == 1);
+}
+
+TEST(storage_paged_table_store_clear_reuse_and_upload_accounting) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write(true,[](gguf_context* info) {
+        gguf_set_val_u32(info,"qwen3.context_length",33);
+    }));
+    StorageLimits limits{2,33,8,0};
+    limits.kv_layout = CudaKvLayout::paged; limits.kv_capacity_tokens = 64;
+    PageTableState pages({2,33,16,4});
+    // host 页表先创建、后销毁，异常路径上的存储析构仍可先等待 H2D 完成。
+    CudaStorage storage(model,limits);
+    const auto& context = storage.context();
+    const auto slab = storage.paged_kv_view();
+    const auto table = storage.kv_block_table();
+    const PagedKvMapping mapping{table,4,16};
+    const KvShape shape{2,2,33,1,4};
+    std::vector<std::uint16_t> expected(slab.capacity,0xffff), actual(slab.capacity);
+    std::array<std::size_t,2> lengths{};
+    const auto allocations = allocation_stats();
+    const auto run = [&](std::array<std::size_t,2> next, std::int32_t slot, std::int32_t position, float base) {
+        pages.prepare(lengths,next);
+        const bool changed = pages.upload_required();
+        const auto before = storage.page_table_h2d_bytes();
+        pages.begin_execution();
+        if (changed) { storage.upload_page_table(pages.device_table_for_upload()); }
+        const auto kv = std::vector<float>{base,base+1,base+2,base+3};
+        const std::int32_t slots[]{slot}, positions[]{position};
+        const auto key = storage.workspace<float>(Workspace::key,1), value = storage.workspace<float>(Workspace::value,1);
+        const auto s = storage.workspace<std::int32_t>(Workspace::slots,1);
+        const auto p = storage.workspace<std::int32_t>(Workspace::positions,1);
+        const auto status = storage.workspace<std::int32_t>(Workspace::status,1);
+        upload(context,key.data,kv.data(),kv.size()*sizeof(float));
+        upload(context,value.data,kv.data(),kv.size()*sizeof(float));
+        upload(context,s.data,slots,sizeof(slots)); upload(context,p.data,positions,sizeof(positions));
+        reset_status(context,status);
+        for (std::size_t layer = 0; layer < shape.layers; ++layer) {
+            store_kv(context,slab,shape,mapping,layer,
+                minillm::cuda::detail::read_only(key),minillm::cuda::detail::read_only(value),
+                minillm::cuda::detail::read_only(s),minillm::cuda::detail::read_only(p),status);
+        }
+        std::array<std::int32_t,2> result{};
+        download(context,result.data(),status.data,sizeof(result));
+        CHECK(result[0] == 0);
+        pages.commit(); lengths = next;
+        CHECK(storage.page_table_h2d_bytes() - before == (changed ? table.capacity*sizeof(std::int32_t) : 0));
+        std::vector<std::int32_t> device_table(table.capacity);
+        download(context,device_table.data(),table.data,device_table.size()*sizeof(std::int32_t));
+        CHECK(std::equal(device_table.begin(),device_table.end(),pages.committed_table().begin()));
+        const auto page = std::size_t(device_table[std::size_t(slot)*3+std::size_t(position)/16]);
+        for (std::size_t layer = 0; layer < 2; ++layer) {
+            for (std::size_t kind = 0; kind < 2; ++kind) {
+                const auto row = ((layer*2+kind)*4+page)*16+std::size_t(position)%16;
+                for (std::size_t c = 0; c < 4; ++c) { expected[row*4+c] = float_to_half(kv[c]); }
+            }
+        }
+        download(context,actual.data(),slab.data,storage.plan().kv_bytes);
+        CHECK(actual == expected);
+    };
+    run({17,1},0,16,1.0f);
+    run({17,2},1,1,11.0f);
+    CHECK(storage.page_table_h2d_bytes() == table.capacity*sizeof(std::int32_t));
+    pages.clear(0); lengths[0] = 0;
+    download(context,actual.data(),slab.data,storage.plan().kv_bytes);
+    CHECK(actual == expected);
+    run({1,2},0,0,21.0f);
+    CHECK(storage.page_table_h2d_bytes() == 2*table.capacity*sizeof(std::int32_t));
+    const auto uploads = storage.page_table_h2d_bytes();
+    std::vector<std::int32_t> invalid(table.capacity,-1);
+    test::throws<std::invalid_argument>([&] { storage.upload_page_table({invalid.data(),invalid.size()-1}); });
+    for (const auto id : {-2,4,INT_MAX}) {
+        invalid[0] = id;
+        test::throws<std::invalid_argument>([&] { storage.upload_page_table(invalid); });
+    }
+    CHECK(storage.page_table_h2d_bytes() == uploads);
+    same_allocations(allocations,allocation_stats());
 }
 
 TEST(storage_budget_failure_has_no_arena_allocation) {
@@ -343,6 +468,25 @@ TEST(storage_half_allocation_failures_release_partial_owners) {
     }
     CudaStorage recovered(model, limits);
     verify_weights(model, recovered);
+}
+
+TEST(storage_paged_allocation_failures_release_partial_owners) {
+    Qwen3Fixture fixture;
+    Qwen3Model model(fixture.write());
+    auto limits = small;
+    limits.kv_layout = CudaKvLayout::paged; limits.kv_capacity_tokens = 16;
+    for (int fail = 1; fail <= 4; ++fail) {
+        const auto before = allocation_stats();
+        {
+            allocation_failure::Injection injection(fail);
+            test::throws<Error>([&] { CudaStorage storage(model,limits); });
+        }
+        const auto after = allocation_stats();
+        CHECK(after.allocations - before.allocations == std::size_t(fail-1));
+        CHECK(after.releases - before.releases == std::size_t(fail-1));
+    }
+    CudaStorage recovered(model,limits);
+    CHECK(recovered.plan().physical_pages == 1);
 }
 #endif
 
@@ -614,6 +758,97 @@ TEST(storage_repeated_gemm_reuses_workspace) {
 }
 
 namespace {
+void real_paged_storage(const std::string& path, const std::string& contract_path,
+                        const std::filesystem::path& output) {
+    std::ifstream contract_file(contract_path);
+    const auto contract = json::parse(contract_file);
+    CHECK(contract.at("schema_version") == 1 && contract.at("contract_id") == "qwen3-cuda-numerical-v1");
+    const auto model_sha = check_model_identity(path,contract.at("model").at("sha256"));
+    std::filesystem::copy_file(contract_path,output/"validation-contract.json");
+    Qwen3Model model(path);
+    const auto& d = model.dimensions();
+    CHECK(d.layers == 28 && d.kv_heads == 8 && d.head_dim == 128);
+    const auto baseline = make_memory_plan(model,{});
+    StorageLimits limits;
+    limits.kv_layout = CudaKvLayout::paged; limits.kv_capacity_tokens = 2560;
+    const auto before = allocation_stats();
+    {
+        PageTableState pages({4,2048,16,160});
+        CudaStorage storage(model,limits);
+        const auto& plan = storage.plan();
+        check_layout(plan);
+        CHECK(plan.kv_bytes == 280ULL*1024*1024 && plan.kv_table_bytes == 2048);
+        CHECK(plan.kv_bytes+plan.kv_table_bytes <= 288ULL*1024*1024);
+        CHECK(storage.allocated_bytes() == plan.total_bytes && storage.allocations() == 4);
+        CHECK(allocation_stats().allocated_bytes-before.allocated_bytes == plan.total_bytes);
+        const auto& context = storage.context();
+        const auto slab = storage.paged_kv_view();
+        const auto table = storage.kv_block_table();
+        const PagedKvMapping mapping{table,160,16};
+        const KvShape shape{4,d.layers,2048,d.kv_heads,d.head_dim};
+        const auto width = d.kv_heads*d.head_dim;
+        std::vector<float> input(4*width);
+        for (std::size_t i = 0; i < input.size(); ++i) { input[i] = float(int(i%97)-48)/32.0f; }
+        const std::array<std::int32_t,4> slots{0,1,2,3}, positions{1567,159,159,159};
+        const auto key = storage.workspace<float>(Workspace::key,4), value = storage.workspace<float>(Workspace::value,4);
+        const auto s = storage.workspace<std::int32_t>(Workspace::slots,4);
+        const auto p = storage.workspace<std::int32_t>(Workspace::positions,4);
+        const auto status = storage.workspace<std::int32_t>(Workspace::status,1);
+        upload(context,key.data,input.data(),input.size()*sizeof(float));
+        upload(context,value.data,input.data(),input.size()*sizeof(float));
+        upload(context,s.data,slots.data(),sizeof(slots)); upload(context,p.data,positions.data(),sizeof(positions));
+        const auto allocated = allocation_stats();
+        pages.prepare(std::array<std::size_t,4>{},std::array<std::size_t,4>{1568,160,160,160});
+        pages.begin_execution();
+        storage.upload_page_table(pages.device_table_for_upload());
+        reset_status(context,status);
+        for (const auto layer : {std::size_t{0},d.layers-1}) {
+            store_kv(context,slab,shape,mapping,layer,minillm::cuda::detail::read_only(key),
+                minillm::cuda::detail::read_only(value),minillm::cuda::detail::read_only(s),
+                minillm::cuda::detail::read_only(p),status);
+        }
+        std::array<std::int32_t,2> result{};
+        download(context,result.data(),status.data,sizeof(result));
+        CHECK(result[0] == 0);
+        pages.commit();
+        CHECK(pages.assigned_pages() == 128 && pages.free_pages() == 32);
+        std::vector<std::int32_t> table_data(table.capacity);
+        download(context,table_data.data(),table.data,plan.kv_table_bytes);
+        CHECK(std::equal(table_data.begin(),table_data.end(),pages.committed_table().begin()));
+        std::vector<std::uint16_t> actual(width);
+        for (const auto layer : {std::size_t{0},d.layers-1}) {
+            for (std::size_t sequence = 0; sequence < 4; ++sequence) {
+                const auto position = std::size_t(positions[sequence]);
+                const auto page = std::size_t(table_data[sequence*128+position/16]);
+                for (std::size_t kind = 0; kind < 2; ++kind) {
+                    const auto row = ((layer*2+kind)*160+page)*16+position%16;
+                    download(context,actual.data(),slab.data+row*width,width*sizeof(std::uint16_t));
+                    for (std::size_t c = 0; c < width; ++c) {
+                        CHECK(actual[c] == float_to_half(input[sequence*width+c]));
+                    }
+                }
+            }
+        }
+        same_allocations(allocated,allocation_stats());
+        write_json(output/"memory-plan.json",{
+            {"kv_layout","paged"},{"capacity_tokens",plan.kv_capacity_tokens},{"page_tokens",16},
+            {"physical_pages",plan.physical_pages},{"kv_payload_bytes",plan.kv_bytes},
+            {"kv_table_bytes",plan.kv_table_bytes},{"metadata_bytes",plan.metadata_bytes},
+            {"workspace_bytes",plan.workspace_bytes},{"weight_bytes",plan.weight_bytes},
+            {"owned_device_bytes",storage.allocated_bytes()},{"baseline_owned_bytes",baseline.total_bytes},
+            {"baseline_kv_bytes",baseline.kv_bytes},{"kv_budget_bytes",288ULL*1024*1024},
+            {"project_allocations",storage.allocations()},{"page_table_h2d_bytes",storage.page_table_h2d_bytes()},
+            {"assigned_pages",pages.assigned_pages()},{"free_pages",pages.free_pages()},
+            {"checked_fp16_values",2*4*2*width},{"steady_project_allocations",0},
+            {"scope","真实模型尺寸的 slab/table/store 检查；不是完整 forward、admission 或性能结果"}});
+    }
+    const auto after = allocation_stats();
+    CHECK(after.allocations-before.allocations == 4 && after.releases-before.releases == 4);
+    write_json(output/"validation-summary.json",{{"schema_version",1},{"status","passed"},{"passed",true},
+        {"model_sha256",model_sha},{"complete_gpu_model",false},{"kv_layout","paged"},
+        {"released_project_allocations",after.releases-before.releases}});
+}
+
 void real_model(const std::string& path, const std::string& contract_path, const std::filesystem::path& output) {
     std::ifstream contract_file(contract_path);
     const auto contract = json::parse(contract_file);
@@ -716,9 +951,10 @@ void real_model(const std::string& path, const std::string& contract_path, const
 
 int main(int argc, char** argv) {
     if (argc == 1) { return test::run(); }
-    if (argc != 7 || std::string_view(argv[1]) != "--model" || std::string_view(argv[3]) != "--contract" ||
+    const bool paged = argc == 8 && std::string_view(argv[7]) == "--paged-kv";
+    if ((argc != 7 && !paged) || std::string_view(argv[1]) != "--model" || std::string_view(argv[3]) != "--contract" ||
         std::string_view(argv[5]) != "--output") {
-        std::cerr << "用法：minillm-cuda-storage-tests [--model MODEL.gguf --contract CONTRACT.json --output NEW_DIRECTORY]\n";
+        std::cerr << "用法：minillm-cuda-storage-tests [--model MODEL.gguf --contract CONTRACT.json --output NEW_DIRECTORY [--paged-kv]]\n";
         return 1;
     }
     try {
@@ -727,8 +963,11 @@ int main(int argc, char** argv) {
         prepare_output(output);
         write_json(output / "validation-summary.json",
                    {{"schema_version", 1}, {"status", "incomplete"}, {"passed", false}, {"complete_gpu_model", false}});
-        test::cases().push_back({"storage_real_qwen3_weights_and_matrices",
-                                 [path, contract, output] { real_model(path, contract, output); }});
+        test::cases().push_back({paged ? "storage_real_qwen3_paged_slab" : "storage_real_qwen3_weights_and_matrices",
+            [path, contract, output, paged] {
+                if (paged) { real_paged_storage(path,contract,output); }
+                else { real_model(path,contract,output); }
+            }});
         const int result = test::run();
         if (result != 0) {
             write_json(output / "validation-summary.json",

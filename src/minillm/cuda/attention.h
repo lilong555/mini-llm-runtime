@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ops.h"
+#include "minillm/cuda/kv_layout.h"
 
 namespace minillm::cuda {
 
@@ -8,10 +9,24 @@ struct KvShape {
     std::size_t sequences, layers, max_length, kv_heads, head_dim;
 };
 
+struct PagedKvMapping {
+    DeviceTensorView<const std::int32_t> block_table;
+    std::size_t physical_pages;
+    std::size_t page_tokens = kv_page_tokens;
+};
+
 // cache 行为 [sequence][layer][K_or_V][position]，列为 [kv_head * head_dim]。
 // 调用方已在 host 预检同批写入位置唯一；设备仍检查 slot/position 与转换的 finite 状态。
 void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
               std::size_t layer, DeviceTensorView<const float> key, DeviceTensorView<const float> value,
+              DeviceTensorView<const std::int32_t> slots, DeviceTensorView<const std::int32_t> positions,
+              DeviceTensorView<std::int32_t> status);
+
+// cache 行为 [layer][K_or_V][physical_page][token_in_page]，列仍为 KV width。
+// 映射只借用；非法页号先记录 status，再屏蔽写入，不 gather 或建立连续镜像。
+void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
+              PagedKvMapping mapping, std::size_t layer,
+              DeviceTensorView<const float> key, DeviceTensorView<const float> value,
               DeviceTensorView<const std::int32_t> slots, DeviceTensorView<const std::int32_t> positions,
               DeviceTensorView<std::int32_t> status);
 

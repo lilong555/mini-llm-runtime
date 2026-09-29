@@ -795,3 +795,19 @@
   `build-asan.log` 均构建成功且没有该告警；三种配置 CTest 共 47/47 通过。
   ASan/UBSan 的 host 9/9 用例包含禁止事务分配及 10,000 次状态操作，
   无 sanitizer 错误；未据此声称尚未实现的设备分页已通过内存检查。
+
+## ENG-072：连续布局的块表入口缺少显式预检
+
+- 状态：已解决，限定于块表入口的布局拒绝。
+- 影响：不支持的连续布局块表访问暴露内部 workspace 查找异常，未遵循其他 KV view 的
+  `std::invalid_argument` 配置错误合同。
+- 复现或证据：`.run/gpu-kv-001/device-storage/ctest-initial.xml` 中
+  `storage_paged_pool_and_table_are_counted_once` 报告 `未知 workspace 区域`，
+  storage 为 18/19，layer 通过；初始源码快照和构建日志保留在同目录。
+- 原因：新增 getter 直接查找仅 paged 存在的 region，缺少与 `kv_view()` 对称的布局检查。
+- 解决方法或下一步：`kv_block_table()` 与 `upload_page_table()` 在 region 查找前
+  明确拒绝 contiguous；保留错误用法测试，不修改设备数值或放宽页映射检查。
+- 验证：同目录 `ctest-cuda.xml` 的 23/23 套与 `ctest-core.xml` 的 12/12 套通过；
+  存储单测 19/19，包含两个入口对 contiguous 的显式拒绝。
+  `storage-memcheck.log` 的单测及真实页池检查 20/20、`layer-memcheck.log` 的
+  12/12 均通过，均为 0 错误、0 泄漏。初始失败及其源码快照保留。

@@ -1,6 +1,7 @@
 #include "attention.h"
 #include "device_helpers.cuh"
 #include "tensor_validation.h"
+#include "kv_access.cuh"
 
 #include <cub/block/block_reduce.cuh>
 #include <cub/warp/warp_reduce.cuh>
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <span>
 
 namespace minillm::cuda {
 namespace {
@@ -30,6 +32,24 @@ detail::Range validate_cache(DeviceTensorView<T> cache, KvShape shape, std::size
     const auto width = checked_product(shape.kv_heads, shape.head_dim);
     require(cache.rows == rows && cache.columns == width && layer < shape.layers, "CUDA 连续 KV 形状或 layer 无效");
     return range;
+}
+
+template<class T>
+std::array<detail::Range,2> validate_paged_cache(DeviceTensorView<T> cache, KvShape shape,
+    PagedKvMapping mapping, std::size_t layer, int device) {
+    const auto range = validate(cache, device), table = validate(mapping.block_table, device);
+    for (auto n : {shape.sequences, shape.layers, shape.max_length, shape.kv_heads, shape.head_dim}) { as_int(n); }
+    require(mapping.physical_pages > 0 && mapping.physical_pages <= 512, "CUDA 物理页数量无效");
+    checked_kv_capacity(CudaKvLayout::paged, shape.sequences, shape.max_length,
+                        mapping.physical_pages * kv_page_tokens, mapping.page_tokens);
+    const auto blocks = (shape.max_length + mapping.page_tokens - 1) / mapping.page_tokens;
+    const auto rows = checked_product(checked_product(shape.layers, 2),
+                                      checked_product(mapping.physical_pages, mapping.page_tokens));
+    require(cache.rows == rows && cache.columns == checked_product(shape.kv_heads, shape.head_dim) &&
+            layer < shape.layers, "CUDA 分页 KV 形状或 layer 无效");
+    require(mapping.block_table.rows == shape.sequences && mapping.block_table.columns == blocks,
+            "CUDA block table 形状无效");
+    return {range, table};
 }
 
 std::array<detail::Range, 2> validate_metadata(DeviceTensorView<const std::int32_t> slots,
@@ -56,15 +76,18 @@ __device__ std::size_t cache_row(KvShape shape, std::size_t slot, std::size_t la
     return ((slot * shape.layers + layer) * 2 + kind) * shape.max_length + position;
 }
 
+template<class Access>
 __global__ void store_kernel(DeviceTensorView<std::uint16_t> cache, KvShape shape, std::size_t layer,
                              DeviceTensorView<const float> key, DeviceTensorView<const float> value,
                              DeviceTensorView<const std::int32_t> slots,
-                             DeviceTensorView<const std::int32_t> positions, std::int32_t* status) {
+                             DeviceTensorView<const std::int32_t> positions, std::int32_t* status, Access access) {
     const auto row = std::size_t(blockIdx.x);
     const int slot = slots.data[row * slots.stride], position = positions.data[row * positions.stride];
     if (!valid_metadata(slot, position, shape, shape.max_length, status, static_cast<int>(row))) { return; }
-    const auto k_base = cache_row(shape, std::size_t(slot), layer, 0, std::size_t(position)) * cache.stride;
-    const auto v_base = cache_row(shape, std::size_t(slot), layer, 1, std::size_t(position)) * cache.stride;
+    std::size_t k_row, v_row;
+    if (!access.row(std::size_t(slot), layer, 0, std::size_t(position), k_row, status, static_cast<int>(row)) ||
+        !access.row(std::size_t(slot), layer, 1, std::size_t(position), v_row, status, static_cast<int>(row))) { return; }
+    const auto k_base = k_row * cache.stride, v_base = v_row * cache.stride;
     for (std::size_t c = threadIdx.x; c < key.columns; c += threads) {
         const auto k = __float2half_rn(key.data[row * key.stride + c]);
         const auto v = __float2half_rn(value.data[row * value.stride + c]);
@@ -187,13 +210,12 @@ __global__ void pv_kernel(DeviceTensorView<const std::uint16_t> cache, KvShape s
     }
 }
 
-}
-
-void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
+template<class Access>
+void enqueue_store(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
               std::size_t layer, DeviceTensorView<const float> key, DeviceTensorView<const float> value,
               DeviceTensorView<const std::int32_t> slots, DeviceTensorView<const std::int32_t> positions,
-              DeviceTensorView<std::int32_t> status) {
-    const auto kv = validate_cache(cache, shape, layer, context.device());
+              DeviceTensorView<std::int32_t> status, detail::Range kv, Access access,
+              std::span<const detail::Range> extra_inputs = {}) {
     const auto k = validate(key, context.device()), v = validate(value, context.device());
     const auto meta = validate_metadata(slots, positions, key.rows, context.device());
     const auto error = status_range(status, context.device());
@@ -202,11 +224,35 @@ void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache,
     for (auto input : {k, v, meta[0], meta[1]}) {
         require(!overlaps(input, kv) && !overlaps(input, error), "CUDA KV 写入与输入或 status 重叠");
     }
+    for (auto input : extra_inputs) {
+        require(!overlaps(input, kv) && !overlaps(input, error), "CUDA block table 与写入或 status 重叠");
+    }
     require(!overlaps(kv, error), "CUDA KV 与 status 重叠");
     DeviceScope scope(context.device());
     store_kernel<<<static_cast<unsigned>(key.rows), threads, 0, context.stream()>>>(cache, shape, layer, key, value,
-        slots, positions, status.data);
+        slots, positions, status.data, access);
     check_cuda(cudaGetLastError(), "FP16 KV store kernel");
+}
+
+}
+
+void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
+              std::size_t layer, DeviceTensorView<const float> key, DeviceTensorView<const float> value,
+              DeviceTensorView<const std::int32_t> slots, DeviceTensorView<const std::int32_t> positions,
+              DeviceTensorView<std::int32_t> status) {
+    const auto kv = validate_cache(cache, shape, layer, context.device());
+    enqueue_store(context, cache, shape, layer, key, value, slots, positions, status, kv,
+                  detail::ContiguousKvAccess{shape});
+}
+
+void store_kv(const CudaContext& context, DeviceTensorView<std::uint16_t> cache, KvShape shape,
+              PagedKvMapping mapping, std::size_t layer,
+              DeviceTensorView<const float> key, DeviceTensorView<const float> value,
+              DeviceTensorView<const std::int32_t> slots, DeviceTensorView<const std::int32_t> positions,
+              DeviceTensorView<std::int32_t> status) {
+    const auto ranges = validate_paged_cache(cache, shape, mapping, layer, context.device());
+    enqueue_store(context, cache, shape, layer, key, value, slots, positions, status, ranges[0],
+                  detail::PagedKvAccess{shape, mapping}, {&ranges[1],1});
 }
 
 void causal_softmax(const CudaContext& context, KvShape shape, std::size_t query_heads,

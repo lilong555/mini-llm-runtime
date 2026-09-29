@@ -13,8 +13,9 @@ fusion、Graph、async 或新的精度路径。
 | Host 页表状态 | 已实现；容量共享，每个已分派页独占 |
 | 内部配置 | `CudaKvLayout`、capacity、P=16，边界校验不依赖 CUDA |
 | 长度账本 | 唯一 `BatchState`，提供只读 pending lengths |
-| 设备 slab/table、分页 store/QK/PV | 尚未接通 |
-| Paged 模型/Serving | 不可用；未接通入口明确拒绝，不回退连续布局 |
+| 设备 slab/table 与分页 store | 已实现；同一 store 数学使用不同地址策略 |
+| 分页 QK/PV、完整层与 Runtime 事务 | 尚未接通 |
+| Paged 模型/Serving | 不可用；Runtime/LayerExecutor 明确拒绝，不回退连续布局 |
 | 采用决定 | 尚未具备产品资格，无容量或性能实测结论 |
 
 `PageTableState` 只持有 active/pending table、free IDs 和本批 journal。
@@ -59,6 +60,7 @@ NaN 尾部、完整模型或 Serving 页池验证。
 
 第一组验证源码为 `e7e2ced` 加固定 dirty snapshot，不是最终提交的 clean build 实测。
 原始输出在 `.run/gpu-kv-001/host-state/`，与发布 smoke 分开标识。
+第一组提交 `48d43ad` 自身 CI run `36520276353` 五任务通过，不替代本机 GPU 检查。
 
 | 检查 | 结果 |
 | --- | --- |
@@ -69,7 +71,7 @@ NaN 尾部、完整模型或 Serving 页池验证。
 | 事务分配 | prepare/start/commit/discard/clear 合法路径在禁用普通 new 时通过 |
 | 原 F32 实模型 | S1/S4 2/2，通过既有数值与短 golden 合同 |
 | 原 F32 HTTP | 12/12；停服时 2 active + 4 queued，六个完整单终态 |
-| Paged 拒绝 | Runtime 在模型加载前拒绝；Storage 在设备分配前拒绝 |
+| 第一组当时的 Paged 拒绝 | Runtime 在模型加载前拒绝；Storage 在设备分配前拒绝 |
 | 新设备 memcheck | 未执行；本组没有新增设备 kernel |
 
 Host tests 比较页集合、边界与既有映射，不仅比较总数：覆盖 15/16/17、
@@ -97,10 +99,79 @@ bash scripts/dev.sh own-cuda check-http 8015 .run/gpu-kv-http-check.json
 
 报告路径必须尚不存在。无 GPU CI 验证 host 状态和产品构建，不代替设备数值检查。
 
+## 设备存储验收
+
+`CudaStorage` 持有 `[layer][K_or_V][physical_page][token_in_page][kv_width]`
+的 FP16 slab；`[S,ceil(L/P)]` 的 I32 table 位于现有 workspace arena。
+table 初始化为 -1，slab 初始化为 FP16 NaN。`kv_table_bytes` 属于 metadata/workspace
+计数，不重复计入 total；项目 owning allocations 仍为四个。
+
+`ContiguousKvAccess` 与 `PagedKvAccess` 供同一 `store_kernel` 使用：
+转换、finite 检查与输出类型不变，分页地址读取前检查 logical block 与物理页号。
+连续与分页 slab 使用不同 getter，不能互相解释布局；paged Storage 仅允许 F32 矩阵。
+`upload_page_table()` 在同一 stream 入队，host table 借用持续到 checked completion；
+是否上传由 host 页状态的 dirty/journal 决定，Storage 不建立第二份映射账本。
+
+验证身份为 `48d43ad` 加固定 dirty snapshot，raw 位于
+`.run/gpu-kv-001/device-storage/`。没有把它重标为最终提交的 clean build 测量。
+
+| 检查 | 结果 |
+| --- | --- |
+| 独立核心 / own-CUDA CTest | 12/12、23/23 |
+| Storage / layer 单测 | 19/19、12/12 |
+| 真实 Qwen3 页池入口 | 20/20，包含 19 项单测 |
+| 存储及真实页池 memcheck | 20/20，0 错误、0 泄漏 |
+| 层级 memcheck | 12/12，0 错误、0 泄漏 |
+| 原 F32 模型 | S1/S4 2/2；128 条比较记录的 GPU logits SHA 与上一组一致，六组 golden 相同 |
+| 原 F32 HTTP | 12/12；停服时 4 active + 2 queued，六个完整单终态 |
+
+写入测试覆盖随机非连续页号、D=128/Hkv=8、首尾层、15/16/17 与末页、
+slab/table padding 和 guard、未写区域 NaN、非法页号与 metadata、错误布局、
+clear/reuse、无需上传的同页追加，以及分配失败后的 RAII 清理。
+非法页号先记录 status 并屏蔽写入；没有通过回读/重排历史 KV 构造产品执行路径。
+初始 getter 错误类型不一致及失败源码保留，见 `ENG-072`。
+
+### 真实存储量
+
+固定 Qwen3、S=4、Lmax=2048、B=128、P=16：
+
+| 项目 | 数值 |
+| --- | ---: |
+| 物理池 capacity | 2560 tokens / 160 pages |
+| KV payload | 293,601,280 bytes，280 MiB |
+| Device table | 2,048 bytes |
+| Workspace，含 table | 121,313,280 bytes |
+| 项目 owned allocation | 2,803,308,544 bytes |
+| 本次 table H2D | 2,048 bytes |
+| 页映射检查的 assigned / free | 128 / 32 |
+| 首尾层定点回读检查 | 16,384 个 FP16 值 |
+| 写入阶段新增项目设备分配 | 0 |
+
+普通检查与 memcheck 的存储量报告一致。连续 S4/8192-token 的同版本计划为
+3,449,229,312 owned bytes、896 MiB KV；两者物理容量不同，
+不能据此声称同等最长请求并发能力下的显存收益。
+这里没有接纳真实请求，也没有初始化所有 assigned 页的全部 token；
+assigned/free 是页映射测试状态，不是 Serving live KV 观测。
+
+真实模型只加载一套 storage，回读首尾层指定位置，不运行完整 forward 或重跑旧矩阵 sweep：
+
+```bash
+build/wsl-own-cuda/bin/minillm-cuda-storage-tests \
+  --model models/Qwen3-0.6B-Q8_0.gguf \
+  --contract tests/data/qwen3_validation_cases.json \
+  --output .run/gpu-kv-storage-check --paged-kv
+```
+
+| 身份文件 | SHA-256 |
+| --- | --- |
+| `source-state.json` | `425920c44c2a166145a84309402067a1562ad31535ba41b22a18eb709b38fc74` |
+| `source-snapshot.zip` | `e6ce8454de69a72ef522bc86bb7f001ccca77e476191ab9604b334a00341376d` |
+| `execution-identity.json` | `6e1ec95642d6d206040d7b7c74d6ae0c3b6082d03f18285287f96aabd7039038` |
+
 ## 剩余门禁
 
-设备 slab/table 与 KV write、共享数学的直接分页 attention、Runtime 页事务、
-Serving 容量/信用接线均未完成。下一项只实施设备存储和 KV write；
+共享数学的直接分页 attention、Runtime 页事务与 Serving 容量/信用接线尚未完成。
+下一项为分页 QK/PV、checked completion 后的页/长度提交，以及失败后的隔离；
 全模型入口在完整路径接通前继续拒绝 paged。
 
 正式性能预算仍为 micro 0/6、model 0/6、Serving 0/12；新增 NSys 0/1、NCU 0/1。

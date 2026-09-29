@@ -199,6 +199,130 @@ TEST(kv_store_device_failure_keeps_logical_lengths_uncommitted) {
     CHECK(data[4] == float_to_half(65520.0f));
 }
 
+TEST(paged_store_random_pages_real_width_tail_and_guards) {
+    CudaContext context;
+    const KvShape shape{2,3,33,8,128};
+    constexpr std::size_t width = 1024, stride = width+5, pages = 5, page_tokens = 16;
+    constexpr std::size_t cache_rows = 3*2*pages*page_tokens, rows = 7, guard = 4, table_stride = 5;
+    std::vector<std::uint16_t> initial(cache_rows*stride+2*guard,0xa5a5);
+    for (std::size_t r = 0; r < cache_rows; ++r) { std::fill_n(initial.begin()+guard+r*stride,width,0xffff); }
+    std::array<std::int32_t,5> permutation{0,1,2,3,4};
+    std::mt19937 random(20260929);
+    std::shuffle(permutation.begin(),permutation.end(),random);
+    CHECK((permutation != std::array<std::int32_t,5>{0,1,2,3,4}));
+    std::vector<std::int32_t> table_data(2*table_stride+2*guard,0x5a5a);
+    table_data[guard] = permutation[0]; table_data[guard+1] = permutation[1]; table_data[guard+2] = permutation[2];
+    table_data[guard+table_stride] = permutation[3]; table_data[guard+table_stride+1] = permutation[4];
+    table_data[guard+table_stride+2] = -1;
+    const std::vector<std::int32_t> slots{0,0,0,0,0,1,1}, positions{0,15,16,31,32,0,16};
+    const std::vector<float> edges{0.0f,-0.0f,std::ldexp(1.0f,-24),-std::ldexp(1.0f,-24),
+        1.0f+std::ldexp(1.0f,-11),1.0f+3*std::ldexp(1.0f,-11),65504,-65504};
+    DeviceBuffer<std::uint16_t> cache(initial.size());
+    DeviceBuffer<std::int32_t> table(table_data.size()), s(rows), p(rows), status(2);
+    DeviceBuffer<float> k(rows*width), v(rows*width);
+    upload(context,matrix_view(cache,1,cache.size()),initial);
+    upload(context,matrix_view(table,1,table.size()),table_data);
+    upload(context,matrix_view(s,rows,1),slots); upload(context,matrix_view(p,rows,1),positions);
+    const DeviceTensorView<std::uint16_t> slab{cache.data()+guard,cache_rows,width,stride,cache.size()-2*guard,0};
+    const PagedKvMapping mapping{{table.data()+guard,2,3,table_stride,table.size()-2*guard,0},pages,page_tokens};
+    auto expected = initial;
+    const auto allocations = allocation_stats();
+    for (std::size_t layer = 0; layer < shape.layers; ++layer) {
+        std::vector<float> key(rows*width), value(rows*width);
+        for (std::size_t i = 0; i < key.size(); ++i) {
+            key[i] = edges[(i+layer)%edges.size()];
+            value[i] = edges[(i*3+layer+1)%edges.size()];
+        }
+        upload(context,matrix_view(k,rows,width),key); upload(context,matrix_view(v,rows,width),value);
+        reset_status(context,matrix_view(status,1,2));
+        store_kv(context,slab,shape,mapping,layer,read_only(matrix_view(k,rows,width)),
+            read_only(matrix_view(v,rows,width)),read_only(matrix_view(s,rows,1)),
+            read_only(matrix_view(p,rows,1)),matrix_view(status,1,2));
+        status_is(context,status);
+        for (std::size_t r = 0; r < rows; ++r) {
+            const auto page = std::size_t(table_data[guard+std::size_t(slots[r])*table_stride+std::size_t(positions[r])/16]);
+            for (std::size_t c = 0; c < width; ++c) {
+                const auto key_row = ((layer*2)*pages+page)*16+std::size_t(positions[r])%16;
+                const auto value_row = ((layer*2+1)*pages+page)*16+std::size_t(positions[r])%16;
+                expected[guard+key_row*stride+c] = float_to_half(key[r*width+c]);
+                expected[guard+value_row*stride+c] = float_to_half(value[r*width+c]);
+            }
+        }
+    }
+    CHECK(download(context,matrix_view(cache,1,cache.size())) == expected);
+    CHECK(download(context,matrix_view(table,1,table.size())) == table_data);
+    CHECK(allocation_stats().allocation_calls == allocations.allocation_calls);
+    CHECK(allocation_stats().release_calls == allocations.release_calls);
+}
+
+TEST(paged_store_masks_invalid_pages_before_access) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,4};
+    DeviceBuffer<std::uint16_t> cache(2*2*16*4);
+    DeviceBuffer<std::int32_t> table(2), slots(1), positions(1), status(2);
+    DeviceBuffer<float> key(4), value(4);
+    const auto slab = matrix_view(cache,64,4);
+    const PagedKvMapping mapping{read_only(matrix_view(table,1,2)),2,16};
+    const std::vector<std::uint16_t> initial(cache.size(),0xffff);
+    upload(context,matrix_view(key,1,4),std::vector<float>(4,1));
+    upload(context,matrix_view(value,1,4),std::vector<float>(4,2));
+    const auto run = [&](std::int32_t page, std::int32_t slot, std::int32_t position, int error) {
+        upload(context,matrix_view(cache,1,cache.size()),initial);
+        upload(context,matrix_view(table,1,2),std::vector<std::int32_t>{1,page});
+        upload(context,matrix_view(slots,1,1),std::vector<std::int32_t>{slot});
+        upload(context,matrix_view(positions,1,1),std::vector<std::int32_t>{position});
+        reset_status(context,matrix_view(status,1,2));
+        store_kv(context,slab,shape,mapping,0,read_only(matrix_view(key,1,4)),read_only(matrix_view(value,1,4)),
+            read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+        status_is(context,status,error,0);
+        CHECK(download(context,matrix_view(cache,1,cache.size())) == initial);
+    };
+    for (auto page : {-1,-2,2,INT_MAX}) { run(page,0,16,int(DeviceError::invalid_index)); }
+    for (auto slot : {-1,1,INT_MAX}) { run(0,slot,16,int(DeviceError::invalid_index)); }
+    for (auto position : {-1,17,INT_MAX}) { run(0,0,position,int(DeviceError::invalid_position)); }
+    upload(context,matrix_view(table,1,2),std::vector<std::int32_t>{1,0});
+    upload(context,matrix_view(slots,1,1),std::vector<std::int32_t>{0});
+    upload(context,matrix_view(positions,1,1),std::vector<std::int32_t>{16});
+    upload(context,matrix_view(key,1,4),std::vector<float>{65520.0f,0,0,0});
+    reset_status(context,matrix_view(status,1,2));
+    store_kv(context,slab,shape,mapping,0,read_only(matrix_view(key,1,4)),read_only(matrix_view(value,1,4)),
+        read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+    status_is(context,status,int(DeviceError::nonfinite),0);
+}
+
+TEST(paged_store_preflight_rejects_shape_extent_and_table_aliases) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,4};
+    DeviceBuffer<std::uint16_t> cache(2*2*16*4);
+    DeviceBuffer<std::int32_t> table(2), slots(1), positions(1), status(2);
+    DeviceBuffer<float> key(4), value(4);
+    const auto slab = matrix_view(cache,64,4);
+    const PagedKvMapping mapping{read_only(matrix_view(table,1,2)),2,16};
+    const auto reject = [&](auto kv, KvShape dimensions, PagedKvMapping pages, std::size_t layer) {
+        test::throws<std::invalid_argument>([&] {
+            store_kv(context,kv,dimensions,pages,layer,read_only(matrix_view(key,1,4)),
+                read_only(matrix_view(value,1,4)),read_only(matrix_view(slots,1,1)),
+                read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+        });
+    };
+    reset_status(context,matrix_view(status,1,2));
+    auto bad = mapping;
+    bad.page_tokens = 0; reject(slab,shape,bad,0);
+    bad = mapping; bad.physical_pages = 0; reject(slab,shape,bad,0);
+    bad = mapping; bad.physical_pages = 513; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.capacity = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.rows = 2; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.columns = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.device = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.data = status.data(); reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.data = reinterpret_cast<const std::int32_t*>(cache.data());
+    reject(slab,shape,bad,0);
+    auto short_slab = slab; --short_slab.capacity; reject(short_slab,shape,mapping,0);
+    reject(slab,shape,mapping,1);
+    auto dimensions = shape; dimensions.layers = SIZE_MAX; reject(slab,dimensions,mapping,0);
+    status_is(context,status);
+}
+
 TEST(softmax_standalone_real_width_causal_nan_tail_and_preflight) {
     CudaContext context;
     constexpr std::size_t rows = 4, heads = 16, capacity = 2048, width = heads * capacity, stride = width + 3;
