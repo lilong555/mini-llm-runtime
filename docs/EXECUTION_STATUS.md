@@ -51,7 +51,14 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   288 MiB KV 预算下，指定四条异长请求在分页池共存并完成；超预算承诺等待后进展。
   核心/own-CUDA CTest 共 35/35，首次 CLI 测试文案断言失败保留为 `ENG-074`。
   本组为 `6d3d87d` 加固定 dirty snapshot 的正确性预检，不是正式性能 trial；
-  下一项是既有采集器/分析器的协议接入，再运行有限正式采样。
+  入口提交 `3691d25` 的 CI 编译失败已由 `825ae1b` 修正，
+  后者自身 CI run `36562532454` 五任务成功，见 `ENG-075`。
+- M4-2 微基准正式采集完成：六进程、180 个原始样本、108 个测量样本；
+  两布局输出逐位相同，采集与 31 个必需文件的离线复核通过。
+  六类 shape 的 host 配对中位退化为 +61.63%～+410.27%，event 区间同方向，
+  负结果全部保留，见 `ENG-076`。不能外推为完整模型或 Serving 的退化幅度。
+  采集为 `825ae1b` 加固定 dirty snapshot；工具回归 CTest 35/35。
+  下一项为模型采集/分析接入及层级影响量化，尚无最终采用结论。
 - 仅新增共享 GPU 页池、设备块表与直接分页访问，保留 contiguous 默认、
   F32 数学、P=16、S≤4、L≤2048、B≤128 和保守 admission。
   Fusion、prefix sharing、Graph、async 与新精度路线均不进入本轮。
@@ -111,7 +118,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   基准扩展的 own-CUDA/CPU CTest 共 37/37 通过。
 - M3-1 采集与验证已停止；精度研究未补跑 M1，已用 6/24 个正式性能进程，
   新增 NSys 与 NCU 均为 0；微基准不追加 trial。
-- GPU-KV-001 正式性能预算尚未使用：micro 0/6、model 0/6、Serving 0/12，
+- GPU-KV-001 正式性能预算已用：micro 6/6、model 0/6、Serving 0/12，
   新增 NSys 0/1，NCU 0/1。与精度研究的预算分开记录。
 
 ## 阶段门禁
@@ -134,7 +141,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | PREC-M4-2 | 不执行 | 旧融合 attention 备选不属于活跃路线 |
 | M4-0 | 技术已验收，等待审阅 | `e7e2ced` 自身 CI 与本机 smoke 通过；PR #2 未合并 |
 | M4-1 | 四组本机验收 | 页池、设备表、直接分页 attention、Runtime/CLI/Serving 与页信用合同可执行 |
-| M4-2 | 协议与入口预检通过 | 指定容量功能已验证；正式采集/分析工具、性能护栏及采用决定待完成 |
+| M4-2 | 微基准完成，负结果保留 | 指定容量功能通过；模型/Serving 采集、性能护栏及采用决定待完成 |
 | M4-3 | 未进入 | 功能冻结、作品表达与 upstream |
 
 当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、FP16 KV、完整 28 层与 greedy；分页布局可由 C++、CLI 或 Serving 显式选择，默认仍连续。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。连续 GPU Serving 已有独立的限定性能基线，分页尚无正式容量/延迟比较；不将旧模型基线作为 HTTP 证据。
@@ -198,4 +205,4 @@ Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/resu
 - `benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json`：F32 连续/分页的六类 attention、
   四个模型 workload、两条 trace、三对 trial、288 MiB KV 预算与 10% 性能护栏。
   新容量 trace 为 `benchmarks/traces/gpu-kv-capacity-v1.jsonl`，24 个固定异长请求。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 四组实现及实验入口预检通过，正式容量/延迟采样和采用决定尚未完成。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 四组实现、入口预检和正式微基准完成，模型/Serving 正式采样及采用决定尚未完成。

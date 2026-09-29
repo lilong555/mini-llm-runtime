@@ -19,6 +19,9 @@ import zipfile
 INPUT_SHA256 = "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6"
 MODEL_SHA256 = "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
 LLAMA_COMMIT = "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+KV_PROTOCOL = "gpu-kv-experiment-v1"
+KV_INPUT_SHA256 = "77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e"
+KV_LAYOUTS = ("contiguous", "paged")
 BACKENDS = ("cpu8", "cpu16", "cuda")
 BENCHMARK = "minillm-cuda-runtime"
 PROTOCOL = dict(
@@ -154,9 +157,10 @@ def allocation_snapshot(value, expected):
             "项目 device allocation/free 计数变化或字段无效")
 
 
-def memory_plan(runtime, *, precision_mode=None):
+def memory_plan(runtime, *, precision_mode=None, kv_layout="contiguous"):
     require(precision_mode in (None, "f32-pedantic", "f16-matrix-f32acc"), "未知矩阵精度")
     half = precision_mode == "f16-matrix-f32acc"
+    require(kv_layout in KV_LAYOUTS and not (half and kv_layout == "paged"), "未知布局或分页精度不符")
     dims = runtime["dimensions"]
     weights = runtime["weights"]
     require(isinstance(weights, list) and len(weights) == 311, "权重清单不完整")
@@ -205,6 +209,9 @@ def memory_plan(runtime, *, precision_mode=None):
         scratch = 128 * max(embedding, q, ffn) * 2
         sizes.append(scratch)
         categories["activations_bytes"] += scratch
+    if kv_layout == "paged":
+        sizes.append(4 * (2048 // 16) * 4)
+        categories["metadata_bytes"] += sizes[-1]
     workspace_end = 0
     for size in sizes:
         workspace_end = (workspace_end + 255) // 256 * 256 + size
@@ -215,6 +222,8 @@ def memory_plan(runtime, *, precision_mode=None):
                 library_workspace_bytes=4 * 1024 * 1024, **categories,
                 padding_bytes=weight_bytes - payload + workspace_bytes - sum(categories.values()))
     plan["total_owned_bytes"] = weight_bytes + workspace_bytes + kv_bytes + plan["library_workspace_bytes"]
+    if kv_layout == "paged":
+        plan["kv_table_bytes"] = 2048
     return plan, payload, dict(types)
 
 
@@ -379,6 +388,18 @@ def percentile(values, fraction):
     rank = fraction * (len(values) - 1)
     low, high = math.floor(rank), math.ceil(rank)
     return values[low] + (values[high] - values[low]) * (rank - low)
+
+
+def kv_paired_statistics(samples):
+    require(set(samples) == set(KV_LAYOUTS) and all(
+        isinstance(rows, list) and len(rows) == 3 and all(
+            isinstance(row, list) and len(row) == 3 and all(finite(v) and v > 0 for v in row)
+            for row in rows) for rows in samples.values()),
+        "分页统计需要两布局各三个独立 trial，每轮三个正数样本")
+    medians = {layout: [statistics.median(row) for row in samples[layout]] for layout in KV_LAYOUTS}
+    changes = [100 * (b - a) / a for a, b in zip(medians["contiguous"], medians["paged"])]
+    return dict(samples=samples, trial_medians=medians, paired_relative_percent=changes,
+                median_relative_percent=statistics.median(changes))
 
 
 def paired_statistics(a, b):
