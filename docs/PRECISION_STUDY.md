@@ -3,8 +3,8 @@
 ## 当前状态
 
 研究合同为 [CUDA-PREC-001](NEXT_OPT_SPEC.md)，历史计划为
-[精度版 PROJECT_PLAN_V4](PROJECT_PLAN_V4.md)；本文 M4 编号仅属于该历史计划。
-项目唯一活跃路线为 [PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md)。
+[精度版 PROJECT_PLAN_V4](history/plans/PROJECT_PLAN_V4.md)；本文 M4 编号仅属于该历史计划。
+GPU KV 研究也已结束，项目当前处于 [Portfolio Freeze](finalization/FINALIZATION_SPEC.md)。
 精度研究的决策、已有时间线拆解和实验预注册已完成。第一组配置入口已通过本机验收；
 F16 存储、矩阵边界与完整模型研究路径可执行，项目 owned 显存实测减少 34.53%。
 完整模型数值门禁因长续写 cosine 失败，结论为 `blocked_correctness`，停止性能推进。

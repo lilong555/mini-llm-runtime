@@ -27,6 +27,22 @@ elif [[ ${1:-} == own-cuda ]]; then
     *) echo '自有 CUDA 支持模型与 Serving；运行 help 查看入口。' >&2; exit 1 ;;
   esac
 fi
+required=()
+case "${1:-help}" in
+  build)
+    required=(cmake ninja python3 pwsh)
+    if [[ $cuda == ON || $own_cuda == ON ]]; then required+=(nvcc); fi
+    ;;
+  dependencies) required=(git) ;;
+  model|validate) required=(python3) ;;
+  check-http) required=(curl) ;;
+esac
+for tool in "${required[@]}"; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    printf '缺少前置工具：%s。请参阅 docs/WSL_DEVELOPMENT.md。\n' "$tool" >&2
+    exit 127
+  }
+done
 case "${1:-help}" in
   build)
     options=(-DCMAKE_BUILD_TYPE=RelWithDebInfo -DLLMSERVE_WITH_LLAMA=ON

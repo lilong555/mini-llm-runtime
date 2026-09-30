@@ -1,15 +1,48 @@
 # 项目执行状态
 
-当前处于 Portfolio Freeze 收尾，唯一活跃合同为
-[GPU-KV-CLOSEOUT-001](GPU_KV_DECISION.md)。分页功能已完成，不新增 Major Feature。
-[PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md) 与 [GPU-KV-001](NEXT_SPEC_V3.md)
-保留为功能实施的历史计划和规范。[精度版 V4](PROJECT_PLAN_V4.md) 与
+当前处于 Portfolio Freeze 展示与发布收尾，活跃合同为
+[FINALIZATION_SPEC](finalization/FINALIZATION_SPEC.md)，任务范围见
+[收尾计划](finalization/PORTFOLIO_FINALIZATION_PLAN.md)。
+[GPU-KV-CLOSEOUT-001](GPU_KV_DECISION.md) 为已完成的研究停止合同。
+分页功能已完成，不新增 Major Feature。
+[PLAN-V4-KV-20260928](history/plans/PROJECT_PLAN_V4_KV.md) 与 [GPU-KV-001](NEXT_SPEC_V3.md)
+保留为功能实施的历史计划和规范。[精度版 V4](history/plans/PROJECT_PLAN_V4.md) 与
 [CUDA-PREC-001](NEXT_OPT_SPEC.md) 保留为已停止研究的历史合同。
-[CUDA-SERVE-001](NEXT_SPEC_V2.md) 与
+[CUDA-SERVE-001](history/plans/NEXT_SPEC_V2.md) 与
 [CUDA-VS-001](NEXT_SPEC.md) 分别是冻结的 Serving 与 M1 模型规范；
 V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_POLICY.md)。
 
 ## 收尾与上游
+
+### 2026-09-30 收尾验收
+
+| 任务 | 状态 | 边界 |
+| --- | --- | --- |
+| T01/T02/T04/T05/T07 | 已完成 | 当前事实、CPU/CUDA 入口、性能与支持分层 |
+| T03 | 本机功能通过；最终候选待验 | CPU 16/16、CUDA 23/23；不替代最终 SHA 的 CI |
+| T06 | 已完成 | 六份历史文档归档，三份规范因采集脚本引用保留原路径 |
+| T08 | KEEP | 旧 M1 大包尚无本轮通过验证的外部替代来源，不删除 |
+| T09 | 不执行删除 | 未获分支删除确认 |
+| T10 | 本地草稿完成；发布门禁待闭合 | 0.2.0 构建、CTest与生成通过；最终 clean candidate 自身 CI 待验 |
+| T11 | 材料与演示证据 | 作者现场讲解仍需本人完成 |
+| T12 | 跳过 | 不为收尾修改无已知问题的 C++ 所有权实现 |
+
+隔离验证基于新 clone 的 `main@9a571a5` 加本轮 F0 候选差异；
+原工作区起始为 `f91b9d8`，与该 main 的文件树相同，祖先链不同。
+两种 backend 的 8-token 输出一致；短模型检查为 128 次 logits 比较与
+6 个 golden case，真实 Serving 3 项，CPU/CUDA HTTP 各 12/12。
+HTTP 观察到 `mixed_batches=1/3`、`max_batch_sequences=8/4`（CPU/CUDA），
+支持该次演示确有请求重叠，不外推任意负载。
+五个组件 memcheck 进程均零错误，不等于完整模型 memcheck。
+
+本地证据目录为 `.run/finalization-9a571a5-xeTla3/`，含
+`verification.json`、`validation-identity.json`、候选差异、源码快照与日志。
+这是本轮功能验证，不是新增性能采集，也不是最终版本的 clean build 发布凭证。
+原始本地文件不随 Git 发布；现有公开研究证据仍按各自索引获取。
+
+版本号设为0.2.0后，隔离目录重新配置与构建通过，CPU/CUDA CTest
+再次16/16与23/23，8-token输出仍一致。版本变更不修改Runtime代码；
+本轮HTTP、短数值和memcheck记录保留原F0采集身份，不倒写为版本更新后重跑。
 
 - 研究结果、公开证据、架构与七个技术追问入口均已具备；不再新增功能或性能采样。
 - main 的两阶段整合入口为
@@ -236,4 +269,4 @@ Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/resu
 - `benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json`：F32 连续/分页的六类 attention、
   四个模型 workload、两条 trace、三对 trial、288 MiB KV 预算与 10% 性能护栏。
   新容量 trace 为 `benchmarks/traces/gpu-kv-capacity-v1.jsonl`，24 个固定异长请求。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 四组实现、入口预检和正式微基准完成，模型/Serving 正式采样及采用决定尚未完成。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 实现、30 个正式性能进程与最终 B 决定均已完成；本轮仅验证交付候选，不重跑历史性能矩阵。

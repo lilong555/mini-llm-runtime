@@ -5,6 +5,30 @@
 不调用 `llama_decode`，不构造 CPU Runtime。CLI 名称为 `mini-cuda`，
 `/metrics` 的 backend 为 `minillm-cuda`。
 
+该路径已整合到 main。F32 矩阵／contiguous KV 为默认展示路径；
+paged 为最终 B 类容量／研究 opt-in，FP16 matrix Serving 被配置层拒绝。
+
+## 公共 HTTP 合同
+
+以下接口由 CPU、own-CUDA 和上游 runner 共用，不意味着各后端拥有相同能力：
+
+| 接口 | 内容 |
+| --- | --- |
+| `GET /health` | readiness |
+| `GET /v1/models` | 实际加载模型 ID |
+| `POST /tokenize` | 文本到 token IDs |
+| `POST /v1/completions` | 文本或 token IDs prompt，JSON 或 SSE |
+| `DELETE /v1/requests/{id}` | 取消在途请求，ID 可由 `X-Request-ID` 指定 |
+| `GET /metrics` | 批次、容量信用、请求状态与后端资源 |
+
+受限 completions 支持 `prompt`、`model`、`max_tokens`、`temperature=0`、
+`stream`、`priority=0..3`、`timeout_ms`、`ignore_eos`、`cache_namespace`、
+`n=1`，其它参数拒绝。不是完整 OpenAI API。
+SSE 采样 token 带 `token_id`，文本做 UTF-8 增量缓冲；终态含 usage/timings，
+随后恰好一个 `[DONE]`。EOS 计入采样 token 数，不输出 EOS 文本。
+断连与超时在模型 forward 完成边界生效，不中断在途 kernel。
+namespace 只用于实验隔离，不是认证；终态请求不保留在查询注册表。
+
 ## 启动
 
 ```bash
@@ -131,7 +155,9 @@ Qwen3 和短金标准，覆盖 S=1/4、GatedRunner 动态 mixed、输出映射�
 Engine 计时，runner 为 null，不伪报 GPU 阶段。详见 [在线观测](BATCH_TELEMETRY.md)。
 
 连续 Serving 基线使用 [既有策略回放](BENCHMARKS.md)，遵循冻结的 `CUDA-SERVE-001`；
-分页的同容量与同预算实验遵循 `GPU-KV-001`，尚未采集。模型 token/s、CPU SIMD 微基准和
+分页的同容量与同预算实验已按 `GPU-KV-001` 完成：同容量吞吐配对退化
+15.73%，同预算提升 4.31%，但 TPOT/ITL 更高；最终为 B，详见
+[GPU KV 研究](GPU_KV_STUDY.md)。模型 token/s、CPU SIMD 微基准和
 上游 GPU 执行不能代替自有 GPU HTTP 性能。
 
 [首份 Serving 基线](../benchmarks/results/cuda-serving-001/README.md) 已有 12 个独立进程、

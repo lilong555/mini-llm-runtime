@@ -4,7 +4,7 @@
 
 项目主线：解释并优化现有自研 CPU 推理系统，建立同一 Serving Engine 驱动的自研 CUDA 执行路径，以代码、数值验证和可复现实验支撑每项能力。
 
-本计划定义目标、阶段依赖和验收条件。当前可用功能见 [README](../README.md)，逐项能力验收见 [规范问题清单](PROBLEM_CHECKLIST.md)，实测结果见 [验证记录](VALIDATION.md)，实际工程问题见 [工程台账](ENGINEERING_LOG.md)。未标记验收完成的接口、文件和 CUDA 组件仍为目标设计，不代表当前已有实现。
+本计划定义目标、阶段依赖和验收条件。当前可用功能见 [README](../../../README.md)，逐项能力验收见 [规范问题清单](../../PROBLEM_CHECKLIST.md)，实测结果见 [验证记录](../../VALIDATION.md)，实际工程问题见 [工程台账](../../ENGINEERING_LOG.md)。未标记验收完成的接口、文件和 CUDA 组件仍为目标设计，不代表当前已有实现。
 
 ## 1. 范围与目标
 
@@ -12,7 +12,7 @@
 
 计划起始检查点：`7e5e84f4e63ae12fbbcee5c6365711e229b0cfef`。下表包含已有验收项；当前实验的实际源码提交、工作区快照与二进制身份以各自 manifest 为准。
 
-当前产品为 C++20、单节点、单模型、纯文本推理与在线服务，使用指定 Qwen3-0.6B Q8_0 模型，支持贪心采样。MiniLLM 自行完成 CPU forward 和物理分页 KV；llama.cpp 提供 GGUF 元数据解析、tokenizer 及独立 CPU/CUDA 对照后端，HTTP 传输依赖 cpp-httplib。详细归属见 [THIRD_PARTY.md](../THIRD_PARTY.md)。
+当前产品为 C++20、单节点、单模型、纯文本推理与在线服务，使用指定 Qwen3-0.6B Q8_0 模型，支持贪心采样。MiniLLM 自行完成 CPU forward 和物理分页 KV；llama.cpp 提供 GGUF 元数据解析、tokenizer 及独立 CPU/CUDA 对照后端，HTTP 传输依赖 cpp-httplib。详细归属见 [THIRD_PARTY.md](../../../THIRD_PARTY.md)。
 
 | 模块 | 已有实现 | 后续工作 |
 | --- | --- | --- |
@@ -29,7 +29,7 @@
 | 实验与测试 | dot/KV 微基准、HTTP replay、模型对照、确定性混合批、在线 batch/token 关联、Serving/Runtime 严格验收、跨平台核心 CI 入口 | dot/KV 统一 manifest、跨二进制比较与扩展数值覆盖 |
 | CUDA | llama.cpp 的 CPU/CUDA 可切换参照后端 | 自有 device memory、resident weights、forward、GPU KV 和 PagedAttention |
 
-`Runtime::Impl::multiply()` 已具有批量矩阵语义，通过输出行与输入 token 循环调用 dot。该结构存在权重行缓存复用机会，但尚无显式跨 token 的寄存器级权重解码复用。LM head 对每个需要 logits 的 token 单独调用 `multiply(..., count=1)`。[离线阶段基线](../benchmarks/results/wsl-runtime-profile/README.md) 已量化其占比：8 线程 `prefill-128` 约为 0.54%，`mixed-16-2` 约为 9.16%。这不代表其在所有在线 batch 中的贡献，也不证明批量 LM head 已取得收益。
+`Runtime::Impl::multiply()` 已具有批量矩阵语义，通过输出行与输入 token 循环调用 dot。该结构存在权重行缓存复用机会，但尚无显式跨 token 的寄存器级权重解码复用。LM head 对每个需要 logits 的 token 单独调用 `multiply(..., count=1)`。[离线阶段基线](../../../benchmarks/results/wsl-runtime-profile/README.md) 已量化其占比：8 线程 `prefill-128` 约为 0.54%，`mixed-16-2` 约为 9.16%。这不代表其在所有在线 batch 中的贡献，也不证明批量 LM head 已取得收益。
 
 ### 已有证据与待验证问题
 
@@ -44,9 +44,9 @@
 | 数值参照 | Q8_0 权重解量化得到 F32 reference，已完成限定输入对照 | reference 的 F32 不等于被测完整 F32 模型已经验证 |
 | 实验身份 | 初始 SIMD/调度报告缺精确源码 SHA；CPU KV 汇总已有源码、二进制和模型身份 | 统一 manifest 与严格校验，保留各份历史报告原有证据边界 |
 
-以上数字引用仓库归档，不代表基线提交的重新测量。CPU KV 报告的源码字段为 `600a1b93cdc95aa11dcbcb56d52d73ad6d5ae8ea`，详见 [原始汇总](../benchmarks/results/kv-cache-cpu/summary.json)；其他结果的条件见 [VALIDATION.md](VALIDATION.md)。现有 CI 归档只证明对应提交与测试范围，不能代替当前提交的模型、HTTP 或 GPU 验证。
+以上数字引用仓库归档，不代表基线提交的重新测量。CPU KV 报告的源码字段为 `600a1b93cdc95aa11dcbcb56d52d73ad6d5ae8ea`，详见 [原始汇总](../../../benchmarks/results/kv-cache-cpu/summary.json)；其他结果的条件见 [VALIDATION.md](../../VALIDATION.md)。现有 CI 归档只证明对应提交与测试范围，不能代替当前提交的模型、HTTP 或 GPU 验证。
 
-调度第 0 轮还有不同方向的结果：mixed / prefill-first 的 P99 单次 ITL 为 1217.03 / 2769.41 ms，见 [mixed 原始报告](../benchmarks/results/mini-scheduling/mixed-0.json) 与 [prefill-first 原始报告](../benchmarks/results/mini-scheduling/prefill_first-0.json)。该单轮结果不足以证明稳定的尾延迟优势，但说明请求平均 TPOT 与单次 token 停顿必须分别研究。原短上下文 trace 也不能代替 KV 容量压力实验；解释 `ENG-008` 与评估增量准入需要不同的控制变量。
+调度第 0 轮还有不同方向的结果：mixed / prefill-first 的 P99 单次 ITL 为 1217.03 / 2769.41 ms，见 [mixed 原始报告](../../../benchmarks/results/mini-scheduling/mixed-0.json) 与 [prefill-first 原始报告](../../../benchmarks/results/mini-scheduling/prefill_first-0.json)。该单轮结果不足以证明稳定的尾延迟优势，但说明请求平均 TPOT 与单次 token 停顿必须分别研究。原短上下文 trace 也不能代替 KV 容量压力实验；解释 `ENG-008` 与评估增量准入需要不同的控制变量。
 
 ### 目标系统与所有权
 
@@ -261,12 +261,12 @@ CPU/GPU 共用数学与请求语义，独立维护实际 tensor layout、工作�
 
 ## 4. 近期任务队列
 
-以下队列定义主依赖与完成条件，未满足进入条件的研究项保持候选状态。当前 Serving/Runtime 的 manifest、严格验收、离线阶段计时、确定性混合批及在线 batch/token 关联已具备实现与验证。dot/KV 的统一身份、跨二进制比较、扩展数值覆盖、attention 细分及 worker 时间线仍待完成，整个 Phase 0 和 Phase 1 均不能视为完成。当前证据见 [验证记录](VALIDATION.md)。
+以下队列定义主依赖与完成条件，未满足进入条件的研究项保持候选状态。当前 Serving/Runtime 的 manifest、严格验收、离线阶段计时、确定性混合批及在线 batch/token 关联已具备实现与验证。dot/KV 的统一身份、跨二进制比较、扩展数值覆盖、attention 细分及 worker 时间线仍待完成，整个 Phase 0 和 Phase 1 均不能视为完成。当前证据见 [验证记录](../../VALIDATION.md)。
 
 | ID | 任务 | 依赖与优先级 | 完成定义 |
 | --- | --- | --- | --- |
 | PLAN-001 | 统一实验 manifest 与严格验收 | P0，立即 | 身份完整；缺失/重复、配置差异与 mismatch 反例被拒绝；正常基线归档 |
-| PLAN-002 | Runtime profiler 与模型级 benchmark | P0，离线模型级已验收 | [prefill/decode/mixed 阶段报告](../benchmarks/results/wsl-runtime-profile/README.md)、开销、输出和资源语义可核验 |
+| PLAN-002 | Runtime profiler 与模型级 benchmark | P0，离线模型级已验收 | [prefill/decode/mixed 阶段报告](../../../benchmarks/results/wsl-runtime-profile/README.md)、开销、输出和资源语义可核验 |
 | PLAN-003 | Batch telemetry 与 ENG-008/ENG-018 归因 | P0，在线关联已验收，细分归因待完成 | batch 与 token 时间关联，包含 ITL、页访问对照和可证伪假设 |
 | PLAN-004 | 扩展模型验证并解决 ENG-017 | P0，可与观测工作并行 | 被测 dtype/reference 明确；长 context、页边界、特殊 token 与确定性混合测试通过 |
 | PLAN-005 | 真实 shape 的矩阵与线程池微基准 | P1，依赖 PLAN-002/003 | 真实 projection/LM head、B、线程数、热缓存/streaming 与空任务对照 |
@@ -297,11 +297,11 @@ benchmarks/results/<run_id>/
     summary.json
 ```
 
-验收反例至少包括：删除请求、重复 ID、改变模型 hash、改变不允许变化的配置、破坏输出 token。它们均须被拒绝；正常报告通过。当前 Serving 策略验收与原始基线见 [策略回放与验收](BENCHMARKS.md) 和 `benchmarks/results/wsl-policy-validation/`，`ENG-020` 在该范围内已验收。dot/KV 微基准的统一采集入口及跨源码、跨二进制的优化前后比较尚未完成，不能将整个 Phase 0 视为完成。
+验收反例至少包括：删除请求、重复 ID、改变模型 hash、改变不允许变化的配置、破坏输出 token。它们均须被拒绝；正常报告通过。当前 Serving 策略验收与原始基线见 [策略回放与验收](../../BENCHMARKS.md) 和 `benchmarks/results/wsl-policy-validation/`，`ENG-020` 在该范围内已验收。dot/KV 微基准的统一采集入口及跨源码、跨二进制的优化前后比较尚未完成，不能将整个 Phase 0 视为完成。
 
 ### PLAN-002：模型分阶段计时
 
-状态：已验收，限定于离线 CPU 模型级。接口与协议见 [Runtime 计时与模型基准](RUNTIME_PROFILING.md)，实测见 [阶段基线](../benchmarks/results/wsl-runtime-profile/README.md)，正确性证据见 [验证目录](../benchmarks/results/validation/wsl-runtime-profile/README.md)。
+状态：已验收，限定于离线 CPU 模型级。接口与协议见 [Runtime 计时与模型基准](../../RUNTIME_PROFILING.md)，实测见 [阶段基线](../../../benchmarks/results/wsl-runtime-profile/README.md)，正确性证据见 [验证目录](../../../benchmarks/results/validation/wsl-runtime-profile/README.md)。
 
 阅读入口：`include/minillm/profile.h`、`src/minillm/runtime.cpp`、`src/minillm/parallel.cpp`、`apps/runtime_bench.cpp`。
 
@@ -313,9 +313,9 @@ benchmarks/results/<run_id>/
 
 ### PLAN-003：调度与执行时间线
 
-状态：有界在线记录、Runtime 阶段汇总、SSE 逐 token 关联、到达时间缩放及跨模式严格验收可用。协议见 [在线 batch 与 token 时间线](BATCH_TELEMETRY.md)，正确性证据见 [验证目录](../benchmarks/results/validation/wsl-batch-telemetry/README.md)。attention 内部成本、worker 调度时间线和同源码页访问对照尚未验收，不能将整个 PLAN-003 或 Phase 1 视为完成。
+状态：有界在线记录、Runtime 阶段汇总、SSE 逐 token 关联、到达时间缩放及跨模式严格验收可用。协议见 [在线 batch 与 token 时间线](../../BATCH_TELEMETRY.md)，正确性证据见 [验证目录](../../../benchmarks/results/validation/wsl-batch-telemetry/README.md)。attention 内部成本、worker 调度时间线和同源码页访问对照尚未验收，不能将整个 PLAN-003 或 Phase 1 视为完成。
 
-[在线基线与假设报告](../benchmarks/results/wsl-batch-telemetry/README.md) 包含 42 个独立进程、594 个请求与 9810 个输出 token。已测范围内可排除 scheduler 自身计算为主要耗时；原始负载保留平均 TPOT 与 P99 ITL 的权衡，低到达率记录观测开关对应的 batch 组成变化。长上下文单轮诊断支持继续细分 attention，不将其等同于分页 allocator 根因或优化收益。
+[在线基线与假设报告](../../../benchmarks/results/wsl-batch-telemetry/README.md) 包含 42 个独立进程、594 个请求与 9810 个输出 token。已测范围内可排除 scheduler 自身计算为主要耗时；原始负载保留平均 TPOT 与 P99 ITL 的权衡，低到达率记录观测开关对应的 batch 组成变化。长上下文单轮诊断支持继续细分 attention，不将其等同于分页 allocator 根因或优化收益。
 
 阅读入口：`src/engine.cpp`、`src/scheduler.cpp`、`apps/bench_main.cpp`、`benchmarks/traces/cpu-mixed-s0.jsonl`、调度与 KV 原始结果。
 
@@ -462,7 +462,7 @@ profiles/<run_id>/
 | SGLang | 压缩前缀索引、使用中引用保护与淘汰 | 相同 KV 预算和缓存策略下比较元数据、查询成本与 TTFT |
 | TensorRT-LLM | 利用率与保守准入的权衡、不同阶段的执行形状 | admission/停顿/goodput，以及 B=1、批量 decode、prefill 对照 |
 
-固定源码、论文与资料入口见 [REFERENCES.md](REFERENCES.md)。实施时记录实际阅读的版本，历史设计文档不自动代表当前代码；借鉴结构不意味着复现其性能或拥有其实现。
+固定源码、论文与资料入口见 [REFERENCES.md](../../REFERENCES.md)。实施时记录实际阅读的版本，历史设计文档不自动代表当前代码；借鉴结构不意味着复现其性能或拥有其实现。
 
 ## 9. 停止条件与成果验收
 
@@ -484,7 +484,7 @@ profiles/<run_id>/
 
 用 Amdahl 上界约束投入：模块占总时长 `f` 时，即使其耗时归零，总加速也不超过 `1/(1-f)`；5% 占比对应约 1.053×。停止某个无收益 custom GEMM 分支不等于停止自研 CUDA Runtime，模型执行、device ownership、KV 和 attention 仍是独立成果。
 
-核心改动运行 CTest；模型、数值、KV 或 Serving 改动还须运行相关真实模型与 HTTP 检查。保留全部原始轮次、失败、输入和不利结果。已解决状态必须有对应证据，实际问题按 [ENGINEERING_LOG.md](ENGINEERING_LOG.md) 的中文字段记录。
+核心改动运行 CTest；模型、数值、KV 或 Serving 改动还须运行相关真实模型与 HTTP 检查。保留全部原始轮次、失败、输入和不利结果。已解决状态必须有对应证据，实际问题按 [ENGINEERING_LOG.md](../../ENGINEERING_LOG.md) 的中文字段记录。
 
 | 最终成果 | 必须具备的证据 |
 | --- | --- |

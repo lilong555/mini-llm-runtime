@@ -139,7 +139,7 @@ timeline 验证自有 kernel/cuBLAS、真实 dynamic batch、无逐层 weight/hi
 greedy 小 token/status D2H、无逐请求 Runtime 重建、单 stream 和同步完成边界。
 只按真实 timeline 解释 host 等待与 GPU gap，不累加 API/device 重叠时间。
 
-以下为交付条件；实际证据与发布候选身份见 [CUDA Serving 基线](../benchmarks/results/cuda-serving-001/README.md)。
+以下为交付条件；实际证据与发布候选身份见 [CUDA Serving 基线](../../../benchmarks/results/cuda-serving-001/README.md)。
 
 - 原 server 的 own-CUDA HTTP/SSE 在上游 GPU 关闭时通过。
 - 启动前能力与参数校验、sample 映射、S=1/4、dynamic/mixed/reuse 通过。

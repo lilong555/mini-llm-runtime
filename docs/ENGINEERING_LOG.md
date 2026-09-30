@@ -917,3 +917,18 @@
 - 验证：`.run/gpu-kv-001/p16-preflight-verified/` 复验通过，
   11 个前置产物、计划六进程、实际采样零进程；
   原始数值 16 case、173 行逐位比较不受此元数据格式错误影响。
+
+## ENG-079：公开文档否认已有 CUDA Serving 与分页研究完成状态
+
+- 状态：已解决，限定于当前事实一致性。
+- 影响：`THIRD_PARTY.md` 写有“当前没有自有 GPU Serving 或 PagedAttention”，
+  `GPU_KV_STUDY.md` 开头仍待采用／待合并，`CUDA_SERVING.md` 仍写“尚未采集”；
+  与已合并的 main、真实代码及正式证据相冲突。
+- 复现或证据：`main@9a571a5` 的上述文档；`src/mini_cuda_runner.cpp`
+  直接调用 `runtime_.forward`，配置默认 F32/contiguous；
+  PR #2/#3 已合并，`GPU-KV-001` 的 30 个正式进程和最终 B 结果已公开。
+- 原因：后续研究和合并完成后，部分页首摘要仍保留早期阶段的状态。
+- 解决方法：当前能力置顶，旧 `e7e2ced` 基础 Serving 验证标明日期与身份；
+  原始性能数字、失败与 source snapshot 不改写。
+- 验证：与源码、合并记录及公开证据交叉核对；当前说明不再否认已有能力。
+  新一轮本机功能验证独立记录，不将旧采集标为新 main 重测。

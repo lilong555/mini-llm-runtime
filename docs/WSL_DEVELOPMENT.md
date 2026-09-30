@@ -1,18 +1,26 @@
 # WSL2 原生开发
 
-主工作区位于 Ubuntu 的 `/home/li/code/mini-llm-runtime`，源码、Git、依赖、模型和构建产物都存储在 Linux 文件系统。Windows 路径 `E:\code\LLM Serving Engine` 是独立副本，不与主工作区自动同步。
+建议在 WSL 的 Linux 文件系统内选择工作目录，源码、依赖、模型和构建产物
+使用同一套 Linux 工具链。不需要作者的目录布局，不复用 Windows CMake 缓存。
 
 从 PowerShell 进入：
 
 ```powershell
-wsl -d Ubuntu --cd /home/li/code/mini-llm-runtime
+wsl -d Ubuntu
 ```
 
-从 Windows 浏览文件使用 `\\wsl.localhost\Ubuntu\home\li\code\mini-llm-runtime`。编辑器使用 WSL 远程模式；终端、Git、CMake、编译器、调试器和服务均在 Ubuntu 中运行。避免在 `/mnt/e` 下构建或复用 Windows 的 CMake 缓存。
+进入 WSL 后，在自行选择的工作目录中 clone 仓库。编辑器使用 WSL 远程模式；
+终端、Git、CMake、编译器、调试器和服务均在 Ubuntu 中运行。
 
 ## 工具链
 
-当前验证环境为 Ubuntu 22.04、WSL2 `5.15.167.4-microsoft-standard-WSL2`、Ryzen 7 7745HX、RTX 4070 Laptop GPU。工具与验证证据见 [环境验收](../benchmarks/results/wsl-environment/README.md)。
+前置工具为 Git、CMake ≥3.24、C++20 编译器、Ninja、Python 3、PowerShell 7、
+curl；完整测试需要 Python/PowerShell，不能通过关闭测试工具要求来替代验收。
+C++ Runtime 运行时不依赖 Python/PowerShell。GPU 另需 CUDA Toolkit ≥12.8
+及兼容的驱动、GPU 和目标架构。`CUDA_ARCHITECTURES` 默认 89 是已验证
+RTX 4070 Laptop 的设置，不是通用默认。
+
+历史验证环境为 Ubuntu 22.04、WSL2 `5.15.167.4-microsoft-standard-WSL2`、Ryzen 7 7745HX、RTX 4070 Laptop GPU。工具与验证证据见 [环境验收](../benchmarks/results/wsl-environment/README.md)；新机器需要实际验证，不自动继承此表。
 
 | 用途 | 当前工具 |
 | --- | --- |
@@ -32,10 +40,11 @@ CUDA 驱动由 Windows 提供，当前为 `591.74`；WSL 中只使用 Linux Tool
 
 ## CPU 工作流
 
-依赖：Git、GCC 的 C++20 工具链、CMake >= 3.24、Ninja、Python 3、curl。Python 仅用于模型文件管理，C++ 运行时不依赖 Python。
+以下入口使用完整测试配置。模型和依赖由受版本控制的 manifest 固定。
 
 ```bash
-cd /home/li/code/mini-llm-runtime
+git clone https://github.com/lilong555/mini-llm-runtime.git
+cd mini-llm-runtime
 bash scripts/dev.sh dependencies
 bash scripts/dev.sh model
 bash scripts/dev.sh build
@@ -53,7 +62,10 @@ clangd --check=src/minillm/kernels.cpp
 clang-tidy -p build/wsl-cpu src/minillm/kernels.cpp
 ```
 
-`build` 要求 Python 3 和 PowerShell，缺少完整测试工具时配置失败。`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。CPU CTest 包含 `unit`、`validation-contract`、`telemetry-validation`、`benchmark-validation`、`runtime-benchmark-validation`、`gguf`、`host-model` 七个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
+`build` 在缺少前置工具时给出诊断，不自动安装系统软件。
+`test` 保留完整的成功用例输出，并在没有注册测试时返回失败；
+实际注册项可用 `ctest --test-dir build/wsl-cpu -N` 查看。
+PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
 
 完整模型验证独立于 CTest。模型套件通过测试侧屏障构造真实 prefill/decode 混合批，保留数值、生成、前缀复用和 KV 回收检查。CPU 1、2、8 线程及 CUDA 参照的完整报告见 `benchmarks/results/validation/wsl-deterministic/`；原有时序问题及失败证据见 `ENG-017`。
 
@@ -90,14 +102,18 @@ bash scripts/dev.sh benchmark \
 ## 自有 CUDA Runtime
 
 ```bash
-bash scripts/dev.sh own-cuda build
+CUDA_ARCHITECTURES=89 bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda test
-bash scripts/dev.sh own-cuda memcheck
-bash scripts/dev.sh own-cuda storage-check
-bash scripts/dev.sh own-cuda storage-memcheck
-bash scripts/dev.sh own-cuda generate --tokens 8
-bash scripts/dev.sh own-cuda model-check
-bash scripts/dev.sh own-cuda model-full-check
+bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
+
+# 短数值检查需要 matched-weight F32 reference，不仅是 Q8_0 模型。
+python3 scripts/models.py --reference --converter build/wsl-cpu/bin/mini-llm
+OUT="$PWD/.run/finalization-$(git rev-parse --short=12 HEAD)-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+test ! -e "$OUT" || exit 1
+mkdir -p "$OUT"
+bash scripts/dev.sh own-cuda model-check "$OUT/model"
+bash scripts/dev.sh own-cuda serving-check "$OUT/serving.json"
+bash scripts/dev.sh own-cuda check-http 8015 "$OUT/http.json"
 ```
 
 `own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`，提供常驻 FP32 有效权重、连续 FP16 KV、完整 Qwen3 forward、greedy CLI 和 `serve`。GPU HTTP 与实模型检查使用 `own-cuda check-http`、`own-cuda serving-check`，配置与边界见 [CUDA Serving](CUDA_SERVING.md)。`storage-*`、`model-*` 使用固定模型，模型数值验证还需要 matched-weight F32 参照；报告路径必须尚不存在。构建与接口契约见 [CUDA Runtime](CUDA_RUNTIME.md)，全量语料见 [CUDA 数值验证](CUDA_NUMERICS.md)。CPU 可执行文件不链接该 CUDA target。
@@ -163,3 +179,30 @@ ncu --target-processes all --launch-count 1 --set basic .run/cuda-smoke
 ## 工作区与版本管理
 
 Linux 副本保留原分支、提交历史和未提交内容。后续开发以 Linux 副本为准，避免两侧交替修改同一分支。构建产物、服务状态、依赖 checkout 和模型权重不提交；保留模型来源与小型验证报告。Windows 副本保留用于恢复，不自动删除。
+
+## Windows 原生与参照后端
+
+Windows 原生构建需要 Visual Studio 2022 C++ 工具链、CMake ≥3.24、
+Python 3 和 PowerShell 7；选择 Ninja 时还需可用的 Ninja。
+以下路径从仓库根目录开始，与 WSL 构建目录分开：
+
+```powershell
+.\scripts\Fetch-Dependencies.ps1
+.\scripts\Download-Model.ps1
+.\scripts\Build-LLMServe.ps1
+.\build\cpu\bin\mini-llm.exe --model models\Qwen3-0.6B-Q8_0.gguf `
+    --prompt "The capital of France is" --tokens 8
+.\scripts\Start-LLMServe.ps1 -Backend mini
+.\scripts\Stop-LLMServe.ps1 -Port 8000
+```
+
+启动脚本返回实际端口、PID 和日志；不要假定占用端口仍为 8000。
+CUDA 参照后端的 `-Cuda` 控制上游 ggml，不是 own-CUDA：
+
+```powershell
+.\scripts\Build-LLMServe.ps1 -Cuda -CudaArchitectures 89
+.\scripts\Start-LLMServe.ps1 -Backend llama -Port 8001
+```
+
+`89` 只对应适用的 Ada GPU；CUDA DLL 的 `%CUDA_PATH%\bin` 需要在 `PATH` 中。
+自有 CUDA 的 Windows 选项与精度／布局边界见 [CUDA Serving](CUDA_SERVING.md)。

@@ -13,7 +13,7 @@
 - 基点自己的 CI：run `36233429810`，五个任务全部通过。
 - 实施分支：`feat/own-cuda-serving`。
 - 本轮交付：复用 HTTP、Engine、Scheduler、RequestHandle 的 MiniCudaRunner；
-  本机生命周期与限定测量证据见 [M3-1 基线](../benchmarks/results/cuda-serving-001/README.md)。
+  本机生命周期与限定测量证据见 [M3-1 基线](../../../benchmarks/results/cuda-serving-001/README.md)。
   12 个正式进程与一次 NSys 已完成；M3-2/M3-3 尚未启动。
 - M1 数值、375-case 微基准、70-process 模型协议与 Profiler 冻结。
   24 项模型比较中的 14 项 `faster`、10 项 `measurement_inconclusive` 保持原判定。
@@ -79,7 +79,7 @@ CPU gather 全量 KV 不能冒充 GPU paged attention。
 
 ## 证据与验收
 
-遵循 [产物政策](ARTIFACT_POLICY.md)。Git 保留源码、固定输入、复现命令、小索引、
+遵循 [产物政策](../../ARTIFACT_POLICY.md)。Git 保留源码、固定输入、复现命令、小索引、
 摘要及必要代表样本；完整 raw/log/source snapshot/Profiler 使用一个外部 canonical bundle。
 先验证可获取性、摘要与已有验证器，再迁移重复副本；不得删除唯一负结果或改写共享历史。
 

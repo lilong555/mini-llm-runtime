@@ -1,245 +1,118 @@
-# Mini LLM Runtime: C++20 + SIMD + CUDA
+# Mini LLM Runtime
 
-一个从底层推理到在线服务的 C++20 项目。**MiniLLM** 独立执行 Qwen3 前向计算，**LLMServe** 在其上实现迭代级调度与流式服务；llama.cpp 提供格式解析、tokenizer 和可切换的 CPU/CUDA 参照后端。
+C++20 实现的 CPU/CUDA Qwen3 推理 Runtime 与单 GPU 在线 Serving 研究原型。
+从 GGUF 权重到生成 token，连接物理 KV、动态组批、HTTP/SSE 和故障回收；
+目标是把模型计算、内存容量和服务完成点放在同一个可解释系统里。
 
-阅读入口：[架构](docs/ARCHITECTURE.md) · [性能](docs/PERFORMANCE.md) ·
-[GPU KV 研究](docs/GPU_KV_STUDY.md) · [验证](docs/VALIDATION.md)。
+## 自有实现
+
+- **CPU Runtime**：文件映射与张量视图、SIMD/scalar dispatch、线程池、完整 Qwen3 forward。
+- **KV 内存系统**：CPU 物理分页、prefix 共享与 COW；GPU 连续槽位和独占页池，信用与物理分配分开。
+- **Own CUDA Serving**：常驻权重、自有 attention/greedy、动态 mixed batching、HTTP/SSE、poisoned fail-stop 和有界停服排空。
+- **分层实验**：算子、模型和服务分别验证；保留数值失败、性能退化和不确定结果，不用微基准代替端到端收益。
+
+GGUF 元数据解析、tokenizer 和可选参照 backend 复用 llama.cpp；
+CUDA GEMM 使用 cuBLAS，归约使用 CUB。自有 CPU/CUDA forward 不调用
+`llama_decode()`，也不通过 CLI 子进程执行模型。[依赖与归属](THIRD_PARTY.md)
+
+## 架构与范围
 
 ```text
-                  Mini LLM Runtime
-GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
-                                             |
-                         Qwen3: RMSNorm / RoPE / GQA / SwiGLU
-                                             |
-                       CPU: FP16 Paged KV + Page Tables
-                       CUDA: FP16 Contiguous / Paged KV
-                                             |
-                           LLM Serving
-HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
-                                             |
-                              Continuous Batching
-                              Chunked Prefill + Decode
-                                             |
-                     ModelRunner: Mini CPU | Mini CUDA | llama.cpp
+HTTP / SSE -> Engine: admission, credits, lifecycle -> schedule_batch
+                                                    |
+                       MiniRunner / MiniCudaRunner / LlamaRunner
+                            |             |               |
+                       CPU Runtime    CUDA Runtime    upstream reference
+                            |             |
+                      FP16 paged KV   FP16 contiguous KV (default)
+                                                    |
+                                  checked samples -> RequestHandle -> SSE
 ```
 
-MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
+默认快速入口为 CPU `mini`，GPU 展示入口为 `mini-cuda`。
+Own CUDA 限定 Qwen3-0.6B、单 GPU、S≤4、L≤2048、B≤128、greedy、单 stream、
+同步 execute；source Q8_0 在初始化时转为 F32 device weights，不是 native Q8 CUDA。
+`llama` 是独立的上游参照路径。
 
-自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → FP16 KV → greedy token`。KV 默认连续，也可显式选择共享页池和直接分页 attention；MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
+GPU paged 为 **B：容量／研究 opt-in**，不改变 contiguous 默认。
+FP16 matrix 候选未通过原数值门槛，禁止用于 Serving。
+不支持随机采样、任意模型架构、GPU prefix sharing、Graph/async、多 GPU 或生产级 SLO。
 
-## 能力边界
+## 结果与取舍
 
-| 层次 | 已实现 |
-| --- | --- |
-| GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
-| Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
-| 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
-| CUDA 分页研究路径 | C++ Runtime、CLI 与 Serving 可选共享 FP16 页池、设备块表与直接分页 attention；保守信用与物理容量一致，不改变连续默认 |
-| 自有 CUDA Serving | 现有 Engine/HTTP/SSE、动态 mixed batching、独立槽与 clear/reuse、poisoned fail-stop、模型线程资源快照 |
-| CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
-| 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
-| CPU 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
-| Serving Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
-| 调度 | token budget、chunked prefill、优先级 aging、等待保护、保守容量预留 |
-| Prefix cache | token Trie、命名空间、完整块复用、LRU 淘汰；全命中时重算最后一块 |
-| 服务 | C++ HTTP/SSE、取消、超时、断连回收、慢消费者背压、严格参数校验 |
-| 实验 | CPU SIMD 与 CUDA 真实形状微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
-| 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
+以下为不同阶段的冻结采集，不是当前 main 重跑；不能混为一个统一加速比。
 
-支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
+| 实验 | 结果 | 限制与证据 |
+| --- | --- | --- |
+| CUDA Serving，mixed-length，mixed 对 prefill_first | 吞吐中位数约 +7.09% | 特定 trace 的调度对照；[原始研究](benchmarks/results/cuda-serving-001/README.md) |
+| GPU KV，同容量 8192 tokens，paged 对 contiguous | 配对吞吐中位数 -15.73% | 未通过 10% 护栏，不节省该组显存；[分页研究](docs/GPU_KV_STUDY.md) |
+| GPU KV，同 288 MiB KV 子预算 | 配对吞吐中位数 +4.31% | 异长容量更灵活，但 TPOT/ITL 更高，不是低延迟改进；[证据包](benchmarks/results/gpu-kv-001/README.md) |
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。[GPU 分页研究](docs/GPU_KV_STUDY.md) 最终为容量／研究模式，默认 contiguous；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
+完整 CPU micro、CUDA model、Serving 与 FP16 负结果见[性能](docs/PERFORMANCE.md)。
+主要功能和性能实验已冻结，剩余范围仅为文档、交付和必要修复。
 
-## 快速运行
+## 快速开始
 
-### WSL2 原生开发（默认）
+Linux／WSL2 需要 Git、CMake ≥3.24、C++20 编译器、Ninja、Python 3、
+PowerShell 7 和 curl。Python/PowerShell 用于脚本及完整测试，不是 C++ Runtime
+的执行依赖。Own CUDA 另需 CUDA Toolkit ≥12.8、兼容驱动和 GPU。
+WSL 使用 Windows GPU 驱动，不在 WSL 内安装 Linux 显示驱动。
 
-主工作区：Ubuntu `/home/li/code/mini-llm-runtime`。源码、依赖、模型与构建产物位于 Linux 文件系统。
+### CPU
+
+在自行选择的 Linux 工作目录中执行：
 
 ```bash
-cd /home/li/code/mini-llm-runtime
+git clone https://github.com/lilong555/mini-llm-runtime.git
+cd mini-llm-runtime
 bash scripts/dev.sh dependencies
 bash scripts/dev.sh model
 bash scripts/dev.sh build
 bash scripts/dev.sh test
+build/wsl-cpu/bin/mini-llm --model models/Qwen3-0.6B-Q8_0.gguf \
+  --prompt "The capital of France is" --tokens 8
 bash scripts/dev.sh serve --port 8000
 ```
 
-完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
+### Own CUDA
 
-### 自有 CUDA
+承接已准备的依赖和模型。`89` 是已验证的 RTX 4070 Laptop 架构设置，
+也是脚本当前默认值，不适用于所有 GPU；其它设备须选对应架构。
 
 ```bash
-bash scripts/dev.sh own-cuda build
+CUDA_ARCHITECTURES=89 bash scripts/dev.sh own-cuda build
+bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
 bash scripts/dev.sh own-cuda serve --port 8001
 ```
 
-该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。[自有 GPU Serving 基线](benchmarks/results/cuda-serving-001/README.md) 包含 12 个独立服务进程、288 个成功请求和一次完整时间线，保留 SLO 未达标及吞吐不确定项；生命周期与性能分别验收。
-
-自有 CUDA 的精度参数为 `--cuda-precision f32-pedantic`，省略时相同。
-`f16-matrix-f32acc` 仅用于矩阵微基准、模型 CLI 和数值研究，未通过长续写数值门禁，
-不可用于 Serving；CPU 与上游后端拒绝该参数。
-[精度研究](docs/PRECISION_STUDY.md) 提供固定输入、负结果与产品资格边界。
-
-### Windows / PowerShell
-
-需要 Visual Studio 2022 C++ 工具链、CMake >= 3.24 和 Ninja。运行不依赖 Python。
-
-```powershell
-.\scripts\Fetch-Dependencies.ps1
-.\scripts\Download-Model.ps1
-.\scripts\Build-LLMServe.ps1
-
-.\build\cpu\bin\mini-llm.exe --model models\Qwen3-0.6B-Q8_0.gguf `
-    --prompt "The capital of France is" --tokens 16
-
-.\scripts\Start-LLMServe.ps1 -Backend mini
-```
-
-服务默认监听 `http://127.0.0.1:8000`。启动脚本会避开占用端口并返回实际地址、PID 和日志路径。服务仅绑定 loopback，没有认证，不应直接暴露到公网。
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-curl.exe -N http://127.0.0.1:8000/v1/completions `
-    -H "Content-Type: application/json" --data-binary '@examples/completion.json'
-
-.\scripts\Stop-LLMServe.ps1 -Port 8000
-```
-
-模型下载由 manifest 固定版本与 SHA-256。存在可用 WSL 网络时，可使用 `Download-Model.ps1 -UseWsl` 下载；WSL 不是 C++ 运行时的依赖。
-
-### CUDA 参照后端
-
-```powershell
-.\scripts\Build-LLMServe.ps1 -Cuda -CudaArchitectures 89
-.\scripts\Start-LLMServe.ps1 -Backend llama -Port 8001
-```
-
-本机验证环境：RTX 4070 Laptop GPU，8188 MiB 显存，驱动 591.74，CUDA Toolkit 12.8，MSVC 19.44。`89` 对应 Ada；其他 GPU 应选择适合的架构。CUDA DLL 所在的 `%CUDA_PATH%\bin` 需在 `PATH` 中。
-
-### Linux
+`serve` 前台运行，Ctrl+C 停止。另开终端访问对应端口，CPU 用 8000，CUDA 用 8001：
 
 ```bash
-git clone --filter=blob:none https://github.com/ggml-org/llama.cpp.git third_party/llama.cpp
-git -C third_party/llama.cpp checkout --detach 911f6cdc8ab8a530b2bee09ee61471a6f3178eeb
-cmake -S . -B build/cpu -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/cpu -j 8
-ctest --test-dir build/cpu --output-on-failure
-build/cpu/bin/llmserve --model models/Qwen3-0.6B-Q8_0.gguf --backend mini
+PORT=8001
+curl --fail --silent "http://127.0.0.1:$PORT/health"
+curl --fail -N "http://127.0.0.1:$PORT/v1/completions" \
+  -H 'Content-Type: application/json' \
+  --data '{"prompt":"The capital of France is","max_tokens":8,"temperature":0,"stream":true}'
+curl --fail --silent "http://127.0.0.1:$PORT/metrics"
 ```
 
-没有模型或外部依赖时，可独立构建算法与资源管理测试：
+只监听 loopback，没有认证，不应直接暴露到公网。
+安装与编译耗时取决于网络、机器和缓存，不承诺固定完成时间。
+参照 F32 模型生成、Windows 命令和进阶验证见[开发指南](docs/WSL_DEVELOPMENT.md)；
+公共 HTTP 合同和 GPU 参数见[Serving 说明](docs/CUDA_SERVING.md)。
 
-```bash
-cmake -S . -B build/unit -DLLMSERVE_WITH_LLAMA=OFF
-cmake --build build/unit
-ctest --test-dir build/unit --output-on-failure
-```
+## 深入阅读
 
-## 接口
+本页是系统总览，其余四个主入口：
+[架构与所有权](docs/ARCHITECTURE.md)、
+[性能与证据边界](docs/PERFORMANCE.md)、
+[GPU KV 取舍](docs/GPU_KV_STUDY.md)、
+[验证](docs/VALIDATION.md)。
 
-| 接口 | 内容 |
-| --- | --- |
-| `GET /health` | readiness |
-| `GET /v1/models` | 实际加载的模型 ID |
-| `POST /tokenize` | `{"text":"..."}` -> token IDs |
-| `POST /v1/completions` | 文本或 token ID prompt；完整 JSON 或 SSE |
-| `DELETE /v1/requests/{id}` | 取消在途请求；ID 可由 `X-Request-ID` 指定 |
-| `GET /metrics` | 批次、生成、缓存、容量预留与请求状态统计 |
-
-Completions 是受限的兼容接口，不是完整 API 实现。支持 `prompt`、`model`、`max_tokens`、`temperature=0`、`stream`、`priority=0..3`、`timeout_ms`、`ignore_eos`、`cache_namespace`、`n=1`；其他参数明确拒绝。
-
-SSE 每个采样 token 带 `token_id`，文本经过 UTF-8 增量缓冲；末事件带 `usage` 和 `timings`，随后恰好一个 `[DONE]`。EOS 计入采样 token 数，不输出 EOS 文本。断连与超时在一次模型前向完成后的边界生效，不中断在途 kernel。
-
-`cache_namespace` 只用于单租户实验隔离，不构成身份认证。终态请求不保留在查询注册表中。
-
-## 验证与测量
-
-```powershell
-ctest --test-dir build\cpu --output-on-failure
-.\scripts\Validate-Model.ps1 -Output benchmarks\results\validation\model-f32-cpu-only-reference.json
-.\build\cpu\bin\llmserve-http-tests.exe --port 8000 `
-    --output benchmarks\results\validation\http-mini.json
-.\build\cpu\bin\mini-kernel-bench.exe --output benchmarks\results\simd-q8-dot.json
-.\build\cpu\bin\mini-kv-cache-bench.exe `
-    --output benchmarks\results\kv-cache-cpu\layout-isolation.json
-```
-
-模型验证使用由同一份 Q8_0 权重解量化得到的 F32 GGUF，避免把上游额外的激活量化误差混入参考。参照文件约 2.39 GB，只用于验证，生成命令、来源和哈希固定在 `scripts/Validate-Model.ps1` 与 `models/reference-manifest.json`。
-
-负载生成与策略对照：
-
-```powershell
-.\build\cpu\bin\llmserve-bench.exe --make-trace --port 8000 `
-    --trace benchmarks\traces\cpu-mixed-s0.jsonl --requests 24 --rate 4 `
-    --long-tokens 128 --short-tokens 16 --max-tokens 16 --seed 0
-
-.\scripts\Stop-LLMServe.ps1 -Port 8000
-.\scripts\Benchmark-Policies.ps1 -Backend mini -Trace benchmarks\traces\cpu-mixed-s0.jsonl
-```
-
-WSL 原生入口为 `bash scripts/dev.sh benchmark -Trace benchmarks/traces/cpu-mixed-s0.jsonl`。策略对照的实验身份、源码快照、合法失败终态和严格验收规则见 [策略回放与验收](docs/BENCHMARKS.md)。
-
-`bash scripts/dev.sh runtime-benchmark` 直接测量 CPU Runtime 的固定 prefill、decode 和 mixed 输入，交替采集无计时与分阶段计时的独立进程，核对完整 logits 摘要及 KV 状态。接口、矩阵形状、线程池等待时间和开销边界见 [Runtime 计时与模型基准](docs/RUNTIME_PROFILING.md)。
-
-自有 CUDA 提供 [模型性能对照](docs/CUDA_BENCHMARKS.md) 与 [真实形状微基准](docs/CUDA_MICROBENCHMARKS.md)，入口分别为 `bash scripts/dev.sh own-cuda runtime-benchmark` 和 `micro-benchmark`。两者使用独立协议、原始样本和归档；微基准不代表模型或服务加速。
-
-`scripts/Benchmark-Telemetry.ps1` 交替运行 `off / batches / stages` 与两种调度策略，关联每个 SSE token 的 batch、Engine 发布间隔及客户端 ITL。数据结构、到达率缩放、有界采集与验收见 [在线 batch 与 token 时间线](docs/BATCH_TELEMETRY.md)。
-
-对照只改变 `mixed` / `prefill_first` 策略，每次重启服务、执行相同 warmup、交替运行顺序。报告保留逐请求 token ID、token 到达时间、失败、调度延迟和服务端配置；失败请求不会从总请求数中删除。
-
-结果与限制见 [验证记录](docs/VALIDATION.md)。SIMD 内核的微基准加速不能当作模型或 Serving 的端到端加速。
-
-CPU KV 对照使用同一模型、相同 F16 K/V、8 线程和固定 token trace，分别记录 MiniLLM 与 llama.cpp 的长上下文 TPOT。隔离基准在相同 AVX2/F16C attention 数学下只切换物理分页与按层连续布局，不把该结果表述为 llama.cpp 内核性能。原始报告及汇总位于 `benchmarks/results/kv-cache-cpu/`。
-
-## KV 容量
-
-```text
-FP16 KV bytes/token = 2 * 28 layers * 8 KV heads * 128 head_dim * 2 bytes
-                    = 112 KiB
-16-token physical page = 1.75 MiB
-8192-token KV capacity = 896 MiB
-```
-
-MiniLLM 的物理页在追加 token 时按需分配；释放后进入 free list，已分配的底层缓冲保留供复用。Serving 的 `BlockPool` 是独立的容量信用管理，按请求的 prompt + 输出上限保守预留，不是 GPU 地址分配器，也不是已经完成的增量准入优化。
-
-## 代码导航
-
-```text
-include/minillm/      Mini Runtime 公共接口
-src/minillm/          SIMD、GGUF mmap、Qwen3 forward、物理 paged KV
-include/llmserve/     Serving 公共接口
-src/engine.cpp       请求生命周期、准入、缓存和单执行线程
-src/scheduler.cpp    mixed / prefill-first 调度
-src/prefix_index.cpp Token Trie 和 LRU
-src/mini_runner.cpp  Mini Runtime 适配器
-src/llama_runner.cpp llama.cpp CPU/CUDA 适配器
-src/http_server.cpp  HTTP/SSE
-apps/                CLI、服务入口和 C++ 基准工具
-tests/               单元、模型与在线验证
-benchmarks/          固定输入及实测报告
-```
-
-模型所有权与分词接口见 [Host Model](docs/HOST_MODEL.md)；依赖与贡献边界见 [THIRD_PARTY.md](THIRD_PARTY.md)；设计问题见 [PROBLEM_CHECKLIST.md](docs/PROBLEM_CHECKLIST.md)；论文与固定源码入口见 [REFERENCES.md](docs/REFERENCES.md)。
-
-## 版本与问题管理
-
-本仓库公开发布；`main` 为主分支，功能改动使用独立分支与有意义的提交，已发布标签不覆盖。具体约定见 [VERSION_CONTROL.md](docs/VERSION_CONTROL.md)。
-
-遇到的问题按编号记录在 [ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md)，包含现象、原因、解决方法、验证证据和仍未解决的事项。模型权重、第三方 checkout、构建产物、运行状态与本地 Python 辅助实验不上传。
-
-## 项目计划
-
-项目处于 Portfolio Freeze 收尾，不新增主要功能。
-GPU 分页 Runtime、CLI 与 Serving 已提供；容量能力已验证，
-一次有限地址修订后的模型确认仍未通过长上下文延迟护栏，默认仍为 contiguous。
-kernel 优化与固定 Serving 对照已结束，最终为 B（容量／研究模式）；
-同容量吞吐退化 15.73%，同 KV 预算吞吐提升 4.31%，但 TPOT/ITL 更高。
-完整 raw、失败记录与复核入口见[单一公开证据包](benchmarks/results/gpu-kv-001/README.md)；
-详细分析见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
-
-[FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
-结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。
-CPU 保持独立产品与数值参照；不追加 prefix、Graph、async 或新的精度路线。
-历史计划保留，但不作为当前实施入口。
+代码入口：[CPU Runtime](src/minillm/runtime.cpp)、
+[CUDA Runtime](src/minillm/cuda/runtime.cpp)、
+[MiniCudaRunner](src/mini_cuda_runner.cpp)、
+[Engine](src/engine.cpp)、[Scheduler](src/scheduler.cpp)、
+[HTTP/SSE](src/http_server.cpp)。
+问题与失败见[工程记录](docs/ENGINEERING_LOG.md)，发布规则见[版本约定](docs/VERSION_CONTROL.md)。

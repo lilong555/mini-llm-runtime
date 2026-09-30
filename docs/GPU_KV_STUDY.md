@@ -1,7 +1,11 @@
 # GPU KV 共享容量研究
 
-活跃计划为 [PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md)，规范为
-[GPU-KV-001](NEXT_SPEC_V3.md)。本研究仅改变 KV 内存组织，保持 F32 矩阵、
+**最终结果：B，容量／研究模式。** 实现和研究已完成，并通过 PR #2/#3
+整合到 main；contiguous 默认，paged 显式 opt-in，FP16 matrix Serving 不开放。
+30 个正式性能进程已结束，不再优化 kernel 或追加 trial。
+完整结果与公开证据见本文末节；历史实施合同为
+[PLAN-V4-KV-20260928](history/plans/PROJECT_PLAN_V4_KV.md) 和 [GPU-KV-001](NEXT_SPEC_V3.md)。
+本研究仅改变 KV 内存组织，保持 F32 矩阵、
 F16 KV、现有 attention 数学、单 stream 与同步完成；不含 prefix sharing、
 fusion、Graph、async 或新的精度路径。
 
@@ -18,7 +22,7 @@ fusion、Graph、async 或新的精度路径。
 | Paged C++ 模型 | 可执行，仅 F32 矩阵；S1/S4 真实模型逐位对照通过 |
 | Paged CLI/Serving | 已接入；显式选择布局，Serving 信用与物理容量一致，默认仍连续 |
 | 指定预算的请求共存与压力进展 | 确定性真实模型验证通过；不代表吞吐结论 |
-| 采用决定 | 正式性能护栏尚未验证，不判为产品可采用 |
+| 采用决定 | B：容量／研究模式；模型和同容量 Serving 护栏未通过，不升级为默认 |
 
 `PageTableState` 只持有 active/pending table、free IDs 和本批 journal。
 所有容器在构造时预留；不持有设备地址，不保存第二份 token length，
@@ -40,12 +44,14 @@ Host 计数不是 GPU 显存释放。clear 归还的是池内 page ID，
 resident slab 仍由 `CudaStorage` 持有。host、设备、模型与 Serving 验证分别记录，
 不将某一层的通过扩大为所有层的保证。
 
-## 发布候选
+## 历史基础 Serving 候选（2026-09-29）
 
 已有能力的整合候选为 `e7e2ced73cb79b82e3025db9e9035982bd858b58`，
 位于 `release/own-cuda-serving-public`，包含 `57268f9` 的 HTTP 排空修复。
-[PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 等待用户审阅；
-未合并 main，未移动历史标签。分页实施位于独立 `feat/cuda-paged-kv` 分支。
+以下是合并前的 `e7e2ced` 验证记录，不是新 main 的重新测量。
+[PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 与分页
+[PR #3](https://github.com/lilong555/mini-llm-runtime/pull/3) 已合并；
+历史标签与采集身份不变。
 
 - 候选自身 CI run `36517808344` 五任务成功；PR CI run `36517815149` 五任务成功。
 - 本机 own-CUDA 构建与 22/22 CTest 通过，8-token CLI 与冻结 golden 相同。
