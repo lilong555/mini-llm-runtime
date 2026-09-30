@@ -3,7 +3,8 @@ param(
     [string]$BinaryDirectory = '',
     [string]$Model = '',
     [string]$NumericalDirectory = '',
-    [switch]$PreflightOnly
+    [switch]$PreflightOnly,
+    [switch]$GpuKvStudy
 )
 
 $ErrorActionPreference = 'Stop'
@@ -15,12 +16,16 @@ $root = Split-Path -Parent $PSScriptRoot
 $python = if (Get-Command python3 -ErrorAction SilentlyContinue) { 'python3' } else { 'python' }
 $analyzer = Join-Path $PSScriptRoot 'analyze_cuda_benchmark.py'
 $inputFile = Join-Path $root 'benchmarks/runtime-inputs/qwen3-cuda-v0.json'
+if ($GpuKvStudy) { $inputFile = Join-Path $root 'benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json' }
 if (-not $BinaryDirectory) {
     $platform = if ($env:OS -eq 'Windows_NT') { '' } else { 'wsl-' }
     $BinaryDirectory = Join-Path $root "build/${platform}own-cuda/bin"
 }
 if (-not $Model) { $Model = Join-Path $root 'models/Qwen3-0.6B-Q8_0.gguf' }
-if (-not $NumericalDirectory) { $NumericalDirectory = Join-Path $root 'benchmarks/results/validation/cuda-micro' }
+if (-not $NumericalDirectory) {
+    $NumericalDirectory = Join-Path $root $(if ($GpuKvStudy) { '.run/gpu-kv-001/model-numerics' }
+                                           else { 'benchmarks/results/validation/cuda-micro' })
+}
 $BinaryDirectory = (Resolve-Path -LiteralPath $BinaryDirectory).Path
 $Model = (Resolve-Path -LiteralPath $Model).Path
 $NumericalDirectory = (Resolve-Path -LiteralPath $NumericalDirectory).Path
@@ -40,7 +45,9 @@ if ((Read-CMakeValue $cache 'CMAKE_HOME_DIRECTORY') -cne $root -or
 }
 $inputHash = Get-LowerSha256 $inputFile
 $modelHash = Get-LowerSha256 $Model
-if ($inputHash -cne 'f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6' -or
+$expectedInput = if ($GpuKvStudy) { '77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e' }
+    else { 'f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6' }
+if ($inputHash -cne $expectedInput -or
     $modelHash -cne '9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031') {
     throw '固定性能输入或模型摘要不符。'
 }
@@ -48,15 +55,24 @@ $provenance = Get-Content -Raw -LiteralPath (Join-Path $root 'models/manifest.js
 if ($provenance.sha256 -cne $modelHash -or [long]$provenance.size_bytes -ne (Get-Item -LiteralPath $Model).Length) {
     throw '模型来源清单不符。'
 }
-& $python (Join-Path $PSScriptRoot 'analyze_cuda_validation.py') --directory (Join-Path $NumericalDirectory 'real-model')
-if ($LASTEXITCODE -ne 0) { throw '必须先通过完整数值证据复核。' }
+if (-not $GpuKvStudy) {
+    & $python (Join-Path $PSScriptRoot 'analyze_cuda_validation.py') --directory (Join-Path $NumericalDirectory 'real-model')
+    if ($LASTEXITCODE -ne 0) { throw '必须先通过完整数值证据复核。' }
+}
 & cmake --build $build --config $buildType --target mini-cuda-runtime-bench minillm-cuda-model-tests --parallel 4
 if ($LASTEXITCODE -ne 0) { throw 'CUDA 模型基准构建失败。' }
 $executable = Get-ProductExecutable $BinaryDirectory 'mini-cuda-runtime-bench'
 $validationExecutable = Get-ProductExecutable $BinaryDirectory 'minillm-cuda-model-tests'
-$numericalEnvironment = Get-Content -Raw (Join-Path $NumericalDirectory 'environment.json') | ConvertFrom-Json
+$environmentFile = if ($GpuKvStudy) { 'execution-identity.json' } else { 'environment.json' }
+$numericalEnvironment = Get-Content -Raw (Join-Path $NumericalDirectory $environmentFile) | ConvertFrom-Json
 $validationHash = Get-LowerSha256 $validationExecutable
-if ($numericalEnvironment.full_validation_binary_sha256 -cne $validationHash) {
+if ($GpuKvStudy) {
+    $binding = @($numericalEnvironment.binaries | Where-Object {
+        (Split-Path -Leaf $_.path) -cin @('minillm-cuda-model-tests', 'minillm-cuda-model-tests.exe') })
+    if ($binding.Count -ne 1 -or $binding[0].sha256 -cne $validationHash) {
+        throw '分页数值测试二进制与当前构建不符，必须重新验证。'
+    }
+} elseif ($numericalEnvironment.full_validation_binary_sha256 -cne $validationHash) {
     throw '完整数值测试的编译产物已改变，必须在当前构建下重新建立数值验收，不能仅按源码继承。'
 }
 $compiler = Get-ChildItem -LiteralPath (Join-Path $build 'CMakeFiles') -Recurse -File -Filter 'CMakeCXXCompiler.cmake' |
@@ -73,14 +89,21 @@ $dirty = @(& git -C $root status --porcelain=v1 --untracked-files=all)
 if ($LASTEXITCODE -ne 0) { throw '不能识别工作区状态。' }
 $scope = @('CMakeLists.txt', '.gitattributes', 'cmake', 'apps', 'include', 'src', 'scripts', 'tests', '.github',
     'models/manifest.json', 'models/reference-manifest.json', 'benchmarks/runtime-inputs', 'docs/NEXT_SPEC.md')
+if ($GpuKvStudy) { $scope += @('docs/NEXT_SPEC_V3.md', 'docs/GPU_KV_STUDY.md') }
 $sourceFiles = @(Get-BenchmarkSourceState $root $scope)
 $sourceJson = ConvertTo-Json -InputObject $sourceFiles -Depth 8 -Compress
-$planText = & $python $analyzer --schedule
+$scheduleArgs = @('--schedule')
+if ($GpuKvStudy) { $scheduleArgs += '--gpu-kv' }
+$planText = & $python $analyzer @scheduleArgs
 if ($LASTEXITCODE -ne 0) { throw '不能建立固定进程顺序。' }
 $plan = ($planText -join "`n") | ConvertFrom-Json
+$processCount = $plan.reports.Count
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, 12), ([guid]::NewGuid().ToString('N').Substring(0, 8))
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root "benchmarks/results/cuda-model-$runId" }
+if (-not $OutputDirectory) {
+    $OutputDirectory = Join-Path $root $(if ($GpuKvStudy) { ".run/gpu-kv-001/model-$runId" }
+                                       else { "benchmarks/results/cuda-model-$runId" })
+}
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count) {
     throw '基准输出目录必须为空；已有采样不会被覆盖。'
@@ -88,21 +111,30 @@ if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath 
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 Copy-Item -LiteralPath $inputFile -Destination (Join-Path $OutputDirectory 'input.json')
 Copy-Item -LiteralPath $analyzer -Destination (Join-Path $OutputDirectory 'verify.py')
-Copy-Item -LiteralPath (Join-Path $NumericalDirectory 'real-model/validation-summary.json') `
+$summaryFile = if ($GpuKvStudy) { 'paged-model/validation-summary.json' } else { 'real-model/validation-summary.json' }
+Copy-Item -LiteralPath (Join-Path $NumericalDirectory $summaryFile) `
     -Destination (Join-Path $OutputDirectory 'validation-summary.json')
 Copy-Item -LiteralPath (Join-Path $NumericalDirectory 'source-state.json') `
     -Destination (Join-Path $OutputDirectory 'numerical-source-state.json')
-Copy-Item -LiteralPath (Join-Path $NumericalDirectory 'environment.json') `
+Copy-Item -LiteralPath (Join-Path $NumericalDirectory $environmentFile) `
     -Destination (Join-Path $OutputDirectory 'numerical-environment.json')
+if ($GpuKvStudy) {
+    foreach ($name in @('paged-model-validation.json', 'validation-contract.json')) {
+        Copy-Item -LiteralPath (Join-Path $NumericalDirectory "paged-model/$name") -Destination $OutputDirectory
+    }
+}
 $stateFile = Join-Path $OutputDirectory 'source-state.json'
 Write-BenchmarkJson $stateFile ([ordered]@{ scope = $scope; files = $sourceFiles })
 $snapshot = Join-Path $OutputDirectory 'source-snapshot.zip'
 Write-BenchmarkSourceSnapshot $root $sourceFiles $snapshot
-$artifacts = @('verify.py', 'validation-summary.json', 'numerical-source-state.json', 'numerical-environment.json') | ForEach-Object {
+$artifactNames = @('verify.py', 'validation-summary.json', 'numerical-source-state.json', 'numerical-environment.json')
+if ($GpuKvStudy) { $artifactNames += @('paged-model-validation.json', 'validation-contract.json') }
+$artifacts = $artifactNames | ForEach-Object {
     [ordered]@{ path = $_; sha256 = Get-LowerSha256 (Join-Path $OutputDirectory $_) }
 }
 $manifest = [ordered]@{
-    schema_version = 1; benchmark = 'minillm-cuda-runtime'; protocol_id = 'qwen3-cuda-model-v0'; run_id = $runId
+    schema_version = 1; benchmark = 'minillm-cuda-runtime'
+    protocol_id = $(if ($GpuKvStudy) { 'gpu-kv-experiment-v1' } else { 'qwen3-cuda-model-v0' }); run_id = $runId
     created_at_utc = (Get-Date).ToUniversalTime().ToString('o')
     source = [ordered]@{ git_sha = $gitSha; git_dirty = $dirty.Count -gt 0; scope = $scope; state_file = 'source-state.json'
         worktree_state_sha256 = Get-LowerSha256 $stateFile
@@ -131,7 +163,8 @@ $manifest = [ordered]@{
         profiler = 'none' }
     statistics = $plan.statistics; reports = $plan.reports; artifacts = @($artifacts)
     numerical_evidence = [ordered]@{ repository_path = [IO.Path]::GetRelativePath($root, $NumericalDirectory).Replace('\', '/')
-        scope = 'source_and_validation_binary_equivalent_full_corpus'; full_numeric_archive_included = $false
+        scope = $(if ($GpuKvStudy) { 'source_and_validation_binary_equivalent_paged_model' }
+                  else { 'source_and_validation_binary_equivalent_full_corpus' }); full_numeric_archive_included = $false
         validation_binary_sha256 = $validationHash }
 }
 $manifestPath = Join-Path $OutputDirectory 'manifest.json'
@@ -166,12 +199,18 @@ try {
         if ($previous.Count -ne 1 -or $previous[0].sha256 -cne $item.sha256) { throw "需要重新运行数值门禁：$($item.path)" }
     }
     Test-BenchmarkSourceArchive $OutputDirectory ([pscustomobject]$manifest.source)
+    if ($GpuKvStudy) {
+        Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
+            status = 'preflight_only'; reports = @(); planned_reports = $processCount })
+        & $python $analyzer --directory $OutputDirectory --preflight
+        if ($LASTEXITCODE -ne 0) { throw '分页模型数值或源码门禁失败，未启动性能采样。' }
+    }
     if ($PreflightOnly) {
         Write-BenchmarkJson (Join-Path $OutputDirectory 'preflight-environment.json') (Get-CudaBenchmarkEnvironment)
         Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
-            status = 'preflight_only'; reports = @(); planned_reports = 70
+            status = 'preflight_only'; reports = @(); planned_reports = $processCount
             scope = '输入、源码、依赖、构建和环境检查；没有性能测量或统计结论' })
-        Write-Host "预检通过：70 个独立进程；未执行性能采样。归档：$OutputDirectory"
+        Write-Host "预检通过：$processCount 个独立进程；未执行性能采样。归档：$OutputDirectory"
         return
     }
     foreach ($slot in $plan.reports) {
@@ -179,14 +218,17 @@ try {
         $path = Join-Path $OutputDirectory $slot.file
         $arguments = @('--model', $Model, '--input', (Join-Path $OutputDirectory 'input.json'), '--backend', $slot.backend,
             '--output', $path, '--manifest', $manifestPath, '--order', "$($slot.order)")
+        if ($GpuKvStudy) { $arguments += @('--kv-layout', $slot.kv_layout) }
         $before = Get-CudaBenchmarkEnvironment
         $started = (Get-Date).ToUniversalTime().ToString('o')
         & $executable @arguments 1> "$path.stdout.txt" 2> "$path.stderr.txt"
         $exitCode = $LASTEXITCODE
         $after = Get-CudaBenchmarkEnvironment
-        Write-BenchmarkJson "$path.process.json" ([ordered]@{ order = $slot.order; executable = $executable
+        $process = [ordered]@{ order = $slot.order; executable = $executable
             arguments = $arguments; exit_code = $exitCode; started_at_utc = $started
-            finished_at_utc = (Get-Date).ToUniversalTime().ToString('o'); before = $before; after = $after })
+            finished_at_utc = (Get-Date).ToUniversalTime().ToString('o'); before = $before; after = $after }
+        if ($GpuKvStudy) { $process.kv_layout = $slot.kv_layout }
+        Write-BenchmarkJson "$path.process.json" $process
         $record = [ordered]@{ file = $slot.file; exit_code = $exitCode; sha256 = $null; artifacts = @() }
         if (Test-Path -LiteralPath $path) { $record.sha256 = Get-LowerSha256 $path }
         foreach ($suffix in @('.stdout.txt', '.stderr.txt', '.process.json')) {
@@ -195,17 +237,18 @@ try {
         $completed.Add([pscustomobject]$record)
         if ($exitCode -ne 0) { $failed = $true }
         Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
-            status = 'collecting'; reports = @($completed.ToArray()); planned_reports = 70 })
+            status = 'collecting'; reports = @($completed.ToArray()); planned_reports = $processCount })
         Assert-CudaBenchmarkInputs
-        Write-Host "CUDA 模型对照 $($completed.Count)/70：$($slot.file)，退出码 $exitCode"
+        Write-Host "CUDA 模型对照 $($completed.Count)/$processCount：$($slot.file)，退出码 $exitCode"
+        if ($GpuKvStudy -and $exitCode -ne 0) { throw '分页模型进程失败，停止采样并保留全部结果。' }
     }
     Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
-        status = $(if ($failed) { 'failed' } else { 'passed' }); reports = @($completed.ToArray()); planned_reports = 70
+        status = $(if ($failed) { 'failed' } else { 'passed' }); reports = @($completed.ToArray()); planned_reports = $processCount
         finished_at_utc = (Get-Date).ToUniversalTime().ToString('o') })
     if ($failed) { throw '存在失败进程，全部已采集结果保留；不能发布通过摘要。' }
 } catch {
     Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{
-        status = 'failed'; reports = @($completed.ToArray()); planned_reports = 70; error = $_.Exception.Message
+        status = 'failed'; reports = @($completed.ToArray()); planned_reports = $processCount; error = $_.Exception.Message
         finished_at_utc = (Get-Date).ToUniversalTime().ToString('o') })
     throw
 }
