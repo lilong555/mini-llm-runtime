@@ -70,3 +70,15 @@ Own CUDA 限定单 GPU、Qwen3-0.6B、S≤4、L≤2048、B≤128、greedy。
 没有异步执行、多 stream、Graph、抢占重算、GPU prefix、PD 或多 GPU。
 分页最终为容量／研究模式，不承诺速度提升，见
 [性能](PERFORMANCE.md)、[GPU KV 研究](GPU_KV_STUDY.md)与[验证](VALIDATION.md)。
+
+## 技术追问
+
+| 问题 | 解释重点与代码入口 |
+| --- | --- |
+| 同一个逻辑位置如何找到物理 KV？ | P16 的 block/offset、layer/K/V 次序、table bounds 与非法页屏蔽；[地址策略](../src/minillm/cuda/kv_access.cuh) |
+| 为什么保守信用能避免正常 decode 中途缺页？ | 每请求完整承诺向上取整到页，实际长度不超过承诺，总承诺不超过池；[Engine](../src/engine.cpp) |
+| 为什么长度和页映射要分开管理？ | `BatchState` 是唯一长度账本，pending mapping 不提前破坏 active；[页事务](../src/minillm/cuda/page_table.cpp)、[Runtime](../src/minillm/cuda/runtime.cpp) |
+| 为什么 poisoned 后不能 clear 再复用？ | 设备执行后无物理 rollback 保证；逻辑信用可回收不代表 slab 内容可信；[CUDA adapter](../src/mini_cuda_runner.cpp) |
+| 为什么 FP16 显存下降仍不能上线？ | 固定 logits 门槛和 token 一致性是不同合同，不能事后降低阈值；[精度负结果](PRECISION_STUDY.md) |
+| Engine 停止为什么不等于 HTTP 完成？ | 结果发布与传输排空是两个完成点，等待有界，断连不保证收到终态；[HTTP 生命周期](../src/http_server.cpp) |
+| 为什么指令少了仍不能称为成功优化？ | 静态 PTX、kernel 时间、host forward 和请求时间不同；未锁频基线漂移、同容量与同预算必须分开；[实验取舍](GPU_KV_STUDY.md) |

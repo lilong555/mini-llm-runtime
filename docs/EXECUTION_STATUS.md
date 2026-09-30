@@ -9,6 +9,19 @@
 [CUDA-VS-001](NEXT_SPEC.md) 分别是冻结的 Serving 与 M1 模型规范；
 V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_POLICY.md)。
 
+## 收尾与上游
+
+- 研究结果、公开证据、架构与七个技术追问入口均已具备；不再新增功能或性能采样。
+- [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 为基础 Serving 的
+  release → main 整合；[草稿 PR #3](https://github.com/lilong555/mini-llm-runtime/pull/3)
+  为分页研究 → release，二者均待用户审阅，不自动合并。
+- 上游贡献尚未开始，不把本项目结果算作已经向上游提交或获采纳。
+  2026-09-30 核对的 llama.cpp [贡献规则](https://github.com/ggml-org/llama.cpp/blob/master/CONTRIBUTING.md)
+  和 [AI 使用规则](https://github.com/ggml-org/llama.cpp/blob/master/AGENTS.md)
+  要求作者理解设计、人工审阅、披露 AI 使用，并禁止自动提交及 AI 代写社区沟通。
+  上游阶段以作者选定、理解并愿意维护的真实问题为入口；先查重与本地复现，
+  不代发 issue、PR、评论或回复。
+
 ## 当前门禁
 
 - 初始模型六进程完成，四项配对退化中位数为 17.25%、71.07%、96.75%、17.98%，
