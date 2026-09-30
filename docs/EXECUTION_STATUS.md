@@ -12,9 +12,10 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 ## 收尾与上游
 
 - 研究结果、公开证据、架构与七个技术追问入口均已具备；不再新增功能或性能采样。
-- [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 为基础 Serving 的
-  release → main 整合；[草稿 PR #3](https://github.com/lilong555/mini-llm-runtime/pull/3)
-  为分页研究 → release，二者均待用户审阅，不自动合并。
+- main 的两阶段整合入口为
+  [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2)（基础 Serving）
+  和 [PR #3](https://github.com/lilong555/mini-llm-runtime/pull/3)（分页研究与冻结）。
+  合并提交与检查结果以各 PR 元数据为准，已发布研究标签不移动。
 - 上游贡献尚未开始，不把本项目结果算作已经向上游提交或获采纳。
   2026-09-30 核对的 llama.cpp [贡献规则](https://github.com/ggml-org/llama.cpp/blob/master/CONTRIBUTING.md)
   和 [AI 使用规则](https://github.com/ggml-org/llama.cpp/blob/master/AGENTS.md)
@@ -37,7 +38,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   最终 B：容量／研究模式，全部 30 个正式性能进程预算耗尽。
   [单一 canonical bundle](../benchmarks/results/gpu-kv-001/README.md) 已发布；
   五个阅读入口齐全，旧计划标为 Historical，不新增功能。
-  默认分支整合仍需用户审阅，不能将 feature branch 发布等同于 main 已更新。
+  默认分支身份以合并提交为准，不把 feature branch 的 CI 当作 main 自身检查。
   新 NSys 预算已用完；默认 contiguous 不变。
 - M4 编号默认属于 `PLAN-V4-KV-20260928`；下文精度研究的旧编号显式加 `PREC`。
 - 技术基点 `103070a91f1451eee3ee92e9c691e519ba733539` 已包含 `57268f9` 的
@@ -49,8 +50,8 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   提供一个公开 canonical bundle，不开放 F16 Serving。
 - M4-0 技术候选 `e7e2ced` 自身 CI run `36517808344` 五任务通过；
   own-CUDA 22/22 CTest、真实 token 与 HTTP 12/12 smoke 通过。
-  [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 等待用户审阅；
-  不自动合并 main、不移动历史 tag，不重采旧性能矩阵。
+  已授权整合的审阅记录见 [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2)；
+  不移动历史 tag，不重采旧性能矩阵。
 - 分页实施分支为 `feat/cuda-paged-kv`。M4-1 第一组 host 页状态与配置合同已本机验收：
   9 个 host 用例、固定 seed 10,000 次状态操作、三种配置 47/47 CTest、
   原 F32 模型 S1/S4 2/2 与 HTTP 12/12 通过，见 [分页研究](GPU_KV_STUDY.md)。
@@ -169,12 +170,12 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 | PREC-M4-0 | 已完成 | 已有时间线离线分解与冻结精度合同 |
 | PREC-M4-1 | 研究收束，`blocked_correctness` | 模型边界可执行；长续写 cosine 未达门槛；公开 raw 保留失败，Serving 拒绝候选 |
 | PREC-M4-2 | 不执行 | 旧融合 attention 备选不属于活跃路线 |
-| M4-0 | 技术已验收，等待审阅 | `e7e2ced` 自身 CI 与本机 smoke 通过；PR #2 未合并 |
+| M4-0 | 已整合 | `e7e2ced` 自身 CI 与本机 smoke 通过；基础 Serving 经 PR #2 合入 main |
 | M4-1 | 四组本机验收 | 页池、设备表、直接分页 attention、Runtime/CLI/Serving 与页信用合同可执行 |
-| M4-2 | 微基准完成，负结果保留 | 指定容量功能通过；模型/Serving 采集、性能护栏及采用决定待完成 |
-| M4-3 | 未进入 | 功能冻结、作品表达与 upstream |
+| M4-2 | 研究完成，最终 B | 30 个正式进程完成，模型与同容量 Serving 护栏未通过；容量研究入口与公开负结果保留 |
+| M4-3 | 功能冻结与作品交付完成，上游待人工移交 | 五个阅读入口、七个技术追问、单一公开证据包；不自动开展上游贡献 |
 
-当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、FP16 KV、完整 28 层与 greedy；分页布局可由 C++、CLI 或 Serving 显式选择，默认仍连续。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。连续 GPU Serving 已有独立的限定性能基线，分页尚无正式容量/延迟比较；不将旧模型基线作为 HTTP 证据。
+当前自有模型具有 CPU 与完整 CUDA Runtime/CLI，并通过现有 HTTP/Engine 提供 [CUDA Serving](CUDA_SERVING.md)。[Host Model](HOST_MODEL.md) 提供独立只读绑定与词表 owner，[CUDA Runtime](CUDA_RUNTIME.md) 提供常驻权重、FP16 KV、完整 28 层与 greedy；分页布局可由 C++、CLI 或 Serving 显式选择，默认仍连续。[全量数值验证](CUDA_NUMERICS.md)、[真实形状微基准](CUDA_MICROBENCHMARKS.md)、[模型性能对照](CUDA_BENCHMARKS.md) 与 [完整模型 Profiler](CUDA_PROFILING.md) 均已冻结。M1 的正确性、资源和数据路径成立，24 项模型比较中 10 项保持测量不确定。连续 GPU Serving 与 GPU 分页均有独立的限定性能证据；分页以 B 收束，不将旧模型基线作为 HTTP 证据。
 
 ## 可复核证据
 
