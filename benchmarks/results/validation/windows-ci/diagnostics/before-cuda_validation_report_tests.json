@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/li/code/mini-llm-runtime/tests/cuda_validation_report_tests.py"
+  ],
+  "encoding": "cp1252:backslashreplace",
+  "exit_code": 1
+}

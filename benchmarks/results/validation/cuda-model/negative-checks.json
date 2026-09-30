@@ -1,0 +1,25 @@
+{
+  "status": "passed",
+  "existing_model_directory": {
+    "exit_code": 1,
+    "unchanged": true,
+    "files": 5
+  },
+  "wrong_checkpoint": {
+    "exit_code": 1,
+    "passed": false,
+    "status": "failed"
+  },
+  "existing_cli_report": {
+    "exit_code": 1,
+    "unchanged": true
+  },
+  "batch_limit": {
+    "exit_code": 1,
+    "model_not_opened": true
+  },
+  "device_budget": {
+    "exit_code": 1,
+    "no_output": true
+  }
+}

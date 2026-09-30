@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "archive": "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-vs-001/cuda-vs-001.zip",
+  "sha256": "a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c",
+  "size_bytes": 56872322,
+  "independent_directory_revalidation": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-vs-001/cuda-bundle-420ns7np/roundtrip/verify.py",
+      "--directory",
+      "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-vs-001/cuda-bundle-420ns7np/roundtrip"
+    ],
+    "exit_code": 0,
+    "result": {
+      "status": "passed",
+      "spec_id": "CUDA-VS-001",
+      "model_performance_status": "measurement_inconclusive",
+      "model_reports": 70,
+      "model_measured_repetitions": 2520,
+      "micro_cases": 375,
+      "micro_trials": 5,
+      "full_numeric_comparisons": 12528,
+      "profiler_forwards": 585,
+      "ncu_kernels": 1,
+      "numerical_archive_verification": {
+        "exit_code": 0,
+        "output": "\nStatus                 : passed\nPurpose                : archive_revalidation\nArtifacts              : 415\nSuiteExecutions        : 50\nCaseExecutions         : 926\nMicroFunctionalCases   : 375\nFullNumericComparisons : 12528\nPerformanceBaseline    : False\nGpuServing             : False\n\n"
+      },
+      "tool_archive_verification": {
+        "exit_code": 0,
+        "output": "\nStatus                          : passed\nPurpose                         : archive_revalidation\nArtifacts                       : 236\nSuiteExecutions                 : 62\nCaseExecutions                  : 1034\nCpuModelChecks                  : 13\nCpuHttpChecks                   : 8\nFullNumericComparisonsInherited : 12528\nGpuServing                      : False\n\n"
+      },
+      "mandatory_data_path_gates": "passed",
+      "gpu_serving": false,
+      "gpu_paged_attention": false,
+      "positive_performance_is_not_a_completion_requirement": true,
+      "decision": "V2-M1 的证据门禁完成；下一阶段为 V2-M2，性能不确定项继续保留",
+      "artifact_count": 1050
+    }
+  },
+  "source_files_unchanged": true
+}

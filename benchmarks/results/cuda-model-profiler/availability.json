@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "status": "AVAILABLE",
+  "artifacts": [
+    {
+      "path": "analyze_cuda_benchmark.py",
+      "sha256": "d54ed88b5288ffcfb151434095eea53d3adee1bad10e29f7f1cd94760c7d7e6c",
+      "size_bytes": 38341,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "baseline-manifest.json",
+      "sha256": "f15fd797b90cbb80b344a4d6585a336b998dd85a61a52fefe0a4ad78c06eb3fc",
+      "size_bytes": 17134,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "baseline-reference.json",
+      "sha256": "f019c0856822c57faeb6a6c337f4ccc166c04b66c14dd86296c06bc8a366aeec",
+      "size_bytes": 886958,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "baseline-source-state.json",
+      "sha256": "e0f664167ed9e4c700801925ff0fb61eacf5bb7108fcab777365144c456cc85f",
+      "size_bytes": 23000,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "baseline-summary.json",
+      "sha256": "8f9e6ca09e2bac678fb11179998b346497417c8b5e4dc96bd2c67676b5e845a6",
+      "size_bytes": 95989,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "baseline-validation-summary.json",
+      "sha256": "6deecc26fdc699c905641da59c8a4938ecdf461bc261d73165894bb598f98fa3",
+      "size_bytes": 925,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "collection-status.json",
+      "sha256": "5e033eebf5f8aa52e14526bebfda7fed3a62534c9b3a21b0d09776931fb1b427",
+      "size_bytes": 862,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "input.json",
+      "sha256": "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6",
+      "size_bytes": 3226,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "a8c0123ffb9b090e7441548a71b6a1e568603be8c894532bbc93e52890291654",
+      "size_bytes": 3686,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-export.process.json",
+      "sha256": "521fc82e3343055c2066ee360bdaf00761b41efa474128637bc09ba598ba3859",
+      "size_bytes": 3688,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-export.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-metrics.csv",
+      "sha256": "d9e3fadd25b9e8b7f900e2953d6d04140da8a8e28ec766a6eee3ef2ec05bc415",
+      "size_bytes": 30848,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-version.process.json",
+      "sha256": "00ca997a7df56e8540229028586201a6ea251a694155bea0623c23506b671889",
+      "size_bytes": 3434,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-version.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu-version.stdout.txt",
+      "sha256": "51568705db6a9090604111731ae421e10b2a73658b59489a8b8ed7b0d5a7460b",
+      "size_bytes": 144,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu.json",
+      "sha256": "654c1f5c39cee4c06cd36bb8626a612b965d1855a46aaa7ade1e0a381e6396de",
+      "size_bytes": 886664,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu.json.process.json",
+      "sha256": "65cebe0cb59a74ba27e37e9628e17719b44eacbf690ae2626428fe889e2e7a11",
+      "size_bytes": 6491,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu.json.stderr.txt",
+      "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf",
+      "size_bytes": 130,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "ncu.json.stdout.txt",
+      "sha256": "69a37f09016b46549a7a38599138b6b2770d3f113749d02e84bf551b22b9e718",
+      "size_bytes": 868,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys-version.process.json",
+      "sha256": "c8f651c6614561c6706fdcd3670073c948a5b61c421820e295b9fe2bfe09ce2d",
+      "size_bytes": 3431,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys-version.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys-version.stdout.txt",
+      "sha256": "a46fa502265be93cac6aed0834d2a9b32f7868381bf53cd56a3e1526894d85b2",
+      "size_bytes": 58,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys.json",
+      "sha256": "19f05be0ade06bec0fddf01f699d5468dfdf90f6e200a83b8e9885eb9e045200",
+      "size_bytes": 886489,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys.json.process.json",
+      "sha256": "9c795a7812345c5f89e642fcfbca2d3c0ef3a1c6fbf76678b57644436a2609d3",
+      "size_bytes": 6291,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys.json.stderr.txt",
+      "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf",
+      "size_bytes": 130,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "nsys.json.stdout.txt",
+      "sha256": "35ef302b4fdfccabc4f95cfc27c3286d9016194564607225b65b3273f15e8c89",
+      "size_bytes": 8496,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-after.json",
+      "sha256": "d01c0c66055378eb7678b6e27cf6ed4a83287ca81f116b945444a7124778bb0b",
+      "size_bytes": 886474,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-after.json.process.json",
+      "sha256": "8be96f5a7a593e4944b94c6540ed52fc83a57d974a2aaa4daebbbc98f652e2d3",
+      "size_bytes": 5963,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-after.json.stderr.txt",
+      "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf",
+      "size_bytes": 130,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-after.json.stdout.txt",
+      "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d",
+      "size_bytes": 311,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-before.json",
+      "sha256": "5c5814793d76866cd2ae836487229bf8b9ef404f1335b5a2a83b352a81e366d8",
+      "size_bytes": 886659,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-before.json.process.json",
+      "sha256": "ca8d9e952f3e113ed70f1691db64470e3c048ad412693a0ef24f0e6a0272b46b",
+      "size_bytes": 5962,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-before.json.stderr.txt",
+      "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf",
+      "size_bytes": 130,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-before.json.stdout.txt",
+      "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d",
+      "size_bytes": 311,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-middle.json",
+      "sha256": "3382006b0330799b73a2dc6d102c35db9f4b0c5795b4934c4f872f281cc2a0a7",
+      "size_bytes": 886657,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-middle.json.process.json",
+      "sha256": "6531713cc8fcb6161a62c759a027387e09476009fb4c55fdadd04c6430b4daba",
+      "size_bytes": 5962,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-middle.json.stderr.txt",
+      "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf",
+      "size_bytes": 130,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "off-middle.json.stdout.txt",
+      "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d",
+      "size_bytes": 311,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "profiler-raw.zip",
+      "sha256": "bf54614a907ba53d97ad8176c61c901c7cd908ff7d6f7a9ec2b934f9698d9c34",
+      "size_bytes": 24217543,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "source-snapshot.zip",
+      "sha256": "e20e1c84c9fe79e9bf52b26867a3641e17606e1856a85fbc17cda7616c6c301d",
+      "size_bytes": 387639,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "bfb28f40d92c5e5b04eeb9d78c4920b23f8fd468ebc05bcfec0f93a28baa6937",
+      "size_bytes": 24052,
+      "status": "AVAILABLE"
+    },
+    {
+      "path": "verify.py",
+      "sha256": "fe30094fe0d82e9f062fe3188f9426747c9c74944c4eca456a799073824aa2fb",
+      "size_bytes": 34376,
+      "status": "AVAILABLE"
+    }
+  ]
+}

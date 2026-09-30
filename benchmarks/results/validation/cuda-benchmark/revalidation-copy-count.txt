@@ -1,0 +1,6 @@
+CUDA 性能证据复核失败：CUDA KV、传输、分配或初始化状态不符
+Exception: /tmp/cuda-benchmark-relocation-08fe94d1bd7b4b0bb7e3c29ee4504fac/copy-count/verify.ps1:106
+Line |
+ 106 |  … STEXITCODE -ne 0) { $lines | Write-Output; throw "模型基准报告复核失败：$file" }
+     |                                               ~~~~~~~~~~~~~~~~~~~~~~~~
+     | 模型基准报告复核失败：real-processes/cuda.json

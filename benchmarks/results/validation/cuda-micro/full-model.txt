@@ -1,0 +1,342 @@
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+参照 cpu zh-l16-c128-s1
+参照 cpu zh-l33-c128-s1
+参照 cpu zh-l128-c128-s1
+参照 cpu zh-l256-c128-s1
+参照 cpu zh-l1536-c128-s1
+参照 cpu en-l16-c128-s1
+参照 cpu en-l33-c128-s1
+参照 cpu en-l128-c128-s1
+参照 cpu en-l256-c128-s1
+参照 cpu en-l1536-c128-s1
+参照 cpu repeated-l16-c128-s1
+参照 cpu repeated-l33-c128-s1
+参照 cpu repeated-l128-c128-s1
+参照 cpu repeated-l256-c128-s1
+参照 cpu repeated-l1536-c128-s1
+参照 cpu special-l16-c128-s1
+参照 cpu special-l33-c128-s1
+参照 cpu special-l128-c128-s1
+参照 cpu special-l256-c128-s1
+参照 cpu special-l1536-c128-s1
+生成参照 cpu corpus=0 length=16
+生成参照 cpu corpus=0 length=128
+生成参照 cpu corpus=0 length=1536
+生成参照 cpu corpus=1 length=16
+生成参照 cpu corpus=1 length=128
+生成参照 cpu corpus=1 length=1536
+生成参照 cpu corpus=2 length=16
+生成参照 cpu corpus=2 length=128
+生成参照 cpu corpus=2 length=1536
+生成参照 cpu corpus=3 length=16
+生成参照 cpu corpus=3 length=128
+生成参照 cpu corpus=3 length=1536
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+...........................................................................
+参照 llama_f32 zh-l16-c128-s1
+参照 llama_f32 zh-l33-c128-s1
+参照 llama_f32 zh-l128-c128-s1
+参照 llama_f32 zh-l256-c128-s1
+参照 llama_f32 zh-l1536-c128-s1
+参照 llama_f32 en-l16-c128-s1
+参照 llama_f32 en-l33-c128-s1
+参照 llama_f32 en-l128-c128-s1
+参照 llama_f32 en-l256-c128-s1
+参照 llama_f32 en-l1536-c128-s1
+参照 llama_f32 repeated-l16-c128-s1
+参照 llama_f32 repeated-l33-c128-s1
+参照 llama_f32 repeated-l128-c128-s1
+参照 llama_f32 repeated-l256-c128-s1
+参照 llama_f32 repeated-l1536-c128-s1
+参照 llama_f32 special-l16-c128-s1
+参照 llama_f32 special-l33-c128-s1
+参照 llama_f32 special-l128-c128-s1
+参照 llama_f32 special-l256-c128-s1
+参照 llama_f32 special-l1536-c128-s1
+生成参照 llama_f32 corpus=0 length=16
+生成参照 llama_f32 corpus=0 length=128
+生成参照 llama_f32 corpus=0 length=1536
+生成参照 llama_f32 corpus=1 length=16
+生成参照 llama_f32 corpus=1 length=128
+生成参照 llama_f32 corpus=1 length=1536
+生成参照 llama_f32 corpus=2 length=16
+生成参照 llama_f32 corpus=2 length=128
+生成参照 llama_f32 corpus=2 length=1536
+生成参照 llama_f32 corpus=3 length=16
+生成参照 llama_f32 corpus=3 length=128
+生成参照 llama_f32 corpus=3 length=1536
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+参照 cuda_canonical zh-l16-c128-s1
+参照 cuda_canonical zh-l33-c128-s1
+参照 cuda_canonical zh-l128-c128-s1
+参照 cuda_canonical zh-l256-c128-s1
+参照 cuda_canonical zh-l1536-c128-s1
+参照 cuda_canonical en-l16-c128-s1
+参照 cuda_canonical en-l33-c128-s1
+参照 cuda_canonical en-l128-c128-s1
+参照 cuda_canonical en-l256-c128-s1
+参照 cuda_canonical en-l1536-c128-s1
+参照 cuda_canonical repeated-l16-c128-s1
+参照 cuda_canonical repeated-l33-c128-s1
+参照 cuda_canonical repeated-l128-c128-s1
+参照 cuda_canonical repeated-l256-c128-s1
+参照 cuda_canonical repeated-l1536-c128-s1
+参照 cuda_canonical special-l16-c128-s1
+参照 cuda_canonical special-l33-c128-s1
+参照 cuda_canonical special-l128-c128-s1
+参照 cuda_canonical special-l256-c128-s1
+参照 cuda_canonical special-l1536-c128-s1
+验证 zh-l16-c1-s1
+验证 zh-l16-c16-s1
+验证 zh-l16-c33-s1
+验证 zh-l16-c128-s1
+验证 zh-l33-c1-s1
+验证 zh-l33-c16-s1
+验证 zh-l33-c33-s1
+验证 zh-l33-c128-s1
+验证 zh-l128-c1-s1
+验证 zh-l128-c16-s1
+验证 zh-l128-c33-s1
+验证 zh-l128-c128-s1
+验证 zh-l256-c1-s1
+验证 zh-l256-c16-s1
+验证 zh-l256-c33-s1
+验证 zh-l256-c128-s1
+验证 zh-l1536-c1-s1
+验证 zh-l1536-c16-s1
+验证 zh-l1536-c33-s1
+验证 zh-l1536-c128-s1
+验证 en-l16-c1-s1
+验证 en-l16-c16-s1
+验证 en-l16-c33-s1
+验证 en-l16-c128-s1
+验证 en-l33-c1-s1
+验证 en-l33-c16-s1
+验证 en-l33-c33-s1
+验证 en-l33-c128-s1
+验证 en-l128-c1-s1
+验证 en-l128-c16-s1
+验证 en-l128-c33-s1
+验证 en-l128-c128-s1
+验证 en-l256-c1-s1
+验证 en-l256-c16-s1
+验证 en-l256-c33-s1
+验证 en-l256-c128-s1
+验证 en-l1536-c1-s1
+验证 en-l1536-c16-s1
+验证 en-l1536-c33-s1
+验证 en-l1536-c128-s1
+验证 repeated-l16-c1-s1
+验证 repeated-l16-c16-s1
+验证 repeated-l16-c33-s1
+验证 repeated-l16-c128-s1
+验证 repeated-l33-c1-s1
+验证 repeated-l33-c16-s1
+验证 repeated-l33-c33-s1
+验证 repeated-l33-c128-s1
+验证 repeated-l128-c1-s1
+验证 repeated-l128-c16-s1
+验证 repeated-l128-c33-s1
+验证 repeated-l128-c128-s1
+验证 repeated-l256-c1-s1
+验证 repeated-l256-c16-s1
+验证 repeated-l256-c33-s1
+验证 repeated-l256-c128-s1
+验证 repeated-l1536-c1-s1
+验证 repeated-l1536-c16-s1
+验证 repeated-l1536-c33-s1
+验证 repeated-l1536-c128-s1
+验证 special-l16-c1-s1
+验证 special-l16-c16-s1
+验证 special-l16-c33-s1
+验证 special-l16-c128-s1
+验证 special-l33-c1-s1
+验证 special-l33-c16-s1
+验证 special-l33-c33-s1
+验证 special-l33-c128-s1
+验证 special-l128-c1-s1
+验证 special-l128-c16-s1
+验证 special-l128-c33-s1
+验证 special-l128-c128-s1
+验证 special-l256-c1-s1
+验证 special-l256-c16-s1
+验证 special-l256-c33-s1
+验证 special-l256-c128-s1
+验证 special-l1536-c1-s1
+验证 special-l1536-c16-s1
+验证 special-l1536-c33-s1
+验证 special-l1536-c128-s1
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+验证 zh-l16-c1-s2
+验证 zh-l16-c16-s2
+验证 zh-l16-c33-s2
+验证 zh-l16-c128-s2
+验证 zh-l33-c1-s2
+验证 zh-l33-c16-s2
+验证 zh-l33-c33-s2
+验证 zh-l33-c128-s2
+验证 zh-l128-c1-s2
+验证 zh-l128-c16-s2
+验证 zh-l128-c33-s2
+验证 zh-l128-c128-s2
+验证 zh-l256-c1-s2
+验证 zh-l256-c16-s2
+验证 zh-l256-c33-s2
+验证 zh-l256-c128-s2
+验证 zh-l1536-c1-s2
+验证 zh-l1536-c16-s2
+验证 zh-l1536-c33-s2
+验证 zh-l1536-c128-s2
+验证 en-l16-c1-s2
+验证 en-l16-c16-s2
+验证 en-l16-c33-s2
+验证 en-l16-c128-s2
+验证 en-l33-c1-s2
+验证 en-l33-c16-s2
+验证 en-l33-c33-s2
+验证 en-l33-c128-s2
+验证 en-l128-c1-s2
+验证 en-l128-c16-s2
+验证 en-l128-c33-s2
+验证 en-l128-c128-s2
+验证 en-l256-c1-s2
+验证 en-l256-c16-s2
+验证 en-l256-c33-s2
+验证 en-l256-c128-s2
+验证 en-l1536-c1-s2
+验证 en-l1536-c16-s2
+验证 en-l1536-c33-s2
+验证 en-l1536-c128-s2
+验证 repeated-l16-c1-s2
+验证 repeated-l16-c16-s2
+验证 repeated-l16-c33-s2
+验证 repeated-l16-c128-s2
+验证 repeated-l33-c1-s2
+验证 repeated-l33-c16-s2
+验证 repeated-l33-c33-s2
+验证 repeated-l33-c128-s2
+验证 repeated-l128-c1-s2
+验证 repeated-l128-c16-s2
+验证 repeated-l128-c33-s2
+验证 repeated-l128-c128-s2
+验证 repeated-l256-c1-s2
+验证 repeated-l256-c16-s2
+验证 repeated-l256-c33-s2
+验证 repeated-l256-c128-s2
+验证 repeated-l1536-c1-s2
+验证 repeated-l1536-c16-s2
+验证 repeated-l1536-c33-s2
+验证 repeated-l1536-c128-s2
+验证 special-l16-c1-s2
+验证 special-l16-c16-s2
+验证 special-l16-c33-s2
+验证 special-l16-c128-s2
+验证 special-l33-c1-s2
+验证 special-l33-c16-s2
+验证 special-l33-c33-s2
+验证 special-l33-c128-s2
+验证 special-l128-c1-s2
+验证 special-l128-c16-s2
+验证 special-l128-c33-s2
+验证 special-l128-c128-s2
+验证 special-l256-c1-s2
+验证 special-l256-c16-s2
+验证 special-l256-c33-s2
+验证 special-l256-c128-s2
+验证 special-l1536-c1-s2
+验证 special-l1536-c16-s2
+验证 special-l1536-c33-s2
+验证 special-l1536-c128-s2
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+验证 zh-l16-c1-s4
+验证 zh-l16-c16-s4
+验证 zh-l16-c33-s4
+验证 zh-l16-c128-s4
+验证 zh-l33-c1-s4
+验证 zh-l33-c16-s4
+验证 zh-l33-c33-s4
+验证 zh-l33-c128-s4
+验证 zh-l128-c1-s4
+验证 zh-l128-c16-s4
+验证 zh-l128-c33-s4
+验证 zh-l128-c128-s4
+验证 zh-l256-c1-s4
+验证 zh-l256-c16-s4
+验证 zh-l256-c33-s4
+验证 zh-l256-c128-s4
+验证 zh-l1536-c1-s4
+验证 zh-l1536-c16-s4
+验证 zh-l1536-c33-s4
+验证 zh-l1536-c128-s4
+验证 en-l16-c1-s4
+验证 en-l16-c16-s4
+验证 en-l16-c33-s4
+验证 en-l16-c128-s4
+验证 en-l33-c1-s4
+验证 en-l33-c16-s4
+验证 en-l33-c33-s4
+验证 en-l33-c128-s4
+验证 en-l128-c1-s4
+验证 en-l128-c16-s4
+验证 en-l128-c33-s4
+验证 en-l128-c128-s4
+验证 en-l256-c1-s4
+验证 en-l256-c16-s4
+验证 en-l256-c33-s4
+验证 en-l256-c128-s4
+验证 en-l1536-c1-s4
+验证 en-l1536-c16-s4
+验证 en-l1536-c33-s4
+验证 en-l1536-c128-s4
+验证 repeated-l16-c1-s4
+验证 repeated-l16-c16-s4
+验证 repeated-l16-c33-s4
+验证 repeated-l16-c128-s4
+验证 repeated-l33-c1-s4
+验证 repeated-l33-c16-s4
+验证 repeated-l33-c33-s4
+验证 repeated-l33-c128-s4
+验证 repeated-l128-c1-s4
+验证 repeated-l128-c16-s4
+验证 repeated-l128-c33-s4
+验证 repeated-l128-c128-s4
+验证 repeated-l256-c1-s4
+验证 repeated-l256-c16-s4
+验证 repeated-l256-c33-s4
+验证 repeated-l256-c128-s4
+验证 repeated-l1536-c1-s4
+验证 repeated-l1536-c16-s4
+验证 repeated-l1536-c33-s4
+验证 repeated-l1536-c128-s4
+验证 special-l16-c1-s4
+验证 special-l16-c16-s4
+验证 special-l16-c33-s4
+验证 special-l16-c128-s4
+验证 special-l33-c1-s4
+验证 special-l33-c16-s4
+验证 special-l33-c33-s4
+验证 special-l33-c128-s4
+验证 special-l128-c1-s4
+验证 special-l128-c16-s4
+验证 special-l128-c33-s4
+验证 special-l128-c128-s4
+验证 special-l256-c1-s4
+验证 special-l256-c16-s4
+验证 special-l256-c33-s4
+验证 special-l256-c128-s4
+验证 special-l1536-c1-s4
+验证 special-l1536-c16-s4
+验证 special-l1536-c33-s4
+验证 special-l1536-c128-s4
+生成 zh-l16-g32
+生成 zh-l128-g32
+生成 zh-l1536-g32
+生成 en-l16-g32
+生成 en-l128-g32
+生成 en-l1536-g32
+生成 repeated-l16-g32
+生成 repeated-l128-g32
+生成 repeated-l1536-g32
+生成 special-l16-g32
+生成 special-l128-g32
+生成 special-l1536-g32

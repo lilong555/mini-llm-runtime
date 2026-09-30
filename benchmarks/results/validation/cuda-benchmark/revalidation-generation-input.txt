@@ -1,0 +1,6 @@
+CUDA 性能证据复核失败：输入或执行阶段身份不符
+Exception: /tmp/cuda-benchmark-relocation-08fe94d1bd7b4b0bb7e3c29ee4504fac/generation-input/verify.ps1:106
+Line |
+ 106 |  … STEXITCODE -ne 0) { $lines | Write-Output; throw "模型基准报告复核失败：$file" }
+     |                                               ~~~~~~~~~~~~~~~~~~~~~~~~
+     | 模型基准报告复核失败：real-processes/cuda.json

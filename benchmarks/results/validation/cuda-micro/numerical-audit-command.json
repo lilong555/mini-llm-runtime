@@ -1,0 +1,14 @@
+{
+  "command": "python3",
+  "arguments": [
+    "scripts/analyze_cuda_validation.py",
+    "--directory",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-micro/real-model"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T02:19:04.5501423Z",
+  "status": "passed",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "finished_at_utc": "2026-09-26T02:19:05.9686866Z"
+}

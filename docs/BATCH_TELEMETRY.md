@@ -38,7 +38,7 @@ bash scripts/dev.sh serve --port 8081 --telemetry stages \
 
 ## 数据与计时
 
-每份 JSONL 由 header、按顺序排列的 batch、footer 组成。header 包含模式、后端、策略、容量、实际预分配载荷字节和时钟口径；footer 包含记录数、丢弃数、Engine 错误及停服后的物理资源。`storage_bytes` 不包括 allocator 元数据或 Runtime 自身的 profile 存储。
+每份 JSONL 由 header、按顺序排列的 batch、footer 组成。schema v2 的 header 包含模式、后端、能力、策略、容量、实际预分配载荷字节、时钟口径与资源边界；footer 包含记录数、丢弃数、Engine 错误及停服后的物理资源。分析器继续读取历史 v1，不重写旧 raw。`storage_bytes` 不包括 allocator 元数据或 Runtime 自身的 profile 存储。
 
 | 字段 | 口径 |
 | --- | --- |
@@ -52,9 +52,9 @@ bash scripts/dev.sh serve --port 8081 --telemetry stages \
 | `waiting_requests`、`active_requests` | 准入结束后的模型线程视图；不包含随后到达的 incoming 请求 |
 | `context_before/after_sum/max` | 本轮实际参与序列的逻辑 KV 长度；不是池内全部缓存的长度 |
 | `reserved_unique_blocks` | Serving 容量信用，按输出上限预留 |
-| `resources_before/after` | 执行前后 MiniLLM 的活跃物理 KV 页及保留存储的 KV payload 字节 |
+| `resources_before/after` | 模型线程的 KV layout、nullable pages/tokens、capacity、resident payload 与状态 |
 
-`resources_after` 在缓存发布和本轮终态回收之前采集；`resources_final` 在全部活动与缓存引用释放后采集。live pages 为零不代表已分配存储已经归还系统。llama.cpp 的物理快照为 `null`；当前没有发布共享引用、COW 字节或进程 RSS，不能从容量信用推算这些值。
+`resources_after` 在缓存发布和本轮终态回收之前采集；`resources_final` 在全部活动与缓存引用释放后、runner 析构前采集。live 为零不代表 resident 已归还系统。CPU 报告真实 PagedKV pages/payload，未知 live tokens 为 null；own-CUDA 为 contiguous，pages 为 null、capacity 为 S×Lmax、live 为 committed tokens、owned device bytes 为项目 arena/workspace。poisoned 时 state_valid/reusable 为 false、live 为 null，resident 仍保留。llama.cpp 的物理快照为 null；不能从容量信用推算物理页、共享引用、COW 或进程 RSS。
 
 `context_after` 根据调度输入计算；只有成功完成的 batch 才代表已经提交的上下文。异常记录的 `completed=false`，预期长度不能用作部分失败后的真实模型状态。
 
@@ -69,7 +69,7 @@ sum(runner.stages.wall_ns) + runner.unaccounted_ns == runner.forward_ns
 runner.forward_ns + runner.sampling_ns <= runner_ns
 ```
 
-MiniLLM 的阶段按固定枚举在各层求和，保留调用次数、矩阵 M/N/K 和线程池经过时间。LM head 当前每个 logits 单独执行 `M=1`。共享矩阵阶段只记录一次，不分别完整归入 prefill 与 decode。阶段细节和重叠线程时间的解释见 [Runtime 计时](RUNTIME_PROFILING.md)。llama.cpp 没有接入这份 Runtime profile，`runner` 为 `null`，Engine 仍能记录整体执行时间。
+CPU MiniLLM 的阶段按固定枚举在各层求和，保留调用次数、矩阵 M/N/K 和线程池经过时间。CPU LM head 每个 logits 单独执行 `M=1`。共享矩阵阶段只记录一次，不分别完整归入 prefill 与 decode。阶段细节见 [Runtime 计时](RUNTIME_PROFILING.md)。own-CUDA 与 llama.cpp 不提供这份 Runtime profile，`runner` 为 null，Engine 仍记录整体执行时间。上面的阶段时间等式仅适用于 available 的 CPU profile。
 
 ## SSE 与客户端关联
 

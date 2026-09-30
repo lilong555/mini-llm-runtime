@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "layer_cases": 6,
+  "complete_gpu_model": false
+}

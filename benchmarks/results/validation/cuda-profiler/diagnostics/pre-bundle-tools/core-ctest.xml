@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="11"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="38"
+	timestamp="2026-09-26T15:56:14"
+	>
+	<testcase name="unit" classname="unit" time="0.177165" status="run">
+		<properties/>
+		<system-out>[PASS] block_pool_allocation_is_atomic
+[PASS] block_pool_reference_counts_and_invalid_tables
+[PASS] block_pool_randomized_accounting
+[PASS] prefix_index_alignment_namespace_and_pruning
+[PASS] prefix_index_lru_and_full_hit_recompute
+[PASS] utf8_split_and_invalid_sequences
+[PASS] scheduler_mixed_budget_and_decode_protection
+[PASS] scheduler_prefill_first_and_aging
+[PASS] config_rejects_unprogressable_settings
+[PASS] half_conversion_all_finite_patterns
+[PASS] simd_float_and_half_dot_match_scalar
+[PASS] simd_half_value_accumulation_matches_scalar
+[PASS] simd_q8_dot_matches_dequantized_weights
+[PASS] rms_norm_in_place_and_simd
+[PASS] paged_kv_layer_layout_and_full_page_sharing
+[PASS] paged_kv_partial_tail_copy_on_write
+[PASS] paged_kv_exhaustion_does_not_corrupt_aliases
+[PASS] paged_kv_randomized_alias_append_and_reclamation
+[PASS] parallel_executor_exact_coverage_and_exception_recovery
+[PASS] parallel_profile_accounting_and_reuse
+[PASS] forward_profile_reserve_failure_clears_stale_success
+[PASS] engine_serial_batched_and_cached_outputs_agree
+[PASS] engine_mixed_batch_after_deterministic_request_injection
+[PASS] engine_cache_namespace_and_full_hit_recompute
+[PASS] engine_telemetry_links_mixed_batches_and_cached_tokens
+[PASS] engine_telemetry_overflow_preserves_output_and_reports_loss
+[PASS] engine_telemetry_backend_failure_is_incomplete
+[PASS] engine_context_validation_and_duplicate_ids
+[PASS] engine_bounded_queue_and_cancellation
+[PASS] engine_deadline_and_slow_consumer_reclaim_resources
+[PASS] engine_backend_failure_is_terminal_and_rejects_new_work
+[PASS] engine_prefix_copy_failure_has_one_terminal_and_no_reservation_leak
+[PASS] engine_missing_logits_is_a_backend_error
+[PASS] engine_small_kv_pool_evicts_and_makes_progress
+[PASS] engine_shutdown_terminates_queued_and_running_requests
+35/35 tests passed
+</system-out>
+	</testcase>
+	<testcase name="validation-contract" classname="validation-contract" time="0.0273054" status="run">
+		<properties/>
+		<system-out>[PASS] pinned_weights
+[PASS] golden_provenance
+[PASS] corpus_boundaries
+[PASS] measurement_boundaries
+4/4 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-validation-report" classname="cuda-validation-report" time="0.295277" status="run">
+		<properties/>
+		<system-out>[PASS] full_case_matrix_and_input_hash
+[PASS] exact_threshold_boundaries
+[PASS] reference_attention_precision_is_explicit
+[PASS] near_tie_formula_is_not_a_mismatch_override
+[PASS] score_identity_and_margin_must_match
+[PASS] nonfinite_and_boolean_metrics_are_rejected
+[PASS] inconsistent_extrema_and_status_are_rejected
+[PASS] natural_generation_keeps_only_common_input_comparisons
+[PASS] drifted_inputs_cannot_claim_comparability
+[PASS] copy_counts_and_state_are_recomputed
+[PASS] artifact_paths_and_duplicate_json_are_rejected
+[PASS] missing_report_does_not_overwrite_existing_evidence
+[PASS] negative_metrics_remain_in_summary
+13/13 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-benchmark-validation" classname="cuda-benchmark-validation" time="5.5217" status="run">
+		<properties/>
+		<system-out>[PASS] frozen_schedule_is_separate_balanced_and_complete
+[PASS] complete_workload_report_has_exact_counts
+[PASS] missing_warmup_setup_and_cases_are_rejected
+[PASS] changed_inputs_and_natural_history_are_rejected
+[PASS] no_boolean_nonfinite_or_excluded_sampling_time
+[PASS] wrong_kv_and_device_allocation_are_rejected
+[PASS] cuda_transfer_memory_and_weights_are_recomputed
+[PASS] exact_noise_boundaries_and_negative_results
+[PASS] trial_medians_not_inner_repeats_are_statistical_units
+[PASS] same_backend_aa_output_difference_is_rejected
+[PASS] same_backend_cross_trial_output_difference_is_rejected
+[PASS] cross_backend_generation_difference_is_not_hidden
+[PASS] duplicates_and_path_escapes_are_rejected
+[PASS] preflight_and_publication_failure_preserve_previous_outputs
+[PASS] portable_full_bundle_revalidation_and_tamper_rejection
+15/15 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-micro-validation" classname="cuda-micro-validation" time="19.7962" status="run">
+		<properties/>
+		<system-out>[PASS] frozen_shapes_inputs_and_sample_counts
+[PASS] missing_samples_cases_and_wrong_order_are_rejected
+[PASS] dimensions_recipe_weights_and_causal_metadata_are_checked
+[PASS] timing_and_copy_boundaries_cannot_be_changed
+[PASS] numerical_points_metrics_and_full_output_contract_are_checked
+[PASS] allocation_release_and_memory_plan_are_exact
+[PASS] independent_trials_not_calls_or_inner_repeats
+[PASS] portable_bundle_and_missing_tampered_artifacts
+[PASS] publication_failure_preserves_existing_summary
+9/9 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-profiler-validation" classname="cuda-profiler-validation" time="1.5542" status="run">
+		<properties/>
+		<system-out>[PASS] protocol_and_selection_are_frozen
+[PASS] timeline_checks_complete_layers_and_transfers
+[PASS] incomplete_kernel_trace_is_rejected
+[PASS] wrong_stream_or_device_is_rejected
+[PASS] wrong_layer_order_is_rejected_even_with_matching_counts
+[PASS] copy_errors_and_dropped_events_are_rejected
+[PASS] timeline_union_does_not_double_count_overlap
+[PASS] ncu_checks_one_kernel_and_hardware_units
+[PASS] ncu_bad_units_counts_values_and_shapes_are_rejected
+[PASS] raw_bundle_is_closed_and_stream_verifiable
+[PASS] raw_bundle_rejects_symlinks_and_extra_members
+[PASS] diagnostic_overhead_has_no_significance_claim
+[PASS] external_profiler_commands_are_explicit
+[PASS] failed_revalidation_preserves_previous_summary
+14/14 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-bundle-validation" classname="cuda-bundle-validation" time="0.18786" status="run">
+		<properties/>
+		<system-out>[PASS] derived_summaries_are_recomputed_even_with_valid_file_hashes
+[PASS] closed_file_index_is_verified
+[PASS] missing_tampered_or_unregistered_files_are_rejected
+[PASS] verifier_source_is_checked_even_after_rehashing_index
+[PASS] duplicate_paths_boolean_versions_and_omitted_components_are_rejected
+[PASS] model_files_and_symlinks_are_not_exported
+[PASS] existing_archive_or_checksum_is_preserved
+[PASS] export_publication_is_atomic_and_sources_are_preserved
+[PASS] failed_publication_rolls_back_only_its_own_files
+9/9 tests passed
+</system-out>
+	</testcase>
+	<testcase name="telemetry-validation" classname="telemetry-validation" time="0.0335035" status="run">
+		<properties/>
+		<system-out>[PASS] batch-linked
+[PASS] stage-linked
+[PASS] missing-footer
+[PASS] missing-batch
+[PASS] duplicate-batch
+[PASS] buffer-overflow
+[PASS] incomplete-capture
+[PASS] backend-failure
+[PASS] incomplete-batch
+[PASS] boolean-integer
+[PASS] invalid-stage-mode
+[PASS] time-conservation
+[PASS] time-reversal
+[PASS] out-of-range-sequence
+[PASS] token-count
+[PASS] kv-context
+[PASS] physical-pages
+[PASS] resource-leak
+[PASS] no-client-token
+[PASS] wrong-client-token
+[PASS] wrong-client-time
+[PASS] reused-request-order
+[PASS] missing-runtime
+[PASS] missing-stage
+[PASS] runtime-time
+[PASS] matrix-shape
+[PASS] runtime-on-disabled
+27/27 tests passed
+</system-out>
+	</testcase>
+	<testcase name="cuda-profiler-process" classname="cuda-profiler-process" time="1.53514" status="run">
+		<properties/>
+		<system-out>[PASS] process_result_streams_and_environment
+[PASS] existing_process_output_is_preserved
+2/2 tests passed
+</system-out>
+	</testcase>
+	<testcase name="benchmark-validation" classname="benchmark-validation" time="5.22309" status="run">
+		<properties/>
+		<system-out>[PASS] atomic-publication-rollback
+[PASS] native-port-detection
+[PASS] normal
+[PASS] policy-bundle-relocation
+[PASS] no-warmup
+[PASS] single-token
+[PASS] case-sensitive-ids
+[PASS] allowed-timeout
+[PASS] allowed-rejection
+[PASS] all-failed
+[PASS] fractional-arrival-scale
+[PASS] reversed-policy-order
+[PASS] arrival-scale-mismatch
+[PASS] invalid-arrival-scale
+[PASS] telemetry-mode-mismatch
+[PASS] missing-request
+[PASS] duplicate-request
+[PASS] unexpected-request
+[PASS] model-hash
+[PASS] model-provenance
+[PASS] wrong-warmup
+[PASS] wrong-arithmetic
+[PASS] server-binary
+[PASS] client-binary
+[PASS] config-difference
+[PASS] scheduler-config
+[PASS] token-mismatch
+[PASS] truncated-output
+[PASS] invalid-success-type
+[PASS] negative-token
+[PASS] token-timestamps
+[PASS] missing-done
+[PASS] duplicate-terminal
+[PASS] forged-throughput
+[PASS] forged-latency
+[PASS] undeclared-timeout
+[PASS] missing-output-reference
+[PASS] trace-hash
+[PASS] trace-fnv
+[PASS] manifest-hash
+[PASS] missing-variant
+[PASS] duplicate-report
+[PASS] missing-trial
+[PASS] changed-comparison
+[PASS] live-kv
+[PASS] missing-report-file
+[PASS] unexpected-report-file
+[PASS] source-snapshot-hash
+[PASS] missing-source-snapshot
+[PASS] corrupt-source-state
+[PASS] missing-manifest
+[PASS] stale-success
+[PASS] ctest-standard
+[PASS] ctest-benchmark
+[PASS] ctest-legacy-benchmark
+[PASS] ctest-legacy-wrong-suite
+[PASS] ctest-truncated
+[PASS] ctest-failed
+[PASS] ctest-count-mismatch
+[PASS] ctest-diagnostic-classification
+60/60 benchmark validation tests passed
+</system-out>
+	</testcase>
+	<testcase name="runtime-benchmark-validation" classname="runtime-benchmark-validation" time="4.30718" status="run">
+		<properties/>
+		<system-out>[PASS] valid
+[PASS] relocated
+[PASS] missing-source-snapshot
+[PASS] corrupt-source-state
+[PASS] bundle-export-relocation
+[PASS] bundle-tamper
+[PASS] bundle-missing-artifact
+[PASS] snapshot-entry-tamper
+[PASS] snapshot-empty-hash
+[PASS] artifact-traversal
+[PASS] missing-report
+[PASS] duplicate-report
+[PASS] missing-trial
+[PASS] binary-mismatch
+[PASS] model-mismatch
+[PASS] provenance
+[PASS] input-hash
+[PASS] manifest-hash
+[PASS] snapshot-hash
+[PASS] config
+[PASS] config-type
+[PASS] warmup
+[PASS] missing-workload
+[PASS] missing-sample
+[PASS] input-token
+[PASS] prefix-token
+[PASS] logits-hash
+[PASS] greedy-token
+[PASS] negative-wall
+[PASS] fractional-wall
+[PASS] KV-leak
+[PASS] KV-state
+[PASS] KV-resident
+[PASS] missing-stage
+[PASS] matrix-shape
+[PASS] parallel-grain
+[PASS] worker-time
+[PASS] overlapping-time
+[PASS] wrong-completed-type
+[PASS] profiling-off
+[PASS] stale-summary
+41/41 tests passed
+</system-out>
+	</testcase>
+</testsuite>

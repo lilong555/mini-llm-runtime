@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "passed": true,
+  "hypothesis_supported": true,
+  "full_corpus_contract": false,
+  "fused_failures": 2,
+  "unfused_failures": 0,
+  "original_score_matches": [
+    32,
+    32,
+    32
+  ]
+}

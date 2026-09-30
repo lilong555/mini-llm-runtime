@@ -1,0 +1,14 @@
+[1/14] Building CXX object CMakeFiles/minillm_compute.dir/src/minillm/kernels.cpp.o
+[2/14] Building CXX object CMakeFiles/minillm_compute.dir/src/minillm/kernels_avx2.cpp.o
+[3/14] Building CXX object CMakeFiles/llmserve_core.dir/src/config.cpp.o
+[4/14] Building CXX object CMakeFiles/minillm_compute.dir/src/minillm/paged_kv.cpp.o
+[5/14] Building CXX object CMakeFiles/minillm_compute.dir/src/minillm/parallel.cpp.o
+[6/14] Building CXX object CMakeFiles/llmserve_core.dir/src/block_pool.cpp.o
+[7/14] Building CXX object CMakeFiles/llmserve_core.dir/src/utf8.cpp.o
+[8/14] Linking CXX static library libminillm_compute.a
+[9/14] Building CXX object CMakeFiles/llmserve_core.dir/src/scheduler.cpp.o
+[10/14] Building CXX object CMakeFiles/llmserve_core.dir/src/prefix_index.cpp.o
+[11/14] Building CXX object CMakeFiles/llmserve_core.dir/src/engine.cpp.o
+[12/14] Linking CXX static library libllmserve_core.a
+[13/14] Building CXX object CMakeFiles/llmserve-unit-tests.dir/tests/core_tests.cpp.o
+[14/14] Linking CXX executable bin/llmserve-unit-tests

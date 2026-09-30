@@ -1,0 +1,19 @@
+{
+  "command": "build/wsl-own-cuda/bin/minillm-cuda-reference-diagnostic",
+  "arguments": [
+    "--model",
+    "models/Qwen3-0.6B-Q8_0.gguf",
+    "--reference-model",
+    "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+    "--contract",
+    "tests/data/qwen3_validation_cases.json",
+    "--generation-report",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-full/real-model/generation/cuda-repeated-l1536-g32.json",
+    "--output",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-full/reference-diagnostic"
+  ],
+  "started_at_utc": "2026-09-25T22:38:14.1570955Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T22:39:30.2720615Z"
+}

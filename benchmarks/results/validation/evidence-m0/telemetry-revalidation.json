@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "bundle": "benchmarks/results/evidence-m0/telemetry-bundle.zip",
+  "bundle_sha256": "5f276fea00ffb452e108178d6bfc2d2a38918abf807b14dbd9daab504250371b",
+  "manifest_sha256": "874f09ea0af18fabc9ccb07d6470d0f7fbfdfe6b1dbd0831008847cc2e8152e1",
+  "analyzer_source": "bundled_verification_scripts",
+  "verification_entry": "verification/analyze_telemetry.py",
+  "availability_exit_code": 0,
+  "analysis_exit_code": 0,
+  "availability_preserves_all_files": true,
+  "original_model_build_results_path_accesses": 0,
+  "file_access_trace": "telemetry-file-access.txt.gz",
+  "file_access_trace_sha256": "234e485e3d6e0c9ab75913b69079fba16be5806de645fa71bacda69675a85c81",
+  "file_access_trace_gzip_sha256": "11d6c3f8a4c925cb026901e18f2aa572a8848d440ee6abd2563e240771b45de0",
+  "execution_dependencies_included": false,
+  "reports": 2,
+  "telemetry_reports": 2
+}

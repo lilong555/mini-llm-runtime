@@ -1,0 +1,729 @@
+{
+  "scope": [
+    "CMakeLists.txt",
+    ".gitattributes",
+    "cmake",
+    "apps",
+    "include",
+    "src",
+    "scripts",
+    "tests",
+    ".github",
+    "models/manifest.json",
+    "models/reference-manifest.json",
+    "benchmarks/runtime-inputs",
+    "docs/NEXT_SPEC.md"
+  ],
+  "files": [
+    {
+      "path": ".gitattributes",
+      "sha256": "928822d0de029540bdf995d9bc28e9a246ccb83fa669754f3a85aa694d85f623",
+      "size_bytes": 331
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "aa1bddad373fb89e7c5cb412af2d11a8e1df404edb144ca9bff00de4204cdb6f",
+      "size_bytes": 3048
+    },
+    {
+      "path": "apps/bench_main.cpp",
+      "sha256": "f2faadce0d9f423dfeee22524e48e20ce9d5ad26d74f5fd48425a2b6b33bd817",
+      "size_bytes": 22646
+    },
+    {
+      "path": "apps/cuda_benchmark.h",
+      "sha256": "74baadfb1d2a45f095158830744f70aef9d1e6c5e78d16b081b7e93737dc8a82",
+      "size_bytes": 11226
+    },
+    {
+      "path": "apps/cuda_kernel_bench.cpp",
+      "sha256": "73428a73257ab84ee58c9d1a8d0054895efd39db5fa2ff28e164951a93051bfb",
+      "size_bytes": 27390
+    },
+    {
+      "path": "apps/cuda_main.cpp",
+      "sha256": "bad4c035e98dbe3042af1afb5b78ab1b48615b018e67391f8f90013ddd316a67",
+      "size_bytes": 6893
+    },
+    {
+      "path": "apps/cuda_micro_protocol.h",
+      "sha256": "f7d345b7a82454a92ee589e9b2e1cf4567a4da362f187dc6f37596d27ea8d944",
+      "size_bytes": 6779
+    },
+    {
+      "path": "apps/cuda_reports.h",
+      "sha256": "18ece7b0ff57d32fd2fd176e7bacd159276adc7d1b7432e4ceecc93768ff363b",
+      "size_bytes": 4371
+    },
+    {
+      "path": "apps/cuda_runtime_bench.cpp",
+      "sha256": "871fb122edd2633b307001afa89e549be57e3b1ef8bf5d22146a9fc4d0959f0c",
+      "size_bytes": 13455
+    },
+    {
+      "path": "apps/kernel_bench.cpp",
+      "sha256": "28099e81cd34a7bfd3a2364a50fc2447273328466742cc9de08ee8bf8c54fa36",
+      "size_bytes": 4931
+    },
+    {
+      "path": "apps/kv_cache_bench.cpp",
+      "sha256": "6b39a58b4acae754e3b9ded741e9ccdd729f4567b5e8e13119aa26c9f7b2342b",
+      "size_bytes": 8595
+    },
+    {
+      "path": "apps/mini_main.cpp",
+      "sha256": "f5c7ce612d80aa6f4f31795703762d7bd3809aa11eafddb6cb9f4c4be6538aa6",
+      "size_bytes": 7008
+    },
+    {
+      "path": "apps/options.h",
+      "sha256": "18b3690c6b7c1cf251b649cc2b29bd947e21c15b4ad199e4f21621dac5507167",
+      "size_bytes": 2386
+    },
+    {
+      "path": "apps/runtime_bench.cpp",
+      "sha256": "4e7214efbef8af89896f1ec101b29bfa3d878ccfd16a2feaf1bc62d3aba3ab07",
+      "size_bytes": 18241
+    },
+    {
+      "path": "apps/server_main.cpp",
+      "sha256": "0dfd229056e39a7490171503d5672b3a45da83980175b8c7e3987d872e3ce632",
+      "size_bytes": 6186
+    },
+    {
+      "path": "apps/telemetry_output.h",
+      "sha256": "fb8be8f3c3e2c896da0b54fc5ded49519ca9077967b9bbd461b6a51c4c3da6db",
+      "size_bytes": 4322
+    },
+    {
+      "path": "benchmarks/runtime-inputs/qwen3-cpu.json",
+      "sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0",
+      "size_bytes": 917
+    },
+    {
+      "path": "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json",
+      "sha256": "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c",
+      "size_bytes": 2439
+    },
+    {
+      "path": "benchmarks/runtime-inputs/qwen3-cuda-v0.json",
+      "sha256": "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6",
+      "size_bytes": 3226
+    },
+    {
+      "path": "benchmarks/runtime-inputs/qwen3-scaling.json",
+      "sha256": "d259d7b0d8de13e80113a262e4e7057e4c5f976596f4c68c4c9e3c8d81384761",
+      "size_bytes": 807
+    },
+    {
+      "path": "cmake/MSVCIncludes.cmake",
+      "sha256": "c41c905ef4b2f59e5d126e2f573f091fb26bd6cbb5c267c9a80b72d40f18a3c8",
+      "size_bytes": 646
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "e675fee5b3d41f0c93edec45c18c3b27ae99564149ed4536d8ed0215d9b64a5a",
+      "size_bytes": 18173
+    },
+    {
+      "path": "docs/NEXT_SPEC.md",
+      "sha256": "27e5ce4fad1c0fe4ffec4d223a7feac2af133b9979bccbb982b581871a9decdc",
+      "size_bytes": 38763
+    },
+    {
+      "path": "include/llmserve/block_pool.h",
+      "sha256": "eda343e163a8a693a339e81b76368952f1c9d30d304838a1ddf7cbcc88431d88",
+      "size_bytes": 1010
+    },
+    {
+      "path": "include/llmserve/config.h",
+      "sha256": "aec31e680325dc9b5ea6dc559a0c4b603892f35b5f3ffd1c72751d2a2be06c85",
+      "size_bytes": 1043
+    },
+    {
+      "path": "include/llmserve/engine.h",
+      "sha256": "2f15aae9bd376c3d0b3b7dd08b19b08eaacf811fe50c88e81919cbe2330696f8",
+      "size_bytes": 3992
+    },
+    {
+      "path": "include/llmserve/http_server.h",
+      "sha256": "14ad9ec253848385c540aefd44727e7f0e38621a08b24b9ca1810fb4e4a801a3",
+      "size_bytes": 171
+    },
+    {
+      "path": "include/llmserve/model_runner.h",
+      "sha256": "ce4c23a4ef34bb782806c120a70dd4d56b93c4910db684cf6b76847729fd3379",
+      "size_bytes": 1881
+    },
+    {
+      "path": "include/llmserve/prefix_index.h",
+      "sha256": "8df4bcca8988fb778ed65e43f16be14a718d9145987f507cc8cb9895ec0c37c1",
+      "size_bytes": 1473
+    },
+    {
+      "path": "include/llmserve/scheduler.h",
+      "sha256": "25c43756a02bfde0aa55ca69ffd2ef2e7055289e27394377c8ab8481eb9d359f",
+      "size_bytes": 868
+    },
+    {
+      "path": "include/llmserve/telemetry.h",
+      "sha256": "4f8ecebb2daa735e9321428b97df9f55df257836c749302b11c75fdbc84c11a7",
+      "size_bytes": 3346
+    },
+    {
+      "path": "include/llmserve/utf8.h",
+      "sha256": "26fd519c32100ad7b1bd3b4d0dcbc4441a062df43ea34544d8be387df69c25a1",
+      "size_bytes": 278
+    },
+    {
+      "path": "include/minillm/cuda/context.h",
+      "sha256": "a07c72e558513091d988597b396ff4b21b1c7594f03d9c1054d6071b3093a59c",
+      "size_bytes": 1201
+    },
+    {
+      "path": "include/minillm/cuda/device_buffer.h",
+      "sha256": "da72f40c96517597782c8c70f00c1775d8488becec95d079fdc8e7c7253348f8",
+      "size_bytes": 2651
+    },
+    {
+      "path": "include/minillm/cuda/error.h",
+      "sha256": "ab22c81c7ebf2c6b2a1db0cadd14f2447d7e57d1529aea7e8f9166ad1f81e4d8",
+      "size_bytes": 1011
+    },
+    {
+      "path": "include/minillm/cuda/matrix.h",
+      "sha256": "7ba0a5b7f3894dbde48b9c07dd8a5e4816f6cd5e38290305f905c45b54e885a4",
+      "size_bytes": 1355
+    },
+    {
+      "path": "include/minillm/cuda/runtime.h",
+      "sha256": "78642a02ff99401445033ed5b1d25680fc716ae3bc914377f6ce27cfc9ba015d",
+      "size_bytes": 3497
+    },
+    {
+      "path": "include/minillm/gguf_model.h",
+      "sha256": "378dd44944fcca0ac7320a37974a42cd293f3f5fd45b31d023150b9de102d23b",
+      "size_bytes": 1106
+    },
+    {
+      "path": "include/minillm/kernels.h",
+      "sha256": "13c826154c60daa6763bee11056175a4668cd271f36d704363deb3c0c7818551",
+      "size_bytes": 1689
+    },
+    {
+      "path": "include/minillm/model_types.h",
+      "sha256": "e422ce3af929d6458d39cf89af18efc4c2272875fcc0531091cfbe1973dddd9e",
+      "size_bytes": 602
+    },
+    {
+      "path": "include/minillm/paged_kv.h",
+      "sha256": "c7bac7098bfe5ad95f696d5c87016cdf9f9a8ebd2b3d717602e62398b0fedbc7",
+      "size_bytes": 2258
+    },
+    {
+      "path": "include/minillm/parallel.h",
+      "sha256": "c5c2d733bc3b5bc41c0978c225cdca0e77dcf7cace80effb41792c710eb57f27",
+      "size_bytes": 1335
+    },
+    {
+      "path": "include/minillm/profile.h",
+      "sha256": "396b940360ef93d9178bd8e400b58afd7f7909bad3452c58451a14110028dd95",
+      "size_bytes": 3504
+    },
+    {
+      "path": "include/minillm/qwen3_model.h",
+      "sha256": "b088468ffbf4ee92642f42c0e60c94d0b05f1ada9ce0d8674ab95b05bcb99277",
+      "size_bytes": 1515
+    },
+    {
+      "path": "include/minillm/runtime.h",
+      "sha256": "07ff8552e54faf24e0e00ff13b839870071ba448e59d8d7f0d862aa2e78bdc04",
+      "size_bytes": 1557
+    },
+    {
+      "path": "include/minillm/tokenizer.h",
+      "sha256": "11359c94baa9948a5226b5586a661e106e25bb86b80e2d8010c46a7b4538f7df",
+      "size_bytes": 755
+    },
+    {
+      "path": "models/manifest.json",
+      "sha256": "eb269e2ef9b28289e65cb90273c8b98e3f172048cb9759fd26214eb175f1bfd7",
+      "size_bytes": 395
+    },
+    {
+      "path": "models/reference-manifest.json",
+      "sha256": "086535e8b21133002b7cb083509aef5d1119cf97587024a8b84c68431b82a3e3",
+      "size_bytes": 508
+    },
+    {
+      "path": "scripts/analyze_cuda_benchmark.py",
+      "sha256": "d54ed88b5288ffcfb151434095eea53d3adee1bad10e29f7f1cd94760c7d7e6c",
+      "size_bytes": 38341
+    },
+    {
+      "path": "scripts/analyze_cuda_micro.py",
+      "sha256": "a9d1d14e1f6f909e41df5478f622454ac19a84af7faefb179ef766bb83bf2330",
+      "size_bytes": 24195
+    },
+    {
+      "path": "scripts/analyze_cuda_profiler.py",
+      "sha256": "2cebf1ddbe44cdb83203d8b134fa77e804622c39e5bd85cd953b8870e976fdd0",
+      "size_bytes": 33890
+    },
+    {
+      "path": "scripts/analyze_cuda_validation.py",
+      "sha256": "15728afb5d461dd908842df8da4a285a84c81422447c87160a3e442bcb382248",
+      "size_bytes": 28624
+    },
+    {
+      "path": "scripts/analyze_telemetry.py",
+      "sha256": "7f9f9c51a3c476a075bb2adb2c0d7f1fa33bd87ed149d0d469eecb2104081ad4",
+      "size_bytes": 20573
+    },
+    {
+      "path": "scripts/Analyze-Benchmarks.ps1",
+      "sha256": "8300a7da2d2dc9d83ec493ea85fa3a5bc926f63c56dd92297fecc186b8739357",
+      "size_bytes": 31500
+    },
+    {
+      "path": "scripts/Analyze-CudaMicro.ps1",
+      "sha256": "e101960d6449d71d688696fffad62453378fe4d06568e244dd70ff3f64c2fcbe",
+      "size_bytes": 400
+    },
+    {
+      "path": "scripts/Analyze-CudaRuntime.ps1",
+      "sha256": "635e18ce0f343643544e5199272dd4e065458c549417a37279dfa58370ade24c",
+      "size_bytes": 407
+    },
+    {
+      "path": "scripts/Analyze-Runtime.ps1",
+      "sha256": "a0647416f0ddebb292ae64393fd07f5f262f349349b62a3f40aac0be1bfc4475",
+      "size_bytes": 28273
+    },
+    {
+      "path": "scripts/Benchmark-Common.ps1",
+      "sha256": "4363a946fda130bcfc6cc1bbb948df943ac6efd0402175c80a91413047974412",
+      "size_bytes": 12790
+    },
+    {
+      "path": "scripts/Benchmark-CudaMicro.ps1",
+      "sha256": "758c03312ee5d0bbe0c5fbfb89ac4b4d77585b7859a3bb39448762906425294b",
+      "size_bytes": 12012
+    },
+    {
+      "path": "scripts/Benchmark-CudaRuntime.ps1",
+      "sha256": "fe9c1c01b40aeefd2140893fbf2c0931819e3a4de7d9e759f2fec3ac5fa14e8a",
+      "size_bytes": 14662
+    },
+    {
+      "path": "scripts/Benchmark-Policies.ps1",
+      "sha256": "ef7ba07699aaf6b99d7c6418d5b8ca34d6af6e2bb0da250302f9a0d65c945126",
+      "size_bytes": 16642
+    },
+    {
+      "path": "scripts/Benchmark-Runtime.ps1",
+      "sha256": "4ecdc57d7ad7fb8d602cfbe7750b6d9784937014ade966d58d487044eb0c0a3d",
+      "size_bytes": 10628
+    },
+    {
+      "path": "scripts/Benchmark-Telemetry.ps1",
+      "sha256": "0c52cedadb254d79dbdfdf2b3517c55d94f670664548ac64ac5282cab0f5eec7",
+      "size_bytes": 3110
+    },
+    {
+      "path": "scripts/Build-LLMServe.ps1",
+      "sha256": "ebf800ac7e8c02174997d015fbc9427e8ed670c70d05186ae733dec33b79354c",
+      "size_bytes": 1770
+    },
+    {
+      "path": "scripts/cuda_evidence_bundle.py",
+      "sha256": "0c426258dd449834dbd6af3af47b7cfcd2680b8f0d5afead78345453e9ca19ef",
+      "size_bytes": 15671
+    },
+    {
+      "path": "scripts/cuda_smoke.cu",
+      "sha256": "aa0bd5ecd6bf936b31ff67b8d804b6f237372def390a0c852da6c184438addd9",
+      "size_bytes": 2186
+    },
+    {
+      "path": "scripts/Cuda-Benchmark-Common.ps1",
+      "sha256": "589f140d910713a936c79293935aaddd3490c3dccb4af4b054dec9c4927ce9b9",
+      "size_bytes": 2806
+    },
+    {
+      "path": "scripts/dev.sh",
+      "sha256": "b2c0ee4386588f76417e4b7bc4ed08449edb7774a531f8b720900d4d7fa37f88",
+      "size_bytes": 8325
+    },
+    {
+      "path": "scripts/Download-Model.ps1",
+      "sha256": "547a9dd67afc14e783d7c2dc497ff974831116dc7d707e3e260a07efe159ca62",
+      "size_bytes": 1309
+    },
+    {
+      "path": "scripts/Export-BenchmarkBundle.ps1",
+      "sha256": "e8b8c65c7eba11d73816bd930774413296b7a3cd281ccc180e0eb602600e715f",
+      "size_bytes": 5042
+    },
+    {
+      "path": "scripts/Fetch-Dependencies.ps1",
+      "sha256": "eec98e18b72ab2276ec2a80785dcd74453505c705691493ddf636b8d33ba97fe",
+      "size_bytes": 831
+    },
+    {
+      "path": "scripts/models.py",
+      "sha256": "800ca6886bd79ad147f3fa22b7aa8ff3c7678cc59356fccb1cb921c8c72146d2",
+      "size_bytes": 2030
+    },
+    {
+      "path": "scripts/Profile-CudaRuntime.ps1",
+      "sha256": "9b64f9759851e6fdcc44248bd69d4b58c284d28ce10e80e637b83f7ce1251d12",
+      "size_bytes": 19497
+    },
+    {
+      "path": "scripts/Start-LLMServe.ps1",
+      "sha256": "21a37a743d0d6ebc2399b39b557e42a614e0911121babf675054ff6f905754bb",
+      "size_bytes": 4713
+    },
+    {
+      "path": "scripts/Stop-LLMServe.ps1",
+      "sha256": "1791bce799461239dc5b039bb56a94b60d7dc25ae36218d61476e2aacea33802",
+      "size_bytes": 1141
+    },
+    {
+      "path": "scripts/Test-CtestEvidence.ps1",
+      "sha256": "c18b706a4c3f6ce41abee3e4db45b4b8627cb5f137de9a0861d06c30887bab8a",
+      "size_bytes": 3053
+    },
+    {
+      "path": "scripts/Test-EvidenceAvailability.ps1",
+      "sha256": "05698b98f5fee33d4e7a9ee8d44706804c5097e72c288e2b35b85f986b422c5d",
+      "size_bytes": 667
+    },
+    {
+      "path": "scripts/Validate-Model.ps1",
+      "sha256": "33dcac355f175345feb84abcba2dcfbbb24596b97bebbd928e9f3c2e63cd6fe5",
+      "size_bytes": 1387
+    },
+    {
+      "path": "src/block_pool.cpp",
+      "sha256": "89b82e95b0f1745e4cb6fce8eb78160a586c4b2f6f4bea35e5cf776bcd0bdb18",
+      "size_bytes": 1982
+    },
+    {
+      "path": "src/config.cpp",
+      "sha256": "a421bf88012332879f435a6bb3a0eadcd97973d8e7f32c722ea7d47cc0fb599f",
+      "size_bytes": 1893
+    },
+    {
+      "path": "src/engine.cpp",
+      "sha256": "f75d2aa6973b2028215ea1af62c309fa3ac7183de696b976c963773b0c1a5eeb",
+      "size_bytes": 29103
+    },
+    {
+      "path": "src/http_server.cpp",
+      "sha256": "71d0a8ffddc37fdc3eda9cefa9344a0d4fea5da00935def289077a23746e7fb1",
+      "size_bytes": 16324
+    },
+    {
+      "path": "src/llama_runner.cpp",
+      "sha256": "f8c352e58ef7ab291f1f0a3ef1f110684e3eccb2cc3bfaf79122be524294769c",
+      "size_bytes": 8915
+    },
+    {
+      "path": "src/mini_runner.cpp",
+      "sha256": "37ce13f2e2f4cae88334d294a78dd5175f6d6c51d90a9c19398f3bc2531649a7",
+      "size_bytes": 5686
+    },
+    {
+      "path": "src/minillm/cuda/attention.cu",
+      "sha256": "6f65a68a3dae99ea88cfbb778e42e4decb5503cdb991327205911264771a69b4",
+      "size_bytes": 16253
+    },
+    {
+      "path": "src/minillm/cuda/attention.h",
+      "sha256": "1be14f40d9d85bf6cc76877221b7c466e5a0203b87585a9a0750edcf416bbe8c",
+      "size_bytes": 2146
+    },
+    {
+      "path": "src/minillm/cuda/batch_state.cpp",
+      "sha256": "aff70d6e2ef341848e5d3d8ad6a1dd575c702cfba284fcd63a66321598ab027d",
+      "size_bytes": 2903
+    },
+    {
+      "path": "src/minillm/cuda/batch_state.h",
+      "sha256": "9e661617304fe07f22b5d9e81b521510e8ac22d48396ad2523d1f66792a1d449",
+      "size_bytes": 1038
+    },
+    {
+      "path": "src/minillm/cuda/context.cpp",
+      "sha256": "9aed88c53664a277e8b12e1b562641af100581e0d287ad9e94a699fab96622c4",
+      "size_bytes": 5085
+    },
+    {
+      "path": "src/minillm/cuda/device_helpers.cuh",
+      "sha256": "7f3e96c4f201f8182ca502d4e6bb9a2368a28b58a2e02d8fc3a78383dc3df540",
+      "size_bytes": 264
+    },
+    {
+      "path": "src/minillm/cuda/layer.cpp",
+      "sha256": "30c28d6445f31f28b23b35a4969f6bebbb96255a431c4dd2774c805d90e32e30",
+      "size_bytes": 3972
+    },
+    {
+      "path": "src/minillm/cuda/layer.h",
+      "sha256": "63cde9316d004d0aa7b85d232d2c2e2583eefd88562afdc75f71f9d1ada8c6a3",
+      "size_bytes": 869
+    },
+    {
+      "path": "src/minillm/cuda/matrix.cpp",
+      "sha256": "837a0a5c47669953aa261466307222b0d1523a939d5f0dd1bde254a8bddd3af1",
+      "size_bytes": 1422
+    },
+    {
+      "path": "src/minillm/cuda/ops.cu",
+      "sha256": "e16a8f5f15816653c37afba316f252062c856314efaeb5839ac4a8f4c106796c",
+      "size_bytes": 13748
+    },
+    {
+      "path": "src/minillm/cuda/ops.h",
+      "sha256": "d1f62a7c5cf8d5fad7466417b653ab99f93f5dc09a45de701d1457a25e9b3256",
+      "size_bytes": 2349
+    },
+    {
+      "path": "src/minillm/cuda/runtime.cpp",
+      "sha256": "ea96b9e918e5f1535356156e798e78db04d8d7826e70638ded53aa3f9ac16895",
+      "size_bytes": 14933
+    },
+    {
+      "path": "src/minillm/cuda/storage.cpp",
+      "sha256": "e8b23224b7085e404d152d576f89badf4f69843ba5ac4145df41a57f60564bfc",
+      "size_bytes": 14427
+    },
+    {
+      "path": "src/minillm/cuda/storage.h",
+      "sha256": "b437f94364cd8d6d33828cd8dd3db8ad53b0acba551f5c512d05841e5c44df5a",
+      "size_bytes": 4604
+    },
+    {
+      "path": "src/minillm/cuda/tensor_validation.h",
+      "sha256": "7517e0e87f8e548199f3f827a7588a6288e58655447ce96382a237c37bc561e5",
+      "size_bytes": 2241
+    },
+    {
+      "path": "src/minillm/gguf_model.cpp",
+      "sha256": "b581ea4ff8aa7626c71113cb7674528d95fa9cdb3a69223d8b6f1c83d97aa438",
+      "size_bytes": 8001
+    },
+    {
+      "path": "src/minillm/kernels_avx2.cpp",
+      "sha256": "bb9a19e266484bfbe9da1c947944c82dd33a728dbad0919b15da6b60ede46b8f",
+      "size_bytes": 2788
+    },
+    {
+      "path": "src/minillm/kernels.cpp",
+      "sha256": "4d316615fc11f6d4e53bc3cba8d928fd60796d4abef75d74fd3517381d5eb002",
+      "size_bytes": 7575
+    },
+    {
+      "path": "src/minillm/paged_kv.cpp",
+      "sha256": "27c0a938393205cd52fb1b598335c4eab7b9e1e89d884572baa69e6e38ba58fc",
+      "size_bytes": 5669
+    },
+    {
+      "path": "src/minillm/parallel.cpp",
+      "sha256": "c47e95b422011fda63fa7e205cc9389bedc2b74c6e3b3bd68e5a2746b3ad847f",
+      "size_bytes": 5691
+    },
+    {
+      "path": "src/minillm/qwen3_model.cpp",
+      "sha256": "38032e670a294832cbf9ee6c88105fd072b91fa547d3e2e76a3cb0478c816dfe",
+      "size_bytes": 3985
+    },
+    {
+      "path": "src/minillm/runtime.cpp",
+      "sha256": "b80177cb9fe01110f5a6ad9a515c271a817663bc945740822b063a1ccf5e431a",
+      "size_bytes": 19037
+    },
+    {
+      "path": "src/minillm/tokenizer.cpp",
+      "sha256": "595451350a5cc7799866350172f1424006445a5401ca5cbd574bfeb6f484f38f",
+      "size_bytes": 2949
+    },
+    {
+      "path": "src/prefix_index.cpp",
+      "sha256": "bffb18aa8dc1026a1934191bd591cbc013dc0e332112e21378700c9d50fed683",
+      "size_bytes": 3188
+    },
+    {
+      "path": "src/scheduler.cpp",
+      "sha256": "687f5ade41e9f90a22ad1bda43c6b6009c863042fc85a4d08f20abc492e3f4b3",
+      "size_bytes": 1773
+    },
+    {
+      "path": "src/utf8.cpp",
+      "sha256": "c4fc69e6c72f74604a7c751b8c831437f5231378cb7a6dd66b42b30080f6bfa0",
+      "size_bytes": 1691
+    },
+    {
+      "path": "tests/benchmark_validation_tests.ps1",
+      "sha256": "c345b44e300e5ce8d55e76fb6dc56731af9da6441e8808a9e100828e271bbd4d",
+      "size_bytes": 26983
+    },
+    {
+      "path": "tests/core_tests.cpp",
+      "sha256": "918808b6cf72113a7053fe3969f0cf09c8e5fe3be7e8f2f2db244a013745e6ae",
+      "size_bytes": 33455
+    },
+    {
+      "path": "tests/cuda_benchmark_tests.cpp",
+      "sha256": "a6731cf599ce31d66d8f215813ddc7a3abe43298dfc67af3af86a983479ce1fd",
+      "size_bytes": 5095
+    },
+    {
+      "path": "tests/cuda_benchmark_validation_tests.py",
+      "sha256": "12459acb5d02cc2d3a485760cbacd4e48e640800e5ba55f233554e69f068ccd9",
+      "size_bytes": 27513
+    },
+    {
+      "path": "tests/cuda_bundle_validation_tests.py",
+      "sha256": "572f4d5dedf318a9c5676696c5130d1105e3e4465f7eed6ed01333070e97922d",
+      "size_bytes": 11198
+    },
+    {
+      "path": "tests/cuda_full_validation.cpp",
+      "sha256": "236db546edb884747562da504ddb6e1a25dc8cc3e4d11d98c287e649f37c437c",
+      "size_bytes": 27526
+    },
+    {
+      "path": "tests/cuda_layer_tests.cpp",
+      "sha256": "8550caab7c9ad8df9360a81dda4fc294d2f9eb61af5b418f393fcff40a6648b6",
+      "size_bytes": 39405
+    },
+    {
+      "path": "tests/cuda_micro_tests.cpp",
+      "sha256": "ab56ee766d658430f0a9364ccb35979bb5f7cc582b292eb85d674b58fef5d8e2",
+      "size_bytes": 4706
+    },
+    {
+      "path": "tests/cuda_micro_validation_tests.py",
+      "sha256": "b76f3c57ad279cebe0c38b3530a83b6885f4a08d1f02fb8da2a5a39abb12ff77",
+      "size_bytes": 17511
+    },
+    {
+      "path": "tests/cuda_model_tests.cpp",
+      "sha256": "bf520355f66752d260f4683d1b2032aea3955135c31f56cbe1b0d878dd355ccb",
+      "size_bytes": 16647
+    },
+    {
+      "path": "tests/cuda_ops_tests.cu",
+      "sha256": "16773d3d2896857202612a3e632123b6b66766fe0b199eb3a7fc2d2e1e3d0c8a",
+      "size_bytes": 23644
+    },
+    {
+      "path": "tests/cuda_profiler_process_tests.ps1",
+      "sha256": "2884e5a763ef9c1e7f1cbc37efb3ff91390dd37718ff2d79445dc73313b2de9f",
+      "size_bytes": 3106
+    },
+    {
+      "path": "tests/cuda_profiler_validation_tests.py",
+      "sha256": "ea7181f71b474a6c7eacbebde143662f32f773d217052a90e27f4422aea80ab4",
+      "size_bytes": 17387
+    },
+    {
+      "path": "tests/cuda_reference_diagnostic.cpp",
+      "sha256": "34487a6e1bf233ee635cafbae824c26ece3514bf5c90f95d1907a16fada77558",
+      "size_bytes": 6917
+    },
+    {
+      "path": "tests/cuda_runtime_tests.cpp",
+      "sha256": "77eaa2760871b8cb6ef9a65133c3404a934d47e88bc72e3626db6a75cf3e9b72",
+      "size_bytes": 14096
+    },
+    {
+      "path": "tests/cuda_storage_tests.cpp",
+      "sha256": "384da5468bd24d377e76b6203005043f7063b397b67a35731eb4374f1f3d21e1",
+      "size_bytes": 27973
+    },
+    {
+      "path": "tests/cuda_unit_tests.cu",
+      "sha256": "351d35587699db031abba9750b72522d9f7cc730f730623c87fbdcf517de9967",
+      "size_bytes": 11069
+    },
+    {
+      "path": "tests/cuda_validation_report_tests.py",
+      "sha256": "490e28c86d707252511856d38566c2e646cc4c6b57f5d9babffc1283e7168dd0",
+      "size_bytes": 11777
+    },
+    {
+      "path": "tests/cuda_validation_support.h",
+      "sha256": "c0326bf96998105c36fee6c7b854084153c8127912094c27a6853aabb878b68b",
+      "size_bytes": 9173
+    },
+    {
+      "path": "tests/cuda_validation_tests.cpp",
+      "sha256": "5eee891aca77e21e0cf5462117d8b3316872c2cc9603e322159f9fc0fb3f1884",
+      "size_bytes": 5062
+    },
+    {
+      "path": "tests/data/qwen3_greedy_reference.json",
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+      "size_bytes": 3955
+    },
+    {
+      "path": "tests/data/qwen3_validation_cases.json",
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923",
+      "size_bytes": 4764
+    },
+    {
+      "path": "tests/gated_runner.h",
+      "sha256": "452d475731dc4d84a47e3f5709c7f1daab3ce8fbb51c7bc730ccbee9c6f684bf",
+      "size_bytes": 3026
+    },
+    {
+      "path": "tests/gguf_tests.cpp",
+      "sha256": "45eae808ef6c16fcc683ded5d02ca57e901e11f3e55a3573090af7c90e987abb",
+      "size_bytes": 3497
+    },
+    {
+      "path": "tests/host_model_tests.cpp",
+      "sha256": "3a2d36d6cd45e1d2645e784ad53c7495e32d81c15fa4f240550b14dfc3cdad79",
+      "size_bytes": 10055
+    },
+    {
+      "path": "tests/http_tests.cpp",
+      "sha256": "19050a3dc111e19f5730e4055fa4a904ec417f06f0898db01e9c4c851d0e9492",
+      "size_bytes": 11667
+    },
+    {
+      "path": "tests/model_tests.cpp",
+      "sha256": "d5d1f73a4212e31690fd1c15520f4ac99a770114e20b03e2acbba8d85fc7c72e",
+      "size_bytes": 22021
+    },
+    {
+      "path": "tests/qwen3_fixture.h",
+      "sha256": "c1d9e63961ef6954a8a5c108a7b0ae2958a9013d6cc78519bae73bc14ee28f51",
+      "size_bytes": 4164
+    },
+    {
+      "path": "tests/runtime_benchmark_tests.ps1",
+      "sha256": "b2339a78cc633393994a539aaa223596a8a739b72bf1472d9460b03cb9e60ac5",
+      "size_bytes": 17490
+    },
+    {
+      "path": "tests/telemetry_validation_tests.py",
+      "sha256": "dd836bc3fc07f8533b6ef4404e7a54c2532de54d7834664aabebd5dacbc65166",
+      "size_bytes": 6103
+    },
+    {
+      "path": "tests/test_support.h",
+      "sha256": "77586f269b39f7167669b02fcfa6fc2930d2b1169980dd3f9ec9e688d9459871",
+      "size_bytes": 1580
+    },
+    {
+      "path": "tests/validation_contract_tests.py",
+      "sha256": "5aea02d01671055be865f9e2f9c04dad4cea78d244b3ea5d6b7b6c9885b9a8e4",
+      "size_bytes": 3970
+    }
+  ]
+}

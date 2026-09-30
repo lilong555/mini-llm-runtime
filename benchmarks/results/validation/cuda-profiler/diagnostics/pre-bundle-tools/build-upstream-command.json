@@ -1,0 +1,13 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "cuda",
+    "build"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T07:56:13.6427209Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T07:56:23.5929805Z"
+}

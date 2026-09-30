@@ -1,0 +1,5 @@
+Measure-Object: 
+Line |
+   3 |  @([ordered]@{passed=11}) | Measure-Object -Property passed -Sum
+     |                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Cannot process argument because the value of argument "passed" is not valid. Change the value of the "passed" argument and run the operation again.

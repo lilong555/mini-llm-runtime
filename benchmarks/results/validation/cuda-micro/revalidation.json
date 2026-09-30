@@ -1,0 +1,105 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "source_directory": "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-micro",
+  "negatives": [
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/missing-source/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/missing-source"
+      ],
+      "exit_code": 1,
+      "output": "Get-FileHash: /tmp/cuda-micro-relocation-oli1tfwd/missing-source/verify.ps1:17\nLine |\n  17 |      if ((Get-FileHash -LiteralPath $snapshot -Algorithm SHA256).Hash. …\n     |           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | Could not find file\n     | '/tmp/cuda-micro-relocation-oli1tfwd/missing-source/source-snapshot.zip'.\n",
+      "name": "missing-source",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/artifact-omitted/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/artifact-omitted"
+      ],
+      "exit_code": 1,
+      "output": "Exception: /tmp/cuda-micro-relocation-oli1tfwd/artifact-omitted/verify.ps1:50\nLine |\n  50 |          if (-not $names.Contains($name)) { throw \"缺少必需证据：$name\" }\n     |                                             ~~~~~~~~~~~~~~~~~~~~\n     | 缺少必需证据：layer-memcheck-command.json\n",
+      "name": "artifact-omitted",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/numeric-binary-identity/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/numeric-binary-identity"
+      ],
+      "exit_code": 1,
+      "output": "Exception: /tmp/cuda-micro-relocation-oli1tfwd/numeric-binary-identity/verify.ps1:87\nLine |\n  87 |  … ne $evidence.source.worktree_state_sha256) { throw '执行归属或数值编译身份不符。' }\n     |                                                 ~~~~~~~~~~~~~~~~~~~~~~\n     | 执行归属或数值编译身份不符。\n",
+      "name": "numeric-binary-identity",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/micro-call-count/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/micro-call-count"
+      ],
+      "exit_code": 1,
+      "output": "CUDA 微基准证据复核失败：样本顺序、阶段或 API 调用数量不符\nException: /tmp/cuda-micro-relocation-oli1tfwd/micro-call-count/verify.ps1:114\nLine |\n 114 |  … ASTEXITCODE -ne 0) { $lines | Write-Output; throw 'micro 功能报告复核失败。' }\n     |                                                ~~~~~~~~~~~~~~~~~~~~~~~\n     | micro 功能报告复核失败。\n",
+      "name": "micro-call-count",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/numerical-locator/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/numerical-locator"
+      ],
+      "exit_code": 1,
+      "output": "Exception: /tmp/cuda-micro-relocation-oli1tfwd/numerical-locator/verify.ps1:126\nLine |\n 126 |  …    $preflightState.reports.Count -ne 0) { throw '模型基准预检的数值来源或范围不符。' }\n     |                                              ~~~~~~~~~~~~~~~~~~~~~~~~~\n     | 模型基准预检的数值来源或范围不符。\n",
+      "name": "numerical-locator",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "/tmp/cuda-micro-relocation-oli1tfwd/ctest-bytes/verify.ps1",
+        "-Directory",
+        "/tmp/cuda-micro-relocation-oli1tfwd/ctest-bytes"
+      ],
+      "exit_code": 1,
+      "output": "Exception: /tmp/cuda-micro-relocation-oli1tfwd/ctest-bytes/verify.ps1:37\nLine |\n  37 |              throw \"证据摘要或长度不符：$($item.path)\"\n     |              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n     | 证据摘要或长度不符：own-ctest.xml\n",
+      "name": "ctest-bytes",
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "pwsh",
+      "-NoProfile",
+      "-File",
+      "/tmp/cuda-micro-relocation-oli1tfwd/bundle/verify.ps1",
+      "-Directory",
+      "/tmp/cuda-micro-relocation-oli1tfwd/bundle"
+    ],
+    "exit_code": 0,
+    "output": "\nStatus                 : passed\nPurpose                : archive_revalidation\nArtifacts              : 415\nSuiteExecutions        : 50\nCaseExecutions         : 926\nMicroFunctionalCases   : 375\nFullNumericComparisons : 12528\nPerformanceBaseline    : False\nGpuServing             : False\n\n"
+  },
+  "original_files_unchanged": true,
+  "checked_original_files": 418
+}

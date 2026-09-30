@@ -1,0 +1,41 @@
+{
+  "git_sha": "6d7b0888fa1c512c9e13ce4fa28b32708113b5df",
+  "git_dirty": true,
+  "git_status": [
+    " M .gitignore",
+    " M CMakeLists.txt",
+    " M docs/ENGINEERING_LOG.md",
+    " M scripts/dev.sh",
+    " M tests/cuda_model_tests.cpp",
+    "?? benchmarks/results/validation/cuda-full/",
+    "?? docs/CUDA_NUMERICS.md",
+    "?? scripts/analyze_cuda_validation.py",
+    "?? tests/cuda_full_validation.cpp",
+    "?? tests/cuda_reference_diagnostic.cpp",
+    "?? tests/cuda_validation_report_tests.py",
+    "?? tests/cuda_validation_support.h",
+    "?? tests/cuda_validation_tests.cpp"
+  ],
+  "scope": [
+    "CMakeLists.txt",
+    "AGENTS.md",
+    ".gitattributes",
+    ".gitignore",
+    "cmake",
+    "apps",
+    "include",
+    "src",
+    "scripts",
+    "tests",
+    ".github",
+    "models/manifest.json",
+    "models/reference-manifest.json",
+    "benchmarks/runtime-inputs"
+  ],
+  "state_file": "source-state.json",
+  "worktree_state_sha256": "24ee7c74bcb80d7b8bf6fc1df4d34c8b0cc5cd4854ddf16022a4a1d2ffbd65a4",
+  "snapshot": {
+    "path": "source-snapshot.zip",
+    "sha256": "e1150a47ddde4ed6920ac3e055a7bc4fab7db8f9f22bee033697dc087c9389d4"
+  }
+}

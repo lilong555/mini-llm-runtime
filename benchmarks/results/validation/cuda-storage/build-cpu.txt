@@ -1,0 +1,15 @@
+-- llama.cpp version: 0.4.1-dev
+CMAKE_BUILD_TYPE=RelWithDebInfo
+-- ccache found, compilation results will be cached. Disable with GGML_CCACHE=OFF.
+-- CMAKE_SYSTEM_PROCESSOR: x86_64
+-- GGML_SYSTEM_ARCH: x86
+-- Including CPU backend
+-- x86 detected
+-- Adding CPU backend variant ggml-cpu: -march=native 
+-- ggml version: 0.24.0
+-- ggml commit:  911f6cdc8
+-- Configuring done (0.8s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/li/code/mini-llm-runtime/build/wsl-cpu
+[1/2] Building CXX object CMakeFiles/minillm-host-model-tests.dir/tests/host_model_tests.cpp.o
+[2/2] Linking CXX executable bin/minillm-host-model-tests

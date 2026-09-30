@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-B",
+    "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py",
+    "--directory",
+    "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa"
+  ],
+  "exit_code": 1
+}

@@ -126,16 +126,19 @@ function New-Fixture([string]$Name, [scriptblock]$Mutate, [scriptblock]$AfterWri
     $traceHash = Get-LowerSha256 $trace
     $fnv = Get-TraceFnv1a64 $trace
     $sourceState = Join-Path $directory 'source-state.json'
-    Write-BenchmarkJson $sourceState ([ordered]@{ scope = @('fixture'); files = @() })
+    $sourceRoot = Join-Path $directory 'source'
+    New-Item -ItemType Directory -Path $sourceRoot | Out-Null
+    [IO.File]::WriteAllText((Join-Path $sourceRoot 'fixture.cpp'), "int main() { return 0; }`n")
+    $sourceFiles = @([ordered]@{ path = 'fixture.cpp'; size_bytes = (Get-Item (Join-Path $sourceRoot 'fixture.cpp')).Length
+        sha256 = Get-LowerSha256 (Join-Path $sourceRoot 'fixture.cpp') })
+    Write-BenchmarkJson $sourceState ([ordered]@{ scope = @('fixture.cpp'); files = $sourceFiles })
     $snapshotPath = Join-Path $directory 'source-snapshot.zip'
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $archive = [System.IO.Compression.ZipFile]::Open($snapshotPath, [System.IO.Compression.ZipArchiveMode]::Create)
-    $archive.Dispose()
+    Write-BenchmarkSourceSnapshot $sourceRoot $sourceFiles $snapshotPath
     $manifest = [ordered]@{
         schema_version = 1; benchmark = 'llmserve-policy-comparison'; run_id = 'fixture-run'
         source = [ordered]@{
             git_sha = ('1' * 40); git_dirty = $false; worktree_state_sha256 = Get-LowerSha256 $sourceState
-            state_file = 'source-state.json'
+            state_file = 'source-state.json'; scope = @('fixture.cpp')
             snapshot = [ordered]@{ path = 'source-snapshot.zip'; sha256 = Get-LowerSha256 $snapshotPath }
         }
         build = [ordered]@{
@@ -206,19 +209,56 @@ function Assert-Passes([string]$Name, [scriptblock]$Mutate = $null) {
 function Assert-Rejected([string]$Name, [scriptblock]$Mutate = $null, [string]$Pattern = '',
     [scriptblock]$AfterWrite = $null) {
     $directory = New-Fixture $Name $Mutate $AfterWrite
+    $before = @{}
+    foreach ($file in Get-ChildItem -LiteralPath $directory -File -Recurse -Force) {
+        $before[$file.FullName] = Get-LowerSha256 $file.FullName
+    }
     $rejected = $false
     try { & $Analyzer -Directory $directory | Out-Null } catch { $rejected = $true }
     if (-not $rejected) { throw "$Name should be rejected." }
-    $validation = Get-Content -Raw -LiteralPath (Join-Path $directory 'validation-summary.json') | ConvertFrom-Json
-    if ($validation.valid -or @($validation.errors).Count -eq 0 -or
-        (Test-Path -LiteralPath (Join-Path $directory 'summary.json'))) {
-        throw "$Name did not preserve failure evidence or retained a successful summary."
+    $validation = Get-Content -Raw -LiteralPath (Join-Path $directory 'analysis-failure.json') | ConvertFrom-Json
+    if ($validation.valid -or @($validation.errors).Count -eq 0) {
+        throw "$Name 缺少失败诊断。"
+    }
+    foreach ($path in $before.Keys) {
+        if (-not (Test-Path -LiteralPath $path) -or (Get-LowerSha256 $path) -cne $before[$path]) {
+            throw "$Name 修改了原归档文件：$path"
+        }
     }
     if ($Pattern -and ($validation.errors -join "`n") -notmatch $Pattern) {
         throw "$Name failed for an unexpected reason: $($validation.errors -join '; ')"
     }
     ++$script:passed
     Write-Host "[PASS] $Name"
+}
+
+function Set-CudaFixture($Manifest, $Mixed, $Prefill) {
+    $Manifest.engine.backend = 'mini-cuda'
+    $Manifest.engine.metrics_backend = 'minillm-cuda'
+    $Manifest.engine.metrics_kernel_mode = 'cuda-f32'
+    $Manifest.engine.prefix_cache_entries = 0
+    $Manifest.engine.prefix_cache_tokens = 0
+    $Manifest.build.own_cuda_enabled = 'ON'
+    $Manifest.protocol.device_weight_dtype = 'F32'
+    $Manifest.protocol.kv_layout = 'contiguous'
+    $Manifest.protocol.single_stream = $true
+    foreach ($report in @($Mixed, $Prefill)) {
+        foreach ($snapshot in @($report.server_before, $report.server_after)) {
+            $snapshot.backend = 'minillm-cuda'
+            $snapshot.gpu = $true
+            $snapshot.device = 'CUDA/fixture'
+            $snapshot.kernel_mode = 'cuda-f32'
+            $snapshot.prefix_cache_entries = 0
+            $snapshot.prefix_cache_tokens = 0
+            $snapshot.batches = 2
+            $snapshot.capabilities = [ordered]@{ max_sequences = 2; max_batch_tokens = 8; max_model_len = 64
+                prefix_copy = $false; runtime_stage_profile = $false; synchronous_execute = $true }
+            $snapshot.resources = [ordered]@{ layout = 'contiguous'; live_kv_pages = $null
+                resident_kv_payload_bytes = 4096; owned_device_bytes = 8192; capacity_tokens = 128
+                live_tokens = 0; state_valid = $true; reusable = $true
+                snapshot_boundary = 'model_thread_publish'; batch_id = 2 }
+        }
+    }
 }
 
 function Assert-CtestEvidence([string]$Name, [string]$Body, [bool]$ShouldPass,
@@ -252,6 +292,21 @@ function Assert-CtestEvidence([string]$Name, [string]$Body, [bool]$ShouldPass,
 }
 
 try {
+    $publishDirectory = Join-Path $testRoot 'atomic-publish'
+    New-Item -ItemType Directory -Path $publishDirectory | Out-Null
+    Write-BenchmarkJson (Join-Path $publishDirectory 'first.json') @{ value = 'original' }
+    $originalHash = Get-LowerSha256 (Join-Path $publishDirectory 'first.json')
+    New-Item -ItemType Directory -Path (Join-Path $publishDirectory 'second.json') | Out-Null
+    $rejected = $false
+    try {
+        Publish-BenchmarkOutputs $publishDirectory ([ordered]@{
+            'first.json' = @{ value = 'replacement' }; 'second.json' = @{ value = 'cannot_publish' } })
+    } catch { $rejected = $true }
+    if (-not $rejected -or (Get-LowerSha256 (Join-Path $publishDirectory 'first.json')) -cne $originalHash) {
+        throw '发布失败没有恢复原有汇总。'
+    }
+    ++$passed
+    Write-Host '[PASS] atomic-publication-rollback'
     foreach ($script in Get-ChildItem -LiteralPath (Split-Path -Parent $Analyzer) -Filter '*.ps1') {
         $tokens = $null
         $parseErrors = $null
@@ -270,6 +325,33 @@ try {
     ++$passed
     Write-Host '[PASS] native-port-detection'
     Assert-Passes 'normal'
+    Assert-Passes 'own-cuda-contiguous' { param($m, $a, $b) Set-CudaFixture $m $a $b }
+    Assert-Rejected 'own-cuda-fake-pages' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.resources.live_kv_pages = 0
+    } 'live_kv_pages must be null'
+    Assert-Rejected 'own-cuda-poisoned-success' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.resources.state_valid = $false
+        $b.server_after.resources.reusable = $false
+        $b.server_after.resources.live_tokens = $null
+    } 'resources.state_valid|resources.reusable'
+    Assert-Rejected 'own-cuda-prefix-capability' {
+        param($m, $a, $b)
+        Set-CudaFixture $m $a $b
+        $b.server_after.capabilities.prefix_copy = $true
+    } 'prefix_copy'
+    $bundlePath = Join-Path $testRoot 'policy-bundle.zip'
+    & (Join-Path (Split-Path -Parent $Analyzer) 'Export-BenchmarkBundle.ps1') `
+        -Directory (Join-Path $testRoot 'normal') -Output $bundlePath *> $null
+    $bundleDirectory = Join-Path $testRoot 'policy-relocated'
+    [IO.Compression.ZipFile]::ExtractToDirectory($bundlePath, $bundleDirectory)
+    & (Join-Path $bundleDirectory 'verification/Test-EvidenceAvailability.ps1') -Directory $bundleDirectory *> $null
+    & (Join-Path $bundleDirectory 'verification/Analyze-Benchmarks.ps1') -Directory $bundleDirectory | Out-Null
+    ++$passed
+    Write-Host '[PASS] policy-bundle-relocation'
     Assert-Passes 'no-warmup' {
         param($manifest, $mixed, $prefill)
         $manifest.protocol.warmup = $false; $manifest.protocol.warmup_request = $null
@@ -295,6 +377,21 @@ try {
         Set-Trace $directory $manifest $mixed $prefill $rows
         $mixed.requests[1].id = 'R0'; $prefill.requests[1].id = 'R0'
     }
+    Assert-Passes 'per-request-maximum-stall' {
+        param($manifest, $mixed, $prefill)
+        foreach ($report in @($mixed, $prefill)) {
+            foreach ($request in $report.requests) { $request.max_itl_ms = 1.0 }
+            $report.summary.request_max_itl_ms = Quantiles @(1.0, 1.0)
+        }
+    }
+    Assert-Rejected 'forged-maximum-stall' {
+        param($manifest, $mixed, $prefill)
+        $prefill.requests[0].max_itl_ms = 999.0
+    } 'max_itl_ms'
+    Assert-Rejected 'forged-maximum-stall-distribution' {
+        param($manifest, $mixed, $prefill)
+        $prefill.summary.request_max_itl_ms = Quantiles @(999.0, 999.0)
+    } 'request_max_itl_ms'
     Assert-Passes 'allowed-timeout' {
         param($manifest, $mixed, $prefill)
         $manifest.protocol.allowed_request_outcomes += 'timeout'
@@ -398,6 +495,16 @@ try {
         param($directory) Copy-Item -LiteralPath (Join-Path $directory 'mixed-0.json') -Destination (Join-Path $directory 'mixed-1.json')
     }
     Assert-Rejected 'source-snapshot-hash' { param($manifest) $manifest.source.snapshot.sha256 = ('b' * 64) } 'source.snapshot.sha256'
+    Assert-Rejected 'missing-source-snapshot' -Pattern 'ARCHIVE_INCOMPLETE' -AfterWrite {
+        param($directory)
+        & $Analyzer -Directory $directory | Out-Null
+        Remove-Item -LiteralPath (Join-Path $directory 'source-snapshot.zip')
+    }
+    Assert-Rejected 'corrupt-source-state' -Pattern 'source.worktree_state_sha256' -AfterWrite {
+        param($directory)
+        & $Analyzer -Directory $directory | Out-Null
+        [IO.File]::AppendAllText((Join-Path $directory 'source-state.json'), 'corrupt')
+    }
     Assert-Rejected 'missing-manifest' -AfterWrite {
         param($directory) Remove-Item -LiteralPath (Join-Path $directory 'manifest.json')
     }

@@ -1,0 +1,105 @@
+{
+  "order": 24,
+  "executable": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/mini-cuda-runtime-bench",
+  "arguments": [
+    "--model",
+    "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "--input",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-baseline/input.json",
+    "--backend",
+    "cpu8",
+    "--output",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-baseline/cpu8-aa_cpu8-t4-p0.json",
+    "--manifest",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-baseline/manifest.json",
+    "--order",
+    "24"
+  ],
+  "exit_code": 0,
+  "started_at_utc": "2026-09-26T04:43:33.2102637Z",
+  "finished_at_utc": "2026-09-26T04:50:24.2546662Z",
+  "before": {
+    "at_utc": "2026-09-26T04:43:33.0194849Z",
+    "load_average_raw": "5.91 7.01 8.52 1/730 1131232",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cpu_frequency_mhz": [
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193
+    ],
+    "gpu": {
+      "raw": [
+        "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 53, 1980, 8000, 15.43, 1, 1666, 6283"
+      ],
+      "records": [
+        {
+          "uuid": "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211",
+          "driver_version": "591.74",
+          "temperature_c": 53.0,
+          "sm_clock_mhz": 1980.0,
+          "memory_clock_mhz": 8000.0,
+          "power_w": 15.43,
+          "utilization_percent": 1.0,
+          "used_mib": 1666.0,
+          "free_mib": 6283.0
+        }
+      ]
+    },
+    "unavailable": []
+  },
+  "after": {
+    "at_utc": "2026-09-26T04:50:24.0599812Z",
+    "load_average_raw": "8.19 7.34 8.06 2/729 1134216",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cpu_frequency_mhz": [
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193
+    ],
+    "gpu": {
+      "raw": [
+        "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 54, 1980, 8000, 15.92, 3, 1626, 6323"
+      ],
+      "records": [
+        {
+          "uuid": "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211",
+          "driver_version": "591.74",
+          "temperature_c": 54.0,
+          "sm_clock_mhz": 1980.0,
+          "memory_clock_mhz": 8000.0,
+          "power_w": 15.92,
+          "utilization_percent": 3.0,
+          "used_mib": 1626.0,
+          "free_mib": 6323.0
+        }
+      ]
+    },
+    "unavailable": []
+  }
+}

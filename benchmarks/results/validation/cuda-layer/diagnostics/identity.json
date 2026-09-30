@@ -1,0 +1,31 @@
+{
+  "status": "failed",
+  "command": "bash scripts/dev.sh own-cuda layer-check .run/cuda-layer-diagnostic-2",
+  "binary_sha256": "c9785d1d91e03d5df50725e1e18ef94a63b2f6aa602e0f2c7761f29a9bd675b0",
+  "source": {
+    "git_sha": "40e18df2df725dd6ac3a1dc4863a1f9e9cea7744",
+    "git_dirty": true,
+    "worktree_state_sha256": "9ecea928ae9a4f1f75b54511c7cb9d492587094ca18902b3ba3451af500b6f4c",
+    "state_file": "source-state.json",
+    "scope": [
+      "CMakeLists.txt",
+      "AGENTS.md",
+      ".gitattributes",
+      ".gitignore",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs"
+    ],
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "4b15892d1a3d5f9aaaf0765d6ba5a7bc7630d7b2332536a4f70f31fe79dcb484"
+    }
+  }
+}

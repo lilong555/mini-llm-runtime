@@ -1,0 +1,24 @@
+{
+  "baseline_commit": "ad8b450",
+  "cpu_computation_region_identical": true,
+  "region_start": "std::size_t profile_capacity()",
+  "region_end": "Runtime::Runtime (excluded)",
+  "region_sha256": "203b9acec0c7256072f7dbdbb5ac5edbd9ced56c567ad90944048dde0822fb38",
+  "unchanged_files": [
+    "src/minillm/kernels.cpp",
+    "src/minillm/kernels_avx2.cpp",
+    "src/minillm/parallel.cpp",
+    "src/minillm/paged_kv.cpp",
+    "src/mini_runner.cpp",
+    "src/engine.cpp",
+    "src/http_server.cpp"
+  ],
+  "owner_change": "Runtime borrows immutable Qwen3Model fields and delegates tokenization to Tokenizer",
+  "interrupted_collection": {
+    "group": "aa",
+    "interrupted_before_report": "aa/b-8-0.json",
+    "completed_reports_retained": 1,
+    "partial_report_existed": false,
+    "resumed_with_same_binary_protocol_and_input": true
+  }
+}

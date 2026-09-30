@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "passed": true,
+  "unique_tensors": 310,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "gemm_cases": 88,
+  "released_project_allocations": 4,
+  "complete_gpu_model": false
+}

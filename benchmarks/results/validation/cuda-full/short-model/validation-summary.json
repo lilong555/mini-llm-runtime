@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "passed": true,
+  "complete_gpu_model": true,
+  "full_corpus_contract": false,
+  "performance_baseline": false,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "logits_comparisons": 128,
+  "golden_cases": 6
+}

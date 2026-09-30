@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-SERVE-001",
+  "canonical_bundle": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-serve-001-20260926/cuda-serve-001-20260926.zip",
+    "sha256": "90a836eee9e2ccf131932c17812b5372c202dd4754589e4a5cbf9eaa68b7dd3a",
+    "size_bytes": 14130560,
+    "files": 171,
+    "execution_dependencies_included": false
+  },
+  "release": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/tag/cuda-serve-001-20260926",
+    "candidate_binding": "release_tag_commit_and_matching_actions_run",
+    "ci_workflow": "C++ CI",
+    "required_jobs": 5
+  },
+  "collection_source": {
+    "git_sha": "b1ced89e98eef3bb2b6f21ac8f0f72c38067bfc2",
+    "git_dirty": true,
+    "source_state_sha256": "ccd8d3f1a4b830a24249ee70d4067633c8236590171e0f96e5d588e7a65afe12",
+    "source_snapshot_sha256": "a3b4cabe8762772c8abeaaee37a6ea38dbb0798f2440bc82d6253e3b76368ffb"
+  },
+  "runs": {
+    "mixed-length": "20260926T125402Z-b1ced89e98ee-84cb309c",
+    "burst-reuse": "20260926T125710Z-b1ced89e98ee-384970a2",
+    "profiler": "CUDA-SERVE-001-nsys"
+  },
+  "local_documents": {
+    "protocol": "protocol.json",
+    "summary": "summary.json",
+    "validation": "validation.json",
+    "analysis": "analysis.md",
+    "commands": "README.md",
+    "single_nsys_capture": "capture.ps1"
+  },
+  "archive_revalidation": [
+    "pwsh -NoProfile -File verification/Analyze-Benchmarks.ps1 -Directory mixed-length",
+    "pwsh -NoProfile -File verification/Analyze-Benchmarks.ps1 -Directory burst-reuse",
+    "python3 verification/analyze_cuda_profiler.py --serving --directory profiler --write",
+    "pwsh -NoProfile -File verification/Test-CtestEvidence.ps1 -Directory ."
+  ],
+  "limits": [
+    "采集源码由必要的 dirty snapshot 绑定，不冒充父提交的 clean build。",
+    "最终交付候选的 SHA 与其自身 CI 由 Release 元数据提供。",
+    "离线复核不需要模型、GPU 或原路径；重跑执行需另行取得模型、依赖并构建。",
+    "原始失败和 SLO 未达标保留，burst-reuse 吞吐保持 measurement_inconclusive。",
+    "只有一个 canonical raw bundle，不建立嵌套组件包或追加验证层。"
+  ]
+}

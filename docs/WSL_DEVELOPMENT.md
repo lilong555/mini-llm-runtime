@@ -53,7 +53,7 @@ clangd --check=src/minillm/kernels.cpp
 clang-tidy -p build/wsl-cpu src/minillm/kernels.cpp
 ```
 
-`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。安装原生 `pwsh` 后重新运行 `build`，CTest 应包含 `unit`、`benchmark-validation`、`gguf` 三个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
+`build` 要求 Python 3 和 PowerShell，缺少完整测试工具时配置失败。`test` 保留完整的成功用例输出，并在没有注册测试时返回失败。CPU CTest 包含 `unit`、`validation-contract`、`telemetry-validation`、`benchmark-validation`、`runtime-benchmark-validation`、`gguf`、`host-model` 七个套件。PowerShell 的基准验收与服务启停均可在 Linux 原生执行。
 
 完整模型验证独立于 CTest。模型套件通过测试侧屏障构造真实 prefill/decode 混合批，保留数值、生成、前缀复用和 KV 回收检查。CPU 1、2、8 线程及 CUDA 参照的完整报告见 `benchmarks/results/validation/wsl-deterministic/`；原有时序问题及失败证据见 `ENG-017`。
 
@@ -87,6 +87,21 @@ bash scripts/dev.sh benchmark \
 
 该入口使用原生 PowerShell，核对源码和二进制身份，按轮次重启服务、交替策略并严格验收。输出目录必须为空；manifest、原始 trace、源码快照、全部请求结果和验收报告保存在同一目录。协议、压力实验终态和统计口径见 [策略回放与验收](BENCHMARKS.md)。
 
+## 自有 CUDA Runtime
+
+```bash
+bash scripts/dev.sh own-cuda build
+bash scripts/dev.sh own-cuda test
+bash scripts/dev.sh own-cuda memcheck
+bash scripts/dev.sh own-cuda storage-check
+bash scripts/dev.sh own-cuda storage-memcheck
+bash scripts/dev.sh own-cuda generate --tokens 8
+bash scripts/dev.sh own-cuda model-check
+bash scripts/dev.sh own-cuda model-full-check
+```
+
+`own-cuda` 使用独立的 `build/wsl-own-cuda`，设置 `MINILLM_ENABLE_CUDA=ON`、`LLMSERVE_CUDA=OFF`，提供常驻 FP32 有效权重、连续 FP16 KV、完整 Qwen3 forward、greedy CLI 和 `serve`。GPU HTTP 与实模型检查使用 `own-cuda check-http`、`own-cuda serving-check`，配置与边界见 [CUDA Serving](CUDA_SERVING.md)。`storage-*`、`model-*` 使用固定模型，模型数值验证还需要 matched-weight F32 参照；报告路径必须尚不存在。构建与接口契约见 [CUDA Runtime](CUDA_RUNTIME.md)，全量语料见 [CUDA 数值验证](CUDA_NUMERICS.md)。CPU 可执行文件不链接该 CUDA target。
+
 ## CUDA 参照后端
 
 RTX 4070 Laptop GPU 使用架构 `89`。Windows CUDA/MSVC 产物不能用于 Linux 构建。`cuda` 前缀选择独立的 `build/wsl-cuda` 目录、llama.cpp 后端和 `--gpu-layers 99`：
@@ -101,7 +116,7 @@ bash scripts/dev.sh cuda serve --port 8001
 
 其他架构通过 `CUDA_ARCHITECTURES=数字 bash scripts/dev.sh cuda build` 指定。CUDA 的报告为 `.run/wsl-cuda-model.json`、`.run/wsl-cuda-http.json` 和 `build/wsl-cuda/test-results.xml`，不覆盖 CPU 报告。`cuda validate` 中 MiniLLM 仍在 CPU 执行，只将 F32 数值参照放在 GPU。
 
-MiniLLM 没有自有 GPU forward；上游 CUDA 执行和下述向量冒烟检查均不代表自研 CUDA PagedAttention。
+上游 CUDA 参照、自有 CUDA 连续 KV Runtime 和下述向量冒烟检查是不同执行路径，均不能作为自有 GPU PagedAttention 的验收证据。
 
 ## 性能采集
 

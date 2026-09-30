@@ -1,4 +1,4 @@
-# Mini LLM Runtime: C++ + SIMD + GGUF
+# Mini LLM Runtime: C++20 + SIMD + CUDA
 
 一个从底层推理到在线服务的 C++20 项目。**MiniLLM** 独立执行 Qwen3 前向计算，**LLMServe** 在其上实现迭代级调度与流式服务；llama.cpp 提供格式解析、tokenizer 和可切换的 CPU/CUDA 参照后端。
 
@@ -8,7 +8,8 @@ GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
                                              |
                          Qwen3: RMSNorm / RoPE / GQA / SwiGLU
                                              |
-                              FP16 Paged KV + Page Tables
+                       CPU: FP16 Paged KV + Page Tables
+                       CUDA: FP16 Contiguous KV
                                              |
                            LLM Serving
 HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
@@ -16,29 +17,34 @@ HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
                               Continuous Batching
                               Chunked Prefill + Decode
                                              |
-                         ModelRunner: MiniLLM | llama.cpp
+                     ModelRunner: Mini CPU | Mini CUDA | llama.cpp
 ```
 
-MiniLLM 不调用 `llama_decode()` 执行模型。它使用自有矩阵计算、attention 和物理 KV 页；llama.cpp 后端的 CUDA 算子与 GPU KV 存储属于上游能力。
+MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
+
+自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
 
 ## 能力边界
 
 | 层次 | 已实现 |
 | --- | --- |
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
+| Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
+| 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
+| 自有 CUDA Serving | 现有 Engine/HTTP/SSE、动态 mixed batching、独立槽与 clear/reuse、poisoned fail-stop、模型线程资源快照 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
-| 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
-| Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
+| CPU 物理 KV | FP16 页存储、free list、序列页表、引用计数、完整页共享、部分尾页 copy-on-write |
+| Serving Batching | 单模型执行线程；每轮重新组批；同一次前向混合 prefill/decode |
 | 调度 | token budget、chunked prefill、优先级 aging、等待保护、保守容量预留 |
 | Prefix cache | token Trie、命名空间、完整块复用、LRU 淘汰；全命中时重算最后一块 |
 | 服务 | C++ HTTP/SSE、取消、超时、断连回收、慢消费者背压、严格参数校验 |
-| 实验 | scalar/SIMD 微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
+| 实验 | CPU SIMD 与 CUDA 真实形状微基准、模型 logits 对照、在线负载生成与回放、TTFT/TPOT/goodput |
 | 在线观测 | 默认关闭的有界 batch 记录、SSE token 关联、Runtime 阶段汇总与跨模式验收 |
 
-支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。MiniLLM 在 CPU 执行，CUDA 执行通过 llama.cpp 后端提供。
+支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、自研 CUDA PagedAttention。自有 CPU paged attention 与上游 GPU attention 必须分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing、PagedAttention 或异步执行。CPU 分页、自有 CUDA 连续 KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -56,6 +62,21 @@ bash scripts/dev.sh serve --port 8000
 ```
 
 完整的模型验证、HTTP 检查、编辑器入口和 CUDA 条件见 [WSL2 开发指南](docs/WSL_DEVELOPMENT.md)。
+
+### 自有 CUDA
+
+```bash
+bash scripts/dev.sh own-cuda build
+bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
+bash scripts/dev.sh own-cuda serve --port 8001
+```
+
+该配置关闭上游 `GGML_CUDA`，由项目 CUDA 路径输出真实 token。源权重为 Q8_0、设备有效权重为 F32，不是 Q8 CUDA GEMM。[全量数值复验](benchmarks/results/validation/cuda-micro/README.md)、[真实形状微基准](benchmarks/results/cuda-micro-baseline/README.md)、[70 进程模型基线](benchmarks/results/cuda-model-baseline/README.md) 与 [完整模型 Profiler](docs/CUDA_PROFILING.md) 已冻结；24 项模型比较有 14 项更快、10 项测量不确定。[自有 GPU Serving 基线](benchmarks/results/cuda-serving-001/README.md) 包含 12 个独立服务进程、288 个成功请求和一次完整时间线，保留 SLO 未达标及吞吐不确定项；生命周期与性能分别验收。
+
+自有 CUDA 的精度参数为 `--cuda-precision f32-pedantic`，省略时相同。
+`f16-matrix-f32acc` 仅用于矩阵微基准、模型 CLI 和数值研究，未通过长续写数值门禁，
+不可用于 Serving；CPU 与上游后端拒绝该参数。
+[精度研究](docs/PRECISION_STUDY.md) 提供固定输入、负结果与产品资格边界。
 
 ### Windows / PowerShell
 
@@ -158,6 +179,8 @@ WSL 原生入口为 `bash scripts/dev.sh benchmark -Trace benchmarks/traces/cpu-
 
 `bash scripts/dev.sh runtime-benchmark` 直接测量 CPU Runtime 的固定 prefill、decode 和 mixed 输入，交替采集无计时与分阶段计时的独立进程，核对完整 logits 摘要及 KV 状态。接口、矩阵形状、线程池等待时间和开销边界见 [Runtime 计时与模型基准](docs/RUNTIME_PROFILING.md)。
 
+自有 CUDA 提供 [模型性能对照](docs/CUDA_BENCHMARKS.md) 与 [真实形状微基准](docs/CUDA_MICROBENCHMARKS.md)，入口分别为 `bash scripts/dev.sh own-cuda runtime-benchmark` 和 `micro-benchmark`。两者使用独立协议、原始样本和归档；微基准不代表模型或服务加速。
+
 `scripts/Benchmark-Telemetry.ps1` 交替运行 `off / batches / stages` 与两种调度策略，关联每个 SSE token 的 batch、Engine 发布间隔及客户端 ITL。数据结构、到达率缩放、有界采集与验收见 [在线 batch 与 token 时间线](docs/BATCH_TELEMETRY.md)。
 
 对照只改变 `mixed` / `prefill_first` 策略，每次重启服务、执行相同 warmup、交替运行顺序。报告保留逐请求 token ID、token 到达时间、失败、调度延迟和服务端配置；失败请求不会从总请求数中删除。
@@ -194,7 +217,7 @@ tests/               单元、模型与在线验证
 benchmarks/          固定输入及实测报告
 ```
 
-依赖与贡献边界见 [THIRD_PARTY.md](THIRD_PARTY.md)；设计问题见 [PROBLEM_CHECKLIST.md](docs/PROBLEM_CHECKLIST.md)；论文与固定源码入口见 [REFERENCES.md](docs/REFERENCES.md)。
+模型所有权与分词接口见 [Host Model](docs/HOST_MODEL.md)；依赖与贡献边界见 [THIRD_PARTY.md](THIRD_PARTY.md)；设计问题见 [PROBLEM_CHECKLIST.md](docs/PROBLEM_CHECKLIST.md)；论文与固定源码入口见 [REFERENCES.md](docs/REFERENCES.md)。
 
 ## 版本与问题管理
 
@@ -204,11 +227,16 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-完整路线、任务依赖、基准矩阵与验收条件见 [项目计划](docs/PROJECT_PLAN.md)。主线是在可复现实验基础上解释并优化 CPU Runtime，再建立自研 CUDA 完整模型与分页 attention 路径。
+唯一活跃计划为 [PLAN-V4-KV-20260928](docs/PROJECT_PLAN_V4_KV.md)，实施规范为
+[GPU-KV-001](docs/NEXT_SPEC_V3.md)，实际进度见 [执行状态](docs/EXECUTION_STATUS.md)。
+GPU 分页尚未提供；计划能力不等于当前产品能力。
 
-1. 统一实验身份与严格结果验收，扩展真实模型覆盖，建立分阶段 profiler、模型级 benchmark 和 batch telemetry。
-2. 根据热点完成一到两个 CPU 优化研究，分别报告 kernel、模型和 Serving 收益及退化。
-3. 打通物理 KV 观测，验证公平性与真实内存压力，按证据推进成本感知调度和可证明前进的增量准入。
-4. 建立权重常驻、连续 GPU KV 与自有 CUDA forward，接入 Serving 后再实现 GPU 分页 KV 和自研 PagedAttention。
+1. M4-0：已有 HTTP 排空修复、可展示入口与发布验收。
+2. M4-1：共享 GPU 页池、设备块表与直接分页 attention，保持 F32 数学和同步完成。
+3. M4-2：分别研究同容量的延迟代价与同预算的异长请求能力。
+4. M4-3：功能冻结、技术报告与基于实际问题的 upstream 工作。
 
-`PLAN-002` 的离线模型级 profiler 与基准已验收，结果见 [WSL Runtime 阶段基线](benchmarks/results/wsl-runtime-profile/README.md)。`PLAN-003` 提供有界在线 batch/token 关联与阶段验收，近期主线是 attention/KV 成本细分，同时补齐 `PLAN-001` 剩余身份范围和 `PLAN-004` 数值覆盖；Radix/hash 索引、抢占和其他扩展以测量结果为进入条件。
+[FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
+结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。
+CPU 保持独立产品与数值参照；不追加 prefix、Graph、async 或新的精度路线。
+历史计划保留，但不作为当前实施入口。

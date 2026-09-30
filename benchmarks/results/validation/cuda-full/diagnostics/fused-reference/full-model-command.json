@@ -1,0 +1,13 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "own-cuda",
+    "model-full-check",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-full/real-model"
+  ],
+  "started_at_utc": "2026-09-25T22:04:46.3057699Z",
+  "status": "failed",
+  "exit_code": 1,
+  "finished_at_utc": "2026-09-25T22:27:28.7322188Z"
+}

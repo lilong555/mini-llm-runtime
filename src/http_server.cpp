@@ -6,9 +6,12 @@
 
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <csignal>
 #include <filesystem>
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <regex>
 #include <set>
 #include <thread>
@@ -21,6 +24,36 @@ using namespace std::chrono_literals;
 volatile std::sig_atomic_t interrupted = 0;
 
 void signal_handler(int) { interrupted = 1; }
+
+struct ResponseDrain {
+    std::mutex mutex;
+    std::condition_variable changed;
+    std::size_t active = 0;
+    bool stopping = false;
+};
+
+class ResponseLease {
+public:
+    explicit ResponseLease(ResponseDrain& drain) : drain_(drain) {
+        std::lock_guard lock(drain_.mutex);
+        if (drain_.stopping) {
+            throw RequestError(503, "unavailable", "HTTP 服务正在停止");
+        }
+        ++drain_.active;
+    }
+    ~ResponseLease() {
+        {
+            std::lock_guard lock(drain_.mutex);
+            --drain_.active;
+        }
+        drain_.changed.notify_all();
+    }
+    ResponseLease(const ResponseLease&) = delete;
+    ResponseLease& operator=(const ResponseLease&) = delete;
+
+private:
+    ResponseDrain& drain_;
+};
 
 json usage_json(const Usage& usage) {
     return {{"prompt_tokens", usage.prompt_tokens}, {"completion_tokens", usage.completion_tokens},
@@ -167,10 +200,21 @@ json metrics_json(const Engine& engine) {
     const auto s = engine.statistics();
     const auto& c = engine.config();
     const auto& m = engine.model_info();
+    const auto caps = engine.capabilities();
+    json resources = nullptr;
+    if (s.resources) {
+        const auto& r = *s.resources;
+        resources = {{"layout", kv_layout_name(r.layout)}, {"live_kv_pages", r.live_kv_pages},
+            {"resident_kv_payload_bytes", r.resident_kv_payload_bytes},
+            {"capacity_tokens", r.capacity_tokens}, {"live_tokens", r.live_tokens},
+            {"owned_device_bytes", r.owned_device_bytes}, {"state_valid", r.state_valid},
+            {"reusable", r.reusable}, {"snapshot_boundary", "model_thread_publish"},
+            {"batch_id", s.resources_batch_id}};
+    }
     return {
         {"ready", s.ready}, {"backend", m.backend}, {"model", m.model}, {"device", m.device},
         {"gpu", m.gpu}, {"threads", m.threads}, {"gpu_layers", m.gpu_layers},
-        {"kernel_mode", m.kernel_mode}, {"policy", policy_name(c.policy)},
+        {"kernel_mode", m.kernel_mode}, {"precision_mode", m.precision_mode}, {"policy", policy_name(c.policy)},
         {"telemetry_mode", telemetry_mode_name(c.telemetry_mode)}, {"telemetry_capacity", c.telemetry_capacity},
         {"llama_commit", "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"},
         {"context_tokens", c.context_tokens}, {"max_model_len", c.max_model_len},
@@ -189,6 +233,13 @@ json metrics_json(const Engine& engine) {
         {"max_batch_tokens", s.max_batch_tokens}, {"max_batch_sequences", s.max_batch_sequences},
         {"outstanding_requests", s.outstanding_requests}, {"active_requests", s.active_requests},
         {"waiting_requests", s.waiting_requests},
+        {"capabilities", {{"max_sequences", caps.max_sequences}, {"max_batch_tokens", caps.max_batch_tokens},
+            {"max_model_len", caps.max_model_len}, {"prefix_copy", caps.prefix_copy},
+            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute}}},
+        {"resources", resources},
+        {"initialization", m.model_load_ns ? json{{"model_load_ns", m.model_load_ns},
+            {"storage_initialization_ns", m.storage_initialization_ns},
+            {"weight_decode_upload_ns", m.weight_decode_upload_ns}} : json(nullptr)},
         {"kv_credits", {{"block_size", c.block_size}, {"total_blocks", s.kv_total_blocks},
              {"reserved_unique_blocks", s.kv_used_blocks}, {"active_unique_blocks", s.kv_active_unique_blocks}}},
         {"prefix_cache", {{"entries", s.prefix_entries}, {"tokens", s.prefix_tokens}}},
@@ -199,6 +250,7 @@ json metrics_json(const Engine& engine) {
 } // namespace
 
 bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
+    ResponseDrain responses;
     httplib::Server server;
     const auto threads = std::min<std::size_t>(256, engine.config().queue_capacity + 16);
     server.new_task_queue = [threads] { return new httplib::ThreadPool(8, threads, 64); };
@@ -256,6 +308,7 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
         }
     });
     server.Post("/v1/completions", [&](const auto& request, auto& response) {
+        auto lease = std::make_shared<ResponseLease>(responses);
         const auto body = parse_body(request);
         auto handle = engine.submit(parse_request(body, request, engine));
         response.set_header("X-Request-ID", handle->id());
@@ -293,7 +346,8 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
                         return true;
                     }
                 },
-                [handle](bool) {
+                // 租约保留到 HTTP response 释放，不能把 Engine 终态入队当作 SSE 已写完。
+                [handle, lease](bool) {
                     if (!handle->finished()) {
                         handle->cancel();
                     }
@@ -336,7 +390,17 @@ bool serve_http(Engine& engine, int port, const std::string& shutdown_file) {
         while (!stop.stop_requested()) {
             std::error_code error;
             if (interrupted || (!shutdown_file.empty() && std::filesystem::exists(shutdown_file, error))) {
+                {
+                    std::lock_guard lock(responses.mutex);
+                    responses.stopping = true;
+                }
                 engine.stop();
+                {
+                    std::unique_lock lock(responses.mutex);
+                    if (!responses.changed.wait_for(lock, 6s, [&] { return responses.active == 0; })) {
+                        std::cerr << "HTTP 停服等待响应超时；关闭仍未完成的连接\n";
+                    }
+                }
                 server.stop();
                 return;
             }

@@ -1,0 +1,48 @@
+Test project /home/li/code/mini-llm-runtime/build/wsl-own-cuda
+      Start  1: cuda-unit
+ 1/20 Test  #1: cuda-unit ........................   Passed    0.57 sec
+      Start  2: cuda-ops
+ 2/20 Test  #2: cuda-ops .........................   Passed    0.45 sec
+      Start  3: cuda-storage
+ 3/20 Test  #3: cuda-storage .....................   Passed    0.51 sec
+      Start  4: cuda-layer
+ 4/20 Test  #4: cuda-layer .......................   Passed    0.53 sec
+      Start  5: cuda-runtime
+ 5/20 Test  #5: cuda-runtime .....................   Passed    0.49 sec
+      Start  6: cuda-validation
+ 6/20 Test  #6: cuda-validation ..................   Passed    0.01 sec
+      Start  7: unit
+ 7/20 Test  #7: unit .............................   Passed    0.20 sec
+      Start  8: validation-contract
+ 8/20 Test  #8: validation-contract ..............   Passed    0.02 sec
+      Start  9: cuda-validation-report
+ 9/20 Test  #9: cuda-validation-report ...........   Passed    0.26 sec
+      Start 10: cuda-benchmark-validation
+10/20 Test #10: cuda-benchmark-validation ........   Passed    5.70 sec
+      Start 11: cuda-micro-validation
+11/20 Test #11: cuda-micro-validation ............   Passed   19.16 sec
+      Start 12: cuda-profiler-validation
+12/20 Test #12: cuda-profiler-validation .........   Passed    1.14 sec
+      Start 13: cuda-bundle-validation
+13/20 Test #13: cuda-bundle-validation ...........   Passed    0.19 sec
+      Start 14: telemetry-validation
+14/20 Test #14: telemetry-validation .............   Passed    0.03 sec
+      Start 15: benchmark-validation
+15/20 Test #15: benchmark-validation .............   Passed    4.66 sec
+      Start 16: runtime-benchmark-validation
+16/20 Test #16: runtime-benchmark-validation .....   Passed    3.77 sec
+      Start 17: cuda-benchmark-workloads
+17/20 Test #17: cuda-benchmark-workloads .........   Passed    0.01 sec
+      Start 18: cuda-micro-workloads
+18/20 Test #18: cuda-micro-workloads .............   Passed    0.01 sec
+      Start 19: gguf
+19/20 Test #19: gguf .............................   Passed    0.00 sec
+      Start 20: host-model
+20/20 Test #20: host-model .......................   Passed    0.02 sec
+
+100% tests passed out of 20
+
+Label Time Summary:
+cuda    =   2.56 sec*proc (6 tests)
+
+Total Test time (real) =  37.74 sec

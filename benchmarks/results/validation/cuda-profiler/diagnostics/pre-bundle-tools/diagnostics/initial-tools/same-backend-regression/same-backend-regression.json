@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "old_validator_accepted_inconsistent_aa": true,
+  "old_validator_accepted_cross_trial_difference": true,
+  "current_validator_rejected_inconsistent_aa": true,
+  "current_validator_rejected_cross_trial_difference": true,
+  "old_analyzer_sha256": "e343e781c3b471e66bb013052043844904dbf6c142da49cdeeadabe6782cc867",
+  "current_analyzer_sha256": "d54ed88b5288ffcfb151434095eea53d3adee1bad10e29f7f1cd94760c7d7e6c",
+  "original_baseline_unchanged": true,
+  "checks": {
+    "inconsistent-aa": {
+      "changes": [
+        {
+          "file": "cpu8-aa_cpu8-t0-p0.json",
+          "workload": "prefill-16",
+          "original_token": 37852,
+          "changed_token": 37853,
+          "original_input_preserved": true,
+          "collection_digest_updated": true
+        }
+      ],
+      "old_validator": {
+        "command": [
+          "/usr/bin/python3",
+          "-B",
+          "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa/verify.py",
+          "--directory",
+          "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa"
+        ],
+        "exit_code": 0
+      },
+      "current_validator": {
+        "command": [
+          "/usr/bin/python3",
+          "-B",
+          "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py",
+          "--directory",
+          "/tmp/cuda-token-regression-wfe_ajop/inconsistent-aa"
+        ],
+        "exit_code": 1
+      },
+      "source_copy_unchanged": true
+    },
+    "cross-trial-difference": {
+      "changes": [
+        {
+          "file": "cuda-cpu8_cuda-t1-p0.json",
+          "workload": "prefill-16",
+          "original_token": 37852,
+          "changed_token": 37853,
+          "original_input_preserved": true,
+          "collection_digest_updated": true
+        },
+        {
+          "file": "cpu8-cpu8_cuda-t1-p1.json",
+          "workload": "prefill-16",
+          "original_token": 37852,
+          "changed_token": 37853,
+          "original_input_preserved": true,
+          "collection_digest_updated": true
+        },
+        {
+          "file": "cpu8-cpu8_cuda-t1-p2.json",
+          "workload": "prefill-16",
+          "original_token": 37852,
+          "changed_token": 37853,
+          "original_input_preserved": true,
+          "collection_digest_updated": true
+        },
+        {
+          "file": "cuda-cpu8_cuda-t1-p3.json",
+          "workload": "prefill-16",
+          "original_token": 37852,
+          "changed_token": 37853,
+          "original_input_preserved": true,
+          "collection_digest_updated": true
+        }
+      ],
+      "old_validator": {
+        "command": [
+          "/usr/bin/python3",
+          "-B",
+          "/tmp/cuda-token-regression-wfe_ajop/cross-trial-difference/verify.py",
+          "--directory",
+          "/tmp/cuda-token-regression-wfe_ajop/cross-trial-difference"
+        ],
+        "exit_code": 0
+      },
+      "current_validator": {
+        "command": [
+          "/usr/bin/python3",
+          "-B",
+          "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py",
+          "--directory",
+          "/tmp/cuda-token-regression-wfe_ajop/cross-trial-difference"
+        ],
+        "exit_code": 1
+      },
+      "source_copy_unchanged": true
+    }
+  }
+}

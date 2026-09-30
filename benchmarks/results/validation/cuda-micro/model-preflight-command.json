@@ -1,0 +1,19 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "own-cuda",
+    "runtime-benchmark",
+    "-PreflightOnly",
+    "-NumericalDirectory",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-micro",
+    "-OutputDirectory",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-micro/model-preflight"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T02:26:07.0475874Z",
+  "status": "passed",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "finished_at_utc": "2026-09-26T02:26:11.4012321Z"
+}

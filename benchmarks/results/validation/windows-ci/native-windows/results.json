@@ -1,0 +1,80 @@
+{
+  "platform": "win32",
+  "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+  "preferred_encoding": "cp936",
+  "stdout_encoding": "gbk",
+  "processes": [
+    {
+      "mode": "default",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_validation_report_tests.py"
+      ],
+      "source_sha256": "97abe96a8f24420e6c596b8dc4b8df15853bd0f5aba34ebfa5c017efcd7da0d8",
+      "exit_code": 0,
+      "stdout_sha256": "8b9eb289cf1e161ab6677462277df6a2e7742a79888982d7576e1565b6717477",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "mode": "default",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_benchmark_validation_tests.py"
+      ],
+      "source_sha256": "c08d8aa7907dccfd6cdb29fc05a6a9998cf64fc47e32f8c67952fb3cdcf305ce",
+      "exit_code": 1,
+      "stdout_sha256": "c1e52bef231290ae9bb837f15b1371f5f7c6546dfce388bcaac0303d01ff4b69",
+      "stderr_sha256": "35d546b1a67e4cb545ce5a8a588fd6e520038186b26ae184d34b3406cfc3b0db"
+    },
+    {
+      "mode": "default",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_micro_validation_tests.py"
+      ],
+      "source_sha256": "a74ed3d6ae0b122b53420750083e7b11de73626169056e57f38bbb617c7069c8",
+      "exit_code": 0,
+      "stdout_sha256": "6ab63393ccc95ac097a78f20b0d6d7d891cdc29916935b9925720a6bb23d59b2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "mode": "cp1252",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_validation_report_tests.py"
+      ],
+      "source_sha256": "97abe96a8f24420e6c596b8dc4b8df15853bd0f5aba34ebfa5c017efcd7da0d8",
+      "exit_code": 0,
+      "stdout_sha256": "8b9eb289cf1e161ab6677462277df6a2e7742a79888982d7576e1565b6717477",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "mode": "cp1252",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_benchmark_validation_tests.py"
+      ],
+      "source_sha256": "c08d8aa7907dccfd6cdb29fc05a6a9998cf64fc47e32f8c67952fb3cdcf305ce",
+      "exit_code": 1,
+      "stdout_sha256": "c1e52bef231290ae9bb837f15b1371f5f7c6546dfce388bcaac0303d01ff4b69",
+      "stderr_sha256": "d487ac77ce5db0c0a40d79172d04a9bd5515baf90b3ab0be61de674ce6a1b4ff"
+    },
+    {
+      "mode": "cp1252",
+      "command": [
+        "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-B",
+        "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_micro_validation_tests.py"
+      ],
+      "source_sha256": "a74ed3d6ae0b122b53420750083e7b11de73626169056e57f38bbb617c7069c8",
+      "exit_code": 0,
+      "stdout_sha256": "6ab63393ccc95ac097a78f20b0d6d7d891cdc29916935b9925720a6bb23d59b2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "status": "measurement_inconclusive",
+  "reports": 70,
+  "data_path_gates": "passed",
+  "artifacts": 289
+}

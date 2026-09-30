@@ -1,0 +1,14 @@
+{
+  "command": "cmake",
+  "arguments": [
+    "--build",
+    "build/wsl-core",
+    "--parallel",
+    "2"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T07:26:57.0298363Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T07:26:57.0995002Z"
+}

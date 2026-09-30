@@ -1,0 +1,10 @@
+{
+  "purpose": "archive_revalidation",
+  "status": "passed",
+  "relocated_exit_code": 0,
+  "missing_snapshot_exit_code": 1,
+  "tampered_matrix_exit_code": 1,
+  "existing_artifacts_unchanged": true,
+  "snapshot_tools_used": true,
+  "original_workspace_not_required": true
+}

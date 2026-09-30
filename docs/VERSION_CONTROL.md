@@ -3,7 +3,9 @@
 ## Repository Policy
 
 - Repository: `lilong555/mini-llm-runtime`.
-- 可见性：公开。
+- 可见性：保持公开，GitHub `visibility` 为 `PUBLIC`；仅在用户明确要求时更改。
+- 公开交付范围：项目源码、测试、文档和符合 [产物政策](ARTIFACT_POLICY.md) 的发布证据。
+  提交与 Release 发布前均须检查敏感内容；公开仓库不意味着可以上传本地秘密或受限产物。
 - Default branch: `main`.
 - Dependency checkout: fetched by `scripts/Fetch-Dependencies.ps1`, not
   vendored or silently updated.

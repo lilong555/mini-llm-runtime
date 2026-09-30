@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "reports": [
+    {
+      "order": 0,
+      "started_at_utc": "2026-09-25T16:56:05.424267+00:00",
+      "version": "after",
+      "binary_sha256": "d775f74c546a857a216bbe983bb59c23e36cab7a06bc19fea63c8132192915b3",
+      "argv": [
+        "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/mini-runtime-bench",
+        "--model",
+        "models/Qwen3-0.6B-Q8_0.gguf",
+        "--input",
+        "benchmarks/runtime-inputs/qwen3-cpu.json",
+        "--threads",
+        "8",
+        "--profiler",
+        "stages",
+        "--warmup",
+        "2",
+        "--repeats",
+        "3",
+        "--trial",
+        "0",
+        "--output",
+        "/home/li/code/mini-llm-runtime/benchmarks/results/validation/host-model/profile/after-8-0.json"
+      ],
+      "exit_code": 0,
+      "report": "profile/after-8-0.json",
+      "report_sha256": "067e2dc3f231935b8b11e434c354ed1c73110dde9555c5b955665dd6760267df"
+    },
+    {
+      "order": 1,
+      "started_at_utc": "2026-09-25T16:56:53.272589+00:00",
+      "version": "after",
+      "binary_sha256": "d775f74c546a857a216bbe983bb59c23e36cab7a06bc19fea63c8132192915b3",
+      "argv": [
+        "/home/li/code/mini-llm-runtime/build/wsl-cpu/bin/mini-runtime-bench",
+        "--model",
+        "models/Qwen3-0.6B-Q8_0.gguf",
+        "--input",
+        "benchmarks/runtime-inputs/qwen3-cpu.json",
+        "--threads",
+        "16",
+        "--profiler",
+        "stages",
+        "--warmup",
+        "2",
+        "--repeats",
+        "3",
+        "--trial",
+        "0",
+        "--output",
+        "/home/li/code/mini-llm-runtime/benchmarks/results/validation/host-model/profile/after-16-0.json"
+      ],
+      "exit_code": 0,
+      "report": "profile/after-16-0.json",
+      "report_sha256": "f0a7f10b8e385a4d42d9e2d4876856483be6c10bba50820909e30c8950195d54"
+    }
+  ]
+}

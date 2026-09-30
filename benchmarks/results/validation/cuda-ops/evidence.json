@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 5",
+  "status": "passed",
+  "source": {
+    "git_sha": "8e20101c8119ee1a014ae6d57ca24789c556abd1",
+    "git_dirty": true,
+    "git_status": [
+      " M .gitignore",
+      " M CMakeLists.txt",
+      " M README.md",
+      " M THIRD_PARTY.md",
+      " M docs/CUDA_RUNTIME.md",
+      " M docs/ENGINEERING_LOG.md",
+      " M docs/EXECUTION_STATUS.md",
+      " M docs/NEXT_SPEC.md",
+      " M docs/VALIDATION.md",
+      " M scripts/dev.sh",
+      " M src/minillm/cuda/matrix.cpp",
+      "?? benchmarks/results/validation/cuda-ops/",
+      "?? src/minillm/cuda/ops.cu",
+      "?? src/minillm/cuda/ops.h",
+      "?? src/minillm/cuda/tensor_validation.h",
+      "?? tests/cuda_ops_tests.cu"
+    ],
+    "scope": [
+      "CMakeLists.txt",
+      "AGENTS.md",
+      ".gitattributes",
+      ".gitignore",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "ba04049f0a4e740bf3c581a25d6fca3e7d79e5e5cd8507de5df9f887cb4894fe",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "c1aadf4390a0c976f4a9138a2b81ecea63064e1c74fd7939197464875c1f7d90"
+    }
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80",
+  "complete_gpu_model": false,
+  "performance_measured": false,
+  "windows_or_remote_ci_executed": false,
+  "artifacts": [
+    {
+      "path": ".gitattributes",
+      "sha256": "8f19763863d53a0ab65f0ab4221dca1bd0f2dcadc3ae6e7b09a0d21c5f7d8db5",
+      "size_bytes": 111
+    },
+    {
+      "path": "build-boundaries.json",
+      "sha256": "e14ba5c70372976a3b0d49162a4afad9cca3d33371423689f846c17b508be5e1",
+      "size_bytes": 19447
+    },
+    {
+      "path": "build-core.txt",
+      "sha256": "b43af90e02b425fe49677f23fba260f0b6cdc86681b37763f2f65440f8fa227c",
+      "size_bytes": 184
+    },
+    {
+      "path": "build-cpu.txt",
+      "sha256": "6ef72241af40e0c41c075505d44eccba080eee1fc521cc03debc42e536460404",
+      "size_bytes": 510
+    },
+    {
+      "path": "build-own.txt",
+      "sha256": "d2b699feeb6b167beb0337a7e83c794737e6a2a7a55a08fe7795ca4d4c03e274",
+      "size_bytes": 973
+    },
+    {
+      "path": "build-upstream.txt",
+      "sha256": "092d27317b9619e74da84ff6be7ae5d6834146292db8eb60c02a711f29689efd",
+      "size_bytes": 899
+    },
+    {
+      "path": "core-ctest.xml",
+      "sha256": "f5d2a9d1fa64f385f5d433affde4a0e72643665041f3326156296c15d33ed873",
+      "size_bytes": 5979
+    },
+    {
+      "path": "cpu-ctest.xml",
+      "sha256": "c2f62f7093442760ddfe08f9534c22ba637f577fa01d4e94a3337c547bab800c",
+      "size_bytes": 7206
+    },
+    {
+      "path": "ctest-core.txt",
+      "sha256": "e66824b890262a18ecb924e28dcb1e165b631eb2cd4285814619eb5ae466dd1f",
+      "size_bytes": 630
+    },
+    {
+      "path": "ctest-cpu.txt",
+      "sha256": "067637e9e3a84fd3bcdce5cb2db45d5e03e50077c65bb94ff777e7e9b5d2e947",
+      "size_bytes": 809
+    },
+    {
+      "path": "ctest-own.txt",
+      "sha256": "ad8c817a5cfc4b7a5ea472279cc5c1bd19c36bbc7ea89524d8746d7bc76364ce",
+      "size_bytes": 1210
+    },
+    {
+      "path": "ctest-upstream.txt",
+      "sha256": "63c6dedd00bdf0183dfc1c7036ff4c2fc40076f58ab289989c56c4f4ecb59cba",
+      "size_bytes": 810
+    },
+    {
+      "path": "environment.json",
+      "sha256": "a833e4173e447714d7f624343631cadf10b9be409cd5162d14ae50be55df30ba",
+      "size_bytes": 936
+    },
+    {
+      "path": "http-cpu.json",
+      "sha256": "07391dca6e8b7439f72021c29387e5125f63b685774e07087cba6124a1b2e32b",
+      "size_bytes": 3843
+    },
+    {
+      "path": "http-cpu.txt",
+      "sha256": "07391dca6e8b7439f72021c29387e5125f63b685774e07087cba6124a1b2e32b",
+      "size_bytes": 3843
+    },
+    {
+      "path": "memcheck.txt",
+      "sha256": "d11275b3d34f985f1c7ebed9cba845322440ab031146e028252e43c289982818",
+      "size_bytes": 733
+    },
+    {
+      "path": "model-cpu.json",
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd",
+      "size_bytes": 3955
+    },
+    {
+      "path": "model-cpu.txt",
+      "sha256": "a741b0da5022ffc9fd57e45637c3442414eb3d114d107f00c28ab0c491103fb2",
+      "size_bytes": 5018
+    },
+    {
+      "path": "own-ctest.xml",
+      "sha256": "de63bf830debb6bb9107342753aeb18d47a201f2343000b39aedebe22d9a7ee0",
+      "size_bytes": 9538
+    },
+    {
+      "path": "racecheck.txt",
+      "sha256": "b820de436c9fefa2333d24e145184ea962e320f0948cb20964bb26cfb0a47848",
+      "size_bytes": 715
+    },
+    {
+      "path": "real-storage.txt",
+      "sha256": "e9dee591023902c55762d6889037d8cbe7cf1632efb4a3abe8c5c28ae381387c",
+      "size_bytes": 844
+    },
+    {
+      "path": "real-storage/copy-allocation-summary.json",
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64",
+      "size_bytes": 444
+    },
+    {
+      "path": "real-storage/environment.json",
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de",
+      "size_bytes": 720
+    },
+    {
+      "path": "real-storage/matrix-validation.json",
+      "sha256": "846d9bd990ef8cfdd3d9e3eeac543bed0969c430927fb28e2f766e7d9f78add2",
+      "size_bytes": 28082
+    },
+    {
+      "path": "real-storage/memory-plan.json",
+      "sha256": "9e2df8c16fc5258799d92bafa97007cf68373459557a0b29aa2063d03833c0e4",
+      "size_bytes": 3833
+    },
+    {
+      "path": "real-storage/validation-contract.json",
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923",
+      "size_bytes": 4764
+    },
+    {
+      "path": "real-storage/validation-summary.json",
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825",
+      "size_bytes": 265
+    },
+    {
+      "path": "real-storage/weight-plan.json",
+      "sha256": "10544ff3efe678ea9fed9b3c0ef80554b5484dd0cd8dbfd100591e136738f6cc",
+      "size_bytes": 102357
+    },
+    {
+      "path": "revalidation-complete.txt",
+      "sha256": "3b369cca60b5f45223188dae92e95e27458d7e7ead24453b8e94b4a744ac23e1",
+      "size_bytes": 160
+    },
+    {
+      "path": "revalidation-missing.txt",
+      "sha256": "5f7faeb359c5c2ebfc848282b8d343bfdf5f04071bece7deb773d12986fefbc1",
+      "size_bytes": 371
+    },
+    {
+      "path": "revalidation-tampered.txt",
+      "sha256": "e588f13dfa8318fd381f26bab652bd1a662a1bd24e40113df0ebb2ef95127113",
+      "size_bytes": 313
+    },
+    {
+      "path": "revalidation.json",
+      "sha256": "56471312d88a7591573e6f1f1efb72b7521e212b2b0347e6c4151334ad32e2cc",
+      "size_bytes": 295
+    },
+    {
+      "path": "source-snapshot.zip",
+      "sha256": "c1aadf4390a0c976f4a9138a2b81ecea63064e1c74fd7939197464875c1f7d90",
+      "size_bytes": 204354
+    },
+    {
+      "path": "source-state.json",
+      "sha256": "ba04049f0a4e740bf3c581a25d6fca3e7d79e5e5cd8507de5df9f887cb4894fe",
+      "size_bytes": 17019
+    },
+    {
+      "path": "synccheck.txt",
+      "sha256": "5b6c6a89ada911824d32b96be2bf0d3888943d89626bd5689026700f61e8e965",
+      "size_bytes": 677
+    },
+    {
+      "path": "upstream-ctest.xml",
+      "sha256": "ffb6d7fd3998a523c7f202aa6f793a91550444a6c964db7c5a8dc648149ef46a",
+      "size_bytes": 7203
+    },
+    {
+      "path": "verify.ps1",
+      "sha256": "357091e6d96cb8c920b513d64ed8bd5b7c6a49f3282464c95639fbe598cee764",
+      "size_bytes": 4669
+    }
+  ]
+}

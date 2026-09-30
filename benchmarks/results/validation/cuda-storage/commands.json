@@ -1,0 +1,18 @@
+{
+  "scope": "实际执行命令；本轮仅作正确性验证，允许 CPU 与 GPU 检查并行，不作为性能样本",
+  "commands": [
+    "bash scripts/dev.sh own-cuda build",
+    "bash scripts/dev.sh build",
+    "cmake --build build/wsl-core --parallel 4",
+    "bash scripts/dev.sh cuda build",
+    "bash scripts/dev.sh own-cuda test",
+    "bash scripts/dev.sh test",
+    "ctest --test-dir build/wsl-core --output-on-failure --no-tests=error --test-output-size-passed 65536 --output-junit test-results.xml",
+    "bash scripts/dev.sh cuda test",
+    "bash scripts/dev.sh own-cuda storage-check .run/cuda-storage-step4-real",
+    "bash scripts/dev.sh own-cuda storage-memcheck .run/cuda-storage-step4-memcheck-real",
+    "compute-sanitizer --tool memcheck --leak-check full --error-exitcode 1 build/wsl-own-cuda/bin/minillm-cuda-unit-tests",
+    "build/wsl-cpu/bin/llmserve-model-tests --model models/Qwen3-0.6B-Q8_0.gguf --reference-model models/Qwen3-0.6B-Q8_0-dequant-F32.gguf --gpu-layers 0 --output .run/cuda-storage-step4-model-cpu.json",
+    "bash scripts/dev.sh check-http 8067"
+  ]
+}

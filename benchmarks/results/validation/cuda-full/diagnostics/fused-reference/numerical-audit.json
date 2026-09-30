@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "numeric_failed",
+  "passed": false,
+  "scope": "CUDA-VS-001 Step 8 numerical",
+  "totals": {
+    "teacher_cases": 240,
+    "teacher_rows": 3920,
+    "teacher_comparisons": 11760,
+    "generation_comparisons": 768,
+    "numeric_failures": 2,
+    "argmax_divergences": 0,
+    "near_ties": 5
+  },
+  "extrema": {
+    "rmse_max": 0.04531060086197049,
+    "absolute_max": 0.24940204620361328,
+    "cosine_min": 0.999858573856455
+  },
+  "by_reference": {
+    "cpu": {
+      "comparisons": 4304,
+      "numeric_failures": 0,
+      "argmax_divergences": 0,
+      "near_ties": 0,
+      "rmse_max": 0.005444215042762328,
+      "absolute_max": 0.027509689331054688,
+      "cosine_min": 0.9999991709587446
+    },
+    "llama_f32": {
+      "comparisons": 4304,
+      "numeric_failures": 2,
+      "argmax_divergences": 0,
+      "near_ties": 5,
+      "rmse_max": 0.04531060086197049,
+      "absolute_max": 0.24940204620361328,
+      "cosine_min": 0.999858573856455
+    },
+    "cuda_canonical": {
+      "comparisons": 3920,
+      "numeric_failures": 0,
+      "argmax_divergences": 0,
+      "near_ties": 0,
+      "rmse_max": 0.002325766679181258,
+      "absolute_max": 0.011589527130126953,
+      "cosine_min": 0.999999776810569
+    }
+  },
+  "first_numeric_failure": {
+    "rmse": 0.03343284417287534,
+    "max_absolute": 0.1415548324584961,
+    "cosine": 0.999858573856455,
+    "all_finite": true,
+    "actual_sha256": "b4d4cf344b0a25c83791e16f02816be77bf5f6faa8e8845e0cbee217854103dc",
+    "reference_sha256": "b294cf99146f6ae349a38a9ebfdfd5cd68aa6b200c597bf883e1e15883349cec",
+    "actual_argmax": 264,
+    "reference_argmax": 264,
+    "reference_margin": 4.173549652099609,
+    "near_tie": false,
+    "argmax_equal": true,
+    "passed": false,
+    "case": "repeated-l1536-g32",
+    "reference": "llama_f32",
+    "step": 6,
+    "sequence": 0,
+    "position": 1541
+  },
+  "first_argmax_divergence": null,
+  "gpu_serving": false,
+  "performance_baseline": false
+}

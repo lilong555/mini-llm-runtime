@@ -1,0 +1,40 @@
+Test project /home/li/code/mini-llm-runtime/build/wsl-own-cuda
+      Start  1: cuda-unit
+ 1/16 Test  #1: cuda-unit ........................   Passed    0.56 sec
+      Start  2: cuda-ops
+ 2/16 Test  #2: cuda-ops .........................   Passed    0.50 sec
+      Start  3: cuda-storage
+ 3/16 Test  #3: cuda-storage .....................   Passed    0.48 sec
+      Start  4: cuda-layer
+ 4/16 Test  #4: cuda-layer .......................   Passed    0.53 sec
+      Start  5: cuda-runtime
+ 5/16 Test  #5: cuda-runtime .....................   Passed    0.44 sec
+      Start  6: cuda-validation
+ 6/16 Test  #6: cuda-validation ..................   Passed    0.01 sec
+      Start  7: unit
+ 7/16 Test  #7: unit .............................   Passed    0.20 sec
+      Start  8: validation-contract
+ 8/16 Test  #8: validation-contract ..............   Passed    0.02 sec
+      Start  9: cuda-validation-report
+ 9/16 Test  #9: cuda-validation-report ...........   Passed    0.25 sec
+      Start 10: cuda-benchmark-validation
+10/16 Test #10: cuda-benchmark-validation ........   Passed    5.53 sec
+      Start 11: telemetry-validation
+11/16 Test #11: telemetry-validation .............   Passed    0.03 sec
+      Start 12: benchmark-validation
+12/16 Test #12: benchmark-validation .............   Passed    4.35 sec
+      Start 13: runtime-benchmark-validation
+13/16 Test #13: runtime-benchmark-validation .....   Passed    3.62 sec
+      Start 14: cuda-benchmark-workloads
+14/16 Test #14: cuda-benchmark-workloads .........   Passed    0.01 sec
+      Start 15: gguf
+15/16 Test #15: gguf .............................   Passed    0.00 sec
+      Start 16: host-model
+16/16 Test #16: host-model .......................   Passed    0.01 sec
+
+100% tests passed out of 16
+
+Label Time Summary:
+cuda    =   2.52 sec*proc (6 tests)
+
+Total Test time (real) =  16.54 sec

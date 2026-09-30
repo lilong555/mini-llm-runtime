@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "default",
+    "command": [
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "-B",
+      "-c",
+      "import runpy,sys; scope=runpy.run_path(sys.argv[1]); scope[\"preflight_and_publication_failure_preserve_previous_outputs\"](); print(\"1/1 tests passed\")",
+      "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_benchmark_validation_tests.py"
+    ],
+    "exit_code": 0,
+    "source_sha256": "c08d8aa7907dccfd6cdb29fc05a6a9998cf64fc47e32f8c67952fb3cdcf305ce"
+  },
+  {
+    "mode": "cp1252",
+    "command": [
+      "C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "-B",
+      "-c",
+      "import runpy,sys; scope=runpy.run_path(sys.argv[1]); scope[\"preflight_and_publication_failure_preserve_previous_outputs\"](); print(\"1/1 tests passed\")",
+      "\\\\wsl.localhost\\Ubuntu\\home\\li\\code\\mini-llm-runtime\\tests\\cuda_benchmark_validation_tests.py"
+    ],
+    "exit_code": 0,
+    "source_sha256": "c08d8aa7907dccfd6cdb29fc05a6a9998cf64fc47e32f8c67952fb3cdcf305ce"
+  }
+]

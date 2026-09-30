@@ -2,6 +2,34 @@
 
 ## 当前 WSL 验收
 
+[CUDA Profiler 与证据工具验收](../benchmarks/results/validation/cuda-profiler/README.md) 记录四种构建共 62 项 CTest、1034 次用例执行，CPU 模型 13/13、HTTP 8/8；完整数值的 12528 次比较按相同 Runtime 源码与二进制继承，没有虚称重跑。236 个产物包含当前验证、原始失败和诊断；独立目录复核及三项反例通过。
+
+[正式模型基线](../benchmarks/results/cuda-model-baseline/README.md) 的 70 个独立进程、40950 次 forward、2520 次 measured repetition 完成，输出一致、稳态数据路径通过。24 项比较有 14 项为 `faster`、10 项为 `measurement_inconclusive`，不作统一加速或无退化声明。[完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 的五进程诊断、585 次完整模型时间线、指定 PV kernel 硬件指标和 42 个必需原始产物通过；迁移与三项反例通过。软件插桩、回放开销及平台限制单列，不替代无 Profiler 基线，也不证明 GPU Serving。
+
+[CUDA 微基准与数值验收](../benchmarks/results/validation/cuda-micro/README.md) 记录四种构建共 50 项 CTest、926 次用例执行，CPU 模型 13/13、HTTP 8/8，以及 CUDA 层级 memcheck/racecheck/synccheck 通过。当前模型测试二进制完成 12528 次全量数值比较，无数值失败、argmax 分歧或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307348`、最小 cosine `0.999986580`。415 个产物独立目录复核通过，六项缺件或语义反例被拒绝；已有目录、未完成模型基准及错误数值编译身份的拒绝检查保持原文件不变。
+
+[CUDA 真实形状基线](../benchmarks/results/cuda-micro-baseline/README.md) 保留五个独立进程、375 个用例、9375 个原始样本和 5625 个测量样本。跨进程输出一致，固定 FP64 容差、显式传输和设备分配检查通过；27 个必需原始产物迁移复核通过，另有六项归档反例。小矩阵的正序/逆序差异及 48 个相对 MAD 超过 10% 的用例未被删除，现有模型时间线不直接证明其根因。该组没有模型加速或 A/A 噪声结论，模型与 Profiler 使用独立证据，GPU Serving 尚未验收。
+
+[CUDA 模型基准工具验收](../benchmarks/results/validation/cuda-benchmark/README.md) 记录四种构建共 43 次 CTest 套件、875 次用例执行，CPU 模型 13/13、HTTP 8/8 和 CUDA 短模型回归。四个真实进程各覆盖 12 个固定 workload，共 2340 次 forward，全部 token 一致；独立前缀重建、计时边界、传输/分配、完整数值编译身份、A/A 统计与发布回滚均有检查。100 个产物在独立目录复核通过，五项缺件或语义反例被拒绝。该组为工具与功能验收，保留全部单进程计时，但未执行完整 70 进程 A/A 基线、microbenchmark 或 Profiler。
+
+[CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 记录四种构建共 36 次 CTest 套件、807 次用例执行，CPU 模型 13/13、HTTP 8/8 和默认短模式回归。240 个固定输入组合、11760 次 teacher-forcing 比较与 768 次生成比较全部通过，无 argmax 差异或 near-tie；最大 RMSE `0.019126342`、最大绝对误差 `0.072307349`、最小 cosine `0.999986580`。F32 llama 参照使用相同有效权重与 FP16 KV，显式采用非融合 attention；原融合参照的两处 cosine 失败及同输入重放保留在诊断目录。783 个产物在独立目录复验通过，12 项缺件、篡改和语义反例被拒绝。此项关闭 Step 8 数值门禁，不代表性能、Profiler 或 GPU Serving 已完成。
+
+[CUDA 完整模型与 CLI 验收](../benchmarks/results/validation/cuda-model/README.md) 记录四种构建共 31 次 CTest 套件、749 次用例执行，8 项 Runtime 检查、128 组 CPU/F32 logits 对照、六组 S=1/S=4 短金标准与三个 CLI 生成。最大 RMSE `0.005696512`、最大绝对误差 `0.024068833`，无 argmax 差异。设备与完整模型 memcheck、Runtime racecheck/synccheck 均通过；CPU 模型 13/13、HTTP 8/8。该组验证完整 GPU 模型路径，但未完成长语料全契约、正式性能或 GPU Serving 门禁。
+
+[CUDA 连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 记录 7 项状态、FP16 RN-even、因果 GQA、NaN mask 与完整层测试，六组真实首层/末层对照，以及四种构建共 30 次 CTest 套件、741 次用例执行。CPU 模型 13/13、HTTP 8/8；设备和实模型层 memcheck、层 racecheck/synccheck 均通过。固定模型门槛与共享 Q/K/V 的算子门槛分别报告，FP16 边界导致的直接逐元素超差原件保留；不是完整 GPU 模型或性能验收。
+
+[CUDA 基础算子验收](../benchmarks/results/validation/cuda-ops/README.md) 记录 11 项 gather、分组 RMSNorm、RoPE、逐元素与 finite/argmax 检查，覆盖实际宽度、151936 词表、padding、非法输入、原地操作、有限极值与同 stream 组合执行。四种构建共 29 次 CTest 套件、733 次用例执行；CPU 模型 13/13、HTTP 8/8。memcheck、racecheck、synccheck 均通过；不构成完整 GPU 模型或性能证据。
+
+[CUDA 权重与存储验收](../benchmarks/results/validation/cuda-storage/README.md) 记录自有 CUDA 9/9、CPU 7/7、无 llama 核心 5/5、上游 CUDA 7/7 CTest，共 722 次用例执行；CPU 实模型 13/13、HTTP 8/8。固定 Q8_0 模型的 310 个唯一 tensor 全量回读通过，88 组真实形状 GEMM 满足预注册单元容差，S=4/Lmax=2048/B=128 的内存计划与自有分配一致。Compute Sanitizer 为 0 错误、0 泄漏；此项不证明完整 GPU 模型或性能。
+
+[Host Model 验收](../benchmarks/results/validation/host-model/README.md) 记录 CPU 7/7、自有 CUDA 8/8、无 llama 核心 5/5、上游 CUDA 7/7 CTest；独立模型绑定/分词器实模型检查 8/8，CPU 和 CUDA 参照模型各 13/13，两个 HTTP 后端各 8/8。44 份固定输入报告的 792 次测量保留一致的完整 logits 摘要、greedy 和 KV 状态，36 对 profile 样本契约一致。12 个代表案例的中位退化均未超过预注册 A/A 阈值；正负波动和有限样本置信区间均保留，不作加速声明。
+
+[CUDA 基础层验收](../benchmarks/results/validation/cuda-infra/README.md) 记录独立 CUDA、CPU、无 llama 核心和上游 CUDA 四组 CTest；设备资源及矩阵 11/11、Compute Sanitizer 0 错误/0 泄漏，CPU 模型 13/13 和 HTTP 8/8。自有 CUDA 模型数值与性能尚未验收。
+
+2026-09-24 的 [M0 归档与验证契约验收](../benchmarks/results/validation/evidence-m0/README.md) 记录 CPU 产品 6/6、无 llama 依赖核心 5/5 CTest；CPU 实模型检查 13/13、HTTP 检查 8/8。反例覆盖缺 ZIP、源码与包内摘要篡改、路径迁移、失败时旧文件保留和发布回滚。三个短样例的 8-token 金标准及中文、英文、重复、特殊 token 的固定语料位于 `tests/data/qwen3_validation_cases.json`；GPU 数值与性能仍待真实 CUDA 模型实现后验收。
+
+[M0 CPU 归档基线](../benchmarks/results/evidence-m0/README.md) 保留 6 个进程、36 次测量和可独立复验的包。`wsl-runtime-profile/context` 的原始 ZIP 已按历史 manifest 核对；其他历史归档不能仅凭旧 `passed` 推断依赖完整。本机 CPU 检查不替代 Windows、远程 CI 或 GPU 模型验收。
+
 2026-09-23 的 [在线观测验证](../benchmarks/results/validation/wsl-batch-telemetry/README.md) 记录 CPU/CUDA 参照构建各 5/5 CTest 套件、ASan/UBSan 核心 4/4，共 463 次用例执行；CPU 1/8 线程及 CUDA 数值参照的模型检查各 13/13，CPU off/stages 和 CUDA stages 的 HTTP 各 8/8。SSE token 关联、缓冲耗尽、异常、阶段时间守恒、KV 回收与目录迁移均通过。
 
 [在线 batch 基线](../benchmarks/results/wsl-batch-telemetry/README.md) 保留 42 个独立服务进程、594 个请求、9810 个输出 token，跨模式和策略的完整输出一致。原始负载三轮无观测的 mixed / prefill-first 中位吞吐为 18.41 / 18.66 token/s，P95 请求平均 TPOT 为 395.28 / 333.42 ms，P99 ITL 为 1224.77 / 2480.67 ms；各轮分位数取中位数，不混作合并分位数。报告保留阶段观测约 +1.82% / +5.82% 的全程耗时差异，以及低到达率的 batch 组成变化。该差异包含系统噪声及在线扰动，不是精确插桩成本或计算优化收益。
@@ -225,23 +253,26 @@ The bottleneck is not yet established by profiling. See `ENG-008` in
 `docs/ENGINEERING_LOG.md`. Lower-rate, distinct cold/warm-prefix and
 long-context experiments are still needed.
 
-## Remote CI
+## 远端 CI
 
-GitHub Actions run
-[35352370060](https://github.com/lilong555/mini-llm-runtime/actions/runs/35352370060)
-passed all five jobs for source commit
-`07793ddd93410d04188092ade1c14b471078b1ea`:
+GitHub Actions [36232341864](https://github.com/lilong555/mini-llm-runtime/actions/runs/36232341864)
+在源码提交 `a0a62146ec0cb26ef8c548ad7104884892adbed6` 上通过全部五个任务：
 
-- Windows and Ubuntu dependency-free core builds and unit tests.
-- Windows and Ubuntu complete CPU product builds and both CTest suites.
-- Ubuntu core tests under AddressSanitizer and UndefinedBehaviorSanitizer.
+- Windows 2025 与 Ubuntu 24.04 独立核心构建和完整 CTest，各 11/11。
+- Windows 2025 与 Ubuntu 24.04 CPU 产品构建和完整 CTest，各 15/15。
+- Ubuntu 核心的 AddressSanitizer 与 UndefinedBehaviorSanitizer，11/11。
 
-The remote run summary and JUnit reports are archived under
-`benchmarks/results/ci/07793dd/`. Sanitizers cover the dependency-free core;
-they do not cover the GGUF parser, HTTP transport or real-model execution.
-Remote CI downloads the pinned C++ dependency, not model weights.
-`scripts/Test-CtestEvidence.ps1` checks the archived local/remote XML reports
-and rejects failed, missing or truncated suite output.
+[远端归档](../benchmarks/results/ci/a0a6214/README.md) 保存运行身份、五份 JUnit、
+GitHub 原始 artifact ZIP 与其服务端摘要；共 63 套测试、1185 次用例执行。
+`scripts/Test-CtestEvidence.ps1` 拒绝失败、缺失或截断的套件输出。
+
+[本地兼容性验收](../benchmarks/results/validation/windows-ci/README.md) 单列四构建 CTest、
+编码反例、CPU 模型 13/13 和 HTTP 8/8。Windows 本机符号链接权限限制没有被跳过，
+原始失败记录完整保留；远端 Windows 完整套件通过不代表该主机权限已改变。
+
+远端 CI 获取固定版本 C++ 依赖，不下载模型权重。其 sanitizer 只覆盖独立核心，
+不覆盖 GGUF parser、HTTP transport 或真实模型执行；本组不验收 Windows CUDA、
+GPU Serving 或新的性能结果。历史 CI 归档保留独立的源码身份。
 
 ## Unverified Areas
 

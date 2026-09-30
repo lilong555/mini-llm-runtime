@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "backend": "cuda_canonical",
+  "id": "special-l16-c128-s1",
+  "corpus": 3,
+  "length": 16,
+  "input_sha256": "92599f1dcd193c06decb252ddf1002d8d48076e53dcaba2c6066234a0d62b6d1",
+  "samples": [
+    {
+      "token": 1479,
+      "margin": 0.8590822219848633,
+      "sha256": "732270d4614aa6ec010728de947549fadfe24520eafb2e1746ea4218b55c92ee",
+      "position": 0
+    },
+    {
+      "token": 198,
+      "margin": 3.5338592529296875,
+      "sha256": "0a5c9386d3f4cfb7a130ca5d1a5640c2898ca44838f2ed4f687db1e7b362a68b",
+      "position": 1
+    },
+    {
+      "token": 198,
+      "margin": 14.405740737915039,
+      "sha256": "a3c72c536ebf3fed6d2fe4522d5c25c14148a0817423be3a006b489ec5fde3f5",
+      "position": 15
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "executable": "ctest",
+  "arguments": [
+    "--test-dir",
+    "build/wsl-cuda",
+    "--output-on-failure",
+    "--no-tests=error",
+    "--test-output-size-passed",
+    "65536",
+    "--output-junit",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-benchmark/upstream-ctest.xml"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "exit_code": 0,
+  "expected_exit_code": 0,
+  "started_at_utc": "2026-09-26T00:42:40.9137742Z",
+  "status": "passed"
+}

@@ -1,0 +1,1337 @@
+{
+  "status": "passed",
+  "reports": [
+    {
+      "file": "cpu8-aa_cpu8-t0-p0.json",
+      "exit_code": 0,
+      "sha256": "75bca4bc582dee5e8c2a95ab4b061b43aa37ef6144af9beff68c4913a4b7ead2",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t0-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t0-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t0-p0.json.process.json",
+          "sha256": "79c5fe03ddffe5df5ae6b92c6883c9dc048f450fefc1b21ca6b1d9c67bc7080c"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t0-p1.json",
+      "exit_code": 0,
+      "sha256": "6bf234fc800ae7b08041c2d3cec2b8ba00460175fbded14917af293f0c5aa83a",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t0-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t0-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t0-p1.json.process.json",
+          "sha256": "59881a90b279c0ebfd1a30d1db985642998256c2a146d441ca8d51b15c96aaac"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t0-p0.json",
+      "exit_code": 0,
+      "sha256": "79611df20438e433e23ef31d2e8d2c240b3540dbcf19fc78ea457376d3a6bfc9",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t0-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t0-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t0-p0.json.process.json",
+          "sha256": "d7d3f92c8b13e7c265a3181433545cab0c52b85ab5b17eca02514e6893d5978a"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t0-p1.json",
+      "exit_code": 0,
+      "sha256": "cb89764bd4d7f8bf2ec9aa1ebc362eda68f1c0be57a26a46fea7fc83b6dcb98a",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t0-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t0-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t0-p1.json.process.json",
+          "sha256": "00a8dfd2ce01968d3ac05158ab6ad5cb63f9fd6cc41d5509dbea8f0b51e7a6c5"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t0-p0.json",
+      "exit_code": 0,
+      "sha256": "f019c0856822c57faeb6a6c337f4ccc166c04b66c14dd86296c06bc8a366aeec",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t0-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t0-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t0-p0.json.process.json",
+          "sha256": "f14b3c289e9be830e7af53ec7f514a9f7b481958a1158667b71af59aedeccbd4"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t0-p1.json",
+      "exit_code": 0,
+      "sha256": "6e45bad2bbd120d014842a0ac08d614fb12829c7833244e305ca511dc0041635",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t0-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t0-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t0-p1.json.process.json",
+          "sha256": "b3a6d646c8d2d09a95b8230c03c1f09342281c65e1b9b1f91a4767c345fb5f54"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t1-p0.json",
+      "exit_code": 0,
+      "sha256": "0417584ca9b8cc36ccabaee11d15c209d822e225fe4062b40a8c396f58a47f1a",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t1-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t1-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t1-p0.json.process.json",
+          "sha256": "7625508e0bc9f77402c445d62b68401233d92e57365d2c6dc4b197daffc64f33"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t1-p1.json",
+      "exit_code": 0,
+      "sha256": "4957365d42dfb42bbd3953aa77e4c4b8a8def7f940f5828a73ae7a9ee97c37eb",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t1-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t1-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t1-p1.json.process.json",
+          "sha256": "41edade7894ec83752006fa6e5a04dffa6a055c4dc4b333f45e7dfa9f339e4fa"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t1-p0.json",
+      "exit_code": 0,
+      "sha256": "8fa3f935bb4931ff937ad1e2f2a481514ce917f56ed0829d1e50014606c9ab32",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t1-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t1-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t1-p0.json.process.json",
+          "sha256": "277c93f5b7604a3af3aa8779e80093f319e69508d38b87b91ee36c37dd00f6af"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t1-p1.json",
+      "exit_code": 0,
+      "sha256": "47af1c8a2fd529a359bdcbb9ca7c388120fccc472f01211cddbc9f69cc03df23",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t1-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t1-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t1-p1.json.process.json",
+          "sha256": "1fe17c289961fc617822f03213b7a5069c35779cfe1697ebe54ecc7d0440fc85"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t1-p0.json",
+      "exit_code": 0,
+      "sha256": "56bb88c63a01594cb5b7e58465eb0e99259d57adfbc4093e594eca6b8b32fe8f",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t1-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t1-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t1-p0.json.process.json",
+          "sha256": "1d7b67e39996a3541bbf939e5f900a34bd239f1fb1112b0d5602e96f0f679964"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t1-p1.json",
+      "exit_code": 0,
+      "sha256": "9c14786825d0c694e7257a8246aaa80f469e3ed96e6fa6314c4a7d65ca0cfca2",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t1-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t1-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t1-p1.json.process.json",
+          "sha256": "7bc272880514867530fab61dfbb9037ed4b8b4ff437f193bb996cd027eaf57b6"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t2-p0.json",
+      "exit_code": 0,
+      "sha256": "301c08bc7c5ed5edce51bc3a4ff2408a83cb470f5c77f5ffeb89792e6b9cf411",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t2-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t2-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t2-p0.json.process.json",
+          "sha256": "524230252a4e0664c834e372e12f3e9d66fec36cf12d9a5db6d3a7d8332b2f3e"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t2-p1.json",
+      "exit_code": 0,
+      "sha256": "82d06508080c6c044b87080ab9aa6718bc021da9951b5bd056afd141ae1ebd1b",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t2-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t2-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t2-p1.json.process.json",
+          "sha256": "8936b66d1df3ddce21964ec1626b7a8653a2e3f06a0c4139cdd8d27e5b4b6f7b"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t2-p0.json",
+      "exit_code": 0,
+      "sha256": "3c8edc1de873e0c9ad6431e04de289e47f33adcb4bb3a4c97b5ece030d3777ef",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t2-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t2-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t2-p0.json.process.json",
+          "sha256": "3fad8907675063e0b305707496296bfa38d3ad149d0065c2ffae5dccb901f741"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t2-p1.json",
+      "exit_code": 0,
+      "sha256": "e83d112ae43dfc8ce214588a5430ad538dd14b3c3693b4de60d3c728211f947a",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t2-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t2-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t2-p1.json.process.json",
+          "sha256": "3b86ad90bc1381124194e4ad2d519b363c3d0e43a6830b1107254b8626f4cc4b"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t2-p0.json",
+      "exit_code": 0,
+      "sha256": "53743beca66e75c45b360409a387c4cf46fa5e14d755f4d1aa98f11be93fa357",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t2-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t2-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t2-p0.json.process.json",
+          "sha256": "5ff0efe01f18fc753a1087d447c5e173f43cd3baed74a604932e031ab2c572a5"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t2-p1.json",
+      "exit_code": 0,
+      "sha256": "4fd93e1bfb6d194ec8124ca5bce373fdd2a4ab93b8af3226219968531db69683",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t2-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t2-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t2-p1.json.process.json",
+          "sha256": "bbdbfded9b3ef0039cf1027ecb805e36753b2bbc545d18e0471f511745d2697b"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t3-p0.json",
+      "exit_code": 0,
+      "sha256": "6ae5d88ed75bda30c8400ac3dde2e64a595c95730a8ed469236a40213acc041b",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t3-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t3-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t3-p0.json.process.json",
+          "sha256": "72081514cf3892f8fd452c12d1eb0c814342c39e4e8f3b1d08f1275d995190fe"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t3-p1.json",
+      "exit_code": 0,
+      "sha256": "80588d2eadb43af7a4d45648be814264675bb992d29fa18e139b96b4bb6a12c5",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t3-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t3-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t3-p1.json.process.json",
+          "sha256": "3a9c682bef91cd29432590c00e2cc4a91ed8f21ab2923a94dbb655d86f9daca8"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t3-p0.json",
+      "exit_code": 0,
+      "sha256": "0a47eeb8be9a84fe8c3091f96523c911647772bf5e6ddf4b5b909aecce6fc88b",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t3-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t3-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t3-p0.json.process.json",
+          "sha256": "024641b83d365c0457fe6e1cb4a3af199bbbffc9552c5611f9bfa8af7349abbd"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t3-p1.json",
+      "exit_code": 0,
+      "sha256": "5f48240cdb577f53863caeadb78f6cdb109ca1f92ca1ac32ab9d2dc72e57012b",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t3-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t3-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t3-p1.json.process.json",
+          "sha256": "20790e76a3f4c813f0fee2f4bbd630e5b438459b6a96e1c0b668036f69d4dade"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t3-p0.json",
+      "exit_code": 0,
+      "sha256": "5c43865bed05d67b469331d81c3eed5877fb8bafa4e992128d43cfeaa4e95fe3",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t3-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t3-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t3-p0.json.process.json",
+          "sha256": "f1c4abaf09ec85b68d712ccf8dbeb4292ed8861e0fc8223319a1a6e02f0b9eca"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t3-p1.json",
+      "exit_code": 0,
+      "sha256": "7530660b71837cac3035d8b41e2a44ea2d4c72530fc299b008afda3d3def14f2",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t3-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t3-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t3-p1.json.process.json",
+          "sha256": "79d8e37a1300431d326b7258665c52681b092c3df776e16ef8106a5a6bf4fc1d"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t4-p0.json",
+      "exit_code": 0,
+      "sha256": "685bb736973630e09fb74e1438f6e85244f3beccedc6efb62b069f02c8345f98",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t4-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t4-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t4-p0.json.process.json",
+          "sha256": "b5299a1ebaca5e998dc843973dac341e553cfe346203499e0c9ec4e33352a1d4"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-aa_cpu8-t4-p1.json",
+      "exit_code": 0,
+      "sha256": "f97f268bbd972bc245429ed1bbb11bafdea6ddd22b686f17558bc6ab0065a0b4",
+      "artifacts": [
+        {
+          "path": "cpu8-aa_cpu8-t4-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t4-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-aa_cpu8-t4-p1.json.process.json",
+          "sha256": "385b5b2b29429a0bc111b2ebcf33725506ed5cf7c4e1cbaf87d15c76803d27ce"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t4-p0.json",
+      "exit_code": 0,
+      "sha256": "f9012055b15db65af800d6ba2a3c3a61f3fd9fae622c41f9719627ad61019d59",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t4-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t4-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t4-p0.json.process.json",
+          "sha256": "0bdde4ce2f32ce10582c39cb5bcc4e9cb11bd528d0d6b377dfd7bf3d0be9af6a"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-aa_cpu16-t4-p1.json",
+      "exit_code": 0,
+      "sha256": "6279d77729f45a44846b95c8cc2ce2a033e133d3e1267ac44cf24a7b1b0a344e",
+      "artifacts": [
+        {
+          "path": "cpu16-aa_cpu16-t4-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t4-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-aa_cpu16-t4-p1.json.process.json",
+          "sha256": "3f55de6219c719574376c509f9bb5157b0ccf1de1a5dc8d028f7f8b2dbb077a7"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t4-p0.json",
+      "exit_code": 0,
+      "sha256": "6bb6d0da69132c2595f953dc8d08b002419656ee400fe238c525bee639295bf7",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t4-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t4-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t4-p0.json.process.json",
+          "sha256": "a89ac1b3c74982618ba3e93100f8c4b29f76beaf3b9e2f8243bf577aa16e0e49"
+        }
+      ]
+    },
+    {
+      "file": "cuda-aa_cuda-t4-p1.json",
+      "exit_code": 0,
+      "sha256": "bd8e90f0c371939a4d36260727d2cbbcb12bb58e7ea6fc82d49c31cefa4fe3d5",
+      "artifacts": [
+        {
+          "path": "cuda-aa_cuda-t4-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-aa_cuda-t4-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-aa_cuda-t4-p1.json.process.json",
+          "sha256": "53a49b5cf597636cb09c76ef8b2200e11584b9c18b3892cc57973b671aee2379"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t0-p0.json",
+      "exit_code": 0,
+      "sha256": "49830197e9d5a35dc2895feb21030f25eb0907b9a6820f35b90facceb9938c3c",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t0-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t0-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t0-p0.json.process.json",
+          "sha256": "850016a99fcd2c33182811e5895f09f80d5871d582a701d4275ff8d46783b9c5"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t0-p1.json",
+      "exit_code": 0,
+      "sha256": "09f0a4aa7ce565505582a7f098fe19ec86c74b7803542a8129c1b66fad87f224",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t0-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t0-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t0-p1.json.process.json",
+          "sha256": "04a649648226723d39e115d14f098d393f65c00988c8d2095bd33ab252cd2c9e"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t0-p2.json",
+      "exit_code": 0,
+      "sha256": "218f35488cbe71e58835e28116bce73960600a71d86e719b7465f2d54e8fb40e",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t0-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t0-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t0-p2.json.process.json",
+          "sha256": "cc5a15edef157e52114c6f43092a5ad46742d8c931e01ed5a1a805ef84005447"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t0-p3.json",
+      "exit_code": 0,
+      "sha256": "3f3f14fff4280b47d9120901c2bdf8b9f6d8cd45e32214c783a5594988412d3c",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t0-p3.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t0-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t0-p3.json.process.json",
+          "sha256": "9ab4804b349fe2cace163748ce4635e0ed19b5b3013c9849b6062bff03cf8bc8"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t1-p0.json",
+      "exit_code": 0,
+      "sha256": "42383419663c6cd018fdcc7f33c0c6fd81d9521616c93056a3d119988684bdb4",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t1-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t1-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t1-p0.json.process.json",
+          "sha256": "48479c89bd11a407d407a8c7f0c78fd823db670372e287bc8fb88973f73ea129"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t1-p1.json",
+      "exit_code": 0,
+      "sha256": "2357ada620ca2326b944aba960aeffaa363bec93265934bf20b769ea651ce5fa",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t1-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t1-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t1-p1.json.process.json",
+          "sha256": "6291f8ae960d52d35ad1ca1090bdd6908f0c1f8dda03cbb03cd8281a00c2f8a3"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t1-p2.json",
+      "exit_code": 0,
+      "sha256": "746c7dd687628ae4a800c126e3e3f634b47309b8e6b32afe0ff25a2f27cb0c3b",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t1-p2.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t1-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t1-p2.json.process.json",
+          "sha256": "cc988abf58465c2694e773a876ad7ae34d223fea66d0a8dc20597709bad66cf8"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t1-p3.json",
+      "exit_code": 0,
+      "sha256": "9ff2f8109b01e65337e0233dc291aace775f33e49759c27f6766b1e9584c2c6b",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t1-p3.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t1-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t1-p3.json.process.json",
+          "sha256": "5a81fcf4c4e555f607c00d654138043871b9f9171286fa7782073edd25299a0e"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t2-p0.json",
+      "exit_code": 0,
+      "sha256": "d1f39173d355da9e5e61144b30256917df646373f6168e4a5a69860ca198e7af",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t2-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t2-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t2-p0.json.process.json",
+          "sha256": "daa7b4a690d28af1e62dd30a5b13b38cdec72979be0b88bd67173f58c15827ce"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t2-p1.json",
+      "exit_code": 0,
+      "sha256": "cd4de4cb4dcc7d383ac94bf23d7f7c2d4df69c949acec57ba400f56058988145",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t2-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t2-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t2-p1.json.process.json",
+          "sha256": "145e2c962d8b11b45f0e4af0458c6ad0e634890e158bc2d71f3db57711116330"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t2-p2.json",
+      "exit_code": 0,
+      "sha256": "6d420b2c5ec169d24b76a37905c202fdcda9c670ab5be5a1104325a95bcda1f7",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t2-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t2-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t2-p2.json.process.json",
+          "sha256": "8c3a9382a1dbdf4f0505b438a9c2d17c0b976cedba3ff482e0c580f0f6541e2c"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t2-p3.json",
+      "exit_code": 0,
+      "sha256": "dc07b3788b57ccca1611262bee7dff1c12ecd12cfaa1063a94746a684799f0c4",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t2-p3.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t2-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t2-p3.json.process.json",
+          "sha256": "91f1ce4a8e90eca4c5fd0d89c0916d84b6a22f13266cba431e19f6cf82b89a66"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t3-p0.json",
+      "exit_code": 0,
+      "sha256": "79caf9aa9f86bbbb71961ca1f750cdac4df5458b4dad2afc43284f8aa9eb45dc",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t3-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t3-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t3-p0.json.process.json",
+          "sha256": "53361ddf9442dc29bd8fcba232ccd1526bdbabe2b3b23e9d5ca05b4160b22a73"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t3-p1.json",
+      "exit_code": 0,
+      "sha256": "5f8931714600b562e3c1e729584ca96811d251f65a9b29d7f4230f4ca6fd59e4",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t3-p1.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t3-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t3-p1.json.process.json",
+          "sha256": "d900159a7dd5d0b3e56b953a0cc4a06dbda50fbb79b00be048e6f1363acedc3b"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t3-p2.json",
+      "exit_code": 0,
+      "sha256": "fb0662e0bd9c036f86093ad747ee52e02686effdd1eaac27143780f0efd328d9",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t3-p2.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t3-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t3-p2.json.process.json",
+          "sha256": "177215543beb6bf643da9e398ff8da5c841d46385359cd87f9658be8d9f12498"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t3-p3.json",
+      "exit_code": 0,
+      "sha256": "3b0c79f64c7045404d1a35d7a7c5359964db961d3e596ea3de18a66491f02e7f",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t3-p3.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t3-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t3-p3.json.process.json",
+          "sha256": "7d9a2ef073ee6a30963f5cb795ab3eff9a1648ee47f654328e321640309ab483"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t4-p0.json",
+      "exit_code": 0,
+      "sha256": "e07146b96dc7496ee67e4c6b680b49bced9a0ae4368ae89963021936b9688620",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t4-p0.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t4-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t4-p0.json.process.json",
+          "sha256": "672a4b7cee50e47d59e5fcc744d684af2dfa5b7b0dfe725c57cb93711c88e6a4"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t4-p1.json",
+      "exit_code": 0,
+      "sha256": "3fe46ec628e4694be2f493b24e59e749a3bd2c31f57d0adcf15b41f34291b930",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t4-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t4-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t4-p1.json.process.json",
+          "sha256": "f21376f466b55ddaf825cbe60f4d1488dc050fd1754bd4733d60492c6a6ed9c1"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu8_cuda-t4-p2.json",
+      "exit_code": 0,
+      "sha256": "aa6eaeea0e48631b05c0c280ed94b07c6eca30965da7d01e117b3718a3cadce3",
+      "artifacts": [
+        {
+          "path": "cuda-cpu8_cuda-t4-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t4-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu8_cuda-t4-p2.json.process.json",
+          "sha256": "bfac1a371920ba8449f641ad38423db0e6422d8327781ea3cb4799ee3f4704c9"
+        }
+      ]
+    },
+    {
+      "file": "cpu8-cpu8_cuda-t4-p3.json",
+      "exit_code": 0,
+      "sha256": "0b7e3a10474bf67eb5d4ae6be8f61b140a7208dfc20289c058e91a2bd5b45f6f",
+      "artifacts": [
+        {
+          "path": "cpu8-cpu8_cuda-t4-p3.json.stdout.txt",
+          "sha256": "d7daaf1377d9a938a815874402131ec35ad5d8e6e94afd4d9d08d6e3de3c9172"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t4-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu8-cpu8_cuda-t4-p3.json.process.json",
+          "sha256": "fc2f264d1cbebdbb63644eaeb1c973f9c21425400549eda1ad993c514b09e77b"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t0-p0.json",
+      "exit_code": 0,
+      "sha256": "786c0f374b42029e0bf05707e721a87f83af0c9b7045e3c25981f849552c685a",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t0-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t0-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t0-p0.json.process.json",
+          "sha256": "4a1af7b92da314078ce21b3d55f451f2f2a688a1bea6d5127fa3c0961ec3625e"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t0-p1.json",
+      "exit_code": 0,
+      "sha256": "e3dcff01bca473569e4e2914b223153a1b8b8e2ff7537d1b274906b0801b212f",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t0-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t0-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t0-p1.json.process.json",
+          "sha256": "293a1581ddce4ec42f4aecd2a46d52bc395d73c496582c8cad40987f8054a89c"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t0-p2.json",
+      "exit_code": 0,
+      "sha256": "9acc6250f6832aa706b1da21b14ae4283cbbc893fa18189706a3a4e6141bd549",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t0-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t0-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t0-p2.json.process.json",
+          "sha256": "32b9cca93bbfc9264fab0d46c94a26d4fe702075d150cc8d458bbb985253826a"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t0-p3.json",
+      "exit_code": 0,
+      "sha256": "bed6652fdf74feafa9a538f34dacb32de7a1ac18a60c189c26d85e68013c308f",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t0-p3.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t0-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t0-p3.json.process.json",
+          "sha256": "e68dcf279b7b893eb485b0a04474611e61b12fa1c62dd997710a65fab734e83a"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t1-p0.json",
+      "exit_code": 0,
+      "sha256": "b51f033e0bdbd754d54299c7d7e5d4c874a3e50d668bac620e10d9d253b79750",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t1-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t1-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t1-p0.json.process.json",
+          "sha256": "9bedfe2777f260c5927cf330befa16bf29b7c9cb37eb1be61d3ee28131a51dab"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t1-p1.json",
+      "exit_code": 0,
+      "sha256": "e304040abb60ea6eecf2eabc1e637478b82867171e98d8583fc8ea44c58012a9",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t1-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t1-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t1-p1.json.process.json",
+          "sha256": "6284d9f9017684c6aad37ea645d41e4d014234f669796f3946e9163689665ca6"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t1-p2.json",
+      "exit_code": 0,
+      "sha256": "1a3334d3feba910d30ba6300e6ceeae0d8ba0fed7e3f55c6027d1c17d67c0690",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t1-p2.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t1-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t1-p2.json.process.json",
+          "sha256": "616462bbbe7b453518fe20babf4ffb064283d7ea93a49f8fcbfe6f0ebb3ca613"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t1-p3.json",
+      "exit_code": 0,
+      "sha256": "6da348226130be156177f77708f40b69046a89520a3b9283607db50ab6486b78",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t1-p3.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t1-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t1-p3.json.process.json",
+          "sha256": "cf9979b6dd379b6729dc116494d7955eb1c16024c6510081e3d0e9c19e7142b6"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t2-p0.json",
+      "exit_code": 0,
+      "sha256": "64eaaa9a9b3f4437cdb545aca76315912a9d2e468a9a262bef704fa74863b178",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t2-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t2-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t2-p0.json.process.json",
+          "sha256": "3ce18fa2a14d55ba502155f7f29bd9c789273125e6923a3f0bde4f728fd46112"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t2-p1.json",
+      "exit_code": 0,
+      "sha256": "300bb7df0ced72c013df7380962765ced4fb2bd8c68a856a3daf3a8114fad324",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t2-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t2-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t2-p1.json.process.json",
+          "sha256": "d70710ef4f907a9ebe2ef14ac3222b5cd6f03d2ba252f7f38d4561087889bfdd"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t2-p2.json",
+      "exit_code": 0,
+      "sha256": "3e56a55db11f868b7e9a33025c0eafada0ad348e2cfa796e898d767b0c6fb08f",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t2-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t2-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t2-p2.json.process.json",
+          "sha256": "8e171309cde43c4ab2202703f624722a59d96ff5cfcb86b662a6ddd72f280067"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t2-p3.json",
+      "exit_code": 0,
+      "sha256": "7d64565dfc8fb8fc374e535e43640ac4759fd72785379c81d53934396e695c0f",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t2-p3.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t2-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t2-p3.json.process.json",
+          "sha256": "2ebcf1272ab01fadb782d8cbe650e6f797bb988191c19fe430db126664966705"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t3-p0.json",
+      "exit_code": 0,
+      "sha256": "b9d774f991a206d3bf8839a081fb0a8b6429d9e5d3b19eb9fab4589906fafca4",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t3-p0.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t3-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t3-p0.json.process.json",
+          "sha256": "961212927f9f2dda59af72f7725255400c081e0c2313ddafcd3c52edda4c0f12"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t3-p1.json",
+      "exit_code": 0,
+      "sha256": "da1cbe888a794b67a93047f0ee0c48805e400bc8849b76a3959e6c4ef25219ab",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t3-p1.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t3-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t3-p1.json.process.json",
+          "sha256": "55f7bb0dd653ff6ff0c9903440937ff09804da0cd0f0ce8f5d47ac703e329611"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t3-p2.json",
+      "exit_code": 0,
+      "sha256": "8e857effd06ec5dc0e794da4003eee1248d0cfa8b04bce4aeb36baa5afb687e6",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t3-p2.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t3-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t3-p2.json.process.json",
+          "sha256": "3b26cec70743f4759e60a6aa55990e29da7c7eee55adbf4a598e7f90a052380d"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t3-p3.json",
+      "exit_code": 0,
+      "sha256": "6fc418b4bc6df56ffee5490918baffea0f81c523ffa208e11a8a39bacf63a137",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t3-p3.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t3-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t3-p3.json.process.json",
+          "sha256": "16955aedefc4b9721110f7248f30af54fdd1c5cd1ee0e8eb387cb05a2e41801e"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t4-p0.json",
+      "exit_code": 0,
+      "sha256": "7a8722fdabf592f0b9769cf4e5a41a2e284269ab8a213c474ca5eb4cd45c78d5",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t4-p0.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t4-p0.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t4-p0.json.process.json",
+          "sha256": "b1e74a373dadde316d967b533340bd5e5bbf9dd0c40dbecc8d1161567d3360f4"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t4-p1.json",
+      "exit_code": 0,
+      "sha256": "c8e4dcc673da780921c973fd780f43dda5ec04b389b1d4181698f61893af3b34",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t4-p1.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t4-p1.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t4-p1.json.process.json",
+          "sha256": "88cd409cfca8ec3029465304ebb691a0172f6efa03cdffaf29c4f69d7da86828"
+        }
+      ]
+    },
+    {
+      "file": "cuda-cpu16_cuda-t4-p2.json",
+      "exit_code": 0,
+      "sha256": "bbb24558be5010c6d1e0bd9fd83bf52b98e221b16544e2b233ec9c38b01521fa",
+      "artifacts": [
+        {
+          "path": "cuda-cpu16_cuda-t4-p2.json.stdout.txt",
+          "sha256": "f0ce0bc452bea430a315113f77504162fcd7e9513343fc28123d2e9d1c7a205d"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t4-p2.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cuda-cpu16_cuda-t4-p2.json.process.json",
+          "sha256": "fe63919f8c1125878d72cfa68ae9961b7b622ceb5aee3fd24a87b41babc6f3d1"
+        }
+      ]
+    },
+    {
+      "file": "cpu16-cpu16_cuda-t4-p3.json",
+      "exit_code": 0,
+      "sha256": "961eedf6f9ec503a5c78b7d1344e6d85e1fee05948e9901d2040617dec28af51",
+      "artifacts": [
+        {
+          "path": "cpu16-cpu16_cuda-t4-p3.json.stdout.txt",
+          "sha256": "4869848adbd15530d982698e993f3eade9b234f67621452c143c74dd991515e3"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t4-p3.json.stderr.txt",
+          "sha256": "823658779df3da9d45e4cd277ba387b9079e5e851f24ba46922ad0bd7bfc31bf"
+        },
+        {
+          "path": "cpu16-cpu16_cuda-t4-p3.json.process.json",
+          "sha256": "26605101fac85208ff9ce19d971c6eb29c6165803834a45ae77296a467b86ab6"
+        }
+      ]
+    }
+  ],
+  "planned_reports": 70,
+  "finished_at_utc": "2026-09-26T07:20:40.8627822Z"
+}

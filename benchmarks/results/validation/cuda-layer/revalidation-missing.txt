@@ -1,0 +1,6 @@
+Get-FileHash: /tmp/cuda-layer-relocated-41a4cb94485e4ef1aa0f5ec96dceb914/missing/verify.ps1:11
+Line |
+  11 |  if ((Get-FileHash -LiteralPath $snapshot -Algorithm SHA256).Hash.ToLo …
+     |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Could not find file
+     | '/tmp/cuda-layer-relocated-41a4cb94485e4ef1aa0f5ec96dceb914/missing/source-snapshot.zip'.

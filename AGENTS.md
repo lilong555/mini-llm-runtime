@@ -11,7 +11,9 @@
   Each entry needs an ID, status, impact, reproduction or evidence, cause,
   solution or next action, and verification. Never mark an issue resolved
   without evidence. Keep credentials and tokens out of the log.
-- Keep this repository private unless the user explicitly requests otherwise.
+- 仓库保持公开，GitHub 可见性应为 `PUBLIC`。源码、文档和经检查的发布证据
+  按公开交付范围处理；仅在用户明确要求时更改仓库可见性。
+  公开发布不豁免凭据、模型权重、构建产物和本地运行状态的排除规则。
 - Use scoped commits on topic branches after the initial baseline. Do not
   rewrite shared history or move published version tags.
 - Do not commit model weights, build output, dependency checkouts, local

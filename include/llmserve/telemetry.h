@@ -20,10 +20,27 @@ constexpr std::string_view telemetry_mode_name(TelemetryMode mode) noexcept {
     return "unknown";
 }
 
-// 仅表达后端直接提供的物理载荷；容量信用、进程 RSS 和共享引用另有口径。
+enum class KvLayout { unknown, paged, contiguous };
+
+constexpr std::string_view kv_layout_name(KvLayout layout) noexcept {
+    switch (layout) {
+    case KvLayout::unknown: return "unknown";
+    case KvLayout::paged: return "paged";
+    case KvLayout::contiguous: return "contiguous";
+    }
+    return "unknown";
+}
+
+// 仅表达后端直接提供的物理状态；容量信用、进程 RSS 和共享引用另有口径。
 struct RunnerResources {
-    std::size_t live_kv_pages = 0;
+    std::optional<std::size_t> live_kv_pages = std::nullopt;
     std::size_t resident_kv_payload_bytes = 0;
+    KvLayout layout = KvLayout::unknown;
+    std::optional<std::size_t> capacity_tokens = std::nullopt;
+    std::optional<std::size_t> live_tokens = std::nullopt;
+    std::optional<std::size_t> owned_device_bytes = std::nullopt;
+    bool state_valid = true;
+    bool reusable = true;
 };
 
 struct RunnerStage {

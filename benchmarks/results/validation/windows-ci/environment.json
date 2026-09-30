@@ -1,0 +1,36 @@
+{
+  "system": "WSL2 Ubuntu",
+  "binaries": [
+    {
+      "path": "build/wsl-cpu/bin/llmserve-model-tests",
+      "sha256": "39af52b3558f11a91f4b3b9edeccf250d8795003ea9ed33120e928e01fd591da",
+      "size_bytes": 74976680
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve",
+      "sha256": "68e3bdcfb29b9332a2dab0c01746481454e3dc7666af82405b1a0e8cb6760a56",
+      "size_bytes": 89848368
+    },
+    {
+      "path": "build/wsl-cpu/bin/llmserve-http-tests",
+      "sha256": "c461da021ff7b6b3ba2c54e6705c24a30772fb5bfadcfa4bbbe8292903ab2736",
+      "size_bytes": 16522224
+    },
+    {
+      "path": "build/wsl-own-cuda/bin/mini-cuda-runtime-bench",
+      "sha256": "6f05de612183d602aa162f901773bc2b6c8cd9f6ff28892b6e00af960c76dea4",
+      "size_bytes": 76146080
+    },
+    {
+      "path": "build/wsl-own-cuda/bin/minillm-cuda-model-tests",
+      "sha256": "48a598e2c400a1e549e947abd6f9e600e0b69a86f0c81acd3fceb86f192e93ec",
+      "size_bytes": 81200432
+    }
+  ],
+  "source_snapshot_sha256": "e7c0c5112d88b169fb0feac0c2c467bb9c905926a813241f9e22801eaab9bd9a",
+  "source_state_sha256": "ef7d78fa59c9655d947af90cf363f51b08429344f058b61378c3283fda9eebd6",
+  "powershell": "7.6.6",
+  "python": "Python 3.10.12",
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+}

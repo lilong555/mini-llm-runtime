@@ -1,0 +1,13 @@
+========= COMPUTE-SANITIZER
+[PASS] batch_state_prepare_commit_clear_and_preflight_failure
+[PASS] batch_state_random_append_clear_and_poison_is_terminal
+[PASS] kv_store_round_to_even_layers_slots_and_guards
+[PASS] kv_store_device_failure_keeps_logical_lengths_uncommitted
+[PASS] softmax_standalone_real_width_causal_nan_tail_and_preflight
+[PASS] softmax_standalone_device_errors_are_explicit
+[PASS] attention_causal_gqa_nonwarp_and_long_context
+[PASS] attention_invalid_metadata_nonfinite_and_preflight
+[PASS] layer_real_execution_interleaved_append_and_clear
+9/9 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

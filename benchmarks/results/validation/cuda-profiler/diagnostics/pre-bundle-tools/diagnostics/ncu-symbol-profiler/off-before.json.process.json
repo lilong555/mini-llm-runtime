@@ -1,0 +1,112 @@
+{
+  "executable": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/mini-cuda-runtime-bench",
+  "arguments": [
+    "--model",
+    "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "--input",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-profiler/input.json",
+    "--backend",
+    "cuda",
+    "--output",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-profiler/off-before.json"
+  ],
+  "exit_code": 0,
+  "started_at_utc": "2026-09-26T07:43:04.5932348Z",
+  "finished_at_utc": "2026-09-26T07:43:37.2252411Z",
+  "wrapper_elapsed_ns": 32631796626,
+  "environment_policy": "allowlist_no_credentials",
+  "environment": {
+    "PATH": "/opt/microsoft/powershell/7:/home/li/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/codex-path:/home/li/.vscode-server/extensions/oracle.sql-developer-26.1.0-linux-x64/dbtools/jdk/bin:/home/li/.vscode-server/extensions/oracle.sql-developer-26.1.0-linux-x64/dbtools/jdk/bin:/home/li/.local/bin:/home/li/.codex/tmp/arg0/codex-arg0zTUcf0:/home/li/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/codex-path:/home/li/.vscode-server/extensions/oracle.sql-developer-26.1.0-linux-x64/dbtools/jdk/bin:/home/li/.vscode-server/extensions/oracle.sql-developer-26.1.0-linux-x64/dbtools/jdk/bin:/home/li/.local/bin:/home/li/.nvm/versions/node/v24.12.0/bin:/usr/local/cuda-12.8/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Microsoft SDKs/Azure/CLI2/wbin:/mnt/e/TJAIPRO/code/cuda/bin:/mnt/e/TJAIPRO/code/cuda/libnvvp:/mnt/e/Python/Scripts/:/mnt/e/Python/:/mnt/c/Windows/system32:/mnt/c/Windows:/mnt/c/Windows/System32/Wbem:/mnt/c/Windows/System32/WindowsPowerShell/v1.0/:/mnt/c/Windows/System32/OpenSSH/:/mnt/c/Program Files/dotnet/:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/ProgramData/chocolatey/bin:/mnt/e/APP/Git/bin:/mnt/e/code/project/gs10.04.0/bin:/mnt/c/Program Files/NVIDIA Corporation/Nsight Compute 2025.1.0/:/mnt/e/APP/pcsuite/:/mnt/e/MinGW-w64/mingw64/bin:/mnt/e/code/perl/c/bin:/mnt/e/code/perl/perl/site/bin:/mnt/e/code/perl/perl/bin:/mnt/c/Program Files/Docker/Docker/resources/bin:/mnt/c/00nodejs/node_global:/mnt/e/APP/pandoc-3.8.2.1:/mnt/e/APP/VScode/Microsoft VS Code fixed/bin:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files/Microsoft SQL Server/150/Tools/Binn/:/mnt/c/Program Files/Microsoft SQL Server/Client SDK/ODBC/170/Tools/Binn/:/mnt/c/Program Files (x86)/Windows Kits/10/Windows Performance Toolkit/:/mnt/c/Program Files/GitHub CLI/:/mnt/c/Program Files (x86)/Windows Kits/8.1/Windows Performance Toolkit/:/mnt/e/code/node/:/mnt/e/cocos2d-x-3.17.2/templates:/mnt/e/cocos2d-x-3.17.2/tools/cocos2d-console/bin:/mnt/c/Users/admin/AppData/Local/Programs/Python/Python310/Scripts/:/mnt/c/Users/admin/AppData/Local/Programs/Python/Python310/:/mnt/c/Users/admin/AppData/Local/Microsoft/WindowsApps:/mnt/e/Python/PyCharm 2024.1.2/bin:/mnt/e/code/project/GraphicsMagick-1.3.45/jp2/test/bin:/mnt/e/TJAIPRO/jdk21/bin:/mnt/e/TJAIPRO/neo4j-community-5.18.1/bin:/mnt/c/Users/admin/AppData/Local/Programs/Ollama:/mnt/c/Users/admin/.dotnet/tools:/mnt/e/APP/VScode/Microsoft VS Code fixed:/mnt/c/Users/admin/AppData/Local/Microsoft/WinGet/Packages/PHP.PHP.8.5_Microsoft.Winget.Source_8wekyb3d8bbwe:/mnt/c/Program Files/LibreOffice/program:/mnt/e/APP/Obsidian:/mnt/e/TJAIPRO/miniconda/condabin:/mnt/e/APP/ffmpeg-7.1-essentials_build/bin:/mnt/c/Program Files/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin:/snap/bin",
+    "HOME": "/home/li",
+    "USER": "li",
+    "LANG": "C",
+    "LC_ALL": "C"
+  },
+  "order": 0,
+  "profiler": "none",
+  "report_execution_path": "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-profiler/off-before.json",
+  "before": {
+    "at_utc": "2026-09-26T07:43:04.3047060Z",
+    "load_average_raw": "0.41 0.66 3.24 1/787 1219300",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cpu_frequency_mhz": [
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193
+    ],
+    "gpu": {
+      "raw": [
+        "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 54, 1980, 6000, 14.26, 11, 1779, 6170"
+      ],
+      "records": [
+        {
+          "uuid": "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211",
+          "driver_version": "591.74",
+          "temperature_c": 54.0,
+          "sm_clock_mhz": 1980.0,
+          "memory_clock_mhz": 6000.0,
+          "power_w": 14.26,
+          "utilization_percent": 11.0,
+          "used_mib": 1779.0,
+          "free_mib": 6170.0
+        }
+      ]
+    },
+    "unavailable": []
+  },
+  "after": {
+    "at_utc": "2026-09-26T07:43:37.2273264Z",
+    "load_average_raw": "0.67 0.70 3.16 1/788 1219572",
+    "processor": "AMD Ryzen 7 7745HX with Radeon Graphics",
+    "cpu_frequency_mhz": [
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193,
+      3593.193
+    ],
+    "gpu": {
+      "raw": [
+        "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 63, 2505, 8000, 26.74, 24, 1734, 6215"
+      ],
+      "records": [
+        {
+          "uuid": "GPU-6384dbff-0d06-8bf5-2091-d53bc812d211",
+          "driver_version": "591.74",
+          "temperature_c": 63.0,
+          "sm_clock_mhz": 2505.0,
+          "memory_clock_mhz": 8000.0,
+          "power_w": 26.74,
+          "utilization_percent": 24.0,
+          "used_mib": 1734.0,
+          "free_mib": 6215.0
+        }
+      ]
+    },
+    "unavailable": []
+  }
+}

@@ -1,0 +1,44 @@
+Test project /home/li/code/mini-llm-runtime/build/wsl-own-cuda
+      Start  1: cuda-unit
+ 1/18 Test  #1: cuda-unit ........................   Passed    1.05 sec
+      Start  2: cuda-ops
+ 2/18 Test  #2: cuda-ops .........................   Passed    0.68 sec
+      Start  3: cuda-storage
+ 3/18 Test  #3: cuda-storage .....................   Passed    0.64 sec
+      Start  4: cuda-layer
+ 4/18 Test  #4: cuda-layer .......................   Passed    0.68 sec
+      Start  5: cuda-runtime
+ 5/18 Test  #5: cuda-runtime .....................   Passed    0.58 sec
+      Start  6: cuda-validation
+ 6/18 Test  #6: cuda-validation ..................   Passed    0.01 sec
+      Start  7: unit
+ 7/18 Test  #7: unit .............................   Passed    0.18 sec
+      Start  8: validation-contract
+ 8/18 Test  #8: validation-contract ..............   Passed    0.02 sec
+      Start  9: cuda-validation-report
+ 9/18 Test  #9: cuda-validation-report ...........   Passed    0.29 sec
+      Start 10: cuda-benchmark-validation
+10/18 Test #10: cuda-benchmark-validation ........   Passed    6.06 sec
+      Start 11: cuda-micro-validation
+11/18 Test #11: cuda-micro-validation ............   Passed   19.80 sec
+      Start 12: telemetry-validation
+12/18 Test #12: telemetry-validation .............   Passed    0.03 sec
+      Start 13: benchmark-validation
+13/18 Test #13: benchmark-validation .............   Passed    4.49 sec
+      Start 14: runtime-benchmark-validation
+14/18 Test #14: runtime-benchmark-validation .....   Passed    3.69 sec
+      Start 15: cuda-benchmark-workloads
+15/18 Test #15: cuda-benchmark-workloads .........   Passed    0.01 sec
+      Start 16: cuda-micro-workloads
+16/18 Test #16: cuda-micro-workloads .............   Passed    0.01 sec
+      Start 17: gguf
+17/18 Test #17: gguf .............................   Passed    0.00 sec
+      Start 18: host-model
+18/18 Test #18: host-model .......................   Passed    0.01 sec
+
+100% tests passed out of 18
+
+Label Time Summary:
+cuda    =   3.63 sec*proc (6 tests)
+
+Total Test time (real) =  38.23 sec

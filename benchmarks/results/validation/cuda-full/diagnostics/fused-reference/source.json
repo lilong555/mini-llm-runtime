@@ -1,0 +1,36 @@
+{
+  "git_sha": "6d7b0888fa1c512c9e13ce4fa28b32708113b5df",
+  "git_dirty": true,
+  "git_status": [
+    " M .gitignore",
+    " M CMakeLists.txt",
+    " M scripts/dev.sh",
+    " M tests/cuda_model_tests.cpp",
+    "?? benchmarks/results/validation/cuda-full/",
+    "?? tests/cuda_full_validation.cpp",
+    "?? tests/cuda_validation_support.h",
+    "?? tests/cuda_validation_tests.cpp"
+  ],
+  "scope": [
+    "CMakeLists.txt",
+    "AGENTS.md",
+    ".gitattributes",
+    ".gitignore",
+    "cmake",
+    "apps",
+    "include",
+    "src",
+    "scripts",
+    "tests",
+    ".github",
+    "models/manifest.json",
+    "models/reference-manifest.json",
+    "benchmarks/runtime-inputs"
+  ],
+  "state_file": "source-state.json",
+  "worktree_state_sha256": "42b27b5c8f6e7a541cba89c6862d54d15aac3705422db7712bf7a5da7ea86fcd",
+  "snapshot": {
+    "path": "source-snapshot.zip",
+    "sha256": "4cab297192395c9418a18e56a35f6a4f396d733b12d8e1e0e289d32b46e952f6"
+  }
+}

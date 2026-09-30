@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "scope": "相邻无 Profiler 进程夹住一个外部 Profiler 进程的诊断",
+  "formal_performance_baseline": false,
+  "independent_pairs": 1,
+  "confidence_interval": null,
+  "cases": {
+    "prefill-16": {
+      "nsys": {
+        "before_median_ns": 17357498,
+        "after_median_ns": 16172743,
+        "off_bracket_median_ns": 16765120.5,
+        "on_median_ns": 16409315,
+        "relative_percent": -2.12229610875746,
+        "before_after_relative_percent": -6.825609313047309
+      },
+      "ncu": {
+        "before_median_ns": 16172743,
+        "after_median_ns": 16736812,
+        "off_bracket_median_ns": 16454777.5,
+        "on_median_ns": 41298299,
+        "relative_percent": 150.98059818797304,
+        "before_after_relative_percent": 3.487775697666118
+      }
+    },
+    "prefill-128": {
+      "nsys": {
+        "before_median_ns": 34099072,
+        "after_median_ns": 31673716,
+        "off_bracket_median_ns": 32886394.0,
+        "on_median_ns": 28132160,
+        "relative_percent": -14.456537861828211,
+        "before_after_relative_percent": -7.112674503282667
+      },
+      "ncu": {
+        "before_median_ns": 31673716,
+        "after_median_ns": 32843131,
+        "off_bracket_median_ns": 32258423.5,
+        "on_median_ns": 46243378,
+        "relative_percent": 43.35287649751389,
+        "before_after_relative_percent": 3.6920675805768965
+      }
+    },
+    "chunked-prefill-256": {
+      "nsys": {
+        "before_median_ns": 72126910,
+        "after_median_ns": 64484109,
+        "off_bracket_median_ns": 68305509.5,
+        "on_median_ns": 64549495,
+        "relative_percent": -5.4988455945856,
+        "before_after_relative_percent": -10.59632389630999
+      },
+      "ncu": {
+        "before_median_ns": 64484109,
+        "after_median_ns": 65374046,
+        "off_bracket_median_ns": 64929077.5,
+        "on_median_ns": 74930534,
+        "relative_percent": 15.403663327882633,
+        "before_after_relative_percent": 1.3800873018187998
+      }
+    },
+    "chunked-prefill-1536": {
+      "nsys": {
+        "before_median_ns": 1058772689,
+        "after_median_ns": 1080656806,
+        "off_bracket_median_ns": 1069714747.5,
+        "on_median_ns": 1045760655,
+        "relative_percent": -2.239297210399538,
+        "before_after_relative_percent": 2.0669325179391684
+      },
+      "ncu": {
+        "before_median_ns": 1080656806,
+        "after_median_ns": 1099057581,
+        "off_bracket_median_ns": 1089857193.5,
+        "on_median_ns": 1198396076,
+        "relative_percent": 9.959000422012632,
+        "before_after_relative_percent": 1.7027399353648276
+      }
+    },
+    "decode-16": {
+      "nsys": {
+        "before_median_ns": 11989749,
+        "after_median_ns": 12221809,
+        "off_bracket_median_ns": 12105779.0,
+        "on_median_ns": 12765486,
+        "relative_percent": 5.4495212575745855,
+        "before_after_relative_percent": 1.935486722866342
+      },
+      "ncu": {
+        "before_median_ns": 12221809,
+        "after_median_ns": 12255531,
+        "off_bracket_median_ns": 12238670.0,
+        "on_median_ns": 17478369,
+        "relative_percent": 42.81265039420133,
+        "before_after_relative_percent": 0.27591660121673023
+      }
+    },
+    "decode-256": {
+      "nsys": {
+        "before_median_ns": 13727285,
+        "after_median_ns": 13131879,
+        "off_bracket_median_ns": 13429582.0,
+        "on_median_ns": 13459859,
+        "relative_percent": 0.22545005496075188,
+        "before_after_relative_percent": -4.337390824187015
+      },
+      "ncu": {
+        "before_median_ns": 13131879,
+        "after_median_ns": 14922822,
+        "off_bracket_median_ns": 14027350.5,
+        "on_median_ns": 18553906,
+        "relative_percent": 32.26949736516529,
+        "before_after_relative_percent": 13.638132060156805
+      }
+    },
+    "decode-1536": {
+      "nsys": {
+        "before_median_ns": 17375072,
+        "after_median_ns": 16827118,
+        "off_bracket_median_ns": 17101095.0,
+        "on_median_ns": 17229857,
+        "relative_percent": 0.7529459370876568,
+        "before_after_relative_percent": -3.153679017848099
+      },
+      "ncu": {
+        "before_median_ns": 16827118,
+        "after_median_ns": 18104311,
+        "off_bracket_median_ns": 17465714.5,
+        "on_median_ns": 19714548,
+        "relative_percent": 12.875702852007564,
+        "before_after_relative_percent": 7.590087619282171
+      }
+    },
+    "batch-2": {
+      "nsys": {
+        "before_median_ns": 13681255,
+        "after_median_ns": 13742105,
+        "off_bracket_median_ns": 13711680.0,
+        "on_median_ns": 14172386,
+        "relative_percent": 3.3599529743984613,
+        "before_after_relative_percent": 0.4447691385037311
+      },
+      "ncu": {
+        "before_median_ns": 13742105,
+        "after_median_ns": 13834096,
+        "off_bracket_median_ns": 13788100.5,
+        "on_median_ns": 19898785,
+        "relative_percent": 44.31853756795579,
+        "before_after_relative_percent": 0.669409817491573
+      }
+    },
+    "batch-4": {
+      "nsys": {
+        "before_median_ns": 13964199,
+        "after_median_ns": 13957574,
+        "off_bracket_median_ns": 13960886.5,
+        "on_median_ns": 13964733,
+        "relative_percent": 0.027551975299000553,
+        "before_after_relative_percent": -0.04744274984909147
+      },
+      "ncu": {
+        "before_median_ns": 13957574,
+        "after_median_ns": 13803860,
+        "off_bracket_median_ns": 13880717.0,
+        "on_median_ns": 18884710,
+        "relative_percent": 36.04996053157772,
+        "before_after_relative_percent": -1.1012945372884997
+      }
+    },
+    "mixed-16-2": {
+      "nsys": {
+        "before_median_ns": 16047248,
+        "after_median_ns": 17203183,
+        "off_bracket_median_ns": 16625215.5,
+        "on_median_ns": 18172638,
+        "relative_percent": 9.30768386130092,
+        "before_after_relative_percent": 7.203322339132545
+      },
+      "ncu": {
+        "before_median_ns": 17203183,
+        "after_median_ns": 15724070,
+        "off_bracket_median_ns": 16463626.5,
+        "on_median_ns": 20366757,
+        "relative_percent": 23.707598687324438,
+        "before_after_relative_percent": -8.597903074099722
+      }
+    },
+    "generate-16-32": {
+      "nsys": {
+        "before_median_ns": 396683326,
+        "after_median_ns": 416925236,
+        "off_bracket_median_ns": 406804281.0,
+        "on_median_ns": 429539354,
+        "relative_percent": 5.588700527957324,
+        "before_after_relative_percent": 5.102788212479603
+      },
+      "ncu": {
+        "before_median_ns": 416925236,
+        "after_median_ns": 403029194,
+        "off_bracket_median_ns": 409977215.0,
+        "on_median_ns": 570137910,
+        "relative_percent": 39.065755154222416,
+        "before_after_relative_percent": -3.3329817435181597
+      }
+    },
+    "generate-128-32": {
+      "nsys": {
+        "before_median_ns": 418616623,
+        "after_median_ns": 434756153,
+        "off_bracket_median_ns": 426686388.0,
+        "on_median_ns": 442170374,
+        "relative_percent": 3.628891484581409,
+        "before_after_relative_percent": 3.855444125542995
+      },
+      "ncu": {
+        "before_median_ns": 434756153,
+        "after_median_ns": 426023418,
+        "off_bracket_median_ns": 430389785.5,
+        "on_median_ns": 565301899,
+        "relative_percent": 31.346495210909218,
+        "before_after_relative_percent": -2.008651272613504
+      }
+    }
+  },
+  "limitations": [
+    "每种 Profiler 只有一个进程，不进行显著性或加速验收",
+    "每进程三次重复只用于取中位数，不视为独立 trial",
+    "NCU 选择的 measured repetition 受到回放影响，原始样本全部保留"
+  ]
+}

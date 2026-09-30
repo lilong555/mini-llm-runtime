@@ -1,0 +1,11 @@
+[PASS] full_case_matrix_and_input_hash
+[PASS] exact_threshold_boundaries
+[PASS] reference_attention_precision_is_explicit
+[PASS] near_tie_formula_is_not_a_mismatch_override
+[PASS] score_identity_and_margin_must_match
+[PASS] nonfinite_and_boolean_metrics_are_rejected
+[PASS] inconsistent_extrema_and_status_are_rejected
+[PASS] natural_generation_keeps_only_common_input_comparisons
+[PASS] drifted_inputs_cannot_claim_comparability
+[PASS] copy_counts_and_state_are_recomputed
+[PASS] artifact_paths_and_duplicate_json_are_rejected

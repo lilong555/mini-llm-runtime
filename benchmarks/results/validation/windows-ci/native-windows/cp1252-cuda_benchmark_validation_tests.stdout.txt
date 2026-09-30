@@ -1,0 +1,12 @@
+[PASS] frozen_schedule_is_separate_balanced_and_complete
+[PASS] complete_workload_report_has_exact_counts
+[PASS] missing_warmup_setup_and_cases_are_rejected
+[PASS] changed_inputs_and_natural_history_are_rejected
+[PASS] no_boolean_nonfinite_or_excluded_sampling_time
+[PASS] wrong_kv_and_device_allocation_are_rejected
+[PASS] cuda_transfer_memory_and_weights_are_recomputed
+[PASS] exact_noise_boundaries_and_negative_results
+[PASS] trial_medians_not_inner_repeats_are_statistical_units
+[PASS] same_backend_aa_output_difference_is_rejected
+[PASS] same_backend_cross_trial_output_difference_is_rejected
+[PASS] cross_backend_generation_difference_is_not_hidden

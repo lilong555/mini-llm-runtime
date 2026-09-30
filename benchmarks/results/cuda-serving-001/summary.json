@@ -1,0 +1,1352 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-SERVE-001",
+  "formal_processes": 12,
+  "formal_requests": 288,
+  "successful_output_tokens": 9216,
+  "failed_requests": 0,
+  "source_git_sha": "b1ced89e98eef3bb2b6f21ac8f0f72c38067bfc2",
+  "source_dirty": true,
+  "source_state_sha256": "ccd8d3f1a4b830a24249ee70d4067633c8236590171e0f96e5d588e7a65afe12",
+  "binaries": {
+    "server": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/llmserve",
+      "sha256": "b9608fbdf1b50798e113b196a5501a7fdf04a8c402de34aa5738f1e5c5edacb2"
+    },
+    "benchmark_client": {
+      "path": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/llmserve-bench",
+      "sha256": "2544b16f1bb7540939f21bacafd76c4457f9ebd0d9c1e19ccf3122e33372186c"
+    }
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "slo": {
+    "ttft_ms": 1000,
+    "request_mean_tpot_ms": 100
+  },
+  "workloads": [
+    {
+      "name": "mixed-length",
+      "summary": {
+        "schema_version": 1,
+        "run_id": "20260926T125402Z-b1ced89e98ee-84cb309c",
+        "manifest_sha256": "a951d786d18f87033f9fdf8b28473bde1ed867d2c63b98b831ff1d728fe10077",
+        "validation": "passed",
+        "backend": "minillm-cuda",
+        "model": "Qwen3-0.6B-Q8_0",
+        "trace_sha256": "caf9c4e5baf7ad6e159df7af514b080bf65ca8bd1fcb0e1e3c1304c2e29f81e4",
+        "requests_per_trial": 24,
+        "policies": {
+          "mixed": {
+            "trials": 3,
+            "successful": 72.0,
+            "failed": 0.0,
+            "output_tokens_per_second_median": 130.67882575968375,
+            "ttft_p95_ms_median": 706.3146264,
+            "mean_tpot_p95_ms_median": 22.794664246774197,
+            "goodput_requests_per_second_median": 4.083713304990117
+          },
+          "prefill_first": {
+            "trials": 3,
+            "successful": 72.0,
+            "failed": 0.0,
+            "output_tokens_per_second_median": 122.02946679982716,
+            "ttft_p95_ms_median": 1050.6470428999999,
+            "mean_tpot_p95_ms_median": 32.89549286612903,
+            "goodput_requests_per_second_median": 3.4956357677033822
+          }
+        }
+      },
+      "validation": {
+        "schema_version": 1,
+        "run_id": "20260926T125402Z-b1ced89e98ee-84cb309c",
+        "valid": true,
+        "checked_at_utc": "2026-09-26T12:56:01.8886844Z",
+        "manifest_sha256": "a951d786d18f87033f9fdf8b28473bde1ed867d2c63b98b831ff1d728fe10077",
+        "checks": [
+          "trace_identity_and_request_set",
+          "report_identity_configuration_and_terminality",
+          "deterministic_output_tokens"
+        ],
+        "reports_expected": 6,
+        "reports_checked": 6,
+        "requests_per_report": 24,
+        "output_reference_successful_requests": 24,
+        "successfully_compared_requests": 144,
+        "errors": []
+      },
+      "trials": [
+        {
+          "policy": "mixed",
+          "trial": 0,
+          "order": 0,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.0839115,
+              "p95": 0.12105484999999999,
+              "p99": 0.12492104
+            },
+            "e2e_ms": {
+              "p50": 1036.153827,
+              "p95": 1319.2378909999998,
+              "p99": 1341.97558291
+            },
+            "elapsed_s": 5.828359591,
+            "failed": 0,
+            "goodput_requests_per_second": 4.117796718833232,
+            "inter_token_ms": {
+              "p50": 21.894096500000018,
+              "p95": 27.57642640000007,
+              "p99": 28.52671702999995
+            },
+            "mean_tpot_ms": {
+              "p50": 21.01908919354839,
+              "p95": 22.560332770967744,
+              "p99": 22.748814767419354
+            },
+            "output_tokens_per_second": 131.76949500266343,
+            "request_max_itl_ms": {
+              "p50": 28.393237999999997,
+              "p95": 29.324595250000044,
+              "p99": 29.68807469999993
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 386.224967,
+              "p95": 689.45382765,
+              "p99": 692.5553777299999
+            }
+          },
+          "max_itl_ms": 29.7585949999999,
+          "batches": 282,
+          "mixed_batches": 157,
+          "initialization_ns": {
+            "model_load_ns": 432445817,
+            "storage_initialization_ns": 10542900382,
+            "weight_decode_upload_ns": 9945605034
+          },
+          "final_resources": {
+            "batch_id": 290,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 2.0,
+                "max": 98.0,
+                "sample_mean": 61.875
+              },
+              "memory.used [MiB]": {
+                "min": 5231.0,
+                "max": 5234.0,
+                "sample_mean": 5232.75
+              },
+              "power.draw [W]": {
+                "min": 15.66,
+                "max": 95.15,
+                "sample_mean": 70.3875
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2439.375
+              },
+              "temperature.gpu": {
+                "min": 51.0,
+                "max": 67.0,
+                "sample_mean": 59.125
+              }
+            }
+          }
+        },
+        {
+          "policy": "prefill_first",
+          "trial": 0,
+          "order": 1,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.091058,
+              "p95": 0.12917584999999998,
+              "p99": 0.13166447
+            },
+            "e2e_ms": {
+              "p50": 1338.2624015000001,
+              "p95": 1675.67514715,
+              "p99": 1793.31698106
+            },
+            "elapsed_s": 6.259072469,
+            "failed": 0,
+            "goodput_requests_per_second": 3.514897791799317,
+            "inter_token_ms": {
+              "p50": 15.208260499999938,
+              "p95": 16.62612070000008,
+              "p99": 306.8730658
+            },
+            "mean_tpot_ms": {
+              "p50": 24.877275258064515,
+              "p95": 32.84364211290322,
+              "p99": 33.69762801645162
+            },
+            "output_tokens_per_second": 122.70188655008525,
+            "request_max_itl_ms": {
+              "p50": 304.925562,
+              "p95": 327.8906859,
+              "p99": 332.16314855999997
+            },
+            "requests": 24,
+            "slo_compliant": 22,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 707.1043455,
+              "p95": 1050.6470428999999,
+              "p99": 1099.2906487599998
+            }
+          },
+          "max_itl_ms": 333.39636899999994,
+          "batches": 366,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 255788433,
+            "storage_initialization_ns": 10556158151,
+            "weight_decode_upload_ns": 10224035480
+          },
+          "final_resources": {
+            "batch_id": 374,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 99.0,
+                "sample_mean": 67.25
+              },
+              "memory.used [MiB]": {
+                "min": 5233.0,
+                "max": 5234.0,
+                "sample_mean": 5233.625
+              },
+              "power.draw [W]": {
+                "min": 15.86,
+                "max": 89.95,
+                "sample_mean": 64.725
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2426.25
+              },
+              "temperature.gpu": {
+                "min": 52.0,
+                "max": 66.0,
+                "sample_mean": 60.75
+              }
+            }
+          }
+        },
+        {
+          "policy": "prefill_first",
+          "trial": 1,
+          "order": 2,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.08837700000000001,
+              "p95": 0.10878474999999999,
+              "p99": 0.18343306999999998
+            },
+            "e2e_ms": {
+              "p50": 1336.53331,
+              "p95": 1689.09662995,
+              "p99": 1796.1862275899998
+            },
+            "elapsed_s": 6.293561876,
+            "failed": 0,
+            "goodput_requests_per_second": 3.4956357677033822,
+            "inter_token_ms": {
+              "p50": 15.198421499999995,
+              "p95": 16.831963350000034,
+              "p99": 309.86777587
+            },
+            "mean_tpot_ms": {
+              "p50": 24.940225016129034,
+              "p95": 32.89549286612903,
+              "p99": 33.804018493548384
+            },
+            "output_tokens_per_second": 122.02946679982716,
+            "request_max_itl_ms": {
+              "p50": 307.9207845,
+              "p95": 331.62637084999994,
+              "p99": 338.53748316
+            },
+            "requests": 24,
+            "slo_compliant": 22,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 704.9354965,
+              "p95": 1049.3066380499997,
+              "p99": 1117.61722965
+            }
+          },
+          "max_itl_ms": 340.46279200000004,
+          "batches": 366,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 239278800,
+            "storage_initialization_ns": 10208602733,
+            "weight_decode_upload_ns": 9895392191
+          },
+          "final_resources": {
+            "batch_id": 374,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 98.0,
+                "sample_mean": 70.5
+              },
+              "memory.used [MiB]": {
+                "min": 5230.0,
+                "max": 5236.0,
+                "sample_mean": 5234.125
+              },
+              "power.draw [W]": {
+                "min": 16.22,
+                "max": 96.1,
+                "sample_mean": 67.04625
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2439.375
+              },
+              "temperature.gpu": {
+                "min": 53.0,
+                "max": 67.0,
+                "sample_mean": 61.125
+              }
+            }
+          }
+        },
+        {
+          "policy": "mixed",
+          "trial": 1,
+          "order": 3,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.08393300000000001,
+              "p95": 0.1341658999999999,
+              "p99": 0.18202928999999998
+            },
+            "e2e_ms": {
+              "p50": 1065.6404794999999,
+              "p95": 1356.0044205999998,
+              "p99": 1368.19644108
+            },
+            "elapsed_s": 5.87700414,
+            "failed": 0,
+            "goodput_requests_per_second": 4.083713304990117,
+            "inter_token_ms": {
+              "p50": 22.380480999999975,
+              "p95": 28.133878099999926,
+              "p99": 28.760452929999964
+            },
+            "mean_tpot_ms": {
+              "p50": 21.360090016129032,
+              "p95": 22.90082396451613,
+              "p99": 23.041846676129033
+            },
+            "output_tokens_per_second": 130.67882575968375,
+            "request_max_itl_ms": {
+              "p50": 28.561312500000042,
+              "p95": 29.17357180000002,
+              "p99": 29.256815670000055
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 403.069811,
+              "p95": 707.8466982499999,
+              "p99": 721.9774345599999
+            }
+          },
+          "max_itl_ms": 29.274335000000065,
+          "batches": 280,
+          "mixed_batches": 157,
+          "initialization_ns": {
+            "model_load_ns": 310034470,
+            "storage_initialization_ns": 10706761653,
+            "weight_decode_upload_ns": 10373204446
+          },
+          "final_resources": {
+            "batch_id": 288,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 98.0,
+                "sample_mean": 68.5
+              },
+              "memory.used [MiB]": {
+                "min": 4661.0,
+                "max": 5237.0,
+                "sample_mean": 5162.625
+              },
+              "power.draw [W]": {
+                "min": 16.0,
+                "max": 98.09,
+                "sample_mean": 70.58999999999999
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2431.875
+              },
+              "temperature.gpu": {
+                "min": 53.0,
+                "max": 68.0,
+                "sample_mean": 62.0
+              }
+            }
+          }
+        },
+        {
+          "policy": "mixed",
+          "trial": 2,
+          "order": 4,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.0809275,
+              "p95": 0.09580144999999998,
+              "p99": 0.12766897
+            },
+            "e2e_ms": {
+              "p50": 1064.2071775,
+              "p95": 1353.44822325,
+              "p99": 1366.56691915
+            },
+            "elapsed_s": 5.882607332,
+            "failed": 0,
+            "goodput_requests_per_second": 4.079823562155108,
+            "inter_token_ms": {
+              "p50": 22.442957999999976,
+              "p95": 28.296417050000027,
+              "p99": 29.065090720000008
+            },
+            "mean_tpot_ms": {
+              "p50": 21.357407790322576,
+              "p95": 22.794664246774197,
+              "p99": 22.939925123548388
+            },
+            "output_tokens_per_second": 130.55435398896347,
+            "request_max_itl_ms": {
+              "p50": 28.796378499999946,
+              "p95": 30.87870965000004,
+              "p99": 31.131544110000043
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 402.376577,
+              "p95": 706.3146264,
+              "p99": 731.23552667
+            }
+          },
+          "max_itl_ms": 31.139167000000043,
+          "batches": 281,
+          "mixed_batches": 157,
+          "initialization_ns": {
+            "model_load_ns": 248368786,
+            "storage_initialization_ns": 10288899204,
+            "weight_decode_upload_ns": 9955352823
+          },
+          "final_resources": {
+            "batch_id": 289,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 2.0,
+                "max": 98.0,
+                "sample_mean": 72.375
+              },
+              "memory.used [MiB]": {
+                "min": 1933.0,
+                "max": 5236.0,
+                "sample_mean": 4820.0
+              },
+              "power.draw [W]": {
+                "min": 16.35,
+                "max": 96.66,
+                "sample_mean": 70.215
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2431.875
+              },
+              "temperature.gpu": {
+                "min": 54.0,
+                "max": 67.0,
+                "sample_mean": 61.5
+              }
+            }
+          }
+        },
+        {
+          "policy": "prefill_first",
+          "trial": 2,
+          "order": 5,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.08848700000000001,
+              "p95": 0.11167584999999998,
+              "p99": 0.11477806
+            },
+            "e2e_ms": {
+              "p50": 1360.9991705000002,
+              "p95": 1703.3018172499999,
+              "p99": 1823.6020405699999
+            },
+            "elapsed_s": 6.295490202,
+            "failed": 0,
+            "goodput_requests_per_second": 3.494565044833343,
+            "inter_token_ms": {
+              "p50": 15.30576949999994,
+              "p95": 16.97190759999994,
+              "p99": 309.49167221
+            },
+            "mean_tpot_ms": {
+              "p50": 24.948455193548387,
+              "p95": 33.08091711129032,
+              "p99": 34.12114570774194
+            },
+            "output_tokens_per_second": 121.99208883781851,
+            "request_max_itl_ms": {
+              "p50": 307.627582,
+              "p95": 330.31599515000005,
+              "p99": 332.41121166
+            },
+            "requests": 24,
+            "slo_compliant": 22,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 714.3303905,
+              "p95": 1072.6686521999998,
+              "p99": 1130.66457701
+            }
+          },
+          "max_itl_ms": 333.004372,
+          "batches": 366,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 237632178,
+            "storage_initialization_ns": 10258779207,
+            "weight_decode_upload_ns": 9922262141
+          },
+          "final_resources": {
+            "batch_id": 374,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 8,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 98.0,
+                "sample_mean": 69.5
+              },
+              "memory.used [MiB]": {
+                "min": 5231.0,
+                "max": 5234.0,
+                "sample_mean": 5232.75
+              },
+              "power.draw [W]": {
+                "min": 16.69,
+                "max": 100.56,
+                "sample_mean": 69.77375
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2439.375
+              },
+              "temperature.gpu": {
+                "min": 54.0,
+                "max": 68.0,
+                "sample_mean": 62.125
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "burst-reuse",
+      "summary": {
+        "schema_version": 1,
+        "run_id": "20260926T125710Z-b1ced89e98ee-384970a2",
+        "manifest_sha256": "db5daa715eff83b29350626100cac2ca681330e02f3ff6ec5a1faaa00dd0f394",
+        "validation": "passed",
+        "backend": "minillm-cuda",
+        "model": "Qwen3-0.6B-Q8_0",
+        "trace_sha256": "628a0fa4b215d89ac7b80ac355cb0fa5168374caf42052cdad978a82b65ce1d8",
+        "requests_per_trial": 24,
+        "policies": {
+          "mixed": {
+            "trials": 3,
+            "successful": 72.0,
+            "failed": 0.0,
+            "output_tokens_per_second_median": 70.0210842948599,
+            "ttft_p95_ms_median": 539.4311264999999,
+            "mean_tpot_p95_ms_median": 23.616688585483868,
+            "goodput_requests_per_second_median": 2.188158884214372
+          },
+          "prefill_first": {
+            "trials": 3,
+            "successful": 72.0,
+            "failed": 0.0,
+            "output_tokens_per_second_median": 70.21779146730877,
+            "ttft_p95_ms_median": 459.31121299999995,
+            "mean_tpot_p95_ms_median": 30.425132108064517,
+            "goodput_requests_per_second_median": 2.194305983353399
+          }
+        }
+      },
+      "validation": {
+        "schema_version": 1,
+        "run_id": "20260926T125710Z-b1ced89e98ee-384970a2",
+        "valid": true,
+        "checked_at_utc": "2026-09-26T12:59:35.8157167Z",
+        "manifest_sha256": "db5daa715eff83b29350626100cac2ca681330e02f3ff6ec5a1faaa00dd0f394",
+        "checks": [
+          "trace_identity_and_request_set",
+          "report_identity_configuration_and_terminality",
+          "deterministic_output_tokens"
+        ],
+        "reports_expected": 6,
+        "reports_checked": 6,
+        "requests_per_report": 24,
+        "output_reference_successful_requests": 24,
+        "successfully_compared_requests": 144,
+        "errors": []
+      },
+      "trials": [
+        {
+          "policy": "prefill_first",
+          "trial": 0,
+          "order": 0,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.08982599999999999,
+              "p95": 0.11160204999999998,
+              "p99": 0.12383802000000001
+            },
+            "e2e_ms": {
+              "p50": 917.5836635000001,
+              "p95": 937.27016515,
+              "p99": 937.29383084
+            },
+            "elapsed_s": 10.937398969,
+            "failed": 0,
+            "goodput_requests_per_second": 2.194305983353399,
+            "inter_token_ms": {
+              "p50": 15.471471500000007,
+              "p95": 16.852307249999992,
+              "p99": 429.92809332000013
+            },
+            "mean_tpot_ms": {
+              "p50": 22.032225596774193,
+              "p95": 29.155146948387095,
+              "p99": 29.550769973870967
+            },
+            "output_tokens_per_second": 70.21779146730877,
+            "request_max_itl_ms": {
+              "p50": 215.784004,
+              "p95": 438.69807465,
+              "p99": 454.67523795999995
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 232.358624,
+              "p95": 459.31121299999995,
+              "p99": 462.09937637
+            }
+          },
+          "max_itl_ms": 459.22653499999996,
+          "batches": 288,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 248243710,
+            "storage_initialization_ns": 10429942014,
+            "weight_decode_upload_ns": 10081788960
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 2.0,
+                "max": 98.0,
+                "sample_mean": 46.38461538461539
+              },
+              "memory.used [MiB]": {
+                "min": 1973.0,
+                "max": 5311.0,
+                "sample_mean": 5030.7692307692305
+              },
+              "power.draw [W]": {
+                "min": 16.03,
+                "max": 78.41,
+                "sample_mean": 46.36538461538461
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2464.6153846153848
+              },
+              "temperature.gpu": {
+                "min": 52.0,
+                "max": 63.0,
+                "sample_mean": 57.61538461538461
+              }
+            }
+          }
+        },
+        {
+          "policy": "mixed",
+          "trial": 0,
+          "order": 1,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.0906025,
+              "p95": 0.1019825,
+              "p99": 0.10562963
+            },
+            "e2e_ms": {
+              "p50": 905.316268,
+              "p95": 1060.6806406,
+              "p99": 1063.07934759
+            },
+            "elapsed_s": 10.970062452,
+            "failed": 0,
+            "goodput_requests_per_second": 2.1877724128748652,
+            "inter_token_ms": {
+              "p50": 15.929658999999958,
+              "p95": 37.81832565,
+              "p99": 41.89947821999997
+            },
+            "mean_tpot_ms": {
+              "p50": 19.70668979032258,
+              "p95": 25.14959497741936,
+              "p99": 25.415699799677423
+            },
+            "output_tokens_per_second": 70.00871721199569,
+            "request_max_itl_ms": {
+              "p50": 29.586359500000015,
+              "p95": 47.18464394999999,
+              "p99": 47.753294950000026
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 282.4579845,
+              "p95": 577.4243238999999,
+              "p99": 582.7239374
+            }
+          },
+          "max_itl_ms": 47.766827000000035,
+          "batches": 288,
+          "mixed_batches": 96,
+          "initialization_ns": {
+            "model_load_ns": 357933904,
+            "storage_initialization_ns": 10388432319,
+            "weight_decode_upload_ns": 9945711034
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 2.0,
+                "max": 98.0,
+                "sample_mean": 47.76923076923077
+              },
+              "memory.used [MiB]": {
+                "min": 5267.0,
+                "max": 5298.0,
+                "sample_mean": 5282.923076923077
+              },
+              "power.draw [W]": {
+                "min": 16.05,
+                "max": 73.24,
+                "sample_mean": 43.76692307692308
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2423.076923076923
+              },
+              "temperature.gpu": {
+                "min": 53.0,
+                "max": 62.0,
+                "sample_mean": 57.92307692307692
+              }
+            }
+          }
+        },
+        {
+          "policy": "mixed",
+          "trial": 1,
+          "order": 2,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.0911295,
+              "p95": 0.1043427,
+              "p99": 0.108984
+            },
+            "e2e_ms": {
+              "p50": 863.8805669999999,
+              "p95": 985.62585895,
+              "p99": 987.2162855700001
+            },
+            "elapsed_s": 10.968124926,
+            "failed": 0,
+            "goodput_requests_per_second": 2.188158884214372,
+            "inter_token_ms": {
+              "p50": 15.319004500000005,
+              "p95": 37.52128850000003,
+              "p99": 41.27031258000001
+            },
+            "mean_tpot_ms": {
+              "p50": 19.186960741935486,
+              "p95": 23.154344796774193,
+              "p99": 23.237389266129032
+            },
+            "output_tokens_per_second": 70.0210842948599,
+            "request_max_itl_ms": {
+              "p50": 34.1745995,
+              "p95": 42.31525734999999,
+              "p99": 42.38288170999998
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 267.107967,
+              "p95": 521.0805535,
+              "p99": 523.30763646
+            }
+          },
+          "max_itl_ms": 42.40013699999997,
+          "batches": 288,
+          "mixed_batches": 96,
+          "initialization_ns": {
+            "model_load_ns": 248274599,
+            "storage_initialization_ns": 10266806441,
+            "weight_decode_upload_ns": 9903353904
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 2.0,
+                "max": 98.0,
+                "sample_mean": 46.23076923076923
+              },
+              "memory.used [MiB]": {
+                "min": 5266.0,
+                "max": 5269.0,
+                "sample_mean": 5268.153846153846
+              },
+              "power.draw [W]": {
+                "min": 16.27,
+                "max": 73.17,
+                "sample_mean": 44.72000000000001
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2462.3076923076924
+              },
+              "temperature.gpu": {
+                "min": 53.0,
+                "max": 65.0,
+                "sample_mean": 59.46153846153846
+              }
+            }
+          }
+        },
+        {
+          "policy": "prefill_first",
+          "trial": 1,
+          "order": 3,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.098106,
+              "p95": 0.1280492,
+              "p99": 0.16286661
+            },
+            "e2e_ms": {
+              "p50": 904.060228,
+              "p95": 997.3939571,
+              "p99": 997.40615097
+            },
+            "elapsed_s": 10.997582715,
+            "failed": 0,
+            "goodput_requests_per_second": 2.1822977486921316,
+            "inter_token_ms": {
+              "p50": 15.323352,
+              "p95": 17.476006500000015,
+              "p99": 418.2734842600005
+            },
+            "mean_tpot_ms": {
+              "p50": 22.342817612903225,
+              "p95": 30.680734227419354,
+              "p99": 31.464316852258065
+            },
+            "output_tokens_per_second": 69.83352795814821,
+            "request_max_itl_ms": {
+              "p50": 212.3269945,
+              "p95": 445.61246014999995,
+              "p99": 462.34230998999993
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 236.57577250000003,
+              "p95": 463.69422634999995,
+              "p99": 466.67935768
+            }
+          },
+          "max_itl_ms": 466.70676399999996,
+          "batches": 288,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 231618145,
+            "storage_initialization_ns": 9783723964,
+            "weight_decode_upload_ns": 9472104288
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 1.0,
+                "max": 98.0,
+                "sample_mean": 46.07692307692308
+              },
+              "memory.used [MiB]": {
+                "min": 1973.0,
+                "max": 5273.0,
+                "sample_mean": 5018.2307692307695
+              },
+              "power.draw [W]": {
+                "min": 17.8,
+                "max": 76.62,
+                "sample_mean": 45.59384615384616
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2464.6153846153848
+              },
+              "temperature.gpu": {
+                "min": 54.0,
+                "max": 69.0,
+                "sample_mean": 59.46153846153846
+              }
+            }
+          }
+        },
+        {
+          "policy": "prefill_first",
+          "trial": 2,
+          "order": 4,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.0835265,
+              "p95": 0.11283214999999998,
+              "p99": 0.12866001999999999
+            },
+            "e2e_ms": {
+              "p50": 946.921814,
+              "p95": 973.35544735,
+              "p99": 973.37548856
+            },
+            "elapsed_s": 10.909052048,
+            "failed": 0,
+            "goodput_requests_per_second": 2.200007837014584,
+            "inter_token_ms": {
+              "p50": 16.03585449999997,
+              "p95": 17.613964200000012,
+              "p99": 423.7912659100002
+            },
+            "mean_tpot_ms": {
+              "p50": 22.598727548387096,
+              "p95": 30.425132108064517,
+              "p99": 30.69832766451613
+            },
+            "output_tokens_per_second": 70.40025078446669,
+            "request_max_itl_ms": {
+              "p50": 215.85915399999996,
+              "p95": 446.60816969999996,
+              "p99": 454.74740919000004
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 243.59628750000002,
+              "p95": 458.4199549,
+              "p99": 458.50107054
+            }
+          },
+          "max_itl_ms": 456.95778900000005,
+          "batches": 288,
+          "mixed_batches": 0,
+          "initialization_ns": {
+            "model_load_ns": 260911619,
+            "storage_initialization_ns": 9925829077,
+            "weight_decode_upload_ns": 9594525056
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 97.0,
+                "sample_mean": 48.15384615384615
+              },
+              "memory.used [MiB]": {
+                "min": 2598.0,
+                "max": 5274.0,
+                "sample_mean": 5067.923076923077
+              },
+              "power.draw [W]": {
+                "min": 16.27,
+                "max": 75.42,
+                "sample_mean": 46.637692307692305
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2463.4615384615386
+              },
+              "temperature.gpu": {
+                "min": 54.0,
+                "max": 64.0,
+                "sample_mean": 59.0
+              }
+            }
+          }
+        },
+        {
+          "policy": "mixed",
+          "trial": 2,
+          "order": 5,
+          "summary": {
+            "dispatch_lag_ms": {
+              "p50": 0.086307,
+              "p95": 0.09109274999999999,
+              "p99": 0.09282198
+            },
+            "e2e_ms": {
+              "p50": 876.96868,
+              "p95": 1006.0117913999999,
+              "p99": 1012.14038742
+            },
+            "elapsed_s": 10.967353307,
+            "failed": 0,
+            "goodput_requests_per_second": 2.1883128342990292,
+            "inter_token_ms": {
+              "p50": 15.321264999999983,
+              "p95": 37.34270485000001,
+              "p99": 41.065200110000006
+            },
+            "mean_tpot_ms": {
+              "p50": 18.915297161290322,
+              "p95": 23.616688585483868,
+              "p99": 23.913155502903223
+            },
+            "output_tokens_per_second": 70.02601069756894,
+            "request_max_itl_ms": {
+              "p50": 28.728713500000026,
+              "p95": 41.87933929999999,
+              "p99": 41.882271790000004
+            },
+            "requests": 24,
+            "slo_compliant": 24,
+            "successful": 24,
+            "successful_output_tokens": 768,
+            "ttft_ms": {
+              "p50": 277.4303235,
+              "p95": 539.4311264999999,
+              "p99": 545.4849206700001
+            }
+          },
+          "max_itl_ms": 41.882991000000004,
+          "batches": 288,
+          "mixed_batches": 96,
+          "initialization_ns": {
+            "model_load_ns": 228544043,
+            "storage_initialization_ns": 9753598681,
+            "weight_decode_upload_ns": 9450238281
+          },
+          "final_resources": {
+            "batch_id": 296,
+            "capacity_tokens": 8192,
+            "layout": "contiguous",
+            "live_kv_pages": null,
+            "live_tokens": 0,
+            "owned_device_bytes": 3449229312,
+            "resident_kv_payload_bytes": 939524096,
+            "reusable": true,
+            "snapshot_boundary": "model_thread_publish",
+            "state_valid": true
+          },
+          "client_exit_code": 0,
+          "shutdown_completed": true,
+          "gpu_sampling": {
+            "source": "nvidia-smi",
+            "scope": "whole_device",
+            "requested_period_ms": 1000,
+            "window": "ready_service_through_shutdown_including_warmup",
+            "samples": 13,
+            "metrics": {
+              "utilization.gpu [%]": {
+                "min": 3.0,
+                "max": 98.0,
+                "sample_mean": 46.53846153846154
+              },
+              "memory.used [MiB]": {
+                "min": 2982.0,
+                "max": 5274.0,
+                "sample_mean": 5097.692307692308
+              },
+              "power.draw [W]": {
+                "min": 16.32,
+                "max": 72.8,
+                "sample_mean": 43.58692307692308
+              },
+              "clocks.current.graphics [MHz]": {
+                "min": 1980.0,
+                "max": 2505.0,
+                "sample_mean": 2420.769230769231
+              },
+              "temperature.gpu": {
+                "min": 54.0,
+                "max": 71.0,
+                "sample_mean": 62.61538461538461
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "两条 trace 分开解释，不汇总统一加速比。",
+    "未建立新的 A/A 或显著性框架。",
+    "GPU 为每秒整设备采样，包含预热，不是进程独占或稳态 SM 利用率。",
+    "weight_decode_upload_ns 已包含于 storage_initialization_ns，不可重复相加。"
+  ]
+}

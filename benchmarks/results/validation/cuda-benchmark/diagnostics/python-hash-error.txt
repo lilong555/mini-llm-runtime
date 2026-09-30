@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py", line 635, in <module>
+    sys.exit(main())
+  File "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py", line 616, in main
+    require(args.input and sha(args.input) == INPUT_SHA256, "单进程复核需要冻结的 --input")
+  File "/home/li/code/mini-llm-runtime/scripts/analyze_cuda_benchmark.py", line 66, in sha
+    return hashlib.file_digest(stream, "sha256").hexdigest()
+AttributeError: module 'hashlib' has no attribute 'file_digest'

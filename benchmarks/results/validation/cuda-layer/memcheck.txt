@@ -1,0 +1,57 @@
+========= COMPUTE-SANITIZER
+CUDA 单元设备：NVIDIA GeForce RTX 4070 Laptop GPU，计算能力 8.9
+[PASS] buffer_empty_and_overflow
+[PASS] buffer_move_and_exact_release
+[PASS] buffer_allocation_failure_unwinds_owners
+[PASS] context_stream_workspace_and_math_mode
+[PASS] context_initialization_failure_cleanup
+[PASS] matrix_known_asymmetric_values_and_stream_order
+[PASS] matrix_padded_rectangular_and_guards
+[PASS] matrix_non_warp_aligned_shape
+[PASS] matrix_projection_shape
+[PASS] matrix_preflight_rejects_invalid_descriptors
+[PASS] error_checks_retain_vendor_diagnostic
+11/11 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors
+========= COMPUTE-SANITIZER
+[PASS] ops_gather_strides_duplicates_and_real_width
+[PASS] ops_gather_masks_invalid_indices_and_accumulates_status
+[PASS] ops_rms_norm_groups_tails_and_exact_inplace
+[PASS] ops_rms_norm_finite_extremes_and_epsilon
+[PASS] ops_rms_norm_nonfinite_cannot_become_valid_token
+[PASS] ops_rope_neox_positions_heads_and_padding
+[PASS] ops_rope_invalid_positions_are_masked
+[PASS] ops_residual_swiglu_strides_tails_and_extreme_gates
+[PASS] ops_argmax_ties_nonfinite_and_real_vocabulary
+[PASS] ops_preflight_rejects_descriptors_before_any_write
+[PASS] ops_composed_device_pipeline_reuses_stream_and_buffers
+11/11 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors
+========= COMPUTE-SANITIZER
+[PASS] storage_report_rejects_reuse_without_modification
+[PASS] storage_model_identity_precedes_device_allocation
+[PASS] storage_plan_alignment_alias_and_untied
+[PASS] storage_limits_and_budget_boundaries
+[PASS] storage_budget_failure_has_no_arena_allocation
+[PASS] storage_allocation_failures_release_partial_owners
+[PASS] storage_f32_f16_tied_and_untied_upload
+[PASS] storage_nonfinite_failure_cleanup_and_recovery
+[PASS] storage_workspace_types_bounds_initialization_and_owner
+[PASS] storage_rope_coefficients_match_host_formula
+[PASS] storage_repeated_gemm_reuses_workspace
+11/11 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors
+========= COMPUTE-SANITIZER
+[PASS] batch_state_prepare_commit_clear_and_preflight_failure
+[PASS] batch_state_random_append_clear_and_poison_is_terminal
+[PASS] kv_store_round_to_even_layers_slots_and_guards
+[PASS] kv_store_device_failure_keeps_logical_lengths_uncommitted
+[PASS] attention_causal_gqa_nonwarp_and_long_context
+[PASS] attention_invalid_metadata_nonfinite_and_preflight
+[PASS] layer_real_execution_interleaved_append_and_clear
+7/7 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

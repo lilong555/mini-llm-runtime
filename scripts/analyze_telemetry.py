@@ -55,23 +55,58 @@ def distribution(values):
             "p50": percentile(.5), "p95": percentile(.95), "p99": percentile(.99)}
 
 
-def check_resources(value, backend):
-    if backend != "minillm":
+def check_resources(value, backend, version, engine):
+    if backend not in ("minillm", "minillm-cuda"):
         require(value is None, "不支持的后端不能伪报物理 KV 数据")
         return
     require(type(value) is dict, "MiniLLM 物理 KV 数据缺失")
-    integer(value["live_kv_pages"])
     integer(value["resident_kv_payload_bytes"])
+    if version == 1:
+        require(backend == "minillm", "旧 schema 不支持 own-CUDA 资源")
+        integer(value["live_kv_pages"])
+        return
+    require(value["state_valid"] is True and value["reusable"] is True, "成功时间线包含无效或隔离资源")
+    if backend == "minillm-cuda":
+        require(value["layout"] == "contiguous" and value["live_kv_pages"] is None, "连续 GPU KV 不提供页数")
+        require(integer(value["capacity_tokens"], 1) == engine["max_active"] * engine["max_model_len"], "GPU 物理槽容量错误")
+        require(integer(value["live_tokens"]) <= value["capacity_tokens"], "GPU live tokens 越界")
+        require(integer(value["owned_device_bytes"], 1) >= integer(value["resident_kv_payload_bytes"], 1), "GPU resident/owned 字节数非法")
+    else:
+        require(value["layout"] == "paged", "CPU KV 布局错误")
+        integer(value["live_kv_pages"])
+        require(value["capacity_tokens"] == engine["context_tokens"], "CPU KV 容量错误")
+        require(value["live_tokens"] is None and value["owned_device_bytes"] is None, "CPU 不提供未测量的 token/device 数量")
 
 
 def validate_capture(rows, report, engine):
     require(len(rows) >= 2, "缺失采集头或终态")
     header, footer, batches = rows[0], rows[-1], rows[1:-1]
-    require(header["type"] == "header" and header["schema_version"] == 1, "采集头不合法")
+    version = header["schema_version"]
+    require(header["type"] == "header" and type(version) is int and version in (1, 2), "采集头不合法")
     require(header["clock"] == "engine_relative_steady_ns", "计时口径不兼容")
     require(header["runtime_replay_available"] is False, "不支持模型重放格式")
     require(header["mode"] == engine["telemetry_mode"] and header["mode"] in ("batches", "stages"), "观测模式不同")
     require(header["backend"] == engine["metrics_backend"], "后端身份不同")
+    require(header["backend"] in ("minillm", "minillm-cuda", "llama.cpp"), "未知后端")
+    if version == 2:
+        require(header["resource_boundaries"] == {
+            "before": "before_execute", "after": "after_execute_before_request_cleanup",
+            "final": "after_engine_stop_before_runner_destruction"}, "资源快照边界不明确")
+        caps = header["capabilities"]
+        for key, expected in (("max_sequences", engine["max_active"] + engine.get("prefix_cache_entries", 0)),
+                              ("max_batch_tokens", engine["batch_tokens"]), ("max_model_len", engine["max_model_len"])):
+            require(integer(caps[key]) == 0 or caps[key] >= expected, "后端容量不足")
+        require(caps["synchronous_execute"] is True, "时间线需要同步完成边界")
+        require(caps["runtime_stage_profile"] is (header["backend"] == "minillm"), "阶段测量能力不真实")
+        require(caps["prefix_copy"] is (header["backend"] != "minillm-cuda"), "prefix 能力错误")
+    if header["backend"] == "minillm-cuda":
+        require(version == 2, "own-CUDA 需要 schema v2")
+        require(caps["max_sequences"] == engine["max_active"] and caps["max_batch_tokens"] == engine["batch_tokens"] and
+                caps["max_model_len"] == engine["max_model_len"], "own-CUDA 能力不是实例实际容量")
+        require(1 <= engine["max_active"] <= 4 and 1 <= engine["batch_tokens"] <= 128 and
+                2 <= engine["max_model_len"] <= 2048, "own-CUDA 容量超限")
+        require(engine.get("prefix_cache_entries", 0) == engine.get("prefix_cache_tokens", 0) == 0, "own-CUDA 不支持 prefix")
+        require(engine["context_tokens"] <= engine["max_active"] * engine["max_model_len"], "GPU 容量信用超过物理槽")
     require(header["policy"] == report["server_before"]["policy"], "策略身份不同")
     require(integer(header["capacity"], 1) == engine["telemetry_capacity"], "缓冲容量不同")
     integer(header["storage_bytes"], 1)
@@ -79,9 +114,10 @@ def validate_capture(rows, report, engine):
     require(integer(footer["dropped"]) == 0 and footer["engine_error"] == "", "采集丢失或模型执行失败")
     require(integer(footer["recorded"]) == len(batches) <= header["capacity"], "记录数不完整")
     require(len(batches) == report["server_after"]["batches"], "采集和服务 batch 数不同")
-    check_resources(footer["resources_final"], header["backend"])
+    check_resources(footer["resources_final"], header["backend"], version, engine)
     if footer["resources_final"] is not None:
-        require(footer["resources_final"]["live_kv_pages"] == 0, "停服后仍有活跃 KV 页")
+        live_field = "live_tokens" if header["backend"] == "minillm-cuda" else "live_kv_pages"
+        require(footer["resources_final"][live_field] == 0, "停服后仍有活跃 KV")
     token_map, request_slices, seen_orders = {}, collections.defaultdict(list), {}
     previous_finish = 0
     measured = []
@@ -101,9 +137,15 @@ def validate_capture(rows, report, engine):
         require(batch["waiting_requests"] + batch["active_requests"] <= engine["queue_capacity"], "请求数超出容量")
         require(batch["reserved_unique_blocks"] <= engine["context_tokens"] // engine["block_size"], "容量信用越界")
         for field in ("resources_before", "resources_after"):
-            check_resources(batch[field], header["backend"])
-            if batch[field] is not None:
+            check_resources(batch[field], header["backend"], version, engine)
+            if batch[field] is not None and batch[field]["live_kv_pages"] is not None:
                 require(batch[field]["live_kv_pages"] <= engine["context_tokens"] // engine["block_size"], "物理页越界")
+            if header["backend"] == "minillm-cuda":
+                for key in ("resident_kv_payload_bytes", "capacity_tokens", "owned_device_bytes"):
+                    require(batch[field][key] == footer["resources_final"][key], "GPU 常驻分配或容量发生变化")
+        if header["backend"] == "minillm-cuda":
+            require(batch["resources_after"]["live_tokens"] == batch["resources_before"]["live_tokens"] +
+                    batch["prefill_tokens"] + batch["decode_tokens"], "GPU committed token 数量不守恒")
         counts = collections.Counter()
         contexts, after_contexts, sequences, orders = [], [], set(), set()
         for item in batch["slices"]:

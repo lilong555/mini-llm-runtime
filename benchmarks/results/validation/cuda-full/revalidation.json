@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "cases": [
+    {
+      "case": "complete",
+      "exit_code": 0
+    },
+    {
+      "case": "missing-source",
+      "exit_code": 1
+    },
+    {
+      "case": "tampered-bytes",
+      "exit_code": 1
+    },
+    {
+      "case": "missing-case",
+      "exit_code": 1
+    },
+    {
+      "case": "duplicate-case",
+      "exit_code": 1
+    },
+    {
+      "case": "threshold",
+      "exit_code": 1
+    },
+    {
+      "case": "reference-hash",
+      "exit_code": 1
+    },
+    {
+      "case": "near-tie",
+      "exit_code": 1
+    },
+    {
+      "case": "generation-history",
+      "exit_code": 1
+    },
+    {
+      "case": "extra-logits-copy",
+      "exit_code": 1
+    },
+    {
+      "case": "changed-contract",
+      "exit_code": 1
+    },
+    {
+      "case": "reference-mode",
+      "exit_code": 1
+    },
+    {
+      "case": "incomplete-summary",
+      "exit_code": 1
+    }
+  ],
+  "snapshot_tools_used": true,
+  "original_workspace_not_required": true,
+  "original_payloads_unchanged": true,
+  "checked_original_files": 770,
+  "semantic_cases_refresh_only_the_copied_manifest": true
+}

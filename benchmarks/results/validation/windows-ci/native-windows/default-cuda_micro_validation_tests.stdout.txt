@@ -1,0 +1,10 @@
+[PASS] frozen_shapes_inputs_and_sample_counts
+[PASS] missing_samples_cases_and_wrong_order_are_rejected
+[PASS] dimensions_recipe_weights_and_causal_metadata_are_checked
+[PASS] timing_and_copy_boundaries_cannot_be_changed
+[PASS] numerical_points_metrics_and_full_output_contract_are_checked
+[PASS] allocation_release_and_memory_plan_are_exact
+[PASS] independent_trials_not_calls_or_inner_repeats
+[PASS] portable_bundle_and_missing_tampered_artifacts
+[PASS] publication_failure_preserves_existing_summary
+9/9 tests passed

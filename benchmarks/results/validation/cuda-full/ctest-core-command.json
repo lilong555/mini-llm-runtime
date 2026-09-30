@@ -1,0 +1,17 @@
+{
+  "command": "ctest",
+  "arguments": [
+    "--test-dir",
+    "build/wsl-core",
+    "--output-on-failure",
+    "--no-tests=error",
+    "--test-output-size-passed",
+    "65536",
+    "--output-junit",
+    "test-results.xml"
+  ],
+  "started_at_utc": "2026-09-25T22:55:01.8985978Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T22:55:15.8528587Z"
+}

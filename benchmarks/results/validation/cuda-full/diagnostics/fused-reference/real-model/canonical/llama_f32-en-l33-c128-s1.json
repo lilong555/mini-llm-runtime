@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "backend": "llama_f32",
+  "id": "en-l33-c128-s1",
+  "corpus": 1,
+  "length": 33,
+  "input_sha256": "f5300450d33acae5d69afe57f5d1119e01efa634ad8031d3646b4e4e3d387bae",
+  "samples": [
+    {
+      "token": 1479,
+      "margin": 0.3549213409423828,
+      "sha256": "d1325a78df272c7023b4748c28dddcefb713ab06acd1588b29cb5b9cb37390e0",
+      "position": 0
+    },
+    {
+      "token": 315,
+      "margin": 1.5288457870483398,
+      "sha256": "df100354cf769bbcbc285daff3682b5a943560befcf29e15bb2f79afc60eb4be",
+      "position": 1
+    },
+    {
+      "token": 1584,
+      "margin": 1.7782268524169922,
+      "sha256": "787abcdff1fbd22c2fd27423661ad2481db5e35a11ab035a06d1b521b02987d9",
+      "position": 15
+    },
+    {
+      "token": 304,
+      "margin": 2.957592010498047,
+      "sha256": "bf4f6bdad893a5d8c09939bea01791d02fa5c3ae11e16c467d4d69884bd1795e",
+      "position": 16
+    },
+    {
+      "token": 4938,
+      "margin": 2.3077869415283203,
+      "sha256": "07f9492565a1f48220624ad6ed65500f412d0705313327efa97464466d180be2",
+      "position": 17
+    },
+    {
+      "token": 14324,
+      "margin": 5.416887283325195,
+      "sha256": "764e702ff615c94d9bba713f12ad20f82257463d10c98332fe22ab5ba5f3af87",
+      "position": 32
+    }
+  ]
+}

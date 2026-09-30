@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "incomplete_baseline": {
+    "exit_code": 1
+  },
+  "existing_directory": {
+    "exit_code": 1,
+    "unchanged": true
+  },
+  "numerical_binary_identity": {
+    "exit_code": 1,
+    "model_execution_started": false
+  }
+}

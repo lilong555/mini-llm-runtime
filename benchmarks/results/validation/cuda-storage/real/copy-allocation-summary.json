@@ -1,0 +1,13 @@
+{
+  "scope": "项目 DeviceMemory 包装器；不统计 CUDA/cuBLAS 内部资源",
+  "initialization_allocation_count": 4,
+  "initialization_allocated_bytes": 3448180736,
+  "weight_upload_bytes": 2384199680,
+  "weight_upload_chunks": 468,
+  "host_upload_staging_limit_bytes": 8388608,
+  "max_upload_chunk_bytes": 8388608,
+  "matrix_case_count": 88,
+  "gemm_calls": 176,
+  "matrix_phase_allocation_calls": 0,
+  "matrix_phase_release_calls": 0
+}

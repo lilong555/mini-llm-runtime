@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 3 CPU binding extraction",
+  "frozen_at_utc": "2026-09-25T16:20:41.493916+00:00",
+  "source_before": "ad8b450",
+  "before_binary": {
+    "path": ".run/host-model/before/mini-runtime-bench",
+    "sha256": "df420a09a6095b25fc887c48051fe41ed8d352e0fd89013c4a38914c0554d479"
+  },
+  "input": {
+    "path": "benchmarks/runtime-inputs/qwen3-cpu.json",
+    "sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0"
+  },
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "threads": [
+    8,
+    16
+  ],
+  "independent_trials": 5,
+  "warmup": 2,
+  "measured_repeats": 3,
+  "profiler": "none",
+  "aa_pairs": "same_before_binary",
+  "ab_pairs": "before_after_order_alternates_per_trial",
+  "noise_percent": "max(5, abs(median(d_AA)) + 2 * MAD(d_AA))",
+  "inconclusive_if_noise_percent_above": 10,
+  "regression_gate": "paired median after/before delta <= noise N for each case; above N requires investigation",
+  "confidence_interval": "paired independent trial bootstrap median, 10000 resamples, seed 20260926, 95%",
+  "profile_check": "one stages run per version/thread; compare stage identity/shapes/counts and logits/greedy/KV metadata excluding times",
+  "binary_delivery": "hash and build/source identity; executable stays local"
+}

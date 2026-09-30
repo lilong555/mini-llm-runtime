@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "run_id": "20260924T153032Z-68ac27591320-7e661c79",
+  "manifest_sha256": "a3f1d4d0eb3c6f07e2291d651c295ca95c55706108ae01e801a6e8f8a7b74313",
+  "reports": 6,
+  "measured_forwards": 36,
+  "profiled_forwards": 18,
+  "fixed_input_outputs_equal": true,
+  "stage_accounting": "exact",
+  "raw_reports": [
+    {
+      "file": "threads-8-none-0.json",
+      "sha256": "30d98f0a194ce19eb21a41c1fa4fd9bc15688fcc35dcccd65ca1b606eec67fba"
+    },
+    {
+      "file": "threads-8-stages-0.json",
+      "sha256": "e8a1e9b8a05dbb8c44561672981370f02e925609c48715219214f86c756dc262"
+    },
+    {
+      "file": "threads-8-stages-1.json",
+      "sha256": "5a751f2f59e10998482b6eaad196ffeb4eb4221feba2c4b007d02441cb10696d"
+    },
+    {
+      "file": "threads-8-none-1.json",
+      "sha256": "f5a1861292337de7e7534744cc84035a5fa186f7d7692a69979007345731b090"
+    },
+    {
+      "file": "threads-8-none-2.json",
+      "sha256": "6a6933d4d38ab356b243468aa7b913887d15f66c2553427a2a850ae85ba62163"
+    },
+    {
+      "file": "threads-8-stages-2.json",
+      "sha256": "a35dc50328d79ca7510efc9b3c4f8b72d5a3d44041b12544413e69f1aafe33c3"
+    }
+  ]
+}

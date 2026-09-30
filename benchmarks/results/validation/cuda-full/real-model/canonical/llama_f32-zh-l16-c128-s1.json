@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "backend": "llama_f32",
+  "id": "zh-l16-c128-s1",
+  "corpus": 0,
+  "length": 16,
+  "input_sha256": "3435baffeb73d5aaab58931cae70dc3c3f8f541f79dc12f742127a5d89330774",
+  "samples": [
+    {
+      "token": 1479,
+      "margin": 1.658437728881836,
+      "sha256": "1260f4d6a425358369c9de1faacd71059213e74f4e8cc8817e79cfa8291fae80",
+      "position": 0
+    },
+    {
+      "token": 18493,
+      "margin": 0.053131103515625,
+      "sha256": "9dc288a698496581ffd8682da1f7e4c1bc1163b326dc3e2a4186cc9d1f3320c7",
+      "position": 1
+    },
+    {
+      "token": 85106,
+      "margin": 2.6993045806884766,
+      "sha256": "d8f85c80d1f70002fdb346c9144cbcdaea9bf17326e7d022556a7e888eb072b6",
+      "position": 15
+    }
+  ]
+}

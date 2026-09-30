@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "benchmark": "minillm-cuda-micro",
+  "protocol_id": "qwen3-cuda-micro-v0",
+  "run_id": "20260926T022032Z-dcb07b7c179d-25ea16b7",
+  "created_at_utc": "2026-09-26T02:20:32.7410001Z",
+  "source": {
+    "git_sha": "dcb07b7c179d9f9710b606fbf11b5ce33e9b40e9",
+    "git_dirty": true,
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs",
+      "docs/NEXT_SPEC.md"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "ecac7314a7589771b1694ae2ffeff7955dc6d40000469683b2651f4a59dd3195",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "4b5dcab27c3b828fd54e08494873c8ed86e2bed92cf61824c429ea7161154d12"
+    }
+  },
+  "binary": {
+    "path": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/mini-cuda-kernel-bench",
+    "sha256": "d07516a97c1c74b9ff4db2359bb29c2e3c262c7bbe98ae5f67b9ff39ad551c3f",
+    "availability": "rerun_dependency_not_bundled"
+  },
+  "model": {
+    "path": "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "size_bytes": 639446688,
+    "provenance": {
+      "repository": "Qwen/Qwen3-0.6B-GGUF",
+      "revision": "23749fefcc72300e3a2ad315e1317431b06b590a",
+      "file": "Qwen3-0.6B-Q8_0.gguf",
+      "size_bytes": 639446688,
+      "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      "license": "Apache-2.0",
+      "url": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/23749fefcc72300e3a2ad315e1317431b06b590a/Qwen3-0.6B-Q8_0.gguf"
+    },
+    "availability": "rerun_dependency_not_bundled"
+  },
+  "input": {
+    "path": "input.json",
+    "sha256": "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c"
+  },
+  "dependencies": {
+    "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+  },
+  "build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "own_cuda": "ON",
+    "upstream_cuda": "OFF",
+    "host_compiler": "/usr/bin/c++",
+    "host_compiler_id": "GNU",
+    "host_compiler_version": "11.4.0",
+    "cuda_compiler": "/usr/local/cuda-12.8/bin/nvcc",
+    "cuda_compiler_version": "12.8.93",
+    "cuda_architectures": "89",
+    "cxx_flags": "",
+    "cuda_flags": "",
+    "cxx_configuration_flags": "-O2 -g -DNDEBUG",
+    "cuda_configuration_flags": "-O2 -g -DNDEBUG",
+    "linker_flags": ""
+  },
+  "environment": {
+    "os": "Unix 5.15.167.4",
+    "machine": "LAPTOP-GBFPGV8B",
+    "logical_processors": 16,
+    "powershell": "7.6.6",
+    "frequency_control": "uncontrolled",
+    "affinity": "inherited",
+    "telemetry": "process_boundaries_not_continuous",
+    "profiler": "none"
+  },
+  "statistics": {
+    "independent_trials": 5,
+    "process_median_repeats": 3,
+    "calls_per_sample": 32,
+    "statistics_unit": "independent_trial_median",
+    "confidence_interval": "exact_percentile_bootstrap_median_95",
+    "bootstrap_resamples": 3125,
+    "comparison": false,
+    "hardware_dram_bandwidth": null
+  },
+  "reports": [
+    {
+      "trial": 0,
+      "file": "cuda-micro-t0.json",
+      "order": "canonical"
+    },
+    {
+      "trial": 1,
+      "file": "cuda-micro-t1.json",
+      "order": "reverse"
+    },
+    {
+      "trial": 2,
+      "file": "cuda-micro-t2.json",
+      "order": "canonical"
+    },
+    {
+      "trial": 3,
+      "file": "cuda-micro-t3.json",
+      "order": "reverse"
+    },
+    {
+      "trial": 4,
+      "file": "cuda-micro-t4.json",
+      "order": "canonical"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "verify.py",
+      "sha256": "a9d1d14e1f6f909e41df5478f622454ac19a84af7faefb179ef766bb83bf2330"
+    },
+    {
+      "path": "analyze_cuda_benchmark.py",
+      "sha256": "e343e781c3b471e66bb013052043844904dbf6c142da49cdeeadabe6782cc867"
+    }
+  ]
+}

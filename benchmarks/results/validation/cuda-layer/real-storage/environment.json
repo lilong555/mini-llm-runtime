@@ -1,0 +1,25 @@
+{
+  "device": 0,
+  "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+  "uuid": "6384dbff0d068bf52091d53bc812d211",
+  "compute_capability": [
+    8,
+    9
+  ],
+  "driver_api_version": 13010,
+  "runtime_version": 12080,
+  "cublas_version": 120805,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "contract_sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923",
+  "source_weight_dtype": "Q8_0",
+  "source_tensor_counts": {
+    "Q8_0": 197,
+    "F32": 113
+  },
+  "device_weight_dtype": "F32",
+  "matrix_input_output_dtype": "F32",
+  "gemm_compute": "CUBLAS_COMPUTE_32F_PEDANTIC",
+  "kv_reservation_dtype": "F16",
+  "stream_count": 1,
+  "complete_gpu_model": false
+}

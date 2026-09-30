@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "context_tokens": 2048,
+    "page_tokens": 16,
+    "max_sequences": 4,
+    "batch_tokens": 128
+  },
+  "token_ids": [1900, 220, 15, 13, 13850, 323, 37852, 5185, 13, 220, 1900, 220, 15, 13, 13850, 323],
+  "workloads": [
+    {"name": "prefill-16", "mode": "prefill", "prefill_tokens": 16, "decode_sequences": 0, "kv_tokens": 0},
+    {"name": "prefill-128", "mode": "prefill", "prefill_tokens": 128, "decode_sequences": 0, "kv_tokens": 0},
+    {"name": "decode-16", "mode": "decode", "prefill_tokens": 0, "decode_sequences": 1, "kv_tokens": 16},
+    {"name": "decode-256", "mode": "decode", "prefill_tokens": 0, "decode_sequences": 1, "kv_tokens": 256},
+    {"name": "decode-1536", "mode": "decode", "prefill_tokens": 0, "decode_sequences": 1, "kv_tokens": 1536},
+    {"name": "mixed-16-2", "mode": "mixed", "prefill_tokens": 16, "decode_sequences": 2, "kv_tokens": 256}
+  ]
+}

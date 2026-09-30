@@ -1,0 +1,263 @@
+{
+  "binaries": [
+    {
+      "configuration": "own",
+      "name": "mini-cuda-llm",
+      "path": "build/wsl-own-cuda/bin/mini-cuda-llm",
+      "sha256": "3a51df3d03e2307005b2865b32a8482a91811afc682e6f37937b216d6c395639",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffeee4e0000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007f2ce6200000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007f2cdf000000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f2ce65b7000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f2cdedd4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f2ce64d0000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f2ce61e0000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f2cdebab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f2ce6b42000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f2ce64c9000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f2ce64c4000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f2ce64bf000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007f2cac800000)"
+      ]
+    },
+    {
+      "configuration": "own",
+      "name": "minillm-cuda-model-tests",
+      "path": "build/wsl-own-cuda/bin/minillm-cuda-model-tests",
+      "sha256": "4b31b3d60cf3b5d79fcbec054a234ad273eee67a03d661a7a40bde2ea08c518f",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fffc43a0000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007fd6b9400000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007fd6b2200000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fd6b973d000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fd6b1fd4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fd6b9319000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fd6b971b000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fd6b1dab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fd6b9d1c000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fd6b9716000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fd6b9711000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fd6b970c000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007fd67fa00000)"
+      ]
+    },
+    {
+      "configuration": "own",
+      "name": "minillm-cuda-validation-tests",
+      "path": "build/wsl-own-cuda/bin/minillm-cuda-validation-tests",
+      "sha256": "3c483e56aecf878bc2671c0009c667e7573b0e7c4551515ef4f1627e0121594d",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fff499e6000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f396aa59000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f396a972000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f396a952000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f396a729000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f396acb1000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "mini-llm",
+      "path": "build/wsl-cpu/bin/mini-llm",
+      "sha256": "75d3d676ab5bb5cd3e812ee65bacc06e9db2c6e83adf9ae17adf7011bf6b8efd",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fff319f6000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f2a0959c000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f2a09370000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f2a09289000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f2a09269000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f2a09040000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f2a09af9000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "mini-runtime-bench",
+      "path": "build/wsl-cpu/bin/mini-runtime-bench",
+      "sha256": "d775f74c546a857a216bbe983bb59c23e36cab7a06bc19fea63c8132192915b3",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fff0072c000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fc52d41a000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fc52d1ee000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fc52d107000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc52d0e7000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc52cebe000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fc52d985000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "llmserve",
+      "path": "build/wsl-cpu/bin/llmserve",
+      "sha256": "6c47a4d8617de4696d1e086635af5049d7b71ed63ae66ae90cc340fd08bfd30b",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fffb43fb000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f937c3de000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f937c1b2000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f937c0cb000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f937c0ab000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f937be82000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f937c9fa000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "llmserve-model-tests",
+      "path": "build/wsl-cpu/bin/llmserve-model-tests",
+      "sha256": "f14d22a7f11f9431ed4954e9c9b2276720403d2394cb7854d15b57ebe1299b3d",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffdd1dbf000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f54e67fa000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f54e65ce000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f54e64e7000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f54e64c7000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f54e629e000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f54e6d6f000)"
+      ]
+    },
+    {
+      "configuration": "cpu",
+      "name": "llmserve-http-tests",
+      "path": "build/wsl-cpu/bin/llmserve-http-tests",
+      "sha256": "c461da021ff7b6b3ba2c54e6705c24a30772fb5bfadcfa4bbbe8292903ab2736",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007fff783b4000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f69163d8000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f69163b8000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f691618f000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f69160a8000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f69166ef000)"
+      ]
+    },
+    {
+      "configuration": "core",
+      "name": "llmserve-unit-tests",
+      "path": "build/wsl-core/bin/llmserve-unit-tests",
+      "sha256": "878b8942d0cfd485bcfcc41ed48f970a7aa49549db3ac1f7bb83d77d746b72bf",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffd39183000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f2909a35000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f290994e000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f290992e000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f2909705000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f2909caf000)"
+      ]
+    },
+    {
+      "configuration": "upstream",
+      "name": "mini-llm",
+      "path": "build/wsl-cuda/bin/mini-llm",
+      "sha256": "a996c8e81c98293a6712fb72d1b9b2f768b4d503f0f8a8ba61afb7e6eee877a6",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffda2dce000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fb1bb464000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007fb1bb000000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007fb1b3e00000)",
+        "\tlibcuda.so.1 => /usr/lib/wsl/lib/libcuda.so.1 (0x00007fb1b3a00000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fb1b37d4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fb1bb37b000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fb1bb35b000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fb1b35ab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fb1bed9b000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fb1bb356000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fb1bb351000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fb1bb34c000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007fb181200000)"
+      ]
+    },
+    {
+      "configuration": "upstream",
+      "name": "mini-runtime-bench",
+      "path": "build/wsl-cuda/bin/mini-runtime-bench",
+      "sha256": "5af2c7cdbf481d3262e37c2c373c842373f6d78666357abaf657b50e60e45f6e",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffddad5a000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fc1e75b9000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007fc1e7200000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007fc1e0000000)",
+        "\tlibcuda.so.1 => /usr/lib/wsl/lib/libcuda.so.1 (0x00007fc1dfc00000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fc1df9d4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fc1e74d0000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc1e71e0000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc1df7ab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fc1eaefd000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fc1e74cb000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fc1e74c6000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fc1e74c1000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007fc1ad400000)"
+      ]
+    },
+    {
+      "configuration": "upstream",
+      "name": "llmserve",
+      "path": "build/wsl-cuda/bin/llmserve",
+      "sha256": "156984df2e93814def906c7bcf4249e78760a695be7772fcfda99da7a2708eac",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffdd1ffe000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007f0225ac8000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007f0225800000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007f021e600000)",
+        "\tlibcuda.so.1 => /usr/lib/wsl/lib/libcuda.so.1 (0x00007f021e200000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f021dfd4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f0225719000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f021e5e0000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f021ddab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f02294bf000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007f0225ac1000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007f0225abc000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007f0225ab7000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007f01eba00000)"
+      ]
+    },
+    {
+      "configuration": "upstream",
+      "name": "llmserve-model-tests",
+      "path": "build/wsl-cuda/bin/llmserve-model-tests",
+      "sha256": "ae6e2bcf54639654ae4aae6c89ceac2e93940382fc48d012a7babe631359369d",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffce6956000)",
+        "\tlibgomp.so.1 => /lib/x86_64-linux-gnu/libgomp.so.1 (0x00007fe35492a000)",
+        "\tlibcudart.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12 (0x00007fe354600000)",
+        "\tlibcublas.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublas.so.12 (0x00007fe34d400000)",
+        "\tlibcuda.so.1 => /usr/lib/wsl/lib/libcuda.so.1 (0x00007fe34d000000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fe34cdd4000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fe354519000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fe354908000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fe34cbab000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007fe358279000)",
+        "\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007fe354903000)",
+        "\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007fe3548fe000)",
+        "\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007fe3548f9000)",
+        "\tlibcublasLt.so.12 => /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcublasLt.so.12 (0x00007fe31a800000)"
+      ]
+    },
+    {
+      "configuration": "upstream",
+      "name": "llmserve-http-tests",
+      "path": "build/wsl-cuda/bin/llmserve-http-tests",
+      "sha256": "0e77e2216f8d6504976c1f0441df824df01192196c8b2627db9ca09c55ba9bb0",
+      "dynamic_dependencies": [
+        "\tlinux-vdso.so.1 (0x00007ffe600dd000)",
+        "\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f56ac0a8000)",
+        "\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f56ac088000)",
+        "\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f56abe5f000)",
+        "\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f56abd78000)",
+        "\t/lib64/ld-linux-x86-64.so.2 (0x00007f56ac3bf000)"
+      ]
+    }
+  ],
+  "own_cache": {
+    "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+    "CMAKE_CXX_COMPILER": "/usr/bin/c++",
+    "CMAKE_CUDA_COMPILER": "/usr/local/cuda-12.8/bin/nvcc",
+    "CMAKE_CUDA_ARCHITECTURES": "89",
+    "LLMSERVE_WITH_LLAMA": "ON",
+    "LLMSERVE_CUDA": "OFF",
+    "MINILLM_ENABLE_CUDA": "ON",
+    "GGML_CUDA": "OFF",
+    "LLMSERVE_REQUIRE_TEST_TOOLS": "ON"
+  },
+  "cli_cpu_runtime_symbols": [],
+  "full_validation_binary_unchanged": true
+}

@@ -1,0 +1,2759 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "zh-33",
+      "max_sequences": 1,
+      "batches": [
+        [
+          {
+            "token": 104455,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 104949,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 85106,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 85106,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 112559,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 111944,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          }
+        ],
+        [
+          {
+            "token": 111944,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "en-33",
+      "max_sequences": 1,
+      "batches": [
+        [
+          {
+            "token": 785,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 15592,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 13598,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 1584,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 304,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 4938,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          }
+        ],
+        [
+          {
+            "token": 13598,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "repeated-33",
+      "max_sequences": 1,
+      "batches": [
+        [
+          {
+            "token": 14990,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 14990,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          }
+        ],
+        [
+          {
+            "token": 14990,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "special-33",
+      "max_sequences": 1,
+      "batches": [
+        [
+          {
+            "token": 151644,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 872,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 198,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 77091,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 77091,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 198,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 151644,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 77091,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          }
+        ],
+        [
+          {
+            "token": 198,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "en-128",
+      "max_sequences": 1,
+      "batches": [
+        [
+          {
+            "token": 785,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 15592,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 13598,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 1584,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 304,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 4938,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 14324,
+            "position": 33,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 34,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 35,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 36,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 37,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 38,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 39,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 40,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 41,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 42,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 43,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 44,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 45,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 46,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 47,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 48,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 49,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 50,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 51,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 52,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 53,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 54,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 55,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 56,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 57,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 58,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 59,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 60,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 61,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 62,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 63,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 64,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 65,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 66,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 67,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 68,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 69,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 70,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 71,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 72,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 73,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 74,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 75,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 76,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 77,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 78,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 79,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 80,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 81,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 82,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 83,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 84,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 85,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 86,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 87,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 88,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 89,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 90,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 91,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 92,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 93,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 94,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 95,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 96,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 97,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 98,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 99,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 100,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 101,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 102,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 103,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 104,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 105,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 106,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 107,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 108,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 109,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 110,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 111,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 112,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 113,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 114,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 115,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 116,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 117,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 118,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 119,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 120,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 121,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 122,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 123,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 124,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 125,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 126,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 127,
+            "sequence": 0,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "mixed-16-plus-2",
+      "max_sequences": 4,
+      "batches": [
+        [
+          {
+            "token": 785,
+            "position": 0,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 0,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 1,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 1,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 2,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 2,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 3,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 3,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 4,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 4,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 5,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 5,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 6,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 6,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 7,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 7,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 8,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 8,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 9,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 9,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 10,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 10,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 11,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 11,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 12,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 12,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 13,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 13,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 14,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 14,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 15,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 15,
+            "sequence": 2,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 14990,
+            "position": 0,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 1,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 13598,
+            "position": 16,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14324,
+            "position": 16,
+            "sequence": 2,
+            "logits": true
+          }
+        ],
+        [
+          {
+            "token": 198,
+            "position": 0,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 323,
+            "position": 17,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 315,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 629,
+            "position": 17,
+            "sequence": 1,
+            "logits": true
+          }
+        ]
+      ]
+    },
+    {
+      "id": "interleaved-four-33",
+      "max_sequences": 4,
+      "batches": [
+        [
+          {
+            "token": 104455,
+            "position": 0,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 785,
+            "position": 0,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 0,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 151644,
+            "position": 0,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 104949,
+            "position": 1,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 15592,
+            "position": 1,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 1,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 872,
+            "position": 1,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 85106,
+            "position": 2,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 2,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 2,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 2,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 3,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 3,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 3,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 3,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 4,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 4,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 4,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 4,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 5,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 5,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 5,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 5,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 6,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 6,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 6,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 6,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 7,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 7,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 7,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 77091,
+            "position": 7,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 8,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 8,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 8,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 8,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 9,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 9,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 9,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 9,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 10,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 10,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 10,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 10,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 11,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 11,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 11,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 11,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 12,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 12,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 12,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 12,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 13,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 13,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 13,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 13,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 14,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 14,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 14,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 14,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 15,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 6529,
+            "position": 15,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 15,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 151644,
+            "position": 15,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 85106,
+            "position": 16,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 1584,
+            "position": 16,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 16,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 77091,
+            "position": 16,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 112559,
+            "position": 17,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 304,
+            "position": 17,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 17,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 198,
+            "position": 17,
+            "sequence": 3,
+            "logits": true
+          },
+          {
+            "token": 111944,
+            "position": 18,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 18,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 18,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 18,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 19,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 19,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 19,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 19,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 20,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 20,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 20,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 20,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 21,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 21,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 21,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 21,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 22,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13598,
+            "position": 22,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 22,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 22,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 23,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 14324,
+            "position": 23,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 23,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 23,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 24,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 323,
+            "position": 24,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 24,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 24,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 111944,
+            "position": 25,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 6529,
+            "position": 25,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 25,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 77091,
+            "position": 25,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 48927,
+            "position": 26,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 1584,
+            "position": 26,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 26,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 26,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 1773,
+            "position": 27,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 304,
+            "position": 27,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 27,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151644,
+            "position": 27,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104455,
+            "position": 28,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 4938,
+            "position": 28,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 28,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 872,
+            "position": 28,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 104949,
+            "position": 29,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 13,
+            "position": 29,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 29,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 198,
+            "position": 29,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 85106,
+            "position": 30,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 785,
+            "position": 30,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 30,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 108386,
+            "position": 30,
+            "sequence": 3,
+            "logits": false
+          },
+          {
+            "token": 112559,
+            "position": 31,
+            "sequence": 0,
+            "logits": false
+          },
+          {
+            "token": 15592,
+            "position": 31,
+            "sequence": 1,
+            "logits": false
+          },
+          {
+            "token": 14990,
+            "position": 31,
+            "sequence": 2,
+            "logits": false
+          },
+          {
+            "token": 151645,
+            "position": 31,
+            "sequence": 3,
+            "logits": false
+          }
+        ],
+        [
+          {
+            "token": 111944,
+            "position": 32,
+            "sequence": 0,
+            "logits": true
+          },
+          {
+            "token": 13598,
+            "position": 32,
+            "sequence": 1,
+            "logits": true
+          },
+          {
+            "token": 14990,
+            "position": 32,
+            "sequence": 2,
+            "logits": true
+          },
+          {
+            "token": 198,
+            "position": 32,
+            "sequence": 3,
+            "logits": true
+          }
+        ]
+      ]
+    }
+  ]
+}

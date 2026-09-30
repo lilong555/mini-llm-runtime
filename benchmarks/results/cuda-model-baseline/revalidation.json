@@ -1,0 +1,96 @@
+{
+  "status": "passed",
+  "purpose": "archive_revalidation",
+  "original_verifier_sha256": "e343e781c3b471e66bb013052043844904dbf6c142da49cdeeadabe6782cc867",
+  "current_verifier_sha256": "d54ed88b5288ffcfb151434095eea53d3adee1bad10e29f7f1cd94760c7d7e6c",
+  "negatives": [
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-model-relocation-52472m7b/missing-source/revalidate.py",
+        "--directory",
+        "/tmp/cuda-model-relocation-52472m7b/missing-source"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 性能证据复核失败：缺少证据：source-snapshot.zip\n",
+      "name": "missing-source",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-model-relocation-52472m7b/incomplete-processes/revalidate.py",
+        "--directory",
+        "/tmp/cuda-model-relocation-52472m7b/incomplete-processes"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 性能证据复核失败：采集不完整或曾报告执行失败\n",
+      "name": "incomplete-processes",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-model-relocation-52472m7b/steady-copy/revalidate.py",
+        "--directory",
+        "/tmp/cuda-model-relocation-52472m7b/steady-copy"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 性能证据复核失败：CUDA KV、传输、分配或初始化状态不符\n",
+      "name": "steady-copy",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-model-relocation-52472m7b/device-identity/revalidate.py",
+        "--directory",
+        "/tmp/cuda-model-relocation-52472m7b/device-identity"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 性能证据复核失败：采集中 GPU 或 CUDA 版本发生变化\n",
+      "name": "device-identity",
+      "preexisting_files_unchanged": true
+    },
+    {
+      "command": [
+        "/usr/bin/python3",
+        "-B",
+        "/tmp/cuda-model-relocation-52472m7b/weight-alias/revalidate.py",
+        "--directory",
+        "/tmp/cuda-model-relocation-52472m7b/weight-alias"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "CUDA 性能证据复核失败：共享权重字段不符：offset\n",
+      "name": "weight-alias",
+      "preexisting_files_unchanged": true
+    }
+  ],
+  "relocated": {
+    "command": [
+      "/usr/bin/python3",
+      "-B",
+      "/tmp/cuda-model-relocation-52472m7b/bundle/revalidate.py",
+      "--directory",
+      "/tmp/cuda-model-relocation-52472m7b/bundle"
+    ],
+    "exit_code": 0,
+    "stdout": "{\n  \"status\": \"measurement_inconclusive\",\n  \"reports\": 70,\n  \"data_path_gates\": \"passed\",\n  \"artifacts\": 289\n}\n",
+    "stderr": ""
+  },
+  "original_files_unchanged": true,
+  "checked_original_files": 295,
+  "reports": 70,
+  "same_backend_token_consistency": "passed",
+  "original_summary_equal_to_recomputed": true,
+  "performance_status": "measurement_inconclusive"
+}

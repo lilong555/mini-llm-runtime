@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kernel_name": "minillm::cuda::<unnamed>::pv_kernel(minillm::cuda::DeviceTensorView<const unsigned short>, minillm::cuda::KvShape, unsigned long, unsigned long, minillm::cuda::DeviceTensorView<const int>, minillm::cuda::DeviceTensorView<const int>, unsigned long, minillm::cuda::DeviceTensorView<float>, minillm::cuda::DeviceTensorView<float>, int *)",
+  "mangled_kernel_name": "_ZN7minillm4cuda45_GLOBAL__N__404290e7_12_attention_cu_166305bf9pv_kernelENS0_16DeviceTensorViewIKtEENS0_7KvShapeEmmNS2_IKiEES7_mNS2_IfEES8_Pi",
+  "selector": {
+    "workload": "chunked-prefill-1536",
+    "iteration": 2,
+    "phase": "forwards",
+    "call_in_phase": 11,
+    "layer": 27,
+    "kernel": "pv_kernel"
+  },
+  "profiled_kernel_count": 1,
+  "metrics": {
+    "gpu__time_duration.sum": {
+      "value": 971808.0,
+      "unit": "ns"
+    },
+    "sm__cycles_active.avg": {
+      "value": 2218796.28,
+      "unit": "cycle"
+    },
+    "dram__cycles_active.avg": {
+      "value": 583408.0,
+      "unit": "cycle"
+    },
+    "sm__warps_active.avg.pct_of_peak_sustained_active": {
+      "value": 70.96,
+      "unit": "%"
+    },
+    "gpu__dram_throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 7.51,
+      "unit": "%"
+    },
+    "sm__throughput.avg.pct_of_peak_sustained_elapsed": {
+      "value": 77.42,
+      "unit": "%"
+    },
+    "profiler__replayer_passes": {
+      "value": 8.0,
+      "unit": "pass"
+    }
+  },
+  "replay_mode": "kernel",
+  "cache_control": "none",
+  "clock_control": "none",
+  "launch": {
+    "grid": [
+      2048,
+      1,
+      1
+    ],
+    "block": [
+      256,
+      1,
+      1
+    ]
+  },
+  "limitations": [
+    "NCU 指标来自单个 layer/kernel；不能外推全部形状",
+    "回放时间与缓存、频率状态不能替代无 Profiler 的模型性能"
+  ]
+}

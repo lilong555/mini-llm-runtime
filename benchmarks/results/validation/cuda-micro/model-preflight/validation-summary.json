@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "scope": "CUDA-VS-001 Step 8 numerical",
+  "status": "passed",
+  "complete": true,
+  "passed": true,
+  "complete_gpu_model": true,
+  "full_corpus_contract": true,
+  "performance_baseline": false,
+  "gpu_serving": false,
+  "reference_attention": "unfused",
+  "totals": {
+    "teacher_cases": 240,
+    "teacher_rows": 3920,
+    "teacher_comparisons": 11760,
+    "generation_comparisons": 768,
+    "numeric_failures": 0,
+    "argmax_divergences": 0,
+    "near_ties": 0
+  },
+  "extrema": {
+    "rmse_max": 0.01912634175393243,
+    "absolute_max": 0.07230734825134277,
+    "cosine_min": 0.9999865801437234
+  },
+  "golden_cases": 6,
+  "generation_cases": 12,
+  "first_numeric_failure": null,
+  "first_argmax_divergence": null,
+  "model_sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+  "reference_sha256": "bb38dab890935b8dbd2cb57e68669f39c34ff54dad07ec0dcd80049071bbcf80"
+}

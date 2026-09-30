@@ -1,0 +1,27 @@
+{
+  "git_sha": "0754722511b98a8d834167e3befb2c3307e81fa2",
+  "git_dirty": true,
+  "scope": [
+    "CMakeLists.txt",
+    "AGENTS.md",
+    ".gitattributes",
+    ".gitignore",
+    "cmake",
+    "apps",
+    "include",
+    "src",
+    "scripts",
+    "tests",
+    ".github",
+    "models/manifest.json",
+    "models/reference-manifest.json",
+    "benchmarks/runtime-inputs",
+    "docs/NEXT_SPEC.md"
+  ],
+  "state_file": "source-state.json",
+  "worktree_state_sha256": "fcbcecf0782b25c42f55ac62892bc585d36fbdaca3ac432048b495801960030a",
+  "snapshot": {
+    "path": "source-snapshot.zip",
+    "sha256": "f98a6c2fd602b62f2de0c136dc32234a916a21c4fa81d95ce1d8643f6cc2524f"
+  }
+}

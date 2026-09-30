@@ -1,0 +1,6 @@
+CUDA 数值证据复核失败：F32 参照必须显式使用 FP32 累加的非融合 attention
+Exception: /tmp/cuda-full-relocated-54a585d7e1834437ae4fd4596f0243a6/reference-mode/verify.ps1:94
+Line |
+  94 |  … LASTEXITCODE -ne 0) { $lines | Write-Output; throw '完整数值报告未通过独立复核。' }
+     |                                                 ~~~~~~~~~~~~~~~~~~~~~~
+     | 完整数值报告未通过独立复核。

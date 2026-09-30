@@ -1,0 +1,20 @@
+{
+  "command": "build/wsl-cpu/bin/llmserve-model-tests",
+  "arguments": [
+    "--model",
+    "models/Qwen3-0.6B-Q8_0.gguf",
+    "--reference-model",
+    "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+    "--threads",
+    "8",
+    "--gpu-layers",
+    "0",
+    "--output",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/model-cpu.json"
+  ],
+  "cwd": "/home/li/code/mini-llm-runtime",
+  "started_at_utc": "2026-09-26T07:30:17.1579967Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-26T07:31:01.9173911Z"
+}

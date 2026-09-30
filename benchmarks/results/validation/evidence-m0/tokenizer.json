@@ -1,0 +1,84 @@
+[
+  {
+    "text": "The capital of France is",
+    "count": 5,
+    "tokens": [
+      785,
+      6722,
+      315,
+      9625,
+      374
+    ]
+  },
+  {
+    "text": "One plus one equals",
+    "count": 4,
+    "tokens": [
+      3966,
+      5519,
+      825,
+      16819
+    ]
+  },
+  {
+    "text": "Memory is important because",
+    "count": 4,
+    "tokens": [
+      10642,
+      374,
+      2989,
+      1576
+    ]
+  },
+  {
+    "text": "人工智能模型需要可靠的数值验证。",
+    "count": 7,
+    "tokens": [
+      104455,
+      104949,
+      85106,
+      112559,
+      111944,
+      48927,
+      1773
+    ]
+  },
+  {
+    "text": "The runtime keeps weights and attention state in memory.",
+    "count": 10,
+    "tokens": [
+      785,
+      15592,
+      13598,
+      14324,
+      323,
+      6529,
+      1584,
+      304,
+      4938,
+      13
+    ]
+  },
+  {
+    "text": "hello",
+    "count": 1,
+    "tokens": [
+      14990
+    ]
+  },
+  {
+    "text": "<|im_start|>user\n你好<|im_end|>\n<|im_start|>assistant\n",
+    "count": 9,
+    "tokens": [
+      151644,
+      872,
+      198,
+      108386,
+      151645,
+      198,
+      151644,
+      77091,
+      198
+    ]
+  }
+]

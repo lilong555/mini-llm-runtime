@@ -1,0 +1,21 @@
+{
+  "Reports": 4,
+  "SuiteExecutions": 62,
+  "CaseExecutions": 1034,
+  "SuitesWithoutCaseCounts": 0,
+  "DiagnosticReports": [
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/core-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/cpu-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/own-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/upstream-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/core-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/cpu-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/own-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/upstream-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/initial-ctest/core-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/initial-ctest/cpu-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/initial-ctest/own-ctest.xml",
+    "/home/li/code/mini-llm-runtime/benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/initial-ctest/upstream-ctest.xml"
+  ],
+  "Status": "passed"
+}

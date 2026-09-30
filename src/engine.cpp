@@ -85,6 +85,7 @@ struct Engine::Impl {
 
     EngineConfig config;
     std::unique_ptr<ModelRunner> runner;
+    BackendCapabilities capabilities;
     BlockPool pool;
     PrefixIndex prefixes;
     mutable std::mutex mutex;
@@ -92,6 +93,7 @@ struct Engine::Impl {
     std::condition_variable cv;
     std::atomic<bool> stopping{false};
     bool failed = false;
+    bool published = false;
     std::thread worker;
     std::deque<std::shared_ptr<RequestHandle>> incoming;
     std::unordered_map<std::string, std::shared_ptr<RequestHandle>> registry;
@@ -114,6 +116,19 @@ struct Engine::Impl {
         if (!runner || runner->info().context_tokens < config.context_tokens) {
             throw std::invalid_argument("model runner does not satisfy the context capacity");
         }
+        capabilities = runner->capabilities();
+        if ((capabilities.max_sequences &&
+             config.max_active + config.prefix_cache_entries > capabilities.max_sequences) ||
+            (capabilities.max_batch_tokens && config.batch_tokens > capabilities.max_batch_tokens) ||
+            (capabilities.max_model_len && config.max_model_len > capabilities.max_model_len)) {
+            throw std::invalid_argument("Engine 配置超过 model runner 的实际容量");
+        }
+        if (!capabilities.prefix_copy && (config.prefix_cache_entries || config.prefix_cache_tokens)) {
+            throw std::invalid_argument("model runner 不支持 prefix copy/cache");
+        }
+        if (!capabilities.synchronous_execute) {
+            throw std::invalid_argument("Engine 需要同步完成的 model runner");
+        }
         capture.mode = config.telemetry_mode;
         if (capture.mode != TelemetryMode::off) {
             capture.batches.resize(config.telemetry_capacity);
@@ -130,14 +145,20 @@ struct Engine::Impl {
         for (std::size_t i = config.prefix_cache_entries; i > 0; --i) {
             free_cache_sequences.push_back(static_cast<SequenceId>(config.max_active + i - 1));
         }
-        publish();
+        snapshot.kv_total_blocks = pool.capacity();
         worker = std::thread([this] { run(); });
+        std::unique_lock lock(mutex);
+        cv.wait(lock, [&] { return published; });
     }
 
     ~Impl() { stop(); }
 
     void stop() {
-        stopping.store(true);
+        {
+            // 即使谓词是 atomic，也须与 wait 共用互斥锁，避免通知早于等待登记。
+            std::lock_guard lock(mutex);
+            stopping.store(true);
+        }
         cv.notify_all();
         if (worker.joinable()) {
             worker.join();
@@ -157,8 +178,12 @@ struct Engine::Impl {
         counters.kv_active_unique_blocks = active_blocks.size();
         counters.prefix_entries = prefixes.size();
         counters.prefix_tokens = prefixes.token_count();
+        counters.resources = runner->resources();
+        counters.resources_batch_id = next_batch_id;
         std::lock_guard lock(mutex);
         snapshot = counters;
+        published = true;
+        cv.notify_all();
     }
 
     void terminal(const std::shared_ptr<RequestHandle>& request, Event event) {
@@ -196,12 +221,20 @@ struct Engine::Impl {
         return event;
     }
 
+    void require_reusable() const {
+        const auto resources = runner->resources();
+        if (resources && (!resources->state_valid || !resources->reusable)) {
+            throw std::runtime_error("model runner 状态无效或不可复用，Engine 已停止");
+        }
+    }
+
     void finish(Active& item, const std::string& reason, int status = 200,
-                const std::string& message = "") {
+                const std::string& message = "", bool check_backend = true) {
         if (item.done) {
             return;
         }
         runner->clear_sequence(item.sequence);
+        if (check_backend) { require_reusable(); }
         pool.release(item.blocks);
         item.blocks.clear();
         free_sequences.push_back(item.sequence);
@@ -245,12 +278,13 @@ struct Engine::Impl {
         erase_finished();
     }
 
-    void evict(SequenceId sequence) {
+    void evict(SequenceId sequence, bool check_backend = true) {
         auto entry = prefixes.erase(sequence);
         runner->clear_sequence(sequence);
         pool.release(entry.blocks);
         free_cache_sequences.push_back(sequence);
         ++counters.cache_evictions;
+        if (check_backend) { require_reusable(); }
     }
 
     bool admit(const std::shared_ptr<RequestHandle>& request) {
@@ -287,9 +321,10 @@ struct Engine::Impl {
         item->blocks.insert(item->blocks.end(), fresh->begin(), fresh->end());
         item->started = Clock::now();
         item->last_scheduled = request->created_;
-        runner->clear_sequence(item->sequence);
         // 先发布所有权，后端调用失败时即可回收容量预留。
         active.push_back(std::move(item));
+        runner->clear_sequence(active.back()->sequence);
+        require_reusable();
         if (match) {
             runner->copy_sequence(match->sequence, active.back()->sequence, match->tokens);
         }
@@ -340,6 +375,7 @@ struct Engine::Impl {
         pool.retain(entry.blocks);
         prefixes.insert(std::move(entry));
         runner->clear_sequence(sequence);
+        require_reusable();
         runner->copy_sequence(item.sequence, sequence, length);
     }
 
@@ -432,6 +468,7 @@ struct Engine::Impl {
         try {
             samples = record && capture.mode == TelemetryMode::stages ?
                 runner->execute_profiled(tokens, record->runner) : runner->execute(tokens);
+            require_reusable();
             if (record) { record->runner_completed = true; }
         } catch (...) {
             if (record) {
@@ -448,6 +485,24 @@ struct Engine::Impl {
             tokens.begin(), tokens.end(), [](const auto& token) { return token.logits; }));
         if (samples.size() != expected_samples) {
             throw std::runtime_error("model runner returned an unexpected number of samples");
+        }
+        // 在发布任何 token 前验证整批结果，后续条目出错时不会泄露本批的部分输出。
+        std::vector<bool> expected(config.max_active, false), sampled(config.max_active, false);
+        for (const auto& token : tokens) {
+            if (token.logits) {
+                const auto sequence = static_cast<std::size_t>(token.sequence);
+                if (expected[sequence]) { throw std::logic_error("Engine 每个 sequence 每轮最多一个输出"); }
+                expected[sequence] = true;
+            }
+        }
+        for (const auto& sample : samples) {
+            if (sample.sequence < 0 || static_cast<std::size_t>(sample.sequence) >= expected.size() ||
+                !expected[static_cast<std::size_t>(sample.sequence)] ||
+                sampled[static_cast<std::size_t>(sample.sequence)] || sample.token < 0 ||
+                static_cast<std::size_t>(sample.token) >= runner->info().vocab_size) {
+                throw std::runtime_error("model runner returned an invalid or duplicate sample");
+            }
+            sampled[static_cast<std::size_t>(sample.sequence)] = true;
         }
         ++counters.batches;
         counters.mixed_batches += static_cast<std::uint64_t>(plan.mixed());
@@ -467,15 +522,7 @@ struct Engine::Impl {
                 }
             }
         }
-        std::vector<bool> sampled(config.max_active, false);
         for (const auto& sample : samples) {
-            if (sample.sequence < 0 || static_cast<std::size_t>(sample.sequence) >= by_sequence.size() ||
-                !by_sequence[static_cast<std::size_t>(sample.sequence)] ||
-                sampled[static_cast<std::size_t>(sample.sequence)] || sample.token < 0 ||
-                static_cast<std::size_t>(sample.token) >= runner->info().vocab_size) {
-                throw std::runtime_error("model runner returned an invalid or duplicate sample");
-            }
-            sampled[static_cast<std::size_t>(sample.sequence)] = true;
             auto& item = *by_sequence[static_cast<std::size_t>(sample.sequence)];
             SliceTelemetry* observed = nullptr;
             if (record) {
@@ -499,10 +546,16 @@ struct Engine::Impl {
             if (!item.first_token) {
                 item.first_token = Clock::now();
             }
-            const auto eog = runner->is_eog(sample.token) && !item.request->input_.ignore_eos;
+            bool eog;
+            std::string piece;
+            {
+                std::lock_guard lock(tokenizer_mutex);
+                eog = runner->is_eog(sample.token) && !item.request->input_.ignore_eos;
+                if (!eog) { piece = runner->token_piece(sample.token); }
+            }
             Event event;
             event.token = sample.token;
-            event.text = item.text.append(eog ? "" : runner->token_piece(sample.token));
+            event.text = item.text.append(piece);
             event.usage = {item.request->prompt_.size(), item.generated, item.reused};
             if (capture.mode != TelemetryMode::off) {
                 event.telemetry = TokenTelemetry{batch_id, item.request->order_, item.generated - 1,
@@ -529,11 +582,13 @@ struct Engine::Impl {
         }
     }
 
-    void terminate_all(const std::string& reason, int status, const std::string& message) {
+    void terminate_all(const std::string& reason, int status, const std::string& message,
+                       bool check_backend = true) {
         runner->synchronize();
+        if (check_backend) { require_reusable(); }
         drain_incoming();
         for (auto& item : active) {
-            finish(*item, reason, status, message);
+            finish(*item, reason, status, message, check_backend);
         }
         active.clear();
         for (const auto& request : waiting) {
@@ -541,7 +596,7 @@ struct Engine::Impl {
         }
         waiting.clear();
         while (const auto sequence = prefixes.least_recently_used()) {
-            evict(*sequence);
+            evict(*sequence, check_backend);
         }
         counters.ready = false;
         if (capture.mode != TelemetryMode::off) { capture.resources_final = runner->resources(); }
@@ -550,6 +605,8 @@ struct Engine::Impl {
 
     void run() {
         try {
+            require_reusable();
+            publish();
             while (!stopping.load()) {
                 {
                     std::unique_lock lock(mutex);
@@ -579,7 +636,7 @@ struct Engine::Impl {
                 failed = true;
             }
             counters.last_error = error.what();
-            terminate_all("backend_error", 500, error.what());
+            terminate_all("backend_error", 500, error.what(), false);
         }
     }
 };
@@ -678,6 +735,7 @@ Statistics Engine::statistics() const {
 
 const EngineConfig& Engine::config() const noexcept { return impl_->config; }
 const ModelInfo& Engine::model_info() const noexcept { return impl_->runner->info(); }
+BackendCapabilities Engine::capabilities() const noexcept { return impl_->capabilities; }
 
 std::vector<Token> Engine::tokenize(std::string_view text) const {
     std::lock_guard lock(impl_->tokenizer_mutex);

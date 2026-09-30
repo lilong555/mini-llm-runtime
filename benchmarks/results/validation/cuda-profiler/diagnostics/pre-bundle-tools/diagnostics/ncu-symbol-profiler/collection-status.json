@@ -1,0 +1,32 @@
+{
+  "status": "passed",
+  "reports": [
+    {
+      "file": "off-before.json",
+      "exit_code": 0,
+      "sha256": "c24b4a76ef33ec8d090605dcaf2fc03326929c77133cd8c54f820ba2b2478b5a"
+    },
+    {
+      "file": "nsys.json",
+      "exit_code": 0,
+      "sha256": "c4b9289ec5f4adcb8ab32ae0b0ffc7a281fbf0159c7ff862f423d08ce8d76375"
+    },
+    {
+      "file": "off-middle.json",
+      "exit_code": 0,
+      "sha256": "3646a255109bc35f4dc611899ea7792c247858cbf278d587b00e0ae980638667"
+    },
+    {
+      "file": "ncu.json",
+      "exit_code": 0,
+      "sha256": "911500b9d1a373c9b24e57c00df3bbe14a37ac632aaa8041a85fe95f9283ff78"
+    },
+    {
+      "file": "off-after.json",
+      "exit_code": 0,
+      "sha256": "b3676cd178e89a6e0c73f4b4c8d74687bd99be689ddb0556ff1c052181890aa7"
+    }
+  ],
+  "planned_reports": 5,
+  "finished_at_utc": "2026-09-26T07:46:12.4495155Z"
+}

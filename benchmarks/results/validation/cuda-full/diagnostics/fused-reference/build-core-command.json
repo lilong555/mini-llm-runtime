@@ -1,0 +1,13 @@
+{
+  "command": "cmake",
+  "arguments": [
+    "--build",
+    "build/wsl-core",
+    "--parallel",
+    "3"
+  ],
+  "started_at_utc": "2026-09-25T22:14:48.7333849Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T22:14:48.8266221Z"
+}

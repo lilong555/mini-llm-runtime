@@ -1,0 +1,16 @@
+========= COMPUTE-SANITIZER
+CUDA 单元设备：NVIDIA GeForce RTX 4070 Laptop GPU，计算能力 8.9
+[PASS] buffer_empty_and_overflow
+[PASS] buffer_move_and_exact_release
+[PASS] buffer_allocation_failure_unwinds_owners
+[PASS] context_stream_workspace_and_math_mode
+[PASS] context_initialization_failure_cleanup
+[PASS] matrix_known_asymmetric_values_and_stream_order
+[PASS] matrix_padded_rectangular_and_guards
+[PASS] matrix_non_warp_aligned_shape
+[PASS] matrix_projection_shape
+[PASS] matrix_preflight_rejects_invalid_descriptors
+[PASS] error_checks_retain_vendor_diagnostic
+11/11 tests passed
+========= LEAK SUMMARY: 0 bytes leaked in 0 allocations
+========= ERROR SUMMARY: 0 errors

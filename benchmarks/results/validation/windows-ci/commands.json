@@ -1,0 +1,147 @@
+{
+  "record_type": "executed_command_inventory",
+  "working_directory": "/home/li/code/mini-llm-runtime",
+  "builds": [
+    [
+      "cmake",
+      "--build",
+      "build/wsl-cpu",
+      "--parallel",
+      "4"
+    ],
+    [
+      "cmake",
+      "--build",
+      "build/wsl-own-cuda",
+      "--parallel",
+      "4"
+    ],
+    [
+      "cmake",
+      "--build",
+      "build/wsl-core",
+      "--parallel",
+      "4"
+    ],
+    [
+      "cmake",
+      "--build",
+      "build/wsl-cuda",
+      "--parallel",
+      "4"
+    ]
+  ],
+  "ctest": [
+    [
+      "ctest",
+      "--test-dir",
+      "build/wsl-cpu",
+      "--no-tests=error",
+      "--output-on-failure",
+      "--test-output-size-passed",
+      "65536",
+      "--output-junit",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-cpu.xml",
+      "--output-log",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-cpu.txt"
+    ],
+    [
+      "ctest",
+      "--test-dir",
+      "build/wsl-core",
+      "--no-tests=error",
+      "--output-on-failure",
+      "--test-output-size-passed",
+      "65536",
+      "--output-junit",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-core.xml",
+      "--output-log",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-core.txt"
+    ],
+    [
+      "ctest",
+      "--test-dir",
+      "build/wsl-own-cuda",
+      "--no-tests=error",
+      "--output-on-failure",
+      "--test-output-size-passed",
+      "65536",
+      "--output-junit",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-own.xml",
+      "--output-log",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-own.txt"
+    ],
+    [
+      "ctest",
+      "--test-dir",
+      "build/wsl-cuda",
+      "--no-tests=error",
+      "--output-on-failure",
+      "--test-output-size-passed",
+      "65536",
+      "--output-junit",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-upstream.xml",
+      "--output-log",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-upstream.txt"
+    ]
+  ],
+  "encoding_ctest": {
+    "environment_override": {
+      "PYTHONIOENCODING": "cp1252:backslashreplace"
+    },
+    "command": [
+      "ctest",
+      "--test-dir",
+      "build/wsl-cpu",
+      "--output-on-failure",
+      "-R",
+      "^cuda-(validation-report|benchmark-validation|micro-validation)$",
+      "--test-output-size-passed",
+      "65536",
+      "--output-junit",
+      "/home/li/code/mini-llm-runtime/.run/ci-portability/ctest-cp1252.xml"
+    ]
+  },
+  "cpu_model": [
+    "build/wsl-cpu/bin/llmserve-model-tests",
+    "--model",
+    "models/Qwen3-0.6B-Q8_0.gguf",
+    "--reference-model",
+    "models/Qwen3-0.6B-Q8_0-dequant-F32.gguf",
+    "--gpu-layers",
+    "0",
+    "--threads",
+    "8",
+    "--output",
+    ".run/ci-portability/cpu-model.json"
+  ],
+  "http": {
+    "start_script": "scripts/Start-LLMServe.ps1",
+    "start_arguments": [
+      "-Backend",
+      "mini",
+      "-Executable",
+      "./build/wsl-cpu/bin/llmserve",
+      "-Model",
+      "./models/Qwen3-0.6B-Q8_0.gguf",
+      "-Port",
+      "8077"
+    ],
+    "client": [
+      "build/wsl-cpu/bin/llmserve-http-tests",
+      "--port",
+      "8077",
+      "--output",
+      ".run/ci-portability/cpu-http.json"
+    ],
+    "stop_script": "scripts/Stop-LLMServe.ps1",
+    "stop_arguments": [
+      "-Port",
+      "8077"
+    ],
+    "process_stopped": true
+  },
+  "full_cuda_numeric_rerun": false,
+  "cuda_model_performance_rerun": false,
+  "profiler_rerun": false
+}

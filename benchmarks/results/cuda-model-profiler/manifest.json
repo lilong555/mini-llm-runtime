@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "benchmark": "minillm-cuda-profiler",
+  "run_id": "20260926T080547Z-0754722511b9-2218194b",
+  "created_at_utc": "2026-09-26T08:05:47.7764986Z",
+  "source": {
+    "git_sha": "0754722511b98a8d834167e3befb2c3307e81fa2",
+    "git_dirty": true,
+    "scope": [
+      "CMakeLists.txt",
+      ".gitattributes",
+      "cmake",
+      "apps",
+      "include",
+      "src",
+      "scripts",
+      "tests",
+      ".github",
+      "models/manifest.json",
+      "models/reference-manifest.json",
+      "benchmarks/runtime-inputs",
+      "docs/NEXT_SPEC.md"
+    ],
+    "state_file": "source-state.json",
+    "worktree_state_sha256": "bfb28f40d92c5e5b04eeb9d78c4920b23f8fd468ebc05bcfec0f93a28baa6937",
+    "snapshot": {
+      "path": "source-snapshot.zip",
+      "sha256": "e20e1c84c9fe79e9bf52b26867a3641e17606e1856a85fbc17cda7616c6c301d"
+    }
+  },
+  "binary": {
+    "path": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/bin/mini-cuda-runtime-bench",
+    "sha256": "d7eb569942f6ffa6621f346c351e16d531dad70041afc76c0cc25dbac0f53180",
+    "availability": "rerun_dependency_not_bundled"
+  },
+  "model": {
+    "path": "/home/li/code/mini-llm-runtime/models/Qwen3-0.6B-Q8_0.gguf",
+    "sha256": "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+    "availability": "rerun_dependency_not_bundled"
+  },
+  "input": {
+    "path": "input.json",
+    "execution_path": "/home/li/code/mini-llm-runtime/benchmarks/results/cuda-model-profiler/input.json",
+    "sha256": "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6"
+  },
+  "baseline": {
+    "run_id": "20260926T025352Z-0754722511b9-f23c5edd",
+    "manifest_sha256": "f15fd797b90cbb80b344a4d6585a336b998dd85a61a52fefe0a4ad78c06eb3fc",
+    "repository_path": "benchmarks/results/cuda-model-baseline",
+    "reference_report": "cuda-aa_cuda-t0-p0.json",
+    "full_baseline_included": false
+  },
+  "tools": {
+    "nsys": {
+      "path": "/home/li/.local/bin/nsys",
+      "version": "NVIDIA Nsight Systems version 2026.1.3.425-261338342291v0",
+      "sha256": "56fff02a719034c0fbdcf121a61b079cf36b890eb6a9bcdbf69d03c5dbdee7e7"
+    },
+    "ncu": {
+      "path": "/usr/local/cuda-12.8/bin/ncu",
+      "version": "NVIDIA (R) Nsight Compute Command Line Profiler\nCopyright (c) 2018-2025 NVIDIA Corporation\nVersion 2025.1.1.0 (build 35528883) (public-release)",
+      "sha256": "02fffd2174c647582a6faa3829bcab06ca66dfb026c7b0e8f863fbbfb0cca877"
+    }
+  },
+  "environment": {
+    "profiler_scope": "external_diagnostic",
+    "frequency_control": "uncontrolled",
+    "affinity": "inherited",
+    "telemetry": "process_boundaries_not_continuous",
+    "environment_policy": "allowlist_no_credentials",
+    "os": "Unix 5.15.167.4",
+    "powershell": "7.6.6"
+  },
+  "processes": [
+    {
+      "name": "off-before",
+      "profiler": "none",
+      "order": 0,
+      "report": "off-before.json"
+    },
+    {
+      "name": "nsys",
+      "profiler": "nsys",
+      "order": 1,
+      "report": "nsys.json"
+    },
+    {
+      "name": "off-middle",
+      "profiler": "none",
+      "order": 2,
+      "report": "off-middle.json"
+    },
+    {
+      "name": "ncu",
+      "profiler": "ncu",
+      "order": 3,
+      "report": "ncu.json"
+    },
+    {
+      "name": "off-after",
+      "profiler": "none",
+      "order": 4,
+      "report": "off-after.json"
+    }
+  ],
+  "selector": {
+    "workload": "chunked-prefill-1536",
+    "iteration": 2,
+    "phase": "forwards",
+    "call_in_phase": 11,
+    "layer": 27,
+    "kernel": "pv_kernel"
+  },
+  "ownership": {
+    "model_and_kv": "project",
+    "matrix_kernels": "NVIDIA cuBLAS",
+    "profiler": "NVIDIA Nsight",
+    "gpu_serving": false,
+    "gpu_paged_attention": false
+  }
+}

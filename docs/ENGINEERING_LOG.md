@@ -39,6 +39,17 @@
 | ENG-029 | 已解决 | 派生分析 | 相对路径与绝对路径混用导致归因汇总失败 |
 | ENG-030 | 已解决 | 版本管理 | GitHub 仓库可见性与发布授权不一致 |
 | ENG-031 | 已解决 | 版本管理 | WSL 仓库沿用 Windows 凭据助手路径 |
+| ENG-049 | 已解决 | 模型基准 | 同后端 A/A 与跨 trial 输出一致性遗漏 |
+| ENG-050 | 已解决 | Profiler | SQLite 传输枚举与真实导出不匹配 |
+| ENG-051 | 已记录 | 性能 | 部分正式模型 A/A 噪声超过门槛 |
+| ENG-052 | 已解决 | 辅助查询 | Python 时间戳解析不兼容高精度 UTC 格式 |
+| ENG-053 | 已解决 | 进程封装 | 异步任务结果污染 PowerShell 返回记录 |
+| ENG-054 | 已解决 | Profiler | NCU 名称简化丢失匿名命名空间前缀 |
+| ENG-055 | 已解决 | 交付文档 | 完整包导出示例遗漏必需目录参数 |
+| ENG-056 | 已解决 | 证据封包 | 归档白名单遗漏 Git 字节保护元数据 |
+| ENG-057 | 已解决 | 跨平台测试 | 中文子进程诊断依赖主机默认编码 |
+| ENG-058 | 已解决 | Windows 构建 | CPU Runtime 缺少直接包含的 array 头文件 |
+| ENG-059 | 已记录 | 本机 Windows 验证 | 非提权进程不能创建测试所需的符号链接 |
 
 ## ENG-001：MSVC 本地化头文件输出
 
@@ -146,9 +157,11 @@
 - 状态：待解决。
 - 影响：固定版本的分词器提示：token 128247，即 `</s>`，看起来像控制 token，但模型词表未将其声明为控制类型。
 - 复现条件：通过 CLI 或模型测试加载固定版本的官方 GGUF。
+- 原始诊断：`load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden`。
 - 原因：上游启发式规则与模型文件中的 token 元数据不一致；尚未确定应该修改模型文件还是启发式规则。
 - 当前行为：固定版本的分词器在加载时修正该 token 类型。MiniLLM 与数值参照共用此分词器；已有的数值、生成和 HTTP 检查通过，但不足以证明完整的特殊 token 兼容性。
-- 下一步：增加明确的词表与特殊 token 回归用例，并检查上游模型元数据问题报告；不擅自修改下载的模型文件或其 manifest 哈希。
+- 下一步：检查上游模型元数据问题报告；保留固定权重与词表语义，不修改下载的模型文件或其 manifest 哈希。
+- 词表验证：`tests/host_model_tests.cpp` 对 `tests/data/qwen3_validation_cases.json` 的 7 组中文、英文、重复、特殊 token 和生成输入核对 token IDs，并将全部 151936 个 token 的 piece/EOG 与固定上游 vocab-only 参照逐项比较，8/8 host-model 实模型检查通过。原始警告仍存在，见 `benchmarks/results/validation/host-model/host-real.txt`；该验证没有修复模型元数据问题，本项保持待解决。
 
 ## ENG-012：CTest 报告截断
 
@@ -255,7 +268,7 @@
 - 原因：该 Nsight Systems 版本的采集库与当前驱动接口不兼容；CUDA Toolkit 能编译和执行程序，不代表随附 profiler 能采集当前驱动的 GPU 时间线。
 - 解决方法：使用官方固定版本 `nsight-systems-2026.1.3`，校验安装包 SHA-256，在用户目录安装并通过 `~/.local/bin/nsys` 使用。CUDA Toolkit 仍为 12.8，安装包身份见 `benchmarks/results/wsl-environment/environment.json`。
 - 验证：登录终端的 `nsys --version` 返回 `2026.1.3.425-261338342291v0`。`scripts/cuda_smoke.cu` 的报告包含全部 64 次 kernel、2 次 H2D 和 1 次 D2H；`nsys-validation.json` 对 SQLite 事件数完成校验，`nsys-stats.txt` 保留原始汇总。
-- 适用边界：仍有 `Unified Memory cannot be traced` 诊断；本项只验收显式分配与复制的时间线。GPU 硬件计数器由 `ENG-023` 独立验收，完整模型性能采集不在本项范围内。
+- 适用边界：仍有 `Unified Memory cannot be traced` 诊断；本项只验收显式分配与复制的时间线。GPU 硬件计数器由 `ENG-023` 独立验收。当前 `benchmarks/results/cuda-model-profiler/nsys-summary.json` 还保留 `CUDA hardware tracing is not supported on this system. A legacy (software instrumented) trace was collected instead.`；完整模型的 585 次 forward 和预期操作可复核，不代表 Unified Memory 或硬件 tracing 模式已验收。
 
 ## ENG-023：WSL 内 Nsight Compute 无权访问 GPU 性能计数器
 
@@ -342,3 +355,420 @@
 - 原因：仓库本地配置保留跨平台迁移前的绝对可执行文件路径。
 - 解决方法：删除仓库本地的 `credential.https://github.com.helper` 覆盖项，使用已有用户配置中的 `!/usr/bin/gh auth git-credential`；凭据和本地配置不纳入提交。
 - 验证：`git config --show-origin --get-all credential.https://github.com.helper` 仅返回 `/home/li/.gitconfig` 中的 Linux 配置；重新执行 `git fetch origin` 返回 0，且无错误诊断。
+
+## ENG-032：实验源码快照未进入可独立获取的归档
+
+- 状态：部分解决；`wsl-runtime-profile/context` 的原始快照已核对，归档检查与导出门禁可用。其他历史目录不据此视为完整。
+- 影响：原报告虽记录过验收通过，独立 Git 检出缺少必需 ZIP 时无法重新检查源码身份；作者工作区中的文件存在不代表发布内容完整。
+- 复现条件或证据：审计基点 `68ac275913207975a88e2090c6617467e351301c` 的 `git archive` 副本中，`benchmarks/results/wsl-runtime-profile/context/manifest.json` 引用的 `source-snapshot.zip` 不存在。`historical-clean-availability.json` 记录 `ARCHIVE_INCOMPLETE`，具体证据位于 `benchmarks/results/validation/evidence-m0/`。
+- 原因：`.gitignore` 排除了所有实验源码 ZIP，原始分析器要求它们存在，但没有发布可用性门禁。
+- 解决方法或下一步：`Test-EvidenceAvailability.ps1` 检查必需文件、SHA-256 与 ZIP 内各源码；`Export-BenchmarkBundle.ps1` 在副本中执行严格验收、封包与迁移复验。`context` 的本机原 ZIP 与历史摘要 `9b7f243855874a12fb5f42e6053cb3e3b5e205ffb53865e85f89df0b741d689c` 一致，仅为该原件和新基线添加明确的 Git 路径例外。其他历史缺件必须逐一报告，不根据当前源码重建旧快照。
+- 验证：`historical-revalidation.json` 记录缺件拒绝、16 个既有文件字节不变，以及加入原件后的完整归档与独立包复验通过。历史 manifest、原始报告、源码状态及旧汇总不变。
+- 适用边界：导出用途为 `archive_revalidation`，不含模型权重、二进制或工具链；不能当作相同二进制已在另一台机器重跑的证明。
+
+## ENG-033：分析失败删除既有验收结果
+
+- 状态：已解决，限定于 Runtime 与 Serving 策略分析器的无损失败和发布异常恢复。
+- 影响：缺失源码 ZIP、损坏 manifest 或报告校验失败时，复验会先删除已有汇总，破坏旧证据；缺件与原测量失败也容易混淆。
+- 复现条件或证据：原 `Analyze-Runtime.ps1`、`Analyze-Benchmarks.ps1` 在读取 manifest 前执行 `Remove-Item`，异常路径再次删除汇总。`historical-clean-check.txt` 和两个基准 fixture 套件覆盖缺件与旧成功记录共存的情况。
+- 原因：输出清理先于输入与依赖验证，直接覆盖验收标记，没有区分本次失败与历史结果。
+- 解决方法：先检查依赖并完成严格校验；汇总序列化到同目录的临时区域，逐文件原子替换，最后发布成功标记；发布失败恢复原字节。失败诊断单独写入 `analysis-failure.json`。历史复验和导出使用临时副本，调用方以本次退出状态判断结果。
+- 验证：两套 fixture 对失败前后所有已有文件核对 SHA-256；缺 ZIP、损坏源码状态、篡改 ZIP 条目、旧成功汇总、跨目录迁移及导出反例通过。`atomic-publication-rollback` 用目标目录冲突触发中途发布错误，确认已替换的文件恢复原摘要。原始 CTest 证据见 `benchmarks/results/validation/evidence-m0/`。
+- 适用边界：同一归档目录仅允许单写者；文件级发布及异常恢复不等于跨文件系统事务或断电恢复协议。
+
+## ENG-034：PowerShell 将空备份路径转换为空字符串
+
+- 状态：已解决，限定于 JSON 原子替换和发布异常恢复。
+- 影响：首次写入成功，替换已存在的 JSON 时失败，妨碍正常采集与验收。
+- 复现条件或证据：`[IO.File]::Replace($temporary, $Path, $null)` 在当前 PowerShell/.NET 绑定中报告 `The value cannot be an empty string. (Parameter 'path')`；`runtime-benchmark-validation` 的已有输入文件替换触发该问题。
+- 原因：传入字符串形参的 PowerShell `$null` 被转换为空字符串，未满足 .NET 接口要求的空引用语义。
+- 解决方法：无备份路径时使用 `[NullString]::Value`；需要回滚的发布使用真实备份路径。
+- 验证：已有 JSON 替换、两种分析器重复验收与发布回滚 fixture 均通过；当前 WSL PowerShell 为 7.6.6。Windows 分支未在本机实测。
+
+## ENG-035：在线观测包重复发布派生汇总导致哈希不符
+
+- 状态：已解决，限定于单组在线观测归档的导出与独立复验。
+- 影响：原始报告和 JSONL 可以通过校验，但导出包的迁移复验失败，无法形成可交付文件。
+- 复现条件或证据：对 `wsl-batch-telemetry/context-256/trial-0-batches` 导出时，先显式运行 `Analyze-Benchmarks.ps1`，随后 `analyze_telemetry.py` 内部再次运行同一分析器，导出入口报告 `在线观测归档验收失败。`。
+- 原因：首次分析重新发布带当前时间戳的 `validation-summary.json`；再次进入 bundle preflight 时，派生文件字节不再匹配封包时的 SHA-256。归档副本可分析一次，不能在同一副本上交错使用旧包摘要与新派生结果。
+- 解决方法：观测组仅调用一次 Python 入口，由它完成策略和时间线验收；其他组直接调用对应 PowerShell 入口。每个包独立携带 `verification/` 脚本，包内工具身份与历史测量源码分别固定。
+- 验证：`benchmarks/results/evidence-m0/telemetry-bundle.zip` 的两份真实服务报告及对应 JSONL 完成导出、解压和包内工具复验；`telemetry-revalidation.json` 记录成功与文件访问跟踪，原历史目录无字节变化。该结果是历史数据复验，不是新的 Serving 性能采集。
+
+## ENG-036：CUDA 存储验证的旧成功摘要残留
+
+- 状态：已解决，限定于存储验证入口的报告目录和失败状态。
+- 影响：复用曾成功的报告目录时，后续验证中途失败可能留下旧的 `passed=true`，不能据此判断当前模型或矩阵通过。
+- 复现条件或证据：存储验证入口使用 `create_directories` 接受已存在的目录，只在全部检查结束后写入成功摘要。目录复用反例及逐文件摘要检查见 `benchmarks/results/validation/cuda-storage/negative-checks.json`；错误 checkpoint 的真实失败输出保留在 `rejected-model.txt`。
+- 原因：报告目录缺少单次执行的独占约束，验证开始时没有使旧状态失效。
+- 解决方法：显式输出目录必须尚不存在；默认命令选择带 UTC 时间和进程号的新目录。新报告先写入 `incomplete`，全部检查通过才写入 `passed`，失败写入 `failed`。固定数值契约的模型 SHA-256 在实模型存储构造前检查，不按文件名或形状近似接受 checkpoint。
+- 验证：目录复用命令返回 1，已有文件 SHA-256 不变；将 matched-weight F32 reference 当成 Q8_0 输入时返回 1，报告为 `failed` 且 `passed=false`。10 项存储单测及另含实模型的一组 11/11 检查通过，普通执行与 Compute Sanitizer 的报告一致。进程中断时的 `incomplete` 不能视为成功；本项不代表完整 GPU 模型已验收。
+
+## ENG-037：PowerShell 有序字典的属性汇总失败
+
+- 状态：已解决，限定于本地证据汇总；产品执行与原始测试报告不受影响。
+- 影响：CUDA 存储验证全部结束后，辅助归档脚本在汇总 CTest 用例数时退出，无法发布完整的身份与复核记录。
+- 复现条件或证据：PowerShell 7.6.6、`Set-StrictMode -Version Latest` 下执行 `@([ordered]@{passed=11}) | Measure-Object -Property passed -Sum`，返回 `Cannot process argument because the value of argument "passed" is not valid. Change the value of the "passed" argument and run the operation again.`。原始复现输出位于 `benchmarks/results/validation/cuda-storage/diagnostics/collection-error.txt`。
+- 原因：`OrderedDictionary` 的键访问与对象属性不是同一种管道契约；`Measure-Object -Property` 不能按所需方式取得字典中的计数字段。
+- 解决方法：汇总记录使用 `[pscustomobject][ordered]@{...}`，按对象属性求和。辅助脚本位于 `.run/`，不属于产品；归档携带独立 `verify.ps1`，复用源码快照中的既有 CTest 和源码校验工具。
+- 验证：四种构建的 28 次 CTest 套件、722 次用例执行与原始 XML 一致；完整归档在独立目录通过复核，缺少源码 ZIP 和矩阵报告篡改的反例均返回 1，原件摘要不变。结果见同目录的 `revalidation.json`，初次汇总失败没有被当作模型或性能失败。
+
+## ENG-038：RMSNorm 有限输入的中间量溢出
+
+- 状态：已解决，限定于自有 CUDA 基础算子的有限极值处理；CPU 数学路径保持原有实现。
+- 影响：直接在 FP32 中计算 `x*x`、平方和或 `variance + epsilon` 时，即使输入和 epsilon 有限，中间量仍可能溢出为 Inf，输出错误地退化为零或非有限值。
+- 复现条件或证据：`ops_rms_norm_finite_extremes_and_epsilon` 包含幅值 `1e30`、`FLT_MAX`，以及从最小正 subnormal 到 `FLT_MAX` 的 epsilon。`(1e30)^2` 已超过 FP32 最大有限值，按未缩放公式执行不能满足该用例的 FP64 对照。
+- 原因：输出尺度可表示不意味着平方或方差中间量可表示；只缩放输入而直接计算 `epsilon / max_abs / max_abs` 还可能在极小输入时溢出。
+- 解决方法：使用 `max(max_abs, sqrt(epsilon))` 作为共同缩放因子，在 FP32 中归约缩放后的平方和并计算缩放后的 epsilon。NaN/Inf 输入保留为 NaN，不允许通过 norm 掩盖后成为有效 token。
+- 验证：上述极值、普通宽度、多 head、原地与 padding 用例满足固定 `atol=2e-4, rtol=2e-4`；`ops_rms_norm_nonfinite_cannot_become_valid_token` 验证错误行返回 `-1`。11 项算子检查及 memcheck/racecheck/synccheck 均通过，见 `benchmarks/results/validation/cuda-ops/`。此项不表示完整 GPU 模型数值已通过。
+
+## ENG-039：FP16 舍入边界放大真实层的跨后端误差
+
+- 状态：已解决，限定于层级验证中连续误差与 FP16 边界误差的分离；不代表跨后端逐元素等价。
+- 影响：把受控算子的逐元素容差直接用于包含独立 GEMM、FP16 舍入和 FFN 的真实整层，会把舍入边界传播与算子实现错误混为一类；该测试失败不能被隐藏或视为整模型已通过。
+- 复现条件或证据：第 27 层、2 个 token、context=1，独立 CPU FP64 对照的最大误差为 `0.0018310546875`，RMSE 为 `0.0002094027128162679`。首个逐元素诊断为 `actual=0.43371963501 expected=0.434062957764 absolute=0.000343322753906 limit=0.000286812591553`。失败输出、实际源码快照和二进制身份保留在 `benchmarks/results/validation/cuda-layer/diagnostics/`。
+- 原因：V 投影的最大 FP32 差异为 `1.1444091796875e-05`，其中两个元素跨过 FP16 RN-even 的分界；context=1 的 attention 直接读取 V，差异成为 `0.001953125`，继续经过 output/FFN 投影。Q/K/V 的连续浮点误差与 FP16 离散化误差需要分别核对。
+- 解决方法或下一步：保留全部原始输入和独立整层对照，以预先固定的模型数值门槛检查真实层；额外使用实际 Q/K/V 作为共享输入，由独立 CPU FP64 计算 attention/FFN，以原 `atol=2e-4, rtol=2e-4` 检查该边界路径。受控 fixture、基础算子和 CPU 旧门槛不变，不修改产品数学实现来追逐某个舍入结果。
+- 验证：六组真实层的独立整层与共享 Q/K/V 对照均通过；基础算子和边界路径保持原容差。独立末层混合批最大绝对误差为 `0.12060546875`，最大 RMSE 为 `0.0033648982414092882`，满足固定模型门槛；三组末层不满足直接逐元素算子门槛的事实由 `max_unit_tolerance_ratio` 保留。四种构建共 741 次用例执行，设备与实模型层 memcheck 为 0 错误/0 泄漏，racecheck 为 0 hazards，synccheck 为 0 错误。完整 28 层及生成 token 仍需独立模型验证。
+
+## ENG-040：CUDA 模型元数据预分配缺少产品上界
+
+- 状态：已解决，限定于本阶段公开 CUDA 模型的 S/B 配置上界与初始化顺序。
+- 影响：公开模型配置若只限制 `batch_tokens <= INT_MAX`，五个 host metadata 数组会在 CUDA 显存计划检查前分配；极大参数可能耗尽 host 内存，不能依靠后续显存门禁保护。
+- 复现条件或证据：`CudaRuntime::Impl` 的 `ids/positions/slots/selected/output_ids` 成员先于 `CudaStorage` 构造。按 `INT_MAX` 个 I32、五个数组计算，请求约 40 GiB host 内存；本机 WSL 总内存约 7.4 GiB。该风险来自构造顺序复核，没有主动执行耗尽内存的试验。
+- 原因：设备矩阵维度的表示范围不等于本阶段公开模型的 batch 支持范围。
+- 解决方法：公开 `CudaRuntimeConfig` 明确 S<=4、B<=128；构造时先校验，再加载模型或分配 metadata。CLI 使用同一上界，不截断用户参数。内部矩阵和存储测试不据此缩小维度检查范围。
+- 验证：`runtime_initialization_failure_releases_resources` 使用不存在的模型路径和 B=129，首先得到配置 `std::invalid_argument`。8 项 Runtime 检查及其 memcheck/racecheck/synccheck 通过；四种构建共 749 次用例执行，S=1/S=4 的完整模型对照和 memcheck 通过。CLI 的 B=129 拒绝、设备预算拒绝及报告保护原始结果位于 `benchmarks/results/validation/cuda-model/`，没有执行 host 内存耗尽试验。
+
+## ENG-041：数值报告测试的参照参数与字段重名
+
+- 状态：已解决，限定于 Python 数值报告 fixture 的构造；不涉及 Runtime 或实模型数值。
+- 影响：前六项验证器检查通过后，自然生成 fixture 无法构造，不能据此验收输入漂移后的比较规则。
+- 复现条件或证据：`python3 tests/cuda_validation_report_tests.py` 返回 `TypeError: comparison() got multiple values for argument 'reference'`。原始输出、命令与失败 fixture 保留在 `benchmarks/results/validation/cuda-full/diagnostics/fused-reference/report-fixtures-initial.txt`、`report-fixtures-initial-command.json` 和 `fixture-reference-argument.py`。
+- 原因：fixture 的第二个位置参数名为 `reference`，报告身份字段也通过同名关键字传入，Python 在进入函数前拒绝重复赋值。
+- 解决方法：参照分数参数使用 `expected`，报告的 `reference` 字段继续表示 backend 身份。
+- 验证：`report-fixtures.txt` 记录 12/12 检查通过，包含自然生成首处分歧、历史输入漂移、伪造通过状态、精确门槛、传输计数和缺件不覆盖旧摘要；原始失败记录保留。
+
+## ENG-042：上游融合 attention 的 FP16 累加偏离数值参照精度
+
+- 状态：已解决，限定于全量数值参照的精度配置；原上游融合行为未修改，失败结果保留。
+- 影响：全部 11760 次 teacher-forcing 比较通过，但 1536 个重复 token 后的 32-token 续写有两处 F32 llama 参照 cosine 低于 `0.9999`；全量数值门禁返回失败。CPU、GPU 与该上游参照的输出 token 全部一致，不能用 token 一致掩盖 logits 超限。
+- 复现条件或证据：`repeated-l1536-g32` 的 step 6、position 1541，cosine 为 `0.999858573856455`；step 19、position 1554，cosine 为 `0.9998883358146589`。原始完整失败报告、源码、二进制身份和诊断位于 `benchmarks/results/validation/cuda-full/diagnostics/fused-reference/`，状态为 `completed_numeric_failure`。
+- 原因：固定 llama.cpp `911f6cdc8ab8a530b2bee09ee61471a6f3178eeb` 的 `ggml_compute_forward_flash_attn_ext_f16_one_chunk` 将 Q 转换为 FP16，并在 V 为 FP16 时使用 `VKQ16` 和 `ggml_vec_mad_f16` 累加。长上下文单 query 进入 split-KV 分支，调用同一实现；prefill 的 tiled 分支则使用 FP32 PV 缓冲。F32 权重或 graph 的 `GGML_PREC_F32` 标记不能保证该 CPU 分支实际采用 FP32 PV 累加。自有 CPU/CUDA 使用 FP32 累加，差异不应通过改变产品数学路径追随上游半精度累加。
+- 解决方法：全量测试的 F32 llama 参照显式关闭 FlashAttention，报告固定记录 attention 模式及 QK/PV 累加精度。checkpoint、FP16 KV、输入、线程和原有门槛不变；不修改上游源码。默认短模式保留已有参照配置，完整失败归档单独复核，不替换为成功记录。
+- 验证：诊断目录的 `reference-diagnostic/attention-reference.json` 固定重放同一 prompt 与续写输入，原 CPU、融合参照、GPU 的 96 个分数和摘要全部复现，仍出现原来的两处融合参照失败。仅切换上游 attention 模式后，32 步全部通过。主目录 `real-model/` 的独立全量采集完成 240 个组合和 12 组续写，12528 次比较全部通过，最小 cosine `0.9999865801437234`。`reference-mode-comparison.json` 确认 65 个产品源文件及冻结输入未变，两次采集的同一 GPU 路径 4444 个采样行、CPU 路径 524 个采样行摘要分别一致。四种构建共 807 次用例执行、CPU 模型 13/13 和 HTTP 8/8 通过；完整证据包与保留的失败包均在独立目录复核。
+
+## ENG-043：性能 workload 测试引用不存在的辅助头文件
+
+- 状态：已解决，限定于性能 workload 测试构建。
+- 影响：`minillm-cuda-benchmark-tests` 无法构建；Runtime 源码和既有数值证据不受影响。
+- 复现条件或证据：`cmake --build build/wsl-own-cuda --target mini-cuda-runtime-bench minillm-cuda-benchmark-tests --parallel 4` 返回 `tests/cuda_benchmark_tests.cpp:2:10: fatal error: test.h: No such file or directory`。
+- 原因：测试文件引用了 `test.h`，仓库实际提供的是 `tests/test_support.h`。
+- 解决方法：使用仓库现有 `test_support.h` 和 `TEST/CHECK` 接口。
+- 验证：两个 target 均构建成功；`ctest --test-dir build/wsl-own-cuda -R '^cuda-benchmark-workloads$' --output-on-failure` 通过，包含 5 项 workload、逐轮重建、自然生成、摘要与错误输出检查。
+
+## ENG-044：性能分析器使用超出环境版本的 Python 哈希接口
+
+- 状态：已解决，限定于分析器的 Python 3.10 兼容性。
+- 影响：分析器在读取固定输入摘要时退出，尚未执行报告数据和统计校验；实模型原始报告不受影响。
+- 复现条件或证据：`python3 scripts/analyze_cuda_benchmark.py --report .run/cuda-benchmark-first-gpu.json --input benchmarks/runtime-inputs/qwen3-cuda-v0.json` 返回 `AttributeError: module 'hashlib' has no attribute 'file_digest'`。
+- 原因：本机 Python 3.10 不提供 Python 3.11 才加入的 `hashlib.file_digest`。
+- 解决方法：使用 `hashlib.sha256` 和固定 64 KiB 流式读取，保持 SHA-256 与报告协议不变。
+- 验证：三个真实后端报告分别通过严格复核，各含 12 个 workload、585 次 forward；13 项 Python 报告与统计测试通过，包括流式文件摘要与原字节 SHA-256 一致性。
+
+## ENG-045：CLI 反例的输出路径与输入 fixture 重名
+
+- 状态：已解决，限定于 CLI 反例的文件命名。
+- 影响：13 项分析器测试通过后，CLI 拒绝用例读取不到预期失败报告的 `status`；产品的已有文件保护行为正常。
+- 复现条件或证据：`python3 tests/cuda_benchmark_validation_tests.py --executable build/wsl-own-cuda/bin/mini-cuda-runtime-bench` 在 `executable_preflight_guards` 中返回 `KeyError: 'status'`。
+- 原因：名为 `input` 的反例使用 `input.json` 作为输出路径，与已有输入 fixture 相同；可执行文件拒绝覆盖后，测试读取的是输入 recipe，而非失败报告。
+- 解决方法：反例输出统一使用 `rejected-<name>.json`，与输入和模型文件分离。
+- 验证：带真实 executable 的 14 项测试通过，四种构建的 CTest 共 875 次用例执行通过；失败输出与 fixture 保留于 `benchmarks/results/validation/cuda-benchmark/diagnostics/`。
+
+## ENG-046：仅按源码继承数值门禁不能约束编译差异
+
+- 状态：已解决，限定于模型性能采集的数值门禁继承。
+- 影响：源码未改变但编译器或编译选项改变时，若仍继承旧数值摘要，会把未经当前编译产物验证的性能报告误认为数值门禁已通过。
+- 复现条件或证据：性能采集器的源码继承检查只比较 `include/minillm/`、`src/minillm/` 文件摘要，Release/RelWithDebInfo 和其他编译选项可不相同。该风险来自预检代码复核；没有以修改浮点选项的实际模型运行冒充通过。
+- 原因：相同源码不等同于相同机器码或浮点计算行为。
+- 解决方法：采集前重建 `minillm-cuda-model-tests`，要求其 SHA-256 与完整数值验收记录一致，并在每个进程前后检查未变；离线分析交叉核对归档数值环境与 manifest 中的编译身份。不同构建需重新建立数值验收。
+- 验证：真实预检通过；当前完整模型测试摘要为 `4b31b3d60cf3b5d79fcbec054a234ad273eee67a03d661a7a40bde2ea08c518f`，与完整数值归档相同。仅修改数值环境记录中的二进制摘要时，采集器在模型执行及输出目录创建前返回 1；离线完整合成包也拒绝身份不符。四组 CTest 共 875 次用例执行通过，见 `benchmarks/results/validation/cuda-benchmark/final-preflight/`、`negative-numerical-binary.txt` 与 `revalidation.json`。
+
+## ENG-047：模型基准的数值归档位置固定为旧目录
+
+- 状态：已解决，限定于模型基准 manifest 的数值来源定位。
+- 影响：使用 `NumericalDirectory` 指定其他有效数值归档时，二进制与源码检查仍针对实际目录，但 `numerical_evidence.repository_path` 指向旧归档，影响证据追溯。
+- 复现条件或证据：`dcb07b7` 的 `scripts/Benchmark-CudaRuntime.ps1` 接受 `NumericalDirectory`，该 manifest 字段却固定为 `benchmarks/results/validation/cuda-full`。当前完整数值复验位于 `benchmarks/results/validation/cuda-micro/real-model`，其模型测试二进制摘要为 `fb9dc71c05a44f19eec764ada02d9a9a6918c89327dd65228ce268f23b213f34`，不能由旧目录的编译身份替代。
+- 原因：来源字段没有使用已解析的数值归档参数。
+- 解决方法：使用 `[IO.Path]::GetRelativePath` 记录实际归档相对仓库根目录的位置；默认目录与当前完整数值证据一致。源码集合与模型测试二进制的继承条件保持不变。
+- 验证：`benchmarks/results/validation/cuda-micro/model-preflight/manifest.json` 指向当前数值根目录，记录的编译摘要与独立全量复验一致；预检返回 0，没有启动 70 进程性能采样。四种构建共 50 项 CTest、926 次用例执行，以及 12528 次完整数值比较通过。
+
+## ENG-048：微基准存在顺序相关差异与离散长样本
+
+- 状态：已记录，受控归因尚未完成；不作为已解决的性能问题。
+- 影响：仅以单轮或最短区间描述小算子延迟会明显偏乐观；微基准不能据此证明模型加速、测量稳定或没有退化。
+- 复现条件或证据：`benchmarks/results/cuda-micro-baseline/summary.json` 中，`matrix-Q-m1` 的五个独立 trial device 区间均摊值依次为 `37.664/10.240/37.369/10.656/37.792` 微秒；三个正序 trial 与两个逆序 trial 分组一致。`rope-query-m1-p1535` 的 trial 值为 `6.275/6.457/6.912/16.960/6.937` 微秒。375 个用例中有 48 个用例的相对 MAD 超过 10%；该统计不是模型 A/A 协议的噪声带。
+- 原因：尚未确定。当前区间包含 host 提交空隙，未锁频、未固定 affinity，且只有进程边界环境；现有证据不能区分热状态、库内部执行选择与提交间隙。
+- 解决方法或下一步：保留五轮全部 warmup、测量、初始化和验证记录，不修改冻结的重复次数或筛除慢样本。完整模型 Nsight 与选定 kernel 的 NCU 已提供执行诊断；若继续研究此问题，须单独控制顺序、提交间隙和热状态，不能用单次 Profiler 替代模型 A/A 的独立 70 进程协议。
+- 验证：五个独立进程的 9375 个样本均通过数值、输出一致性和传输/分配检查，375 个用例全部保留。`benchmarks/results/cuda-model-profiler/` 通过完整模型时间线与选定 PV kernel 检查，但未隔离 Q 投影顺序效应或 RoPE 长样本的原因，未宣称性能问题已消失。
+- 精度研究证据：`03492ca` 的 `.run/cuda-precision-001/micro/` 中，Q/M=1 的 F32
+  cast-inclusive host 区间三轮为 `38.095/10.787/40.148 us`，候选为
+  `16.829/16.334/17.333 us`；逆序 trial 的候选退化 51.42%，gate/M=1 退化 35.50%。
+  六进程数值及数据路径全部通过，不改变顺序、不追加 trial；M128 的结果支持进入模型验证，
+  但未隔离小 M 顺序效应的原因，本问题仍保持已记录。
+
+## ENG-049：模型基准遗漏同后端 A/A 与跨 trial 输出一致性
+
+- 状态：已解决，限定于同后端、同 workload 的全部进程输出门禁。
+- 影响：单进程内部一致、局部异构配对一致，不能保证 A/A 与不同 trial 的同后端输出一致；错误输出可能进入统计分析。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/same-backend-regression/` 使用真实 70 进程归档副本，将 `prefill-16` 的输出 `37852` 改为 `37853`，同步修改每次 repetition 的 sample 和 token 数组，并更新报告摘要。分别改变一个 A/A 进程，以及同一异构 trial 的四个进程，旧分析器均返回 0。
+- 原因：`analyze_pairs` 只核对单进程重复与同一异构 trial 的两个同后端进程，没有统一覆盖全部 A/A、trial 和对照组。
+- 解决方法：按 `(backend, workload)` 约束全部 audited reports 的 token 数组一致；跨后端差异继续保留 `correctness_followup_required`，不改变统计公式、容差或原始采集身份。
+- 验证：带真实 executable 的 16/16 分析器检查通过；上述两类真实归档反例被当前分析器以同后端输出不一致拒绝，退出码均为 1。原始 70 份报告通过新检查，统计仍为 `measurement_inconclusive`，原始文件与副本已有文件均未被分析器改写。原 `verify.py` 和源码 ZIP 保留，独立复核使用当前分析器。
+
+## ENG-050：Profiler 草稿使用了不匹配的传输枚举名称
+
+- 状态：已解决，限定于 Nsight SQLite 传输枚举及完整模型数据路径复核。
+- 影响：使用 `HtoD`、`DtoH` 识别 Nsight SQLite 传输类型，会拒绝真实导出；使用同样缩写的合成 fixture 不能发现这一格式错误。
+- 复现条件或证据：只读查询既有 `.run/nsys-cuda.sqlite` 的 `ENUM_CUDA_MEMCPY_OPER`，id=1 为 `Host-to-Device`，id=2 为 `Device-to-Host`；初始临时草稿使用缩写。该发现发生于正式工具采集前。
+- 原因：合成 fixture 和实现共享了未经真实 schema 核对的枚举假设。
+- 解决方法或下一步：分析器及 fixture 使用真实标签，必需表检查包含枚举表；对完整模型的实际 SQLite 再核对传输、全部 28 层和 585 次 forward。
+- 验证：Profiler 的 14/14 确定性测试通过。`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/symbol-revalidation.json` 对真实 SQLite 完成 585 次 forward、368610 次 kernel、单项目 stream 的检查，各 forward 的传输和 28 层顺序均满足契约。该初始采集的 NCU 名称问题单独记录于 `ENG-054`，不将单项格式验证冒充完整包已通过。
+
+## ENG-051：正式模型基线的部分 A/A 噪声超过门槛
+
+- 状态：已记录，测量不确定项保留。
+- 影响：24 项 CPU/CUDA 比较中有 10 项的噪声带超过 10%，不能对这些用例宣称加速或没有退化，也不能将整轮统一标为稳定性能验收。
+- 复现条件或证据：`benchmarks/results/cuda-model-baseline/summary.json`、`analysis.md` 保留完整 70 进程和五个独立 trial。CPU8 对照有 3 项、CPU16 对照有 7 项为 `measurement_inconclusive`；CPU16 的 `prefill-16` 噪声约 23.06%，`prefill-128` 的比较噪声约 18.83%。其余 14 项按冻结规则判为 `faster`，没有删除不确定项。
+- 原因：尚未确定；未锁频、未固定 affinity，现有环境记录只有进程边界。不能仅凭时间差将波动归因于某一种硬件或提交机制。
+- 解决方法或下一步：保留本轮全部原始样本与噪声判定，正确性和数据路径单独验收；外部 Profiler 仅作诊断，不替换无 Profiler 基线或事后改变门槛。
+- 验证：70 个进程退出码均为 0，289 个必需原始产物通过复核；同后端 token 一致性及传输、分配、内存门禁通过。整体状态保持 `measurement_inconclusive`，不将测量不确定写成已解决。
+
+## ENG-052：辅助进度查询不兼容高精度 UTC 时间戳
+
+- 状态：已解决，限定于只读进度估算；不涉及模型报告或正式统计。
+- 影响：辅助查询无法计算剩余墙钟时间；采集进程、原始时间戳和模型主指标不受影响。
+- 复现条件或证据：Python 3.10 的 `datetime.fromisoformat` 读取进程记录时报告 `ValueError: Invalid isoformat string: '2026-09-26T03:01:20.6366121Z'`；时间戳来自 PowerShell/.NET 的 UTC round-trip 格式。
+- 原因：辅助查询采用的 Python 接口不能直接接受该高精度 `Z` 格式，没有沿用采集工具的日期解析接口。
+- 解决方法：只读进度查询使用 PowerShell 的 `[datetimeoffset]::Parse`；正式性能统计继续读取原有整数纳秒字段，不转换或改写原始时间戳。
+- 验证：2026-09-26 12:39 的查询返回 `collecting`、23 个完成进程、失败 0，分组计数 CPU8=7、CPU16=8、CUDA=8，与采集状态一致。辅助墙钟估算不作为性能验收数据。
+
+## ENG-053：异步输出复制的返回值污染 PowerShell 进程记录
+
+- 状态：已解决，限定于 Profiler 子进程包装函数的单一返回记录和输出保护。
+- 影响：Profiler 预检无法取得工具版本进程的 `exit_code`，GPU 采集尚未启动；既有模型基线和 CPU 回归不受影响。
+- 复现条件或证据：初次预检报告 `The property 'exit_code' cannot be found on this object. Verify that the property exists.`。`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/diagnostics/profiler-process/` 保留旧采集脚本、实际工具输出及进程 JSON；两个进程记录均为两个空对象加一份有效字典。新测试加载旧包装函数时稳定报告“进程包装函数必须只返回一份记录，实际返回 3 个对象。”
+- 原因：PowerShell 动态调用 `CopyToAsync(...).GetAwaiter().GetResult()` 时，返回的空任务结果进入函数输出管道，与末尾进程字典合并为数组。
+- 解决方法：显式丢弃两次等待操作的返回值，只返回进程字典。`cuda-profiler-process` 直接加载包装函数，检查非零退出码、两路大于管道缓冲区的完整输出、环境白名单及已有文件保护，不启动模型或 NVIDIA 工具。
+- 验证：旧函数在同一回归中返回 1，当前函数 2/2 检查通过；第二次真实 Profiler 预检通过，Nsight Systems 为 `2026.1.3.425`、Nsight Compute 为 `2025.1.1.0`。完整模型 Profiler 的验收仍单列。
+
+## ENG-054：NCU 名称简化丢失匿名命名空间前缀
+
+- 状态：已解决，限定于 NCU 原始符号输出与 NSys kernel 身份关联；新采集的完整包验收单列。
+- 影响：五个完整模型诊断进程均正常结束，但初次归档复核报告 `NCU 结果不是选定的项目 PV kernel`，不能发布 Profiler 通过摘要。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/` 保留 run `20260926T074302Z-0754722511b9-39994130` 的原始报告、源码、命令、时间线和失败输出。NCU CSV 将名称显示为 `unnamed>::pv_kernel(DeviceTensorView<const unsigned short>, KvShape, unsigned long, unsigned long, DeviceTensorView<const int>, DeviceTensorView<const int>, unsigned long, DeviceTensorView<float>, DeviceTensorView<float>, int *)`，而 NSys 保留完整的 `minillm::cuda::<unnamed>::pv_kernel` 名称。
+- 原因：NCU 默认启用 demangled name 简化；`--kernel-name-base` 控制匹配规则，不控制输出，单独改变该选项不能恢复显示身份。
+- 解决方法：采集时关闭自动重命名，导出使用 `--print-kernel-base mangled --rename-kernels 0`。分析器要求 CSV 中的原始符号与 NSys 选定项目 PV kernel 的 `mangledName` 精确相等，并继续检查设备、launch 形状、调用序号和单位，不使用宽松后缀匹配。
+- 验证：同一原始 `ncu.ncu-rep` 的受控重导出通过原始符号关联，旧简化名称仍被拒绝；`symbol-revalidation.json` 记录没有重新执行 GPU。14/14 Profiler 测试通过，包含简化名称和错误 kernel 拒绝。初次采集保持独立身份，当前采集入口和复核器使用同一固定符号协议。
+
+## ENG-055：完整包导出示例遗漏必需目录参数
+
+- 状态：已解决，限定于完整包导出示例及五组件参数完整性。
+- 影响：仅传入 `--export` 的示例无法执行导出；参数检查发生在文件生成前，未覆盖现有证据。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/export-missing-arguments.txt` 保留 `导出必须指定 model、micro、numerical、profiler、validation 目录` 诊断。
+- 原因：文档示例将组件定位误当默认参数；实际接口要求调用者显式选择五类证据来源。
+- 解决方法：示例和调用均列出五个组件目录，不修改导出器的必需参数规则。
+- 验证：`benchmarks/results/cuda-vs-001/export.json` 记录五组件完整包成功导出，独立目录复验退出码为 0；ZIP 为 56872322 字节、1050 个文件，SHA-256 为 `a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c`。`revalidation.json` 记录迁移通过、五项反例拒绝和原 ZIP 不变。
+
+## ENG-056：完整包白名单遗漏 Git 字节保护元数据
+
+- 状态：已解决，限定于精确文件白名单及完整包工具身份绑定。
+- 影响：微基准和数值归档中的 `.gitattributes` 被拒绝，阻止完整封包；该文件用于保护原始文本字节，不是模型、编译产物或凭据。
+- 复现条件或证据：`benchmarks/results/validation/cuda-profiler/diagnostics/export-attributes-rejected.txt` 保留 `.gitattributes` 未登记类型诊断；文件内容为 `*.txt -text whitespace=-blank-at-eol,-blank-at-eof`。
+- 原因：文件闭合检查仅按扩展名列举允许类型，未包含这一无扩展名的 Git 元数据；完整包工具身份原先还与 Profiler 采集时的工具副本耦合。
+- 解决方法：精确允许 `.gitattributes` 文件名，模型权重、二进制和符号链接继续拒绝。完整包工具由独立工具验收源码绑定，Profiler 仍由其自身采集源码绑定，旧源码、样本和报告不改写。
+- 验证：回归覆盖 `.gitattributes` 保留和禁用类型拒绝；最新四构建共 62 套 CTest、1034 次用例执行通过。`benchmarks/results/cuda-vs-001/export.json` 与 `revalidation.json` 记录完整包导出和迁移通过，五项缺件或语义反例均被拒绝；原始组件文件和完整 ZIP 不变。
+
+## ENG-057：中文子进程诊断依赖主机默认编码
+
+- 状态：已解决，限定于测试对子进程输出的 UTF-8 契约。
+- 影响：Windows CI 的 `cuda-validation-report` 与 `cuda-benchmark-validation` 失败；缺件本身被正确拒绝，但测试不能准确读取中文诊断。
+- 复现条件或证据：提交 `5a4508d` 的 GitHub Actions run `36231354762`，`unit (windows-2025)` 的这两个测试在断言 `"缺少证据" in result.stderr` 时报告 `AssertionError`。设置 `PYTHONIOENCODING=cp1252:backslashreplace` 后，WSL 和 Windows 原生 Python 均复现同一断言失败。
+- 原因：Python 子进程的标准错误编码与父进程 `subprocess.run(text=True)` 的默认解码均受主机环境影响；非 UTF-8 编码会将中文转义或错误解码。CUDA 可执行文件输出 UTF-8 时也不能由父进程默认区域编码解码。
+- 解决方法：测试只对子 Python 进程指定 `PYTHONIOENCODING=utf-8`，读取端显式严格使用 `encoding="utf-8"`；同类微基准和 CUDA CLI 测试沿用同一字节契约。不改变父进程环境、错误判定、数值门槛或统计协议。
+- 验证：WSL 的 `cp1252` 环境下三个相关 CTest 全部通过，共 37 次用例执行；四构建 CTest 共 62 套、1034 次用例执行通过。原生 Windows 的数值报告 13/13、微基准 9/9 在默认编码与 `cp1252` 下均通过，模型基准的目标编码断言两种环境均通过；本机完整模型基准套件受 `ENG-059` 限制，不计为通过。提交 `a0a6214` 的 CI run `36232341864` 全部五个任务通过，包含 Windows 完整基准套件；五份原始 JUnit 共 63 套、1185 次用例执行，位于 `benchmarks/results/ci/a0a6214/`。本机结果和原始失败记录位于 `benchmarks/results/validation/windows-ci/`，旧模型归档及采集身份保持不变。
+
+## ENG-058：CPU Runtime 缺少直接包含的 array 头文件
+
+- 状态：已解决，限定于 MSVC 所需的标准头文件完整性。
+- 影响：Windows 的 `minillm_runtime` 无法编译，产品 CTest 尚未执行；Linux 构建通过不能替代此项兼容性验收。
+- 复现条件或证据：提交 `5a4508d` 的 GitHub Actions run `36231354762`，`cpu-product (windows-2025)` 在 `src/minillm/runtime.cpp:182` 报告 `error C2079: 'seen' uses undefined class 'std::array<bool,256>'`，随后出现两条 `error C2109: subscript requires array or pointer type`。
+- 原因：`Runtime::Impl::forward` 使用 `std::array`，实现文件未直接包含 `<array>`；GCC 环境的传递包含不能保证 MSVC 也提供完整定义。
+- 解决方法：在 `src/minillm/runtime.cpp` 直接包含 `<array>`，不改动模型数学、KV 状态或执行流程。
+- 验证：四种本地构建及其 62 套 CTest 全部通过；CPU 实模型 13/13、HTTP 8/8 通过，HTTP 检查结束时活动与等待请求均为 0，临时服务已退出。提交 `a0a6214` 的 CI run `36232341864` 中，Windows 产品编译与 15/15 CTest 通过，完整五任务均通过；原始记录位于 `benchmarks/results/ci/a0a6214/`。本地源码快照的 144 个文件与该提交一致，但仍保留采集时的 `5a4508d` dirty 身份；不将旧二进制的性能或完整 CUDA 数值记录重新归属于本次源码。
+
+## ENG-059：本机 Windows 进程不能创建测试所需的符号链接
+
+- 状态：已记录，本机权限限制尚未改变。
+- 影响：从 WSL 调用本机非提权 Windows Python 时，模型基准的完整测试套件在创建符号链接反例处中止；不能据定向编码检查宣称该完整套件已通过。
+- 复现条件或证据：Windows Python `3.10.11` 执行 `tests/cuda_benchmark_validation_tests.py`，`duplicates_and_path_escapes_are_rejected` 的 `Path.symlink_to` 报告 `OSError: [WinError 1314] 客户端没有所需的特权。`。默认编码和 `cp1252` 运行均遇到相同权限限制。
+- 原因：当前 Windows 进程没有创建符号链接所需的权限；该限制发生在编码断言之前，与归档验证器拒绝符号链接的行为不同。
+- 解决方法或下一步：保留完整测试与失败记录，不跳过符号链接门禁，不自行修改主机权限。编码修复使用原生 Windows 的定向函数检查；完整套件继续在已有权限的 Windows CI 中执行。
+- 验证：本机定向调用 `preflight_and_publication_failure_preserve_previous_outputs` 在两种编码环境均通过；CI run `36232341864` 的 Windows 两个任务均完成完整套件，符号链接反例没有被跳过。本机失败输出与定向结果保留在 `benchmarks/results/validation/windows-ci/native-windows/`，本机权限问题仍未标为已解决。
+
+## ENG-060：CUDA poisoned 状态与 Serving 清理契约不兼容
+
+- 状态：已解决，限定于 adapter/Engine 清理契约；GPU HTTP 验收单列。
+- 影响：在 `ModelRunner::clear_sequence() noexcept` 内直接转调 poisoned Runtime 的 clear 会终止进程；若吞掉异常，可能误报资源已回收并复用故障槽。
+- 复现条件或证据：`CudaRuntime::forward` 的 post-launch 失败调用 `BatchState::poison()`；`BatchState::clear` 拒绝非 ready，诊断为 `CUDA KV 只能在 ready 完成点清理，不能清除 poisoned`。Engine 的错误收尾遍历 active requests 调用 noexcept clear。
+- 原因：Runtime 的设备状态隔离与原 Serving 清理接口没有共同的失效状态表达；旧资源字段只提供页数和载荷。
+- 解决方法或下一步：adapter 通过 `state_valid/reusable` 传递异常清理状态；poisoned 时跳过 clear，Engine fail-stop 并归还逻辑信用，resident allocation 保留到 owner 析构。整批样本校验在任何 token 发布之前完成。
+- 验证：自有 CUDA 22/22、CPU 15/15、独立核心 11/11 CTest 通过；`unit` 覆盖 admission/finish/synchronize 清理失败、整批样本拒绝、单终态与逻辑信用归还，`cuda-serving` 的五项真实 GPU 小模型检查包含受控 post-launch failure、隔离与 owner 释放。CPU 实模型 13/13、HTTP 8/8 通过。JUnit 位于三种构建的 `cuda-serving-contract.xml`；本阶段尚不宣称真实 Qwen3 GPU HTTP 已验收。
+
+## ENG-061：临时启动会话结束后独立 HTTP 检查无法连接
+
+- 状态：已记录，临时执行会话的生存期限制；退出信号尚未捕获。
+- 影响：通过一次性 `pwsh -File Start-LLMServe.ps1` 启动并等待其退出，再从另一执行会话检查 HTTP，不能保证原服务继续存活；空 telemetry 文件不构成完整证据。
+- 复现条件或证据：`.run/server-8121.json` 记录 PID `13210` 已通过 readiness；stdout 为 `LLMServe minillm-cuda http://127.0.0.1:8121`。启动会话退出后，`ps` 无该进程、`ss` 无该端口，`.run/cuda-serving-http-integration.json` 报告 `tests/http_tests.cpp:21: result && result->status == 200`，对应 JSONL 为空。
+- 原因：现象与非交互启动会话结束相关；没有 CUDA backend_error 或进程退出信号证据，不将其归因为 CUDA 数学或 KV 故障。
+- 解决方法或下一步：WSL 使用前台 `serve`，或在同一控制会话内完成启动、HTTP 检查与正常停服；独立守护部署不属于本阶段。不新增后台进程管理框架。
+- 验证：同一自有 CUDA 产品经 `bash scripts/dev.sh own-cuda check-http 8121` 完成 HTTP 8/8；backend 为 `minillm-cuda`、上游 `GGML_CUDA=OFF`，请求结束后 active/outstanding/live tokens 均为 0、resident KV 为 939524096 字节，脚本正常回收服务。原始连接失败仍保留，临时启动会话问题未标为已解决。
+
+## ENG-062：空闲 Engine 停机谓词未与条件变量共用互斥锁
+
+- 状态：已解决，限定于停机谓词的丢失唤醒窗口；旧超时的唯一根因尚未确认。
+- 影响：停机通知可能落在模型线程检查谓词之后、登记等待之前，导致 join 等不到线程退出；原子变量本身不能消除条件变量的丢失唤醒窗口。
+- 复现条件或证据：`f88886e` 的 CI run `36241363029` 中，Windows/Linux 普通构建四任务通过，sanitizers 的 `unit` 在 30.03 秒超时，未提供 ASan 越界或栈报告。原始 JUnit 与日志位于 `.run/cuda-serving-001/diagnostics/ci-f88886e/`。本机新增 256 次空闲启动/停止用例后，五次有界复验全部通过，未再次复现旧超时。
+- 原因：`Engine::Impl::stop()` 原先在 `mutex` 外更新等待谓词并通知；该同步窗口由代码确认，但没有旧 CI 线程栈可将那次超时唯一归因于此处。
+- 解决方法或下一步：在同一 `mutex` 下设置 stopping，解锁后通知并 join；增加空闲停机回归，并即时刷新核心测试进度以定位未来超时。不放宽 30 秒门禁。
+- 验证：修正后五种构建共 74/74 套 CTest 通过；ASan/UBSan 的 unit 连续五次通过，每次包含 256 次空闲停机。CPU/自有 CUDA HTTP 各 12/12、CPU 实模型 13/13 通过，原始记录位于 `.run/cuda-serving-001/validation/` 和各构建的 `cuda-serving-final.xml`。候选 `b1ced89` 自身的 CI run `36242754913` 五任务全部通过；旧 `f88886e` 保持 4/5，不继承新候选结果。
+
+## ENG-063：prefill_first 的长停顿与部分请求未达固定 SLO
+
+- 状态：已记录，策略取舍和未达标结果保留；不作为 M3-1 接入阻塞。
+- 影响：mixed-length 的 prefill_first 每轮有 2/24 请求未达 TTFT≤1000 ms 的实验目标；burst-reuse 虽满足 mean TPOT≤100 ms，仍出现最长 466.71 ms 的单 token 停顿。不能将请求全部成功或均值达标解释为无长停顿。
+- 复现条件或证据：`benchmarks/results/cuda-serving-001/protocol.json` 固定两条 trace、SLO、三轮顺序及 12 进程预算。`summary.json` 保留所有逐轮指标；完整 raw 由同目录 `evidence.json` 定位。mixed-length 的 prefill_first P95 TTFT 三轮为 1050.65、1049.31、1072.67 ms，最大 ITL 为 333.40、340.46、333.00 ms。
+- 原因：`src/scheduler.cpp` 的 prefill_first 在仍有 prefill 时不安排 decode；该策略的正式采集中 mixed batch 均为 0。mean TPOT 把长停顿分摊到整个输出序列，不能替代最大 ITL。突发负载吞吐还受固定到达间隔影响。
+- 解决方法或下一步：保留 mixed 默认策略与 prefill_first 对照，不更改 SLO 或负载、不补跑挑选结果。后续策略优化需另行满足 M3-2 的单项研究进入条件。
+- 验证：12 个正式进程的 288 请求全部成功、9216 token 跨轮次一致；SLO 未达标请求没有删除。burst-reuse 吞吐差异约 0.28% 且配对方向不稳定，保持 `measurement_inconclusive`。单次 NSys 的 batch/显式传输/单 stream 检查通过，不外推为通用策略加速。
+
+## ENG-064：停服时监听关闭早于 SSE 终态写出
+
+- 状态：已解决，限定于已接纳响应的有界停服排空；不保证已断连客户端收到终态。
+- 影响：已接纳的活动或排队请求可能在停服时收到不完整的 chunked response，
+  缺少唯一终态或 `[DONE]`。这是 HTTP 生命周期问题，不是 FP16 数值或调度优化。
+- 复现条件或证据：2026-09-28 的
+  `.run/cuda-precision-001/contract/cpu-http.json` 在前 11 项通过后报告
+  `tests/http_tests.cpp:109: response && response->status == 200 && output.done == 1 && output.terminal == 1`。
+  对应源码快照、二进制和报告摘要保存在
+  `.run/cuda-precision-001/contract/diagnostics/cpu-http-shutdown/`。
+  固定依赖 `911f6cdc8ab8a530b2bee09ee61471a6f3178eeb` 的 checkout 干净；
+  `httplib::Server::write_content_with_provider()` 以监听 socket 无效作为退出条件。
+  首次修复复验 `.run/http-shutdown-drain/cpu-http.json` 在
+  `tests/http_tests.cpp:393: marker && active_and_queued` 失败；
+  该次未建立活动与排队并存的前提，不计作终态排空通过或失败。
+- 原因：原停服路径在 `engine.stop()` 后立即调用 `server.stop()`。
+  Engine 完成逻辑终态入队不代表 HTTP worker 已发出终态和 chunked 结束帧；
+  关闭监听会让尚未完成的 provider 提前退出。初次失败未保存各 socket 的错误详情，
+  不据此声称排除了所有其他传输故障。
+- 解决方法或下一步：停止接纳新的 completion，沿用 Engine 停机；用响应租约等待
+  已接纳的 SSE response 释放后关闭监听。等待上限为 6 秒，超过时记录诊断后执行关闭，
+  不无限等待慢客户端。不改变 token 数学、KV、scheduler、依赖或精度默认值。
+  HTTP 验证保留每个停服请求的 transport/error/终态信息，不放宽完整流判定。
+  停服测试逐个确认请求已被 Engine 接纳，仍要求最终有原定数量的活动与排队请求；
+  保留触发停服时的完整资源快照，避免只记录没有上下文的布尔断言。
+- 验证：独立修复分支的自有 CUDA、CPU、上游 CUDA 构建通过，三份 CTest 共
+  52/52 套、926 次用例执行通过。三个后端的真实 HTTP 各 12/12，通过停服的
+  10/6/10 个请求均有一个取消终态与一个 `[DONE]`；服务进程正常退出，
+  三份服务日志均没有排空等待超时。源码、二进制、模型与结果摘要记录在
+  `.run/http-shutdown-drain/verification.json`，初始失败与前提未建立的记录均保留。
+  本组不产生 FP16、吞吐或延迟改善结论。
+
+## ENG-065：精度存储测试的命名空间歧义
+
+- 状态：已解决，限定于新增 CUDA 存储测试的编译。
+- 影响：新增存储测试无法编译，阻止底层 F16 路径验收。
+- 复现或证据：`cmake --build build/wsl-own-cuda --parallel 4` 返回
+  `tests/cuda_storage_tests.cpp:411:38: error: reference to ‘detail’ is ambiguous`。
+- 原因：测试同时引入 `minillm` 与 `minillm::cuda`，两者均有 `detail`。
+- 解决方法：对 CUDA `read_only` 使用完整命名空间，不改变数值门槛或产品执行。
+- 验证：`.run/cuda-precision-001/matrix-boundary/final-build.log` 构建成功；
+  `final-ctest.xml` 的 22/22 套 CTest、376 次用例执行通过。
+  其中 storage 为 15/15，包含 scratch 输入组复用；storage memcheck 为 0 错误、0 泄漏。
+
+## ENG-066：精度反例依赖固定 tensor 下标
+
+- 状态：已解决，限定于精度反例的 tensor 定位。
+- 影响：新增 norm dtype 反例没有实际修改数据，测试报告未拒绝无效证据，阻止微基准验收。
+- 复现或证据：`python3 tests/cuda_micro_validation_tests.py --executable build/wsl-own-cuda/bin/mini-cuda-kernel-bench`
+  在 `precision_wrong_dtype_mirror_hash_and_cast_boundaries_are_rejected` 报告
+  `AssertionError: 无效 micro 证据未被拒绝`；尚未运行正式性能进程。
+- 原因：共享旧 fixture 的下标 1 是 F16 tied output，不是 norm；设为 F16 不改变数据。
+- 解决方法：按 `output_norm.weight`、`output.weight` 名称定位相应反例，不依赖 tensor 顺序。
+- 验证：带真实 executable 的微基准反例 13/13 通过；自有 CUDA 与 CPU 的
+  37/37 套 CTest、679 次用例执行通过，见 `.run/cuda-precision-001/micro-validation/`。
+
+## ENG-067：F16 矩阵路径的长续写 cosine 未达冻结门槛
+
+- 状态：未解决，Primary 按 `blocked_correctness` 停止性能推进。
+- 影响：候选不能晋升 Serving，也不满足 memory-only 成功条件；不执行后续正式模型与
+  Serving 性能实验。F32 默认模式保留。
+- 复现或证据：`.run/cuda-precision-001/model-validation/precision/precision-validation.json`
+  记录 48 配置的 840 行通过、12 组短 golden 完全一致；`generation-repeated`
+  在 1536-token prompt 后的 step=19，cosine 为 `0.9998858663580449`，
+  低于冻结的 `0.9999`。RMSE 为 `0.04454669974760739`，最大绝对误差为
+  `0.1838979721069336`。程序完整运行并返回 1，没有删掉失败样本。
+- 原因：同一固定输入轨迹下 F16 与原 F32 的 logits 偏差超过 cosine 门槛；
+  尚无逐层证据能唯一分解权重舍入、输入转换和误差传播的贡献，不假定是单一 kernel 错误。
+  全部 token 一致不等于数值通过，near-tie 也不豁免 cosine 检查。
+- 解决方法或下一步：保存完整失败 logits、源码和运行身份；停止该候选的性能推进，
+  不调整阈值、不更换 checkpoint、不自动回退。研究以负结果收束；
+  活跃路线按 `PLAN-V4-KV-20260928` 执行，不启动旧精度计划的融合备选。
+- 验证：独立 `math.fsum` 对保存的 151936 维向量重算 cosine 为
+  `0.9998858663580924`，确认不是原报告的舍入误差。
+  报告中的 2 次失败是同一行在自然续写与固定轨迹标签下的重复检查，不是两个独立失败。
+  原 F32 短模型回归 S1/S4 为 2/2，128 次 logits 对照和 6 组短 golden 通过；
+  不将这些通过项视作候选问题已解决。
+
+## ENG-068：槽复用证据字段误称逐位相等
+
+- 状态：字段已修正；原始证据按实际检查范围解释。
+- 影响：数值验证的槽复用报告原名 `reuse_bitwise_equal`，容易被误解为检查了浮点位模式。
+- 复现或证据：模型数值采集的源码快照中，`boundary_and_mixed` 使用
+  `execute(runtime,{short_batch}) == fresh`，即 `std::vector<float>` 逐值比较。
+  正负零等值但位模式不同的情况不会被这个断言拒绝。
+- 原因：报告字段的承诺强于执行断言；与使用 `memcmp` 的计时开关检查混淆。
+- 解决方法：字段使用 `reuse_values_equal`；保留原采集文件，并在精度研究中明确其范围。
+  不以修改字段重跑数值语料，也不改变 cosine 失败结论。
+- 验证：源码检查确认当前字段与逐值断言一致，timing 仍使用 `memcmp`；
+  原模型采集的逐值相等检查已通过，未据此声称原采集执行了逐位检查。
+
+## ENG-069：仓库发布规则与远端公开状态不一致
+
+- 状态：已解决，限定于当前发布规则与远端可见性的一致性。
+- 影响：`AGENTS.md` 的默认私有要求与公开交付文档冲突，导致已完成的本地提交暂未同步。
+- 复现或证据：`AGENTS.md` 曾要求 `Keep this repository private unless the user explicitly requests otherwise.`；
+  README 与 `docs/VERSION_CONTROL.md` 已声明公开，`ENG-030` 保留既有公开授权记录。
+  用户现明确要求“修正项目的全部私有约束，变成公开约束”。
+- 原因：执行指令中的默认策略未与公开发布决定同步，不是远端被本轮操作意外公开。
+- 解决方法：`AGENTS.md`、版本控制和产物政策统一要求保持 `PUBLIC`，允许按公开范围
+  同步源码、文档和合规证据；仍禁止发布凭据、模型权重、构建产物及本地运行状态。
+  历史记录与冻结源码快照不重写，也不作为当前约束。
+- 验证：`gh repo view --json nameWithOwner,visibility,isPrivate,url` 确认
+  `lilong555/mini-llm-runtime` 为 `"visibility":"PUBLIC"`、`"isPrivate":false`，
+  无需更改远端设置；当前执行规则与发布文档均采用公开策略。
+
+## ENG-070：默认分支展示与已完成的 GPU Serving 不一致
+
+- 状态：未解决，等待候选验收与用户审阅整合。
+- 影响：默认 README 不能展示现有自有 CUDA 模型与 Serving；旧基点也不包含已知
+  HTTP 排空修复。不能将 feature 分支能力表述为 main 已有能力。
+- 复现或证据：2026-09-29 的 `git fetch origin` 后，
+  `origin/main` 仍为 `68ac275913207975a88e2090c6617467e351301c`；
+  技术基点 `103070a` 包含 `57268f9`，其 CI run `36426140443` 五任务通过。
+- 原因：模型、Serving、排空修复与精度研究均在主题分支，尚未整合至默认入口。
+- 解决方法或下一步：独立整合候选保留 F32 默认、F16 Serving 拒绝与公开证据；
+  运行一次 token/SSE/排空检查，等待候选自身 CI 和用户审阅，不自动合并或移动标签。
+  `GPU-KV-001` 是唯一新增路线，尚未实现的分页不计作发布能力。
+- 验证：活跃入口指向 `PROJECT_PLAN_V4_KV.md` 与 `NEXT_SPEC_V3.md`，
+  两者 SHA-256 与用户提供文件一致；旧精度版 V4 摘要保持不变。
+  默认分支整合尚未发生，因此不标记已解决。

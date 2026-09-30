@@ -1,0 +1,12 @@
+{
+  "command": "bash",
+  "arguments": [
+    "scripts/dev.sh",
+    "check-http",
+    "8038"
+  ],
+  "started_at_utc": "2026-09-25T23:17:40.5333589Z",
+  "status": "passed",
+  "exit_code": 0,
+  "finished_at_utc": "2026-09-25T23:17:43.9126355Z"
+}

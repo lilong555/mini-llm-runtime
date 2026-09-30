@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "matched_commit": "a0a62146ec0cb26ef8c548ad7104884892adbed6",
+  "recorded_parent": "5a4508d6ace7777e39460675de9ed770fcb66d43",
+  "recorded_dirty": true,
+  "source_files": 144,
+  "source_snapshot_sha256": "e7c0c5112d88b169fb0feac0c2c467bb9c905926a813241f9e22801eaab9bd9a"
+}

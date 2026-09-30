@@ -1,0 +1,231 @@
+{
+  "S": 4,
+  "Lmax": 2048,
+  "B": 128,
+  "user_budget_bytes": 0,
+  "weight_payload_bytes": 2384199680,
+  "weight_arena_bytes": 2384199680,
+  "activation_bytes": 8912896,
+  "attention_bytes": 33554432,
+  "logits_bytes": 77791232,
+  "metadata_bytes": 3608,
+  "padding_bytes": 488,
+  "workspace_arena_bytes": 120262656,
+  "kv_reservation_bytes": 939524096,
+  "cublas_workspace_bytes": 4194304,
+  "total_bytes": 3448180736,
+  "free_at_gate_bytes": 7325351936,
+  "allowed_bytes": 5860281548,
+  "regions": [
+    {
+      "name": "hidden",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 0,
+      "bytes": 524288
+    },
+    {
+      "name": "normalized",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 524288,
+      "bytes": 524288
+    },
+    {
+      "name": "query",
+      "dtype": "F32",
+      "shape": [
+        128,
+        2048
+      ],
+      "offset": 1048576,
+      "bytes": 1048576
+    },
+    {
+      "name": "key",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 2097152,
+      "bytes": 524288
+    },
+    {
+      "name": "value",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 2621440,
+      "bytes": 524288
+    },
+    {
+      "name": "attention",
+      "dtype": "F32",
+      "shape": [
+        128,
+        2048
+      ],
+      "offset": 3145728,
+      "bytes": 1048576
+    },
+    {
+      "name": "projected",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 4194304,
+      "bytes": 524288
+    },
+    {
+      "name": "gate",
+      "dtype": "F32",
+      "shape": [
+        128,
+        3072
+      ],
+      "offset": 4718592,
+      "bytes": 1572864
+    },
+    {
+      "name": "up",
+      "dtype": "F32",
+      "shape": [
+        128,
+        3072
+      ],
+      "offset": 6291456,
+      "bytes": 1572864
+    },
+    {
+      "name": "down",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 7864320,
+      "bytes": 524288
+    },
+    {
+      "name": "selected_hidden",
+      "dtype": "F32",
+      "shape": [
+        128,
+        1024
+      ],
+      "offset": 8388608,
+      "bytes": 524288
+    },
+    {
+      "name": "scores",
+      "dtype": "F32",
+      "shape": [
+        128,
+        32768
+      ],
+      "offset": 8912896,
+      "bytes": 16777216
+    },
+    {
+      "name": "probabilities",
+      "dtype": "F32",
+      "shape": [
+        128,
+        32768
+      ],
+      "offset": 25690112,
+      "bytes": 16777216
+    },
+    {
+      "name": "logits",
+      "dtype": "F32",
+      "shape": [
+        128,
+        151936
+      ],
+      "offset": 42467328,
+      "bytes": 77791232
+    },
+    {
+      "name": "tokens",
+      "dtype": "I32",
+      "shape": [
+        128,
+        1
+      ],
+      "offset": 120258560,
+      "bytes": 512
+    },
+    {
+      "name": "positions",
+      "dtype": "I32",
+      "shape": [
+        128,
+        1
+      ],
+      "offset": 120259072,
+      "bytes": 512
+    },
+    {
+      "name": "slots",
+      "dtype": "I32",
+      "shape": [
+        128,
+        1
+      ],
+      "offset": 120259584,
+      "bytes": 512
+    },
+    {
+      "name": "selected_rows",
+      "dtype": "I32",
+      "shape": [
+        128,
+        1
+      ],
+      "offset": 120260096,
+      "bytes": 512
+    },
+    {
+      "name": "pending_lengths",
+      "dtype": "I32",
+      "shape": [
+        4,
+        1
+      ],
+      "offset": 120260608,
+      "bytes": 16
+    },
+    {
+      "name": "samples",
+      "dtype": "I32",
+      "shape": [
+        128,
+        3
+      ],
+      "offset": 120260864,
+      "bytes": 1536
+    },
+    {
+      "name": "status",
+      "dtype": "I32",
+      "shape": [
+        1,
+        2
+      ],
+      "offset": 120262400,
+      "bytes": 8
+    }
+  ]
+}

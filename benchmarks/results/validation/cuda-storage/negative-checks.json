@@ -1,0 +1,10 @@
+{
+  "reuse_exit_code": 1,
+  "reuse_rejected": true,
+  "existing_files_unchanged": true,
+  "wrong_model_exit_code": 1,
+  "wrong_model_rejected": true,
+  "failed_summary_not_passed": true,
+  "no_llama_configuration_exit_code": 1,
+  "no_llama_configuration_rejected": true
+}

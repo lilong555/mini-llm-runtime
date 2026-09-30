@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="8"
+	timestamp="2026-09-24T23:42:32"
+	>
+	<testcase name="unit" classname="unit" time="0.174568" status="run">
+		<properties/>
+		<system-out>[PASS] block_pool_allocation_is_atomic
+[PASS] block_pool_reference_counts_and_invalid_tables
+[PASS] block_pool_randomized_accounting
+[PASS] prefix_index_alignment_namespace_and_pruning
+[PASS] prefix_index_lru_and_full_hit_recompute
+[PASS] utf8_split_and_invalid_sequences
+[PASS] scheduler_mixed_budget_and_decode_protection
+[PASS] scheduler_prefill_first_and_aging
+[PASS] config_rejects_unprogressable_settings
+[PASS] half_conversion_all_finite_patterns
+[PASS] simd_float_and_half_dot_match_scalar
+[PASS] simd_half_value_accumulation_matches_scalar
+[PASS] simd_q8_dot_matches_dequantized_weights
+[PASS] rms_norm_in_place_and_simd
+[PASS] paged_kv_layer_layout_and_full_page_sharing
+[PASS] paged_kv_partial_tail_copy_on_write
+[PASS] paged_kv_exhaustion_does_not_corrupt_aliases
+[PASS] paged_kv_randomized_alias_append_and_reclamation
+[PASS] parallel_executor_exact_coverage_and_exception_recovery
+[PASS] parallel_profile_accounting_and_reuse
+[PASS] forward_profile_reserve_failure_clears_stale_success
+[PASS] engine_serial_batched_and_cached_outputs_agree
+[PASS] engine_mixed_batch_after_deterministic_request_injection
+[PASS] engine_cache_namespace_and_full_hit_recompute
+[PASS] engine_telemetry_links_mixed_batches_and_cached_tokens
+[PASS] engine_telemetry_overflow_preserves_output_and_reports_loss
+[PASS] engine_telemetry_backend_failure_is_incomplete
+[PASS] engine_context_validation_and_duplicate_ids
+[PASS] engine_bounded_queue_and_cancellation
+[PASS] engine_deadline_and_slow_consumer_reclaim_resources
+[PASS] engine_backend_failure_is_terminal_and_rejects_new_work
+[PASS] engine_prefix_copy_failure_has_one_terminal_and_no_reservation_leak
+[PASS] engine_missing_logits_is_a_backend_error
+[PASS] engine_small_kv_pool_evicts_and_makes_progress
+[PASS] engine_shutdown_terminates_queued_and_running_requests
+35/35 tests passed
+</system-out>
+	</testcase>
+	<testcase name="validation-contract" classname="validation-contract" time="0.0202684" status="run">
+		<properties/>
+		<system-out>[PASS] pinned_weights
+[PASS] golden_provenance
+[PASS] corpus_boundaries
+[PASS] measurement_boundaries
+4/4 tests passed
+</system-out>
+	</testcase>
+	<testcase name="telemetry-validation" classname="telemetry-validation" time="0.0291575" status="run">
+		<properties/>
+		<system-out>[PASS] batch-linked
+[PASS] stage-linked
+[PASS] missing-footer
+[PASS] missing-batch
+[PASS] duplicate-batch
+[PASS] buffer-overflow
+[PASS] incomplete-capture
+[PASS] backend-failure
+[PASS] incomplete-batch
+[PASS] boolean-integer
+[PASS] invalid-stage-mode
+[PASS] time-conservation
+[PASS] time-reversal
+[PASS] out-of-range-sequence
+[PASS] token-count
+[PASS] kv-context
+[PASS] physical-pages
+[PASS] resource-leak
+[PASS] no-client-token
+[PASS] wrong-client-token
+[PASS] wrong-client-time
+[PASS] reused-request-order
+[PASS] missing-runtime
+[PASS] missing-stage
+[PASS] runtime-time
+[PASS] matrix-shape
+[PASS] runtime-on-disabled
+27/27 tests passed
+</system-out>
+	</testcase>
+	<testcase name="benchmark-validation" classname="benchmark-validation" time="4.27278" status="run">
+		<properties/>
+		<system-out>[PASS] atomic-publication-rollback
+[PASS] native-port-detection
+[PASS] normal
+[PASS] policy-bundle-relocation
+[PASS] no-warmup
+[PASS] single-token
+[PASS] case-sensitive-ids
+[PASS] allowed-timeout
+[PASS] allowed-rejection
+[PASS] all-failed
+[PASS] fractional-arrival-scale
+[PASS] reversed-policy-order
+[PASS] arrival-scale-mismatch
+[PASS] invalid-arrival-scale
+[PASS] telemetry-mode-mismatch
+[PASS] missing-request
+[PASS] duplicate-request
+[PASS] unexpected-request
+[PASS] model-hash
+[PASS] model-provenance
+[PASS] wrong-warmup
+[PASS] wrong-arithmetic
+[PASS] server-binary
+[PASS] client-binary
+[PASS] config-difference
+[PASS] scheduler-config
+[PASS] token-mismatch
+[PASS] truncated-output
+[PASS] invalid-success-type
+[PASS] negative-token
+[PASS] token-timestamps
+[PASS] missing-done
+[PASS] duplicate-terminal
+[PASS] forged-throughput
+[PASS] forged-latency
+[PASS] undeclared-timeout
+[PASS] missing-output-reference
+[PASS] trace-hash
+[PASS] trace-fnv
+[PASS] manifest-hash
+[PASS] missing-variant
+[PASS] duplicate-report
+[PASS] missing-trial
+[PASS] changed-comparison
+[PASS] live-kv
+[PASS] missing-report-file
+[PASS] unexpected-report-file
+[PASS] source-snapshot-hash
+[PASS] missing-source-snapshot
+[PASS] corrupt-source-state
+[PASS] missing-manifest
+[PASS] stale-success
+[PASS] ctest-standard
+[PASS] ctest-benchmark
+[PASS] ctest-legacy-benchmark
+[PASS] ctest-legacy-wrong-suite
+[PASS] ctest-truncated
+[PASS] ctest-failed
+[PASS] ctest-count-mismatch
+[PASS] ctest-diagnostic-classification
+60/60 benchmark validation tests passed
+</system-out>
+	</testcase>
+	<testcase name="runtime-benchmark-validation" classname="runtime-benchmark-validation" time="3.59043" status="run">
+		<properties/>
+		<system-out>[PASS] valid
+[PASS] relocated
+[PASS] missing-source-snapshot
+[PASS] corrupt-source-state
+[PASS] bundle-export-relocation
+[PASS] bundle-tamper
+[PASS] bundle-missing-artifact
+[PASS] snapshot-entry-tamper
+[PASS] snapshot-empty-hash
+[PASS] artifact-traversal
+[PASS] missing-report
+[PASS] duplicate-report
+[PASS] missing-trial
+[PASS] binary-mismatch
+[PASS] model-mismatch
+[PASS] provenance
+[PASS] input-hash
+[PASS] manifest-hash
+[PASS] snapshot-hash
+[PASS] config
+[PASS] config-type
+[PASS] warmup
+[PASS] missing-workload
+[PASS] missing-sample
+[PASS] input-token
+[PASS] prefix-token
+[PASS] logits-hash
+[PASS] greedy-token
+[PASS] negative-wall
+[PASS] fractional-wall
+[PASS] KV-leak
+[PASS] KV-state
+[PASS] KV-resident
+[PASS] missing-stage
+[PASS] matrix-shape
+[PASS] parallel-grain
+[PASS] worker-time
+[PASS] overlapping-time
+[PASS] wrong-completed-type
+[PASS] profiling-off
+[PASS] stale-summary
+41/41 tests passed
+</system-out>
+	</testcase>
+</testsuite>

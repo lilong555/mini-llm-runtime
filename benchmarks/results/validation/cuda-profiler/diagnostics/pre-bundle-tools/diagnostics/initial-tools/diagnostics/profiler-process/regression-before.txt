@@ -1,0 +1,5 @@
+Exception: /home/li/code/mini-llm-runtime/tests/cuda_profiler_process_tests.ps1:31
+Line |
+  31 |          throw "进程包装函数必须只返回一份记录，实际返回 $($records.Count) 个对象。"
+     |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | 进程包装函数必须只返回一份记录，实际返回 3 个对象。

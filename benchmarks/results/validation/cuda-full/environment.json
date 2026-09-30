@@ -1,0 +1,30 @@
+{
+  "collected_at_utc": "2026-09-25T22:48:35.1036596Z",
+  "compiler": "g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n",
+  "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Fri_Feb_21_20:23:50_PST_2025\nCuda compilation tools, release 12.8, V12.8.93\nBuild cuda_12.8.r12.8/compiler.35583870_0",
+  "gpu": "name, uuid, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 4070 Laptop GPU, GPU-6384dbff-0d06-8bf5-2091-d53bc812d211, 591.74, 8188 MiB",
+  "powershell": "7.6.6",
+  "llama_commit": "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb",
+  "kernel": "Linux LAPTOP-GBFPGV8B 5.15.167.4-microsoft-standard-WSL2 #1 SMP Tue Nov 5 00:21:55 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux",
+  "full_validation_binary_sha256": "4b31b3d60cf3b5d79fcbec054a234ad273eee67a03d661a7a40bde2ea08c518f",
+  "full_validation_compile_commands": [
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DGGML_USE_CPU -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/ggml/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -isystem /usr/local/cuda-12.8/targets/x86_64-linux/include -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_model_tests.cpp.o -c /home/li/code/mini-llm-runtime/tests/cuda_model_tests.cpp",
+      "file": "/home/li/code/mini-llm-runtime/tests/cuda_model_tests.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_model_tests.cpp.o"
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DGGML_USE_CPU -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/ggml/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -isystem /usr/local/cuda-12.8/targets/x86_64-linux/include -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_full_validation.cpp.o -c /home/li/code/mini-llm-runtime/tests/cuda_full_validation.cpp",
+      "file": "/home/li/code/mini-llm-runtime/tests/cuda_full_validation.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/minillm-cuda-model-tests.dir/tests/cuda_full_validation.cpp.o"
+    },
+    {
+      "directory": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda",
+      "command": "/usr/bin/c++ -DGGML_USE_CPU -DMINILLM_HAS_AVX2=1 -I/home/li/code/mini-llm-runtime/include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/ggml/src/../include -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/nlohmann/.. -I/home/li/code/mini-llm-runtime/third_party/llama.cpp/vendor/hash/.. -O2 -g -DNDEBUG -std=c++20 -o CMakeFiles/minillm-cuda-validation-tests.dir/tests/cuda_validation_tests.cpp.o -c /home/li/code/mini-llm-runtime/tests/cuda_validation_tests.cpp",
+      "file": "/home/li/code/mini-llm-runtime/tests/cuda_validation_tests.cpp",
+      "output": "/home/li/code/mini-llm-runtime/build/wsl-own-cuda/CMakeFiles/minillm-cuda-validation-tests.dir/tests/cuda_validation_tests.cpp.o"
+    }
+  ]
+}

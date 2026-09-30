@@ -1,0 +1,26 @@
+{
+  "git_sha": "dcb07b7c179d9f9710b606fbf11b5ce33e9b40e9",
+  "git_dirty": true,
+  "scope": [
+    "CMakeLists.txt",
+    "AGENTS.md",
+    ".gitattributes",
+    ".gitignore",
+    "cmake",
+    "apps",
+    "include",
+    "src",
+    "scripts",
+    "tests",
+    ".github",
+    "models/manifest.json",
+    "models/reference-manifest.json",
+    "benchmarks/runtime-inputs"
+  ],
+  "state_file": "source-state.json",
+  "worktree_state_sha256": "ef819201b390cfa46677983e3291202cafec51757d857c183028aaa9b887832b",
+  "snapshot": {
+    "path": "source-snapshot.zip",
+    "sha256": "61f07cf1d67a4453e8f1749ff00e7d9807457e04bddbdb73a173d3486b85abcc"
+  }
+}

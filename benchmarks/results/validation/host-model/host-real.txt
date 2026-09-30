@@ -1,0 +1,15 @@
+[PASS] host_model_tied_output_and_dimensions
+[PASS] host_model_separate_output_owns_its_view
+[PASS] host_model_rejects_architecture_and_invalid_dimensions
+[PASS] host_model_rejects_attention_norm_and_rope_configuration
+[PASS] host_model_rejects_each_matrix_and_norm_shape
+gguf_init_from_file: failed to open GGUF file '/tmp/gguf-test-host-36925704605697/0.gguf.missing' (No such file or directory)
+llama_model_load: error loading model: llama_model_loader: failed to load model from /tmp/gguf-test-host-36925704605697/0.gguf.missing
+llama_model_load_from_file_impl: failed to load model
+[PASS] tokenizer_missing_file_is_rejected
+[PASS] host_model_real_qwen3_binding
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+load: control-looking token: 128247 '</s>' was not control-type; this is probably a bug in the model. its type will be overridden
+[PASS] tokenizer_real_qwen3_contract
+8/8 tests passed
