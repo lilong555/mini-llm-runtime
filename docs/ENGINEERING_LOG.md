@@ -877,4 +877,41 @@
   未通过后续门禁前保持 contiguous 默认。
 - 验证：180 个原始样本、108 个测量样本、5760 次 attention API 调用完成；
   输出跨布局和 trial 一致，31 个必需文件独立工作目录复核通过。
-  新增 NSys/NCU 均未采集，模型与 Serving 的正式性能进程尚未启动。
+  初始模型六进程复验完成，四项配对退化中位数分别为 17.25%、71.07%、
+  96.75%、17.98%，均未通过模型护栏。唯一 NSys 已采集，长 decode
+  的 PV 占主要设备时间，PTX 保留运行时页大小除余；详见
+  `docs/GPU_KV_STUDY.md` 和 `docs/GPU_KV_DECISION.md`。
+  当前使用唯一一次 P16 常量寻址修订；编译后 PTX 已为 shift/mask，
+  唯一六进程确认已完成，长 prefill/decode 仍分别退化 32.61% 和 71.21%，
+  未通过护栏。停止 kernel 优化，保留研究候选进入固定 Serving B/C 取舍；
+  不将消除运行时除余视为完整性能问题已解决。
+
+## ENG-077：HTTP 验证前后台服务进程已退出
+
+- 状态：已解决，限定于验证进程的存活管理。
+- 影响：首次 HTTP 验证在 health 请求处失败，执行检查数为零，
+  不能计作产品 HTTP 回归通过。
+- 复现或证据：`.run/gpu-kv-001/address-diagnostic/http.json`；
+  `Start-LLMServe.ps1` 返回 PID 9663，随后该 PID 已不存在，
+  HTTP 报告 `result && result->status == 200` 失败。
+- 原因：服务未在独立工具调用之间存活；当前证据不足以确定退出信号，
+  不将其归因于 CUDA kernel 或传输逻辑。
+- 解决方法或下一步：在持续前台工具会话中启动服务，再执行既有
+  HTTP 检查与 shutdown marker，报告写入独立 `http-verified.json`。
+- 验证：`http-verified.json` 为 12/12，包含停服时 active/queued SSE
+  单一终态检查；测试与前台服务均正常退出，原始失败输出保留。
+
+## ENG-078：修订数值证据的源码清单封装错误
+
+- 状态：已解决。
+- 影响：模型确认的 preflight 在正式采样前失败，没有消耗性能进程。
+- 复现或证据：`.run/gpu-kv-001/address-diagnostic/p16-preflight.log`
+  报告 `The property 'files' cannot be found on this object.`，
+  失败目录 `.run/gpu-kv-001/p16-preflight/` 保留原始清单。
+- 原因：本次数值验证元数据调用写入了裸文件数组，
+  而既有源码状态合同为包含 `scope` 和 `files` 的对象。
+- 解决方法或下一步：按既有合同封装相同文件记录，不修改源码、
+  数值结果或 SHA-256；使用新的预检目录，不覆盖首次失败。
+- 验证：`.run/gpu-kv-001/p16-preflight-verified/` 复验通过，
+  11 个前置产物、计划六进程、实际采样零进程；
+  原始数值 16 case、173 行逐位比较不受此元数据格式错误影响。

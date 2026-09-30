@@ -1,7 +1,9 @@
 # 项目执行状态
 
-唯一活跃计划为 [PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md)，当前实施规范为
-[GPU-KV-001](NEXT_SPEC_V3.md)。[精度版 V4](PROJECT_PLAN_V4.md) 与
+当前处于 Portfolio Freeze 收尾，唯一活跃合同为
+[GPU-KV-CLOSEOUT-001](GPU_KV_DECISION.md)。分页功能已完成，不新增 Major Feature。
+[PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md) 与 [GPU-KV-001](NEXT_SPEC_V3.md)
+保留为功能实施的历史计划和规范。[精度版 V4](PROJECT_PLAN_V4.md) 与
 [CUDA-PREC-001](NEXT_OPT_SPEC.md) 保留为已停止研究的历史合同。
 [CUDA-SERVE-001](NEXT_SPEC_V2.md) 与
 [CUDA-VS-001](NEXT_SPEC.md) 分别是冻结的 Serving 与 M1 模型规范；
@@ -9,6 +11,16 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
 
 ## 当前门禁
 
+- 初始模型六进程完成，四项配对退化中位数为 17.25%、71.07%、96.75%、17.98%，
+  均未通过冻结护栏；原始不利结果保留。
+- 唯一一次局部修订限定为 P16 编译期地址解析，NSys 长 decode 的 PV 时间
+  和 PTX 的运行时除余提供依据。不叠加 QK 广播、PV 分段或新算法。
+  修订已通过 own-CUDA 23/23、核心 12/12 CTest；真实模型 16 case、
+  173 行 logits 逐位相同，HTTP 12/12，layer 与真实模型 memcheck 零错误。
+- 额外六进程模型确认已完成：四项配对退化中位数为 7.26%、32.61%、71.21%、
+  7.36%；长 prefill/decode 仍未通过。停止 kernel 优化，A 不成立。
+  正式 Serving 尚未启动，最终 B/C 待定；剩余正式预算仅 12 个 Serving 进程。
+  新 NSys 预算已用完；默认 contiguous 不变。
 - M4 编号默认属于 `PLAN-V4-KV-20260928`；下文精度研究的旧编号显式加 `PREC`。
 - 技术基点 `103070a91f1451eee3ee92e9c691e519ba733539` 已包含 `57268f9` 的
   HTTP 排空修复与公开交付规则；自身 CI run `36426140443` 五任务成功。
@@ -58,7 +70,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   六类 shape 的 host 配对中位退化为 +61.63%～+410.27%，event 区间同方向，
   负结果全部保留，见 `ENG-076`。不能外推为完整模型或 Serving 的退化幅度。
   采集为 `825ae1b` 加固定 dirty snapshot；工具回归 CTest 35/35。
-  下一项为模型采集/分析接入及层级影响量化，尚无最终采用结论。
+  后续模型结果及一次修订状态见本节顶部，尚无最终采用结论。
 - 仅新增共享 GPU 页池、设备块表与直接分页访问，保留 contiguous 默认、
   F32 数学、P=16、S≤4、L≤2048、B≤128 和保守 admission。
   Fusion、prefix sharing、Graph、async 与新精度路线均不进入本轮。

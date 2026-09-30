@@ -387,16 +387,97 @@ M4 的 micro 使用倒序物理页号直接读取分页 KV。M32 的 query 位�
 ## 剩余门禁
 
 模型与 Serving 分页路径、固定实验入口和指定容量功能检查已通过。
-微基准采集和分析已完成；模型与 Serving 的正式工具尚未支持本协议，
+微基准和初始模型采集已完成；Serving 的正式工具尚未支持本协议，
 不能直接运行旧模型 70 进程协议或 mixed/prefill_first 对照。
-先量化模型层影响，再按规范决定是否使用唯一一次局部地址/table 改进；
+模型护栏超限后仅使用下述一次 P16 编译期地址改进；
 不能用 micro 的百分比替代模型及 Serving 护栏，也不扩大正式实验预算。
 保持 mixed、F32、单 stream、同步完成与保守 reservation；不引入 incremental admission、
 prefix sharing、fusion 或新的 scheduler。可执行不等于已通过最终采用门槛。
 
-正式性能预算已用 micro 6/6、model 0/6、Serving 0/12；新增 NSys 0/1、NCU 0/1。
+正式性能预算已用 micro 6/6、初始 model 6/6、Serving 0/12；
+新增 NSys 1/1、NCU 0/1，修订后的模型确认独立计数。
 同容量 8192-token 的执行代价与同 288 MiB KV 预算的异长请求能力分别验收。
 不将 host 状态测试或较小的容量参数称为显存节省或吞吐提升。
 
 当前原始输出保留在本地；研究收束时使用一个 canonical bundle，
 Git 保留本说明、固定规范、小摘要与最终证据索引，不为本阶段另立组件包。
+
+## 正式模型比较与收尾决定
+
+当前有效收尾合同为 [GPU_KV_DECISION.md](GPU_KV_DECISION.md)。
+初始模型六进程已完成，
+采集目录 `.run/gpu-kv-001/model/`，身份为 `5fc9428` 加采集接线的固定
+dirty snapshot，不是后续 P16 修订后的测量。
+分析器复验六份报告及 35 个必需产物，数据路径检查通过；
+性能结论为 `latency_guardrail_exceeded`。
+
+| Workload | 三轮配对退化 | 退化中位数 |
+| --- | --- | ---: |
+| prefill-128 | 22.43%、17.25%、2.37% | 17.25% |
+| long-prefill-1536-chunk128 | 69.42%、75.01%、71.07% | 71.07% |
+| decode-prefix1536 | 93.61%、98.73%、96.75% | 96.75% |
+| decode-batch4-prefix256 | 17.98%、21.02%、1.83% | 17.98% |
+
+四项均未通过各自的 10% 护栏；采集成功不代表性能通过。
+不利结果保留，正式 Serving 尚未采集，最终 A/B/C 待定。
+
+唯一 NSys 使用同一初始模型二进制运行冻结输入，不计正式性能样本；
+原始报告、SQLite、PTX/SASS 在 `.run/gpu-kv-001/address-diagnostic/`。
+既有入口没有单 workload 筛选，因此采集覆盖四项，但定位只使用失败的
+长 decode。以 `reset_kernel` 划分 175 个 forward，匹配 store grid=1、
+QK grid=3088，得到五个长 decode，前二个预热，后三个为测量位置。
+后三个 forward 的设备 kernel 时间总和为 32.860、32.984、33.423 ms；
+PV 分别 20.475、20.043、20.921 ms，QK 约 1.055～1.056 ms，
+softmax 约 0.187～0.188 ms。未将 prefix setup 混入这些区间。
+这些是 profiler 下的 kernel 时间和，不替代正式 host 时钟。
+
+初始 PTX 的 PV 内循环通过 `param_10+96` 加载 `page_tokens`，
+保留运行时 32/64 位除余分支；SASS 仍包含相应倒数和整数校正序列。
+初始 paged PV 为 40 registers、stack/local 均 0，QK 为 38 registers；
+不能将该退化直接归因于 spill。
+这些证据支持唯一 P16 编译期地址修订，不证明全部退化均由除余引起。
+修订 PTX 已将页解析改为 shift/mask；独立模型确认见下节，不以指令减少替代性能验收。
+
+## P16 唯一确认与停止优化
+
+`.run/gpu-kv-001/model-p16-confirmation/` 的六个独立进程全部完成，
+35 个必需产物复核通过，数据路径门禁通过。采集身份为 `3d4572b`
+加固定 dirty snapshot，snapshot SHA-256 为
+`bdec797ff8127f81bdf78c5ebf82cfbbd50537d9517be35159e35c53a12647d3`，
+模型基准二进制为
+`957da7643d1432f69a46a671ef2b948e009e73a46c6dbeaf8471dce41245df29`。
+本组与初始模型 cohort 独立，不合并成六个 trial。
+
+| Workload | 连续中位 ms | 分页中位 ms | 三轮配对退化 | 退化中位数 | 护栏 |
+| --- | ---: | ---: | --- | ---: | --- |
+| prefill-128 | 38.306 | 36.925 | -3.60%、7.26%、10.34% | 7.26% | 通过 |
+| long-prefill-1536-chunk128 | 1174.756 | 1565.636 | 32.61%、38.36%、31.73% | 32.61% | 未通过 |
+| decode-prefix1536 | 17.528 | 30.834 | 86.80%、71.21%、71.19% | 71.21% | 未通过 |
+| decode-batch4-prefix256 | 15.405 | 17.430 | 3.56%、7.36%、19.00% | 7.36% | 通过 |
+
+配对退化的中位数不是两列时间中位数的比值。前后 cohort 未锁频，
+连续 prefill 中位时间从 31.972 ms 变为 38.306 ms，其它连续用例也有漂移；
+不能把跨 cohort 的退化百分比下降全部归因于 P16 修订。
+长 prefill 的分页绝对时间有所减少，生成代码明确消除了页大小的运行时除余，
+但它不构成普适加速结论，更未达到完整模型采用护栏。
+
+唯一修订保持为后续 Serving 的研究候选；不追加其它地址设计。
+**停止 kernel 优化，A 不成立；完成固定 Serving 后在 B/C 中收尾。**
+默认 contiguous 不变，不为了得到 A 改 workload、阈值或追加试验。
+
+修订回归记录位于 `.run/gpu-kv-001/address-diagnostic/` 和
+`.run/gpu-kv-001/p16-numerics/`：own-CUDA CTest 23/23、核心 12/12，
+真实模型 16 case、173 行 logits 逐位相同，HTTP 12/12；
+layer 13/13 与真实模型 S1/S4 的 memcheck 均为零错误。
+首次 HTTP 启动和数值清单预检失败保留，见 `ENG-077`、`ENG-078`。
+
+| 产物 | SHA-256 |
+| --- | --- |
+| 初始 model manifest | `12b7ae925c9dcb864f7e5e09e44b3cc6a019550015ad4226c00b5a788458c55b` |
+| 初始 model summary | `dc3a9aa089e3cb80033e8f94cce4c72077f33118e4628207be964f25f0c867db` |
+| P16 confirmation manifest | `b3069f56dbc0bf494448bc78fcf4d681814c2a64ceeb9f33a4ddbe574a732ddc` |
+| P16 confirmation summary | `8686e4afa970ad46699c2370c1ed7976130a293fd28daa23034f74f0612453d9` |
+
+当前已用 micro 6、初始 model 6、唯一修订确认 6、NSys 1；
+Serving 0、NCU 0。剩余正式性能预算仅 Serving 12，总上限 30。
+原始证据尚待单一 canonical bundle 发布，不声称已公开可独立获取。

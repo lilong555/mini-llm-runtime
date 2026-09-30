@@ -228,14 +228,11 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-唯一活跃计划为 [PLAN-V4-KV-20260928](docs/PROJECT_PLAN_V4_KV.md)，实施规范为
-[GPU-KV-001](docs/NEXT_SPEC_V3.md)，实际进度见 [执行状态](docs/EXECUTION_STATUS.md)。
-GPU 分页 Runtime、CLI 与 Serving 已提供；正式容量/延迟实验尚未完成，不作为默认路径。
-
-1. M4-0：已有 HTTP 排空修复、可展示入口与发布验收。
-2. M4-1：共享 GPU 页池、设备块表与直接分页 attention，保持 F32 数学和同步完成。
-3. M4-2：分别研究同容量的延迟代价与同预算的异长请求能力。
-4. M4-3：功能冻结、技术报告与基于实际问题的 upstream 工作。
+项目处于 Portfolio Freeze 收尾，不新增主要功能。
+GPU 分页 Runtime、CLI 与 Serving 已提供；容量能力已验证，
+一次有限地址修订后的模型确认仍未通过长上下文延迟护栏，默认仍为 contiguous。
+kernel 优化已停止；剩余工作为固定 Serving 对照、研究取舍、证据发布与技术报告，
+见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
 
 [FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
 结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。

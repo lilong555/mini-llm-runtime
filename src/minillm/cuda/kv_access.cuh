@@ -21,7 +21,8 @@ struct PagedKvAccess {
 
     __device__ bool row(std::size_t slot, std::size_t layer, std::size_t kind, std::size_t position,
                         std::size_t& result, std::int32_t* status, int input_row) const {
-        const auto block = position / mapping.page_tokens;
+        // Host 入口只接受 P=16，设备寻址使用相同的编译期合同。
+        const auto block = position / kv_page_tokens;
         if (slot >= shape.sequences || position >= shape.max_length ||
             slot >= mapping.block_table.rows || block >= mapping.block_table.columns) {
             record_error(status, DeviceError::invalid_index, input_row);
@@ -32,8 +33,8 @@ struct PagedKvAccess {
             record_error(status, DeviceError::invalid_index, input_row);
             return false;
         }
-        result = ((layer * 2 + kind) * mapping.physical_pages + std::size_t(page)) * mapping.page_tokens
-                 + position % mapping.page_tokens;
+        result = ((layer * 2 + kind) * mapping.physical_pages + std::size_t(page)) * kv_page_tokens
+                 + position % kv_page_tokens;
         return true;
     }
 };
