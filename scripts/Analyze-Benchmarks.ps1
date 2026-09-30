@@ -92,6 +92,30 @@ try {
     if ([string]::IsNullOrWhiteSpace([string]$runId)) { Add-ValidationError 'manifest.run_id is required.' }
     Require-Equal $manifestData.schema_version 1 'manifest.schema_version'
     Require-Equal $manifestData.benchmark 'llmserve-policy-comparison' 'manifest.benchmark'
+    $kvStudy = $manifestData.comparison.dimension -ceq 'gpu_kv'
+    $variantNames = if ($kvStudy) { @('contiguous', 'paged') } else { @('mixed', 'prefill_first') }
+    $reportPattern = if ($kvStudy) { '^(contiguous|paged)-[0-9]+\.json$' } else { '^(mixed|prefill_first)-[0-9]+\.json$' }
+    if ($kvStudy) {
+        $inputPath = Resolve-Artifact $manifestData.gpu_kv.input
+        Require-Equal (Get-LowerSha256 $inputPath) '77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e' 'GPU KV protocol hash'
+        Require-Equal $manifestData.gpu_kv.input_sha256 (Get-LowerSha256 $inputPath) 'GPU KV manifest hash'
+        $kvProtocol = Get-Content -Raw $inputPath | ConvertFrom-Json
+        $experimentName = $manifestData.gpu_kv.experiment
+        if ($experimentName -cnotin @('same_capacity', 'same_budget')) { throw '未知 GPU KV 实验。' }
+        $experiment = $kvProtocol.serving.$experimentName
+        Require-Equal $manifestData.trace.sha256 $experiment.trace_sha256 'GPU KV trace'
+        Require-Equal $manifestData.model.sha256 $kvProtocol.model_sha256 'GPU KV model'
+        Require-Equal $manifestData.engine.backend 'mini-cuda' 'GPU KV backend'
+        Require-Equal $manifestData.protocol.trials_per_variant 3 'GPU KV trials'
+        Require-Equal $manifestData.protocol.order_offset $(if ($experimentName -ceq 'same_budget') { 1 } else { 0 }) 'GPU KV order'
+        Require-Equal $manifestData.protocol.warmup $true 'GPU KV warmup'
+        Require-Equal $manifestData.protocol.arrival_scale 1 'GPU KV arrival scale'
+        foreach ($pair in @(@('batch_tokens',128), @('prefill_chunk',32), @('max_model_len',2048),
+            @('queue_capacity',64), @('block_size',16), @('event_buffer_size',128))) {
+            Require-Equal $manifestData.engine.($pair[0]) $pair[1] "GPU KV $($pair[0])"
+        }
+        Require-Equal $manifestData.engine.telemetry_mode 'off' 'GPU KV telemetry'
+    }
     if ($manifestData.source.git_sha -cnotmatch '^[0-9a-f]{40}$' -or $manifestData.source.git_dirty -isnot [bool]) {
         Add-ValidationError 'Invalid source Git identity.'
     }
@@ -149,7 +173,7 @@ try {
         Require-Integer $manifestData.engine.context_tokens 1 `
             ([long]$manifestData.engine.max_active * $manifestData.engine.max_model_len) 'engine.context_tokens'
         Require-Equal $manifestData.protocol.device_weight_dtype 'F32' 'protocol.device_weight_dtype'
-        Require-Equal $manifestData.protocol.kv_layout 'contiguous' 'protocol.kv_layout'
+        Require-Equal $manifestData.protocol.kv_layout $(if ($kvStudy) { 'per_report' } else { 'contiguous' }) 'protocol.kv_layout'
         Require-Equal $manifestData.protocol.single_stream $true 'protocol.single_stream'
     }
     $telemetryMode = Optional-Value $manifestData.engine 'telemetry_mode' 'off'
@@ -174,11 +198,11 @@ try {
     if ($null -ne $manifestData.trace.seed) {
         Require-Integer $manifestData.trace.seed 0 ([long]::MaxValue) 'trace.seed'
     }
-    Require-Equal $manifestData.comparison.dimension 'engine.policy' 'comparison.dimension'
-    if (@($manifestData.comparison.allowed_changes).Count -ne 1 -or
-        @($manifestData.comparison.allowed_changes)[0] -cne 'engine.policy') {
-        Add-ValidationError 'Policy comparison must declare engine.policy as its only allowed change.'
-    }
+    $allowedChanges = if (-not $kvStudy) { @('engine.policy') }
+        elseif ($experimentName -ceq 'same_budget') { @('resources.layout','engine.max_active','engine.context_tokens') }
+        else { @('resources.layout') }
+    Require-Equal (@($manifestData.comparison.allowed_changes) -join ',') ($allowedChanges -join ',') 'comparison.allowed_changes'
+    Require-Equal $manifestData.comparison.dimension $(if ($kvStudy) { 'gpu_kv' } else { 'engine.policy' }) 'comparison.dimension'
 
     $tracePath = Resolve-Artifact $manifestData.trace.path
     if (-not (Test-Path -LiteralPath $tracePath -PathType Leaf)) {
@@ -225,8 +249,8 @@ try {
     $trials = $manifestData.protocol.trials_per_variant
     Require-Integer $trials 1 20 'protocol.trials_per_variant'
     $variants = @($manifestData.comparison.variants)
-    if ($variants.Count -ne 2 -or $variants -cnotcontains 'mixed' -or $variants -cnotcontains 'prefill_first') {
-        Add-ValidationError 'Policy comparison requires mixed and prefill_first.'
+    if ($variants.Count -ne 2 -or $variants -cnotcontains $variantNames[0] -or $variants -cnotcontains $variantNames[1]) {
+        Add-ValidationError 'Comparison variants do not match the declared dimension.'
     }
     Require-Equal @($manifestData.reports).Count (2 * $trials) 'manifest report count'
     $order = 0
@@ -236,25 +260,33 @@ try {
         Require-Equal $file "$($spec.variant)-$($spec.trial).json" "$file filename"
         Require-Equal $spec.order $order "$file order"
         $trial = [int][math]::Floor($order / 2)
-        $expectedVariant = if (($trial + $order + $orderOffset) % 2 -eq 0) { 'mixed' } else { 'prefill_first' }
+        $expectedVariant = $variantNames[($trial + $order + $orderOffset) % 2]
         Require-Equal $spec.trial $trial "$file alternating trial"
         Require-Equal $spec.variant $expectedVariant "$file alternating variant"
         ++$order
-        if ($file -notmatch '^(mixed|prefill_first)-[0-9]+\.json$' -or $expectedReports.ContainsKey($file)) {
+        if ($kvStudy) {
+            $arm = if ($experimentName -ceq 'same_budget') { $experiment.($spec.variant) }
+                else { $experiment }
+            Require-Equal $spec.policy 'mixed' "$file policy"
+            Require-Equal $spec.kv_layout $spec.variant "$file layout"
+            Require-Equal $spec.max_active $arm.max_active "$file max_active"
+            Require-Equal $spec.context_tokens $arm.context_tokens "$file context_tokens"
+        }
+        if ($file -notmatch $reportPattern -or $expectedReports.ContainsKey($file)) {
             Add-ValidationError "Manifest contains an invalid or duplicate report file: '$file'."
         } else {
             $expectedReports[$file] = $spec
         }
     }
     for ($trial = 0; $trial -lt $trials; ++$trial) {
-        foreach ($variant in @('mixed', 'prefill_first')) {
+        foreach ($variant in $variantNames) {
             if (-not $expectedReports.ContainsKey("$variant-$trial.json")) {
                 Add-ValidationError "Manifest is missing $variant-$trial.json."
             }
         }
     }
     $actualReportFiles = @(Get-ChildItem -LiteralPath $Directory -File -Filter '*.json' |
-        Where-Object Name -Match '^(mixed|prefill_first)-[0-9]+\.json$')
+        Where-Object Name -Match $reportPattern)
     Require-Equal $actualReportFiles.Count $expectedReports.Count 'report count'
     foreach ($file in $actualReportFiles) {
         if (-not $expectedReports.ContainsKey($file.Name)) { Add-ValidationError "Unexpected report: $($file.Name)." }
@@ -313,14 +345,16 @@ try {
             }
             Require-Equal $snapshot.backend $manifestData.engine.metrics_backend "$file $snapshotName.backend"
             Require-Equal $snapshot.model $modelName "$file $snapshotName.model"
-            Require-Equal $snapshot.policy $spec.variant "$file $snapshotName.policy"
+            Require-Equal $snapshot.policy $(if ($kvStudy) { 'mixed' } else { $spec.variant }) "$file $snapshotName.policy"
             Require-Equal (Optional-Value $snapshot 'telemetry_mode' 'off') $telemetryMode "$file $snapshotName.telemetry_mode"
             Require-Equal (Optional-Value $snapshot 'telemetry_capacity' 1024) `
                 (Optional-Value $manifestData.engine 'telemetry_capacity' 1024) "$file $snapshotName.telemetry_capacity"
             foreach ($field in @('threads', 'gpu_layers', 'context_tokens', 'max_model_len', 'batch_tokens',
                 'prefill_chunk', 'max_active', 'queue_capacity', 'prefix_cache_entries',
                 'prefix_cache_tokens', 'event_buffer_size', 'aging_ms', 'admission_reserve_ms')) {
-                Require-Equal $snapshot.$field $manifestData.engine.$field "$file $snapshotName.$field"
+                $expected = if ($kvStudy -and $field -cin @('context_tokens','max_active')) { $spec.$field }
+                    else { $manifestData.engine.$field }
+                Require-Equal $snapshot.$field $expected "$file $snapshotName.$field"
             }
             Require-Equal $snapshot.kernel_mode $manifestData.engine.metrics_kernel_mode "$file $snapshotName.kernel_mode"
             Require-Equal $snapshot.kv_credits.block_size $manifestData.engine.block_size "$file $snapshotName.kv_credits.block_size"
@@ -335,14 +369,18 @@ try {
                     Require-Equal $snapshot.capabilities.$field $false "$file $snapshotName.capabilities.$field"
                 }
                 Require-Equal $snapshot.capabilities.synchronous_execute $true "$file $snapshotName.capabilities.synchronous_execute"
-                Require-Equal $snapshot.capabilities.max_sequences $manifestData.engine.max_active "$file capabilities.max_sequences"
+                Require-Equal $snapshot.capabilities.max_sequences $(if ($kvStudy) { $spec.max_active } else { $manifestData.engine.max_active }) "$file capabilities.max_sequences"
                 Require-Equal $snapshot.capabilities.max_batch_tokens $manifestData.engine.batch_tokens "$file capabilities.max_batch_tokens"
                 Require-Equal $snapshot.capabilities.max_model_len $manifestData.engine.max_model_len "$file capabilities.max_model_len"
                 $resource = $snapshot.resources
-                Require-Equal $resource.layout 'contiguous' "$file resources.layout"
-                if ($null -ne $resource.live_kv_pages) { Add-ValidationError "$file resources.live_kv_pages must be null." }
-                Require-Equal $resource.capacity_tokens `
-                    ([long]$manifestData.engine.max_active * $manifestData.engine.max_model_len) "$file resources.capacity_tokens"
+                $layout = if ($kvStudy) { $spec.kv_layout } else { 'contiguous' }
+                Require-Equal $resource.layout $layout "$file resources.layout"
+                if ($layout -ceq 'paged') {
+                    Require-Equal $resource.live_kv_pages 0 "$file resources.live_kv_pages"
+                } elseif ($null -ne $resource.live_kv_pages) { Add-ValidationError "$file resources.live_kv_pages must be null." }
+                $capacity = if ($kvStudy) { $spec.context_tokens }
+                    else { [long]$manifestData.engine.max_active * $manifestData.engine.max_model_len }
+                Require-Equal $resource.capacity_tokens $capacity "$file resources.capacity_tokens"
                 Require-Equal $resource.live_tokens 0 "$file resources.live_tokens"
                 Require-Equal $resource.state_valid $true "$file resources.state_valid"
                 Require-Equal $resource.reusable $true "$file resources.reusable"
@@ -350,8 +388,22 @@ try {
                 Require-Equal $resource.batch_id $snapshot.batches "$file resources.batch_id"
                 Require-Integer $resource.resident_kv_payload_bytes 1 ([long]::MaxValue) "$file resources.resident_kv_payload_bytes"
                 Require-Integer $resource.owned_device_bytes $resource.resident_kv_payload_bytes ([long]::MaxValue) "$file resources.owned_device_bytes"
-                foreach ($field in @('capacity_tokens', 'resident_kv_payload_bytes', 'owned_device_bytes')) {
-                    Require-Equal $resource.$field $baselineSnapshot.resources.$field "$file resources.$field"
+                if ($kvStudy) {
+                    Require-Equal $resource.resident_kv_payload_bytes ($capacity * 114688L) "$file KV payload"
+                    $tableBytes = if ($layout -ceq 'paged') { $spec.max_active * 128 * 4 } else { 0 }
+                    Require-Equal $resource.page_table_bytes $tableBytes "$file page table"
+                    if ($experimentName -ceq 'same_budget' -and
+                        ($resource.resident_kv_payload_bytes + $tableBytes) -gt $experiment.kv_subsystem_budget_bytes) {
+                        Add-ValidationError "$file exceeds KV subsystem budget."
+                    }
+                    $nonKv = $resource.owned_device_bytes - $resource.resident_kv_payload_bytes - $tableBytes
+                    $baselineNonKv = $baselineSnapshot.resources.owned_device_bytes -
+                        $baselineSnapshot.resources.resident_kv_payload_bytes - $baselineSnapshot.resources.page_table_bytes
+                    Require-Equal $nonKv $baselineNonKv "$file non-KV allocation"
+                } else {
+                    foreach ($field in @('capacity_tokens', 'resident_kv_payload_bytes', 'owned_device_bytes')) {
+                        Require-Equal $resource.$field $baselineSnapshot.resources.$field "$file resources.$field"
+                    }
                 }
             }
         }
@@ -551,7 +603,7 @@ try {
     }
 
     $policies = [ordered]@{}
-    foreach ($group in ($reportRecords.data | Group-Object { $_.server_before.policy })) {
+    foreach ($group in ($reportRecords.data | Group-Object { if ($kvStudy) { $_.server_before.resources.layout } else { $_.server_before.policy } })) {
         $rows = @($group.Group)
         $policies[$group.Name] = [ordered]@{
             trials = $rows.Count
@@ -561,6 +613,27 @@ try {
             ttft_p95_ms_median = Median @($rows | ForEach-Object { if ($null -ne $_.summary.ttft_ms) { $_.summary.ttft_ms.p95 } })
             mean_tpot_p95_ms_median = Median @($rows | ForEach-Object { if ($null -ne $_.summary.mean_tpot_ms) { $_.summary.mean_tpot_ms.p95 } })
             goodput_requests_per_second_median = Median @($rows.summary.goodput_requests_per_second)
+            request_max_itl_p95_ms_median = Median @($rows | ForEach-Object {
+                $tail = Optional-Value $_.summary 'request_max_itl_ms' $null
+                if ($null -ne $tail) { $tail.p95 }
+            })
+        }
+    }
+    if ($kvStudy) {
+        $deltas = @()
+        for ($trial = 0; $trial -lt 3; ++$trial) {
+            $c = @($reportRecords | Where-Object { $_.spec.variant -ceq 'contiguous' -and $_.spec.trial -eq $trial })[0].data
+            $p = @($reportRecords | Where-Object { $_.spec.variant -ceq 'paged' -and $_.spec.trial -eq $trial })[0].data
+            $deltas += 100 * (1 - $p.summary.output_tokens_per_second / $c.summary.output_tokens_per_second)
+        }
+        $kvSummary = [ordered]@{
+            experiment = $experimentName
+            throughput_regression_percent = $deltas
+            throughput_regression_median_percent = Median $deltas
+            throughput_guardrail = if ($experimentName -ceq 'same_capacity') {
+                if ((Median $deltas) -le 10) { 'passed' } else { 'exceeded' }
+            } else { 'not_applicable_same_budget' }
+            tail_percentage_guardrail = 'not_preregistered'
         }
     }
     $summary = [ordered]@{
@@ -574,6 +647,7 @@ try {
         requests_per_trial = $expectedRequests.Count
         policies = $policies
     }
+    if ($kvStudy) { $summary.gpu_kv = $kvSummary }
     Publish-BenchmarkOutputs $Directory ([ordered]@{ 'summary.json' = $summary; 'validation-summary.json' = $validation })
     $failurePath = Join-Path $Directory 'analysis-failure.json'
     if (Test-Path -LiteralPath $failurePath) { Remove-Item -LiteralPath $failurePath }
