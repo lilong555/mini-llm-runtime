@@ -37,9 +37,17 @@ STATISTICS = dict(independent_trials=5, process_median_repeats=3, calls_per_samp
                   confidence_interval="exact_percentile_bootstrap_median_95", bootstrap_resamples=3125,
                   comparison=False, hardware_dram_bandwidth=None)
 ZERO_ALLOCATIONS = dict(allocation_calls=0, allocations=0, release_calls=0, releases=0, allocated_bytes=0)
+KV_STATISTICS = dict(independent_trials=3, process_median_repeats=3, calls_per_sample=32,
+    statistics_unit="independent_trial_median", relative_difference="100*(paged/contiguous-1)",
+    comparison=True, confidence_interval=None, hardware_dram_bandwidth=None)
 
 
-def schedule(precision=False):
+def schedule(precision=False, gpu_kv=False):
+    require(not (precision and gpu_kv), "精度与分页实验不能同时选择")
+    if gpu_kv:
+        return [dict(trial=trial, kv_layout=layout, file=f"micro-t{trial}-{layout}.json",
+                     order="reverse" if trial % 2 else "canonical")
+                for trial in range(3) for layout in (common.KV_LAYOUTS[::-1] if trial % 2 else common.KV_LAYOUTS)]
     if precision:
         return [dict(trial=trial, precision_mode=mode, file=f"micro-t{trial}-{mode}.json",
                      order="reverse" if trial % 2 else "canonical")
@@ -56,6 +64,22 @@ def sample_columns(count):
 
 
 def make_cases(spec, d):
+    if spec["protocol_id"] == common.KV_PROTOCOL:
+        require(identical(spec["micro"]["rows"], [1, 4, 32]) and
+                identical(spec["micro"]["effective_contexts"], [128, 1536]), "分页 micro 必须为六类冻结形状")
+        result = []
+        for m in (1, 4, 32):
+            for length in (128, 1536):
+                role = "prefill" if m == 32 else "decode"
+                width = d["heads"] * d["head_dim"]
+                result.append(dict(name=f"attention-{role}-m{m}-l{length}", operation="attention", role=role,
+                    tensor="", m=m, n=width, k=0, group_width=d["head_dim"], max_context=length,
+                    slots=list(range(4)) if m == 4 else [0] * m,
+                    positions=list(range(length - m, length)) if m == 32 else [length - 1] * m,
+                    input_seed=spec["micro"]["seed"] + len(result) + 1, logical_flops_per_call=None,
+                    output_elements=m * width, query_heads=d["heads"], kv_heads=d["kv_heads"],
+                    head_dim=d["head_dim"], kv_max_length=2048))
+        return result
     if spec["protocol_id"] == PRECISION_PROTOCOL:
         # 借用既有形状生成器，仅保留冻结的矩阵子集和原 seed。
         legacy = dict(matrix=dict(rows=spec["micro"]["rows"], roles=[m["role"] for m in spec["micro"]["matrices"]]),
@@ -228,13 +252,20 @@ def validate_precision_verification(value, case):
 
 def validate_report(report, spec):
     precision = spec["protocol_id"] == PRECISION_PROTOCOL
+    gpu_kv = spec["protocol_id"] == common.KV_PROTOCOL
     mode = report.get("precision_mode") if precision else None
     require(not precision or mode in PRECISION_MODES and report["protocol_id"] == PRECISION_PROTOCOL, "精度模式或协议不符")
+    layout = report.get("kv_layout") if gpu_kv else "contiguous"
+    if gpu_kv:
+        require(layout in common.KV_LAYOUTS and report["protocol_id"] == common.KV_PROTOCOL
+                and report["precision_mode"] == "f32-pedantic"
+                and report["scope"] in ("paired_kv_micro", "diagnostic_single_process"), "分页协议、精度或布局不符")
     calls = 20 if precision else 32
+    input_hash = common.KV_INPUT_SHA256 if gpu_kv else PRECISION_INPUT_SHA256 if precision else INPUT_SHA256
     require(identical(report["schema_version"], 2 if precision else 1) and report["benchmark"] == BENCHMARK
-            and report["status"] == "passed" and report["input_sha256"] == (PRECISION_INPUT_SHA256 if precision else INPUT_SHA256)
+            and report["status"] == "passed" and report["input_sha256"] == input_hash
             and report["model_sha256"] == MODEL_SHA256, "micro 报告状态或身份无效")
-    require(integer(report["trial"]) and report["trial"] < (3 if precision else 5)
+    require(integer(report["trial"]) and report["trial"] < (3 if precision or gpu_kv else 5)
             and identical(report["protocol"], spec["measurement"]), "trial 或计时协议无效")
     require(identical(report["dimensions"], DIMENSIONS) and
             identical(report["arithmetic"], precision_arithmetic(mode, spec) if precision else ARITHMETIC),
@@ -244,7 +275,7 @@ def validate_report(report, spec):
             and isinstance(d["compute_capability"], list) and len(d["compute_capability"]) == 2
             and all(integer(v) for v in d["compute_capability"])
             and all(integer(d[k], 1) for k in ("driver_version", "runtime_version", "cublas_version")), "设备身份无效")
-    plan, payload, _ = common.memory_plan(report, precision_mode=mode)
+    plan, payload, _ = common.memory_plan(report, precision_mode=mode, kv_layout=layout)
     require(identical(plan, report["memory_plan"]) and identical(report["owned_device_bytes"], plan["total_owned_bytes"])
             and identical(report["weight_h2d_bytes"], payload)
             and identical(report["rope_h2d_bytes"], plan["rope_bytes"]), "内存计划或初始化传输不符")
@@ -265,6 +296,7 @@ def validate_report(report, spec):
                 and identical(verification["d2h_bytes"], payload)
                 and integer(verification["staging_peak_bytes"], 1) and verification["staging_peak_bytes"] <= 8*1024**2,
                 "全量设备载荷验证或 staging 超出上限")
+    table_probe = validate_table_probe(report) if gpu_kv else None
     planned = make_cases(spec, report["dimensions"])
     if report["trial"] % 2:
         planned.reverse()
@@ -313,9 +345,36 @@ def validate_report(report, spec):
                                    verification=verifications[0])
         if precision:
             result[case["name"]]["boundaries"] = boundaries
-    return dict(trial=report["trial"], cases=result, samples=160 if precision else 1875,
-                api_calls=3200 if precision else 60000, measured_samples=96 if precision else 1125,
-                measured_api_calls=1920 if precision else 36000, owned_device_bytes=plan["total_owned_bytes"])
+    samples = len(planned) * (10 if precision else 5)
+    audited = dict(trial=report["trial"], cases=result, samples=samples, api_calls=samples*calls,
+                   measured_samples=samples*3//5, measured_api_calls=samples*3//5*calls,
+                   owned_device_bytes=plan["total_owned_bytes"])
+    if gpu_kv:
+        audited["table_probe"] = table_probe
+    return audited
+
+
+def validate_table_probe(report):
+    probe = report["table_upload_probe"]
+    if report["kv_layout"] == "contiguous":
+        require(probe is None and identical(report["page_table_h2d_bytes"], 0)
+                and report.get("page_table_sha256") is None, "连续布局不能伪造页表传输")
+        return None
+    expected = hashlib.sha256(struct.pack("<512i", *reversed(range(512)))).hexdigest()
+    require(report["page_table_sha256"] == expected and identical(probe["bytes_per_call"], 2048)
+            and identical(report["page_table_h2d_bytes"], 2048 * (1 + 5 * 32))
+            and len(probe["samples"]) == 5, "分页映射、完整上传或 probe 样本不符")
+    result = dict(host_ns_per_call=[], device_ns_per_call=[])
+    for i, sample in enumerate(probe["samples"]):
+        require(identical(sample["iteration"], i) and sample["phase"] == ("warmup" if i < 2 else "measured")
+                and identical(sample["calls"], 32) and identical(sample["h2d_bytes"], 2048*32)
+                and integer(sample["host_enqueue_to_completion_ns"], 1)
+                and finite(sample["device_interval_ms"]) and sample["device_interval_ms"] > 0,
+                "表上传 probe 的边界、字节数或时间不符")
+        if i >= 2:
+            result["host_ns_per_call"].append(sample["host_enqueue_to_completion_ns"]/32)
+            result["device_ns_per_call"].append(sample["device_interval_ms"]*1e6/32)
+    return result
 
 
 BOOTSTRAP_RANKS = sorted(sorted(indices)[2] for indices in itertools.product(range(5), repeat=5))
@@ -335,6 +394,8 @@ def trial_statistics(samples):
 
 
 def summarize(reports, spec):
+    if spec["protocol_id"] == common.KV_PROTOCOL:
+        return summarize_kv(reports, spec)
     if spec["protocol_id"] == PRECISION_PROTOCOL:
         return summarize_precision(reports, spec)
     require(identical([r["trial"] for r in reports], list(range(5))), "独立 trial 缺失、重复或顺序不符")
@@ -398,16 +459,48 @@ def summarize_precision(reports, spec):
                 full_model_numerics=False, gpu_serving=False)
 
 
+def summarize_kv(reports, spec):
+    planned = schedule(gpu_kv=True)
+    require(identical([(r["trial"], r["kv_layout"]) for r in reports],
+                      [(s["trial"], s["kv_layout"]) for s in planned])
+            and all(r["scope"] == "paired_kv_micro" for r in reports), "分页配对进程不完整或使用了诊断运行")
+    audited = [validate_report(report, spec) for report in reports]
+    for key in ("device", "dimensions", "weights", "arithmetic"):
+        require(all(identical(r[key], reports[0][key]) for r in reports), f"分页两臂身份不一致：{key}")
+    indices = {layout: [i for i, r in enumerate(reports) if r["kv_layout"] == layout] for layout in common.KV_LAYOUTS}
+    cases = []
+    for case in make_cases(spec, DIMENSIONS):
+        values = [r["cases"][case["name"]] for r in audited]
+        require(all(identical(v["verification"], values[0]["verification"]) for v in values),
+                "跨布局或 trial 的输出不一致")
+        comparisons = {clock: common.kv_paired_statistics({
+            layout: [values[i][clock] for i in rows] for layout, rows in indices.items()})
+            for clock in ("host_ns_per_call", "device_ns_per_call")}
+        cases.append(dict(case, comparisons=comparisons, verification=values[0]["verification"]))
+    table = {}
+    for clock in ("host_ns_per_call", "device_ns_per_call"):
+        samples = [audited[i]["table_probe"][clock] for i in indices["paged"]]
+        medians = [statistics.median(row) for row in samples]
+        table[clock] = dict(samples=samples, trial_medians=medians, median=statistics.median(medians))
+    return dict(schema_version=1, benchmark=BENCHMARK, protocol_id=common.KV_PROTOCOL, status="micro_measured",
+        independent_trials=3, process_count=6, case_count=6, raw_samples=180, measured_samples=108,
+        api_calls=5760, measured_api_calls=3456, statistics=KV_STATISTICS, data_path_gates="passed",
+        cases=cases, table_upload_probe=dict(bytes_per_call=2048, measurements=table),
+        owned_device_bytes={layout: audited[rows[0]]["owned_device_bytes"] for layout, rows in indices.items()},
+        end_to_end_speedup=None, product_eligible=False, gpu_serving=False)
+
+
 def validate_bundle(directory):
     manifest_path = artifact(directory, "manifest.json")
     manifest = read(manifest_path)
     precision = manifest["protocol_id"] == PRECISION_PROTOCOL
-    input_hash = PRECISION_INPUT_SHA256 if precision else INPUT_SHA256
-    plan = schedule(precision)
+    gpu_kv = manifest["protocol_id"] == common.KV_PROTOCOL
+    input_hash = common.KV_INPUT_SHA256 if gpu_kv else PRECISION_INPUT_SHA256 if precision else INPUT_SHA256
+    plan = schedule(precision, gpu_kv)
     require(identical(manifest["schema_version"], 2 if precision else 1) and manifest["benchmark"] == BENCHMARK
-            and manifest["protocol_id"] == (PRECISION_PROTOCOL if precision else PROTOCOL_ID)
+            and manifest["protocol_id"] == (common.KV_PROTOCOL if gpu_kv else PRECISION_PROTOCOL if precision else PROTOCOL_ID)
             and identical(manifest["reports"], plan)
-            and identical(manifest["statistics"], PRECISION_STATISTICS if precision else STATISTICS),
+            and identical(manifest["statistics"], KV_STATISTICS if gpu_kv else PRECISION_STATISTICS if precision else STATISTICS),
             "manifest 或完整独立 trial 计划不符")
     require(manifest["dependencies"]["llama_commit"] == common.LLAMA_COMMIT
             and manifest["build"]["own_cuda"] == "ON" and manifest["build"]["upstream_cuda"] == "OFF"
@@ -417,7 +510,7 @@ def validate_bundle(directory):
     files = common.source_archive(directory, manifest["source"])
     require(all(name in files for name in ("apps/cuda_kernel_bench.cpp", "apps/cuda_micro_protocol.h",
                 "src/minillm/cuda/attention.cu", "scripts/analyze_cuda_micro.py")), "缺少 micro 源码")
-    input_name = "qwen3-precision-v1.json" if precision else "qwen3-cuda-micro-v0.json"
+    input_name = "qwen3-gpu-kv-v1.json" if gpu_kv else "qwen3-precision-v1.json" if precision else "qwen3-cuda-micro-v0.json"
     require(files[f"benchmarks/runtime-inputs/{input_name}"]["sha256"] == input_hash,
             "源码中的 micro 输入不符")
     availability, seen = [], set()
@@ -465,15 +558,46 @@ def validate_bundle(directory):
             require(arguments.count("--cuda-precision") == 1
                     and arguments[arguments.index("--cuda-precision")+1] == slot["precision_mode"],
                     "原始命令未选择声明的 precision")
+        if gpu_kv:
+            arguments = process["arguments"]
+            require(report["scope"] == "paired_kv_micro" and report["kv_layout"] == slot["kv_layout"]
+                    and process["kv_layout"] == slot["kv_layout"] and process["precision_mode"] == "f32-pedantic",
+                    "分页原始进程的布局或精度不符")
+            require(arguments.count("--kv-layout") == 1 and
+                    arguments[arguments.index("--kv-layout")+1] == slot["kv_layout"],
+                    "原始命令没有选择声明的 KV 布局")
         reports.append(report)
     summary = summarize(reports, spec)
     summary.update(run_id=manifest["run_id"], source_state_sha256=manifest["source"]["worktree_state_sha256"])
     return dict(summary=summary, availability=dict(schema_version=1, status="AVAILABLE", artifacts=availability),
                 weights={r["precision_mode"]: r["weights"] for r in reports} if precision else reports[0]["weights"],
-                memory={r["precision_mode"]: r["memory_plan"] for r in reports} if precision else reports[0]["memory_plan"])
+                memory={r["kv_layout"]: r["memory_plan"] for r in reports} if gpu_kv else
+                       {r["precision_mode"]: r["memory_plan"] for r in reports} if precision else reports[0]["memory_plan"])
 
 
 def analysis_text(summary):
+    if summary.get("protocol_id") == common.KV_PROTOCOL:
+        lines = ["# GPU KV 同容量微基准", "",
+            "- 同一 GPU、F32 权重和二进制；两布局各三个独立 trial，每项两次预热、三次测量。",
+            "- 每样本 32 次 attention API；统计单位为独立进程的样本中位数。",
+            "- 差异为 100*(paged/contiguous-1)，正数表示退化；不宣称统计显著性。",
+            "- 两臂 KV 均为 896 MiB；分页额外拥有 2 KiB 设备表，不构成显存节省。",
+            "- 表上传单独计量；完整分配、映射维护和上传成本须由模型/Serving 计时验证。",
+            "- CUDA event 区间含提交空隙，不是纯 kernel 时间；没有端到端加速或采用结论。", "",
+            "| 用例 | 连续 host us | 分页 host us | host 差异 % | 各轮 host 差异 % | event 差异 % |",
+            "| --- | ---: | ---: | ---: | --- | ---: |"]
+        for case in summary["cases"]:
+            host, device = (case["comparisons"][key] for key in ("host_ns_per_call", "device_ns_per_call"))
+            values = host["trial_medians"]
+            changes = ", ".join(f"{v:.2f}" for v in host["paired_relative_percent"])
+            lines.append(f"| {case['name']} | {statistics.median(values['contiguous'])/1000:.3f} | "
+                         f"{statistics.median(values['paged'])/1000:.3f} | {host['median_relative_percent']:.2f} | "
+                         f"{changes} | {device['median_relative_percent']:.2f} |")
+        probe = summary["table_upload_probe"]["measurements"]
+        lines += ["", f"2 KiB table probe 的 host/event 每次均摊中位数分别为 "
+                  f"{probe['host_ns_per_call']['median']/1000:.3f}/"
+                  f"{probe['device_ns_per_call']['median']/1000:.3f} us。"]
+        return "\n".join(lines) + "\n"
     if summary.get("protocol_id") == PRECISION_PROTOCOL:
         lines = ["# FP16 矩阵精度微基准", "",
                  "- 同一 GPU、checkpoint 和二进制，3 组配对进程；16 个 shape，每个边界 2 次预热、3 次测量。",
@@ -521,13 +645,17 @@ def main():
     mode.add_argument("--schedule", action="store_true")
     parser.add_argument("--input")
     parser.add_argument("--write", action="store_true")
-    parser.add_argument("--precision", action="store_true", help="生成冻结 precision 三组配对进程计划")
+    study = parser.add_mutually_exclusive_group()
+    study.add_argument("--precision", action="store_true", help="生成冻结 precision 三组配对进程计划")
+    study.add_argument("--gpu-kv", action="store_true", help="生成冻结分页三组配对进程计划")
     args = parser.parse_args()
     try:
         if args.schedule:
-            result = dict(reports=schedule(args.precision), statistics=PRECISION_STATISTICS if args.precision else STATISTICS)
+            result = dict(reports=schedule(args.precision, args.gpu_kv),
+                          statistics=KV_STATISTICS if args.gpu_kv else PRECISION_STATISTICS if args.precision else STATISTICS)
         elif args.report:
-            require(args.input and sha(args.input) in (INPUT_SHA256, PRECISION_INPUT_SHA256), "单进程复核需要冻结的 --input")
+            require(args.input and sha(args.input) in (INPUT_SHA256, PRECISION_INPUT_SHA256, common.KV_INPUT_SHA256),
+                    "单进程复核需要冻结的 --input")
             audit = validate_report(read(args.report), read(args.input))
             result = {key: value for key, value in audit.items() if key != "cases"}
             result.update(status="passed", case_count=len(audit["cases"]))

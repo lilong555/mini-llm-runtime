@@ -1,5 +1,7 @@
 # MiniLLM / LLMServe 项目计划
 
+> Historical（历史计划）。当前系统与收尾状态以 README 和 `GPU_KV_DECISION.md` 为准。
+
 项目主线：解释并优化现有自研 CPU 推理系统，建立同一 Serving Engine 驱动的自研 CUDA 执行路径，以代码、数值验证和可复现实验支撑每项能力。
 
 本计划定义目标、阶段依赖和验收条件。当前可用功能见 [README](../README.md)，逐项能力验收见 [规范问题清单](PROBLEM_CHECKLIST.md)，实测结果见 [验证记录](VALIDATION.md)，实际工程问题见 [工程台账](ENGINEERING_LOG.md)。未标记验收完成的接口、文件和 CUDA 组件仍为目标设计，不代表当前已有实现。

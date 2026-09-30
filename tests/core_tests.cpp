@@ -208,6 +208,39 @@ TEST(cuda_precision_names_are_explicit_without_cuda_dependencies) {
     test::throws<std::invalid_argument>([] { precision_mode_name(static_cast<PrecisionMode>(99)); });
 }
 
+TEST(cuda_paged_serving_capacity_and_page_size_are_checked) {
+    using namespace minillm::cuda;
+    ModelConfig model{"不存在的模型.gguf",0,8};
+    model.cuda_kv_layout = CudaKvLayout::paged;
+    EngineConfig valid;
+    valid.context_tokens = 2560;
+    valid.max_active = 4;
+    valid.batch_tokens = 128;
+    valid.prefix_cache_entries = valid.prefix_cache_tokens = 0;
+    validate_mini_cuda_config(model,valid);
+    for (const auto mode : {CudaKvLayout::contiguous,CudaKvLayout::paged}) {
+        CHECK(parse_kv_layout(kv_layout_name(mode)) == mode);
+    }
+    for (const auto name : {"", "PAGED", " paged", "paged ", "auto"}) {
+        test::throws<std::invalid_argument>([&] { parse_kv_layout(name); });
+    }
+    for (int failure = 0; failure < 5; ++failure) {
+        auto config = valid;
+        auto bad = model;
+        if (failure == 0) { config.block_size = 1; }
+        if (failure == 1) { config.context_tokens = 2570; }
+        if (failure == 2) { config.context_tokens = 8208; }
+        if (failure == 3) { config.context_tokens = 1024; }
+        if (failure == 4) { bad.cuda_kv_layout = static_cast<CudaKvLayout>(99); }
+        test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(bad,config); });
+    }
+    valid.max_model_len = 17;
+    valid.context_tokens = 128;
+    validate_mini_cuda_config(model,valid);
+    model.cuda_kv_layout = CudaKvLayout::contiguous;
+    test::throws<std::invalid_argument>([&] { validate_mini_cuda_config(model,valid); });
+}
+
 TEST(half_conversion_all_finite_patterns) {
     for (std::uint32_t bits = 0; bits < 65536; ++bits) {
         if ((bits & 0x7c00) == 0x7c00 && (bits & 1023)) {

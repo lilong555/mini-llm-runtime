@@ -117,6 +117,11 @@ struct Engine::Impl {
             throw std::invalid_argument("model runner does not satisfy the context capacity");
         }
         capabilities = runner->capabilities();
+        if (capabilities.kv_page_tokens &&
+            (config.block_size != capabilities.kv_page_tokens ||
+             config.context_tokens != runner->info().context_tokens)) {
+            throw std::invalid_argument("Engine 页大小和信用容量必须与后端物理页池一致");
+        }
         if ((capabilities.max_sequences &&
              config.max_active + config.prefix_cache_entries > capabilities.max_sequences) ||
             (capabilities.max_batch_tokens && config.batch_tokens > capabilities.max_batch_tokens) ||

@@ -2,6 +2,7 @@
 
 #include "llmserve/telemetry.h"
 #include "minillm/cuda/precision.h"
+#include "minillm/cuda/kv_layout.h"
 
 #include <cstddef>
 #include <optional>
@@ -40,6 +41,7 @@ struct ModelConfig {
     int device = 0;
     std::size_t device_budget_bytes = 0;
     std::optional<minillm::cuda::PrecisionMode> cuda_precision = std::nullopt;
+    std::optional<minillm::cuda::CudaKvLayout> cuda_kv_layout = std::nullopt;
 };
 
 std::string policy_name(SchedulingPolicy policy);

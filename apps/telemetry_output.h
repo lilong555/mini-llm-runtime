@@ -13,7 +13,8 @@ inline void write_telemetry(std::ostream& output, const llmserve::Engine& engine
             {"resident_kv_payload_bytes", value->resident_kv_payload_bytes},
             {"layout", llmserve::kv_layout_name(value->layout)}, {"capacity_tokens", value->capacity_tokens},
             {"live_tokens", value->live_tokens}, {"owned_device_bytes", value->owned_device_bytes},
-            {"state_valid", value->state_valid}, {"reusable", value->reusable}};
+            {"state_valid", value->state_valid}, {"reusable", value->reusable},
+            {"page_table_bytes", value->page_table_bytes}};
     };
     const auto caps = engine.capabilities();
     output << json{{"type", "header"}, {"schema_version", 2},
@@ -23,7 +24,8 @@ inline void write_telemetry(std::ostream& output, const llmserve::Engine& engine
         {"storage_bytes", capture.storage_bytes}, {"runtime_replay_available", false},
         {"capabilities", {{"max_sequences", caps.max_sequences}, {"max_batch_tokens", caps.max_batch_tokens},
             {"max_model_len", caps.max_model_len}, {"prefix_copy", caps.prefix_copy},
-            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute}}},
+            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute},
+            {"kv_page_tokens", caps.kv_page_tokens}}},
         {"resource_boundaries", {{"before", "before_execute"}, {"after", "after_execute_before_request_cleanup"},
             {"final", "after_engine_stop_before_runner_destruction"}}}}.dump() << '\n';
     for (std::size_t index = 0; index < capture.recorded; ++index) {

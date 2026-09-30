@@ -41,6 +41,7 @@ struct RunnerResources {
     std::optional<std::size_t> owned_device_bytes = std::nullopt;
     bool state_valid = true;
     bool reusable = true;
+    std::optional<std::size_t> page_table_bytes = std::nullopt;
 };
 
 struct RunnerStage {

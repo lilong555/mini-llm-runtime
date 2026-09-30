@@ -35,14 +35,16 @@ inline void write(const std::filesystem::path& path, const json& value) {
     if (!file) { throw std::runtime_error("报告写入失败：" + path.string()); }
 }
 inline json memory(const minillm::cuda::CudaMemoryPlan& p) {
-    return {{"weights_bytes",p.weights_bytes},{"workspace_bytes",p.workspace_bytes},{"kv_bytes",p.kv_bytes},
+    json result = {{"weights_bytes",p.weights_bytes},{"workspace_bytes",p.workspace_bytes},{"kv_bytes",p.kv_bytes},
         {"library_workspace_bytes",p.library_workspace_bytes},{"activations_bytes",p.activations_bytes},
         {"attention_scratch_bytes",p.attention_scratch_bytes},{"logits_bytes",p.logits_bytes},
         {"metadata_bytes",p.metadata_bytes},{"rope_bytes",p.rope_bytes},{"padding_bytes",p.padding_bytes},
         {"total_owned_bytes",p.total_owned_bytes}};
+    if (p.kv_table_bytes) { result["kv_table_bytes"] = p.kv_table_bytes; }
+    return result;
 }
 inline json diagnostics(const minillm::cuda::CudaDiagnostics& d) {
-    return {{"state",d.state == minillm::cuda::CudaRuntimeState::ready ? "ready" : "poisoned"},
+    json result = {{"state",d.state == minillm::cuda::CudaRuntimeState::ready ? "ready" : "poisoned"},
         {"sequence_lengths",d.sequence_lengths},{"live_sequences",d.live_sequences},{"live_kv_tokens",d.live_kv_tokens},
         {"kv_capacity_tokens",d.kv_capacity_tokens},{"resident",memory(d.resident)},{"weight_h2d_bytes",d.weight_h2d_bytes},
         {"rope_h2d_bytes",d.rope_h2d_bytes},{"metadata_h2d_bytes",d.metadata_h2d_bytes},{"token_d2h_bytes",d.token_d2h_bytes},
@@ -52,6 +54,14 @@ inline json diagnostics(const minillm::cuda::CudaDiagnostics& d) {
         {"completed_forwards",d.completed_forwards},{"post_launch_failures",d.post_launch_failures},
         {"model_load_ns",d.model_load_ns},{"storage_initialization_ns",d.storage_initialization_ns},
         {"weight_decode_upload_ns",d.weight_decode_upload_ns}};
+    if (d.kv_layout == minillm::cuda::CudaKvLayout::paged) {
+        result["kv_layout"] = "paged";
+        result["page_size_tokens"] = d.page_size_tokens ? json(*d.page_size_tokens) : json(nullptr);
+        result["capacity_pages"] = d.capacity_pages ? json(*d.capacity_pages) : json(nullptr);
+        result["live_kv_pages"] = d.live_kv_pages ? json(*d.live_kv_pages) : json(nullptr);
+        result["page_table_h2d_bytes"] = d.page_table_h2d_bytes;
+    }
+    return result;
 }
 inline json device(const minillm::cuda::CudaDeviceInfo& d) {
     return {{"name",d.name},{"uuid",d.uuid},{"compute_capability",{d.compute_major,d.compute_minor}},

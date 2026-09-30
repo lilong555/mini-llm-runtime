@@ -7,7 +7,7 @@ import itertools
 import json
 import math
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import statistics
 import struct
@@ -19,6 +19,9 @@ import zipfile
 INPUT_SHA256 = "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6"
 MODEL_SHA256 = "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031"
 LLAMA_COMMIT = "911f6cdc8ab8a530b2bee09ee61471a6f3178eeb"
+KV_PROTOCOL = "gpu-kv-experiment-v1"
+KV_INPUT_SHA256 = "77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e"
+KV_LAYOUTS = ("contiguous", "paged")
 BACKENDS = ("cpu8", "cpu16", "cuda")
 BENCHMARK = "minillm-cuda-runtime"
 PROTOCOL = dict(
@@ -32,6 +35,9 @@ STATISTICS = dict(
     noise_percent="max(5, abs(median(d_AA)) + 2 * MAD(d_AA))", comparison_noise="max(cpu_noise,cuda_noise)",
     confidence_interval="exact_paired_percentile_bootstrap_median_95", bootstrap_resamples=3125,
     inconclusive_if_noise_percent_above=10)
+KV_STATISTICS = dict(independent_trials=3, process_median_repeats=3,
+    statistics_unit="independent_trial_median", relative_difference="100*(paged/contiguous-1)",
+    confidence_interval=None, model_review_band_percent=10)
 
 
 class ValidationError(ValueError):
@@ -101,7 +107,12 @@ def artifact(directory, name):
     return path
 
 
-def schedule():
+def schedule(gpu_kv=False):
+    if gpu_kv:
+        return [dict(file=f"model-t{trial}-{layout}.json", backend="cuda", kv_layout=layout,
+                     trial=trial, order=2*trial+position)
+                for trial in range(3)
+                for position, layout in enumerate(KV_LAYOUTS if trial % 2 else KV_LAYOUTS[::-1])]
     result = []
 
     def add(group, trial, backends, arms):
@@ -154,9 +165,10 @@ def allocation_snapshot(value, expected):
             "项目 device allocation/free 计数变化或字段无效")
 
 
-def memory_plan(runtime, *, precision_mode=None):
+def memory_plan(runtime, *, precision_mode=None, kv_layout="contiguous"):
     require(precision_mode in (None, "f32-pedantic", "f16-matrix-f32acc"), "未知矩阵精度")
     half = precision_mode == "f16-matrix-f32acc"
+    require(kv_layout in KV_LAYOUTS and not (half and kv_layout == "paged"), "未知布局或分页精度不符")
     dims = runtime["dimensions"]
     weights = runtime["weights"]
     require(isinstance(weights, list) and len(weights) == 311, "权重清单不完整")
@@ -205,6 +217,9 @@ def memory_plan(runtime, *, precision_mode=None):
         scratch = 128 * max(embedding, q, ffn) * 2
         sizes.append(scratch)
         categories["activations_bytes"] += scratch
+    if kv_layout == "paged":
+        sizes.append(4 * (2048 // 16) * 4)
+        categories["metadata_bytes"] += sizes[-1]
     workspace_end = 0
     for size in sizes:
         workspace_end = (workspace_end + 255) // 256 * 256 + size
@@ -215,6 +230,8 @@ def memory_plan(runtime, *, precision_mode=None):
                 library_workspace_bytes=4 * 1024 * 1024, **categories,
                 padding_bytes=weight_bytes - payload + workspace_bytes - sum(categories.values()))
     plan["total_owned_bytes"] = weight_bytes + workspace_bytes + kv_bytes + plan["library_workspace_bytes"]
+    if kv_layout == "paged":
+        plan["kv_table_bytes"] = 2048
     return plan, payload, dict(types)
 
 
@@ -225,13 +242,17 @@ class State:
         self.inputs = self.logits = self.calls = 0
         self.lengths = [0] * 4
         self.resident_pages = 0
+        self.paged = self.backend == "cuda" and self.runtime["configuration"]["kv_layout"] == "paged"
+        self.table_uploads = 0
+        self.table_dirty = False
         zero = dict(allocation_calls=0, allocations=0, release_calls=0, releases=0, allocated_bytes=0)
         allocation_snapshot(report["before_initialization_allocations"], zero)
         self.initial = report["initial_state"]
         self.allocations = zero
         self.plan = None
         if self.backend == "cuda":
-            self.plan, self.weight_payload, types = memory_plan(self.runtime)
+            self.plan, self.weight_payload, types = memory_plan(
+                self.runtime, kv_layout="paged" if self.paged else "contiguous")
             require(identical(self.runtime["arithmetic"], dict(
                 source_weight_dtype="Q8_0", source_tensor_counts=types, device_weight_dtype="F32",
                 activation_dtype="F32", kv_dtype="F16", kv_rounding="nearest_even", qk_pv_accumulation_dtype="F32",
@@ -242,6 +263,10 @@ class State:
             require(identical(self.runtime["arithmetic"], dict(source_weight_dtype="Q8_0", effective_weight_dtype="F32",
                 activation_dtype="F32", kv_dtype="F16", softmax_denominator_dtype="F64", kernel="auto")), "CPU 算术模式不符")
         self.check(self.initial)
+
+    def clear(self):
+        self.table_dirty = self.table_dirty or (self.paged and any(self.lengths))
+        self.lengths = [0] * 4
 
     def check(self, value):
         allocation_snapshot(value["allocation_stats"], self.allocations)
@@ -264,6 +289,10 @@ class State:
         for key in ("model_load_ns", "storage_initialization_ns", "weight_decode_upload_ns"):
             expected[key] = self.runtime["initialization"][key]
             require(integer(expected[key], 1), f"CUDA 初始化时钟无效：{key}")
+        if self.paged:
+            expected.update(kv_layout="paged", page_size_tokens=16, capacity_pages=512,
+                            live_kv_pages=sum((v+15)//16 for v in self.lengths),
+                            page_table_h2d_bytes=2048*self.table_uploads)
         require(identical(actual, expected), "CUDA KV、传输、分配或初始化状态不符")
 
     def call(self, record, batch, phase):
@@ -271,9 +300,13 @@ class State:
         require(identical(record["input_tokens"], len(batch)) and identical(record["logits_rows"], sum(r[3] for r in batch)),
                 "batch token 或 logits 行数不符")
         require(identical(record["context_before"], self.lengths), "context_before 不符")
+        pages_before = [(v+15)//16 for v in self.lengths]
         for _, position, sequence, _ in batch:
             require(position == self.lengths[sequence] and position < 2048, "描述符不是连续独立 KV")
             self.lengths[sequence] += 1
+        if self.paged and (self.table_dirty or pages_before != [(v+15)//16 for v in self.lengths]):
+            self.table_uploads += 1
+            self.table_dirty = False
         self.resident_pages = max(self.resident_pages, sum((length + 15) // 16 for length in self.lengths))
         require(identical(record["context_after"], self.lengths), "context_after 不符")
         require(integer(record["host_forward_to_token_ns"], 1) and record["device_elapsed_ms"] is None,
@@ -292,16 +325,23 @@ class State:
 
 
 def validate_report(report, spec):
+    gpu_kv = spec["protocol_id"] == KV_PROTOCOL
     require(identical(report["schema_version"], 1) and report["benchmark"] == BENCHMARK and report["status"] == "passed",
             "报告未完成或类型无效")
-    require(report["backend"] in BACKENDS and report["input_sha256"] == INPUT_SHA256
-            and report["model_sha256"] == MODEL_SHA256 and identical(report["protocol"], PROTOCOL), "报告配置不符")
+    protocol = dict(PROTOCOL, generation_stop="fixed_inputs_no_generation_loop") if gpu_kv else PROTOCOL
+    require(report["backend"] in (("cuda",) if gpu_kv else BACKENDS)
+            and report["input_sha256"] == (KV_INPUT_SHA256 if gpu_kv else INPUT_SHA256)
+            and report["model_sha256"] == MODEL_SHA256 and identical(report["protocol"], protocol), "报告配置不符")
     runtime, backend = report["runtime"], report["backend"]
+    layout = report.get("kv_layout") if gpu_kv else "contiguous"
+    if gpu_kv:
+        require(report["protocol_id"] == KV_PROTOCOL and layout in KV_LAYOUTS
+                and runtime["precision_mode"] == "f32-pedantic", "分页模型协议、布局或精度不符")
     config = dict(max_sequences=4, max_model_len=2048, batch_tokens=128, context_pool_tokens=8192,
                   threads=None if backend == "cuda" else int(backend[3:]), kernel=None if backend == "cuda" else "auto",
                   effective_kernel=runtime["configuration"]["effective_kernel"], device=0 if backend == "cuda" else None,
-                  streams=1 if backend == "cuda" else None, kv_layout="contiguous" if backend == "cuda" else "paged",
-                  page_tokens=None if backend == "cuda" else 16)
+                  streams=1 if backend == "cuda" else None, kv_layout=layout if backend == "cuda" else "paged",
+                  page_tokens=None if backend == "cuda" and layout == "contiguous" else 16)
     require(identical(runtime["configuration"], config), "Runtime 上限、线程或 KV 布局不符")
     require(config["effective_kernel"] in ((None,) if backend == "cuda" else ("scalar", "avx2-fma-f16c")),
             "CPU effective kernel 或 CUDA 隔离身份无效")
@@ -324,6 +364,16 @@ def validate_report(report, spec):
                 "CUDA 设备身份或工具版本无效")
     state = State(report)
     plan = workload_plan(spec)
+    if gpu_kv:
+        require(len(plan) == 4, "分页模型实验必须保留四个 workload")
+        if report["process"] is not None:
+            trial = report["process"]["trial"]
+            require(integer(trial) and trial < 3 and report["scope"] == "paired_model_baseline",
+                    "分页模型 trial 或进程用途不符")
+            if trial % 2:
+                plan.reverse()
+        else:
+            require(report["scope"] == "diagnostic_single_process", "没有 manifest 的运行只能用于诊断")
     require(isinstance(report["workloads"], list) and len(report["workloads"]) == len(plan), "缺少或多出 workload")
     values = {}
     for actual, (work, setup, measured) in zip(report["workloads"], plan):
@@ -331,16 +381,21 @@ def validate_report(report, spec):
         require(actual["name"] == name and actual["mode"] == mode and actual["status"] == "passed", "workload 顺序或状态不符")
         require(isinstance(actual["iterations"], list) and len(actual["iterations"]) == 5, "必须保留 2 次 warmup 和 3 次测量")
         series = dict(samples=[], prefill_samples=[], decode_samples=[], token_ids=None)
+        if gpu_kv:
+            series["setup_table_h2d_bytes"] = []
+            series["timed_table_h2d_bytes"] = []
         for i, iteration in enumerate(actual["iterations"]):
             require(identical(iteration["index"], i) and iteration["phase"] == ("warmup" if i < 2 else "measured")
                     and identical(iteration["clear_sequences"], [0, 1, 2, 3]) and integer(iteration["clear_ns"]),
                     "重复次数、warmup 或清理顺序不符")
-            state.lengths = [0] * 4
+            state.clear()
             state.check(iteration["after_clear"])
+            table_before_setup = state.table_uploads
             require(len(iteration["setup"]) == len(setup), "每轮必须独立重建完整 prefix")
             for call, batch in zip(iteration["setup"], setup):
                 state.call(call, batch, "setup")
             state.check(iteration["before_measured"])
+            table_before_measured = state.table_uploads
             phase = "prefill" if mode in ("prefill", "natural_generation") else "mixed" if mode == "mixed" else "decode"
             generated = mode == "natural_generation"
             calls = iteration["forwards"]
@@ -353,6 +408,9 @@ def validate_report(report, spec):
                     batch = [(tokens[-1], work["prompt_tokens"] + step - 1, 0, 1)]
                     tokens += state.call(calls[len(measured) + step - 1], batch, "decode")
             state.check(iteration["after_measured"])
+            if gpu_kv:
+                series["setup_table_h2d_bytes"].append(2048*(table_before_measured-table_before_setup))
+                series["timed_table_h2d_bytes"].append(2048*(state.table_uploads-table_before_measured))
             require(identical(iteration["token_ids"], tokens), "token 序列与 forward 不符")
             if series["token_ids"] is None:
                 series["token_ids"] = tokens
@@ -369,8 +427,10 @@ def validate_report(report, spec):
                 series["decode_samples"].append(sums["decode_forward_ns"])
         series["median_ns"] = statistics.median(series["samples"])
         values[name] = series
-    state.lengths = [0] * 4
+    state.clear()
     state.check(report["final_state"])
+    if gpu_kv:
+        require(state.calls == 175, "分页模型 forward 总数不符")
     return dict(cases=values, forwards=state.calls, input_tokens=state.inputs, logits_rows=state.logits,
                 owned_device_bytes=state.plan["total_owned_bytes"] if state.plan else 0)
 
@@ -379,6 +439,18 @@ def percentile(values, fraction):
     rank = fraction * (len(values) - 1)
     low, high = math.floor(rank), math.ceil(rank)
     return values[low] + (values[high] - values[low]) * (rank - low)
+
+
+def kv_paired_statistics(samples):
+    require(set(samples) == set(KV_LAYOUTS) and all(
+        isinstance(rows, list) and len(rows) == 3 and all(
+            isinstance(row, list) and len(row) == 3 and all(finite(v) and v > 0 for v in row)
+            for row in rows) for rows in samples.values()),
+        "分页统计需要两布局各三个独立 trial，每轮三个正数样本")
+    medians = {layout: [statistics.median(row) for row in samples[layout]] for layout in KV_LAYOUTS}
+    changes = [100 * (b - a) / a for a, b in zip(medians["contiguous"], medians["paged"])]
+    return dict(samples=samples, trial_medians=medians, paired_relative_percent=changes,
+                median_relative_percent=statistics.median(changes))
 
 
 def paired_statistics(a, b):
@@ -404,6 +476,8 @@ def classify(stats, noise):
 
 
 def analyze_pairs(reports, spec):
+    if spec["protocol_id"] == KV_PROTOCOL:
+        return analyze_kv_pairs(reports, spec)
     expected = schedule()
     require(len(reports) == len(expected) and all(identical(r["process"], slot) for r, slot in zip(reports, expected)),
             "A/A、trial 或平衡进程顺序不完整")
@@ -465,6 +539,38 @@ def analyze_pairs(reports, spec):
                 microbenchmark_complete=False, profiler_complete=False, gpu_serving=False)
 
 
+def analyze_kv_pairs(reports, spec):
+    expected = schedule(True)
+    require(len(reports) == 6 and all(
+        identical(r["process"], slot) and r["scope"] == "paired_model_baseline"
+        for r, slot in zip(reports, expected)), "分页模型配对进程不完整或混入诊断运行")
+    audited = [validate_report(r, spec) for r in reports]
+    for key in ("device", "dimensions", "weights", "arithmetic"):
+        require(all(identical(r["runtime"][key], reports[0]["runtime"][key]) for r in reports),
+                f"跨布局或 trial 的模型身份不一致：{key}")
+    indices = {layout: [i for i, r in enumerate(reports) if r["kv_layout"] == layout] for layout in KV_LAYOUTS}
+    comparisons = {}
+    for work in spec["workloads"]:
+        name = work["name"]
+        values = [r["cases"][name] for r in audited]
+        require(all(identical(v["token_ids"], values[0]["token_ids"]) for v in values), "模型跨布局输出不一致")
+        stats = kv_paired_statistics({layout: [values[i]["samples"] for i in rows] for layout, rows in indices.items()})
+        passed = stats["median_relative_percent"] <= 10 and sum(v > 10 for v in stats["paired_relative_percent"]) <= 1
+        stats.update(guardrail_passed=passed, token_ids=values[0]["token_ids"],
+                     status="within_review_band" if passed else "latency_guardrail_exceeded",
+                     table_transfers={layout: [{k: values[i][k] for k in ("setup_table_h2d_bytes", "timed_table_h2d_bytes")}
+                                              for i in rows] for layout, rows in indices.items()})
+        comparisons[name] = stats
+    passed = all(v["guardrail_passed"] for v in comparisons.values())
+    return dict(schema_version=1, benchmark=BENCHMARK, protocol_id=KV_PROTOCOL,
+        scope="GPU-KV-001 same-capacity model performance",
+        status="within_review_band" if passed else "latency_guardrail_exceeded", statistics=KV_STATISTICS,
+        reports=6, independent_trials=3, measured_repetitions=72, forwards=sum(r["forwards"] for r in audited),
+        data_path_gates="passed", comparisons=comparisons, model_latency_guardrail_passed=passed,
+        owned_device_bytes={layout: audited[rows[0]]["owned_device_bytes"] for layout, rows in indices.items()},
+        product_eligible=False, profiler_complete=False, gpu_serving=False)
+
+
 def source_archive(directory, source):
     state_file = artifact(directory, source["state_file"])
     archive_file = artifact(directory, source["snapshot"]["path"])
@@ -492,24 +598,118 @@ def source_archive(directory, source):
     return files
 
 
-def validate_bundle(directory):
+def validate_kv_numerics(summary, report, contract, identity, files, old_files, binary):
+    require(summary["status"] == "passed" and summary["passed"] is True and summary["paged_gpu_model"] is True
+            and summary["full_corpus_contract"] is False and summary["performance_baseline"] is False
+            and identical(summary["cases"], 16) and identical(summary["bitwise_comparisons"], 173)
+            and summary["model_sha256"] == identity["model"]["sha256"] == contract["model"]["sha256"] == MODEL_SHA256,
+            "分页数值范围、模型或状态不符")
+    binaries = [r["sha256"] for r in identity["binaries"]
+                if PureWindowsPath(r["path"]).name in ("minillm-cuda-model-tests", "minillm-cuda-model-tests.exe")]
+    require(digest(binary) and binaries == [binary], "分页数值测试的编译身份不符，必须重新验证")
+    for name in ("tests/cuda_model_tests.cpp", "tests/cuda_validation_support.h", "apps/cuda_reports.h",
+                 "tests/data/qwen3_validation_cases.json"):
+        require(name in files and name in old_files and files[name]["sha256"] == old_files[name]["sha256"],
+                f"分页数值测试源码改变：{name}")
+    require(report["passed"] is True and report["first_failure"] is None and report["performance_baseline"] is False
+            and report["spec_id"] == summary["spec_id"] == identity["spec_id"] == "GPU-KV-001"
+            and len(report["cases"]) == 16 and len(report["comparisons"]) == 173, "分页数值原始记录缺失或失败")
+    ids = [(1, name) for name in ("zh-33", "en-33", "repeated-33", "special-33", "en-128",
+           "en-l128-c16-s1", "en-l1536-c128-s1", "en-l2048-c128-s1", "golden-0", "golden-1", "golden-2")]
+    ids += [(4, name) for name in ("mixed-16-plus-2", "interleaved-four-33", "golden-0", "golden-1", "golden-2")]
+    require(identical([(c["max_sequences"], c["id"]) for c in report["cases"]], ids), "分页数值用例集合不符")
+    expected, counts = [], {1: 0, 4: 0}
+    for case in report["cases"]:
+        sequence_count, name = case["max_sequences"], case["id"]
+        lengths, words = [0]*sequence_count, []
+        for batch_index, batch in enumerate(case["batches"]):
+            require(isinstance(batch, list) and 0 < len(batch) <= 128, "数值 batch 尺寸不符")
+            words.append(len(batch))
+            for index, row in enumerate(batch):
+                token, position, sequence, logits = (row[k] for k in ("token", "position", "sequence", "logits"))
+                require(integer(token) and token < 151936 and integer(position) and position < 2048
+                        and integer(sequence) and sequence < sequence_count and position == lengths[sequence]
+                        and type(logits) is bool, "数值输入描述符无效")
+                lengths[sequence] += 1
+                words.extend((token, position, sequence, int(logits)))
+                if logits:
+                    expected.append((sequence_count, name, batch_index, sequence, position, index))
+        require(hashlib.sha256(struct.pack(f"<{len(words)}i", *words)).hexdigest() == case["batch_sha256"],
+                "数值输入摘要不符")
+        continuation = 8 if name.startswith("golden-") else 32 if name == "en-l1536-c128-s1" else 0
+        require(identical(case["continuation_tokens"], continuation) and len(case["generated_tokens"]) == continuation
+                and integer(case["prompt_batches"], 1)
+                and len(case["batches"]) == case["prompt_batches"] + max(0, continuation-1), "数值续写长度不符")
+        golden = contract["stable_greedy"][int(name[-1])]["expected_token_ids"] if name.startswith("golden-") else []
+        require(identical(case["golden"], golden) and (not golden or identical(case["generated_tokens"], golden)),
+                "冻结 golden 不符")
+        counts[sequence_count] += len(case["batches"])
+    actual = []
+    outputs = {}
+    for row in report["comparisons"]:
+        key = tuple(row[k] for k in ("max_sequences", "case", "batch", "sequence", "position", "input_index"))
+        require(row["passed"] is True and row["bitwise_equal"] is True
+                and identical(row["actual"], row["reference"]) and digest(row["actual"]["sha256"])
+                and integer(row["actual"]["token"]) and row["actual"]["token"] < 151936
+                and finite(row["actual"]["margin"]) and row["actual"]["margin"] >= 0, "分页 logits 或 token 不一致")
+        actual.append(key)
+        outputs.setdefault(key[:3], row["actual"]["token"])
+    require(identical(actual, expected), "分页 logits 行缺失、重复或顺序不符")
+    for case in report["cases"]:
+        start = case["prompt_batches"]-1
+        for i, token in enumerate(case["generated_tokens"]):
+            require(outputs[(case["max_sequences"], case["id"], start+i)] == token, "续写 token 与 logits 不符")
+            if i:
+                require(case["batches"][start+i][0]["token"] == case["generated_tokens"][i-1], "续写未使用前一输出")
+    configs = report["configurations"]
+    require(identical([(r["max_sequences"], r["layout"]) for r in configs],
+                      [(s, layout) for s in (1, 4) for layout in KV_LAYOUTS]), "分页数值配置缺失")
+    arithmetic = dict(source_weight_dtype="Q8_0", source_tensor_counts=dict(Q8_0=197, F32=113),
+        device_weight_dtype="F32", activation_dtype="F32", kv_dtype="F16", kv_rounding="nearest_even",
+        qk_pv_accumulation_dtype="F32", softmax_exponential_dtype="F32", softmax_denominator_dtype="F64",
+        gemm_compute="CUBLAS_COMPUTE_32F_PEDANTIC", fast_math=False)
+    for row in configs:
+        before, after = row["before"], row["after"]
+        require(row["passed"] is True and identical(row["steady_device_allocations"], 0)
+                and after["state"] == "ready" and identical(after["completed_forwards"], counts[row["max_sequences"]])
+                and identical(after["live_kv_tokens"], 0) and identical(after["post_launch_failures"], 0)
+                and after["weight_h2d_bytes"] == before["weight_h2d_bytes"]
+                and identical(after["resident"], before["resident"])
+                and identical(after["intermediate_h2d_bytes"], 0) and identical(after["intermediate_d2h_bytes"], 0)
+                and identical(row["arithmetic"], arithmetic), "数值执行状态或数学不符")
+        if row["layout"] == "paged":
+            require(identical(after["live_kv_pages"], 0) and integer(after["page_table_h2d_bytes"], 1),
+                    "分页数值检查未使用设备表或未回收页")
+
+
+def validate_bundle(directory, preflight=False):
     manifest_path = artifact(directory, "manifest.json")
     manifest = read(manifest_path)
+    gpu_kv = manifest["protocol_id"] == KV_PROTOCOL
+    require(not preflight or gpu_kv, "该预检模式仅用于分页模型协议")
+    input_hash = KV_INPUT_SHA256 if gpu_kv else INPUT_SHA256
     require(identical(manifest["schema_version"], 1) and manifest["benchmark"] == BENCHMARK
-            and identical(manifest["reports"], schedule()) and identical(manifest["statistics"], STATISTICS),
+            and identical(manifest["reports"], schedule(gpu_kv))
+            and identical(manifest["statistics"], KV_STATISTICS if gpu_kv else STATISTICS),
             "manifest 类型、完整进程计划或统计协议不符")
     require(manifest["dependencies"]["llama_commit"] == LLAMA_COMMIT
             and manifest["build"]["own_cuda"] == "ON" and manifest["build"]["upstream_cuda"] == "OFF"
             and manifest["build"]["type"] in ("Release", "RelWithDebInfo"), "构建边界或依赖不符")
     require(manifest["model"]["sha256"] == MODEL_SHA256 and digest(manifest["binary"]["sha256"])
-            and manifest["input"]["sha256"] == INPUT_SHA256 and manifest["protocol_id"] == "qwen3-cuda-model-v0",
+            and manifest["input"]["sha256"] == input_hash
+            and manifest["protocol_id"] == (KV_PROTOCOL if gpu_kv else "qwen3-cuda-model-v0"),
             "模型、二进制或协议身份不符")
     files = source_archive(directory, manifest["source"])
     spec_path = artifact(directory, manifest["input"]["path"])
-    require(sha(spec_path) == INPUT_SHA256, "冻结输入摘要不符")
+    require(sha(spec_path) == input_hash, "冻结输入摘要不符")
+    if gpu_kv:
+        require(files["benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"]["sha256"] == input_hash, "源码中的分页输入不符")
     spec = read(spec_path)
     collection = read(artifact(directory, "collection-status.json"))
-    require(collection["status"] == "passed" and len(collection["reports"]) == 70, "采集不完整或曾报告执行失败")
+    require(collection["status"] == ("preflight_only" if preflight else "passed")
+            and len(collection["reports"]) == (0 if preflight else 6 if gpu_kv else 70), "采集不完整或曾报告执行失败")
+    if gpu_kv:
+        require(identical(collection["planned_reports"], 6), "分页模型进程预算不符")
     availability = []
     seen = set()
 
@@ -535,17 +735,28 @@ def validate_bundle(directory):
     numeric = read(artifact(directory, "validation-summary.json"))
     numeric_environment = read(artifact(directory, "numerical-environment.json"))
     validation_binary = manifest["numerical_evidence"]["validation_binary_sha256"]
-    require(digest(validation_binary) and validation_binary == numeric_environment["full_validation_binary_sha256"],
-            "当前完整模型测试的二进制不属于既有数值验收，必须重新验证")
-    require(numeric["status"] == "passed" and numeric["complete"] is True and numeric["passed"] is True
-            and numeric["full_corpus_contract"] is True and numeric["model_sha256"] == MODEL_SHA256
-            and numeric["totals"]["numeric_failures"] == 0, "完整数值门禁未通过")
+    if not gpu_kv:
+        require(digest(validation_binary) and validation_binary == numeric_environment["full_validation_binary_sha256"],
+                "当前完整模型测试的二进制不属于既有数值验收，必须重新验证")
+        require(numeric["status"] == "passed" and numeric["complete"] is True and numeric["passed"] is True
+                and numeric["full_corpus_contract"] is True and numeric["model_sha256"] == MODEL_SHA256
+                and numeric["totals"]["numeric_failures"] == 0, "完整数值门禁未通过")
     old_files = {item["path"]: item for item in read(artifact(directory, "numerical-source-state.json"))["files"]}
     product = [name for name in files if name.startswith(("include/minillm/", "src/minillm/"))]
     old_product = {name for name in old_files if name.startswith(("include/minillm/", "src/minillm/"))}
     require(product and set(product) == old_product
             and all(files[name]["sha256"] == old_files[name]["sha256"] for name in product),
             "数学或 Runtime 源码不同，不能沿用既有数值门禁")
+    if gpu_kv:
+        require({"paged-model-validation.json", "validation-contract.json"} <= seen, "缺少分页数值 raw 或合同")
+        require(sha(artifact(directory, "validation-contract.json")) ==
+                files["tests/data/qwen3_validation_cases.json"]["sha256"], "数值合同不属于当前源码")
+        validate_kv_numerics(numeric, read(artifact(directory, "paged-model-validation.json")),
+                            read(artifact(directory, "validation-contract.json")), numeric_environment,
+                            files, old_files, validation_binary)
+    if preflight:
+        return dict(summary=dict(status="preflight_only", reports=0, data_path_gates="not_measured"),
+                    availability=dict(schema_version=1, status="AVAILABLE", artifacts=availability))
     reports = []
     for slot, record in zip(manifest["reports"], collection["reports"]):
         require(record["file"] == slot["file"] and record["exit_code"] == 0, "采集执行状态或顺序不符")
@@ -561,10 +772,18 @@ def validate_bundle(directory):
         process = read(artifact(directory, slot["file"] + ".process.json"))
         require(process["order"] == slot["order"] and process["exit_code"] == 0
                 and "before" in process and "after" in process and process["arguments"], "进程环境或原始命令缺失")
+        if gpu_kv:
+            arguments = process["arguments"]
+            require(report["kv_layout"] == slot["kv_layout"] and process["kv_layout"] == slot["kv_layout"]
+                    and arguments.count("--kv-layout") == 1
+                    and arguments[arguments.index("--kv-layout")+1] == slot["kv_layout"], "模型进程布局或命令不符")
         reports.append(report)
     devices = [r["runtime"]["device"] for r in reports if r["backend"] == "cuda"]
     require(devices and all(identical(d, devices[0]) for d in devices), "采集中 GPU 或 CUDA 版本发生变化")
-    for backend in BACKENDS[:2]:
+    if gpu_kv:
+        numeric_devices = [r["device"] for r in read(artifact(directory, "paged-model-validation.json"))["configurations"]]
+        require(all(identical(d, devices[0]) for d in numeric_devices), "分页数值与性能采集的设备或 CUDA 版本不一致")
+    for backend in (() if gpu_kv else BACKENDS[:2]):
         effective = {r["runtime"]["configuration"]["effective_kernel"] for r in reports if r["backend"] == backend}
         require(len(effective) == 1, "CPU SIMD 配置发生变化")
     summary = analyze_pairs(reports, spec)
@@ -582,12 +801,33 @@ def validate_bundle(directory):
                          status_d2h_bytes=d["status_d2h_bytes"] if d else None,
                          debug_d2h_bytes=d["debug_d2h_bytes"] if d else None,
                          owned_device_bytes=d["owned_device_bytes"] if d else 0))
+        if gpu_kv:
+            copy[-1].update(kv_layout=report["kv_layout"], page_table_h2d_bytes=d.get("page_table_h2d_bytes", 0))
     return dict(summary=summary, availability=dict(schema_version=1, status="AVAILABLE", artifacts=availability),
                 copies=dict(schema_version=1, status="passed", scope="project_owned_not_vendor_internal", reports=copy),
-                weights=cuda["runtime"]["weights"], memory=cuda["initial_state"]["cuda"]["resident"])
+                weights=cuda["runtime"]["weights"],
+                memory={r["kv_layout"]: r["initial_state"]["cuda"]["resident"] for r in reports}
+                       if gpu_kv else cuda["initial_state"]["cuda"]["resident"])
 
 
 def analysis_text(summary):
+    if summary.get("protocol_id") == KV_PROTOCOL:
+        lines = ["# GPU KV 同容量模型对照", "", f"- 状态：`{summary['status']}`。",
+            "- 四个 workload，两布局各三个独立 trial；每项两次预热、三次测量，进程顺序 BA、AB、BA。",
+            "- 主时钟为 host forward 到 token，包含页分配、映射维护、必要上传、采样和同步；prefix setup 单列。",
+            "- 差异为 100*(paged/contiguous-1)，正数表示退化；10% 是工程护栏，不是统计显著性。",
+            "- 同容量为 8192 token；分页多 2 KiB table，不构成显存节省。",
+            "- 数值继承限定的 S1/S4、173 行逐位对照，不冒充旧 M1 全语料重跑。",
+            "- 尚无 Serving 护栏或产品采用结论。", "",
+            "| 用例 | 连续 ms | 分页 ms | 配对差异 % | 各轮差异 % | 模型护栏 |",
+            "| --- | ---: | ---: | ---: | --- | --- |"]
+        for name, value in summary["comparisons"].items():
+            medians = value["trial_medians"]
+            changes = ", ".join(f"{v:.2f}" for v in value["paired_relative_percent"])
+            lines.append(f"| {name} | {statistics.median(medians['contiguous'])/1e6:.3f} | "
+                         f"{statistics.median(medians['paged'])/1e6:.3f} | "
+                         f"{value['median_relative_percent']:.2f} | {changes} | {value['status']} |")
+        return "\n".join(lines) + "\n"
     lines = ["# 自有 CUDA 模型性能基线", "", f"- 状态：`{summary['status']}`。",
              "- 主指标为无 profiler 的 host forward 到 token 延迟，包含必要 copy、finite/argmax 和同步。",
              "- 每个配置使用 5 个独立 trial；每进程 2 次 warmup、3 次测量。表中负百分比表示 CUDA 更快。",
@@ -641,15 +881,18 @@ def main():
     mode.add_argument("--schedule", action="store_true")
     parser.add_argument("--input")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--gpu-kv", action="store_true", help="生成冻结分页模型六进程计划")
+    parser.add_argument("--preflight", action="store_true", help="检查分页采集身份与数值门禁，不读取性能报告")
     args = parser.parse_args()
     try:
+        require(not args.preflight or (args.directory and not args.write), "分页预检需要 --directory，不能发布性能摘要")
         if args.schedule:
-            result = dict(reports=schedule(), statistics=STATISTICS)
+            result = dict(reports=schedule(args.gpu_kv), statistics=KV_STATISTICS if args.gpu_kv else STATISTICS)
         elif args.report:
-            require(args.input and sha(args.input) == INPUT_SHA256, "单进程复核需要冻结的 --input")
+            require(args.input and sha(args.input) in (INPUT_SHA256, KV_INPUT_SHA256), "单进程复核需要冻结的 --input")
             result = validate_report(read(args.report), read(args.input))
         else:
-            result = validate_bundle(args.directory)
+            result = validate_bundle(args.directory, args.preflight)
             if args.write:
                 publish(args.directory, {"availability.json": result["availability"], "weight-plan.json": result["weights"],
                     "memory-plan.json": result["memory"], "copy-allocation-summary.json": result["copies"],

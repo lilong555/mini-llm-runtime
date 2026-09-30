@@ -32,7 +32,9 @@ json idle(httplib::Client& client) {
                 CHECK(stats.at("resources").at("live_tokens") == 0);
                 CHECK(stats.at("resources").at("state_valid") == true && stats.at("resources").at("reusable") == true);
                 CHECK(stats.at("resources").at("resident_kv_payload_bytes").get<std::size_t>() > 0);
-                CHECK(stats.at("resources").at("live_kv_pages").is_null());
+                if (stats.at("resources").at("layout") == "paged") {
+                    CHECK(stats.at("resources").at("live_kv_pages") == 0);
+                } else { CHECK(stats.at("resources").at("live_kv_pages").is_null()); }
             }
             return stats;
         }
@@ -162,9 +164,18 @@ int main(int argc, char** argv) {
             CHECK(capabilities.at("prefix_copy") == false && capabilities.at("runtime_stage_profile") == false);
             CHECK(before.at("prefix_cache_entries") == 0 && before.at("prefix_cache_tokens") == 0);
             const auto& resources = before.at("resources");
-            CHECK(resources.at("layout") == "contiguous" && resources.at("live_kv_pages").is_null());
-            CHECK(resources.at("capacity_tokens").get<std::size_t>() ==
-                  before.at("max_active").get<std::size_t>() * before.at("max_model_len").get<std::size_t>());
+            if (resources.at("layout") == "paged") {
+                CHECK(resources.at("live_kv_pages") == 0);
+                CHECK(resources.at("capacity_tokens") == before.at("context_tokens"));
+                CHECK(before.at("kv_credits").at("block_size") == 16 && capabilities.at("kv_page_tokens") == 16);
+                CHECK(resources.at("page_table_bytes").get<std::size_t>() ==
+                      before.at("max_active").get<std::size_t>()*((before.at("max_model_len").get<std::size_t>()+15)/16)*4);
+            } else {
+                CHECK(resources.at("layout") == "contiguous" && resources.at("live_kv_pages").is_null());
+                CHECK(resources.at("capacity_tokens").get<std::size_t>() ==
+                      before.at("max_active").get<std::size_t>() * before.at("max_model_len").get<std::size_t>());
+                CHECK(resources.at("page_table_bytes") == 0);
+            }
             CHECK(resources.at("snapshot_boundary") == "model_thread_publish");
             CHECK(resources.at("owned_device_bytes") >= resources.at("resident_kv_payload_bytes"));
             CHECK(before.at("initialization").at("weight_decode_upload_ns").get<std::uint64_t>() > 0);

@@ -2,6 +2,7 @@
 #include "test_support.h"
 
 #include <fstream>
+#include <filesystem>
 
 using namespace cuda_benchmark;
 
@@ -112,6 +113,49 @@ TEST(benchmark_refuses_wrong_state_and_output_order) {
     test::throws<std::runtime_error>([&] {
         run_call(backend, {{1, 0, 0, true}, {2, 0, 1, true}}, "decode", lengths);
     });
+}
+
+TEST(gpu_kv_protocol_and_capacity_trace_are_frozen) {
+    const auto root = std::filesystem::path(__FILE__).parent_path().parent_path();
+    std::ifstream file(root/"benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json",std::ios::binary);
+    const std::string bytes((std::istreambuf_iterator<char>(file)),{});
+    CHECK(hash_sha256_hex(bytes.data(),bytes.size()) == gpu_kv_input_sha256);
+    const auto spec = json::parse(bytes);
+    const auto works = make_workloads(spec);
+    CHECK(works.size() == 4 && works[0].measured.size() == 1 && works[1].measured.size() == 12);
+    CHECK(works[2].setup.size() == 12 && works[2].measured[0][0].position == 1536);
+    CHECK(works[3].setup.size() == 8 && works[3].measured[0].size() == 4);
+    std::size_t forwards = 0;
+    for (const auto& work : works) {
+        FakeBackend backend;
+        json report;
+        run_workload(backend,work,report);
+        CHECK(backend.clears == 20);
+        forwards += backend.forwards;
+    }
+    CHECK(forwards == 175);
+    const auto& capacity = spec.at("serving").at("same_budget");
+    CHECK(capacity.at("kv_subsystem_budget_bytes") == 288*1024*1024);
+    for (const auto& arm : {spec.at("serving").at("same_capacity"),capacity}) {
+        std::ifstream trace_file(root/arm.at("trace").get<std::string>(),std::ios::binary);
+        const std::string content((std::istreambuf_iterator<char>(trace_file)),{});
+        CHECK(hash_sha256_hex(content.data(),content.size()) == arm.at("trace_sha256").get<std::string>());
+    }
+    std::ifstream trace(root/capacity.at("trace").get<std::string>());
+    std::string line;
+    std::size_t count = 0;
+    while (std::getline(trace,line)) {
+        const auto row = json::parse(line);
+        const auto& request = row.at("request");
+        const auto length = capacity.at("prompt_lengths").at(count%4).get<std::size_t>();
+        CHECK(request.at("prompt").size() == length && row.at("arrival_s") == 0);
+        CHECK(row.at("request_id") == "gpu-kv-capacity-"+std::to_string(count));
+        CHECK(request.at("max_tokens") == 32 && request.at("ignore_eos") == true);
+        CHECK(row.at("ttft_slo_ms") == 1000 && row.at("tpot_slo_ms") == 100);
+        for (std::size_t p = 0; p < length; ++p) { CHECK(request.at("prompt").at(p) == fixed_token(spec,p)); }
+        ++count;
+    }
+    CHECK(count == 24);
 }
 
 int main(int argc, char** argv) {

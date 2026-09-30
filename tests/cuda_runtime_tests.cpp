@@ -15,6 +15,8 @@ using namespace minillm::cuda;
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
 namespace {
 bool fail_completion = false;
+int fail_h2d_countdown = 0;
+bool corrupt_next_h2d = false;
 std::size_t observed_h2d = 0, observed_d2h = 0, completions = 0;
 }
 extern "C" cudaError_t __real_cudaStreamSynchronize(cudaStream_t stream);
@@ -30,18 +32,27 @@ extern "C" cudaError_t __wrap_cudaStreamSynchronize(cudaStream_t stream) {
 extern "C" cudaError_t __real_cudaMemcpyAsync(void*,const void*,std::size_t,cudaMemcpyKind,cudaStream_t);
 extern "C" cudaError_t __wrap_cudaMemcpyAsync(void* to, const void* from, std::size_t bytes,
                                              cudaMemcpyKind kind, cudaStream_t stream) {
+    if (kind == cudaMemcpyHostToDevice && fail_h2d_countdown > 0 && --fail_h2d_countdown == 0) {
+        return cudaErrorUnknown;
+    }
     const auto result = __real_cudaMemcpyAsync(to,from,bytes,kind,stream);
     if (result == cudaSuccess) {
         if (kind == cudaMemcpyHostToDevice) { observed_h2d += bytes; }
         if (kind == cudaMemcpyDeviceToHost) { observed_d2h += bytes; }
+        if (kind == cudaMemcpyHostToDevice && corrupt_next_h2d) {
+            corrupt_next_h2d = false;
+            return cudaMemsetAsync(to,0xff,bytes,stream);
+        }
     }
     return result;
 }
 #endif
 
 namespace {
-std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f, float norm_scale = 1.0f) {
-    return fixture.write(true,[](gguf_context* info) {
+std::string model_path(Qwen3Fixture& fixture, float scale = 1.0f, float norm_scale = 1.0f,
+                       std::uint32_t context = 16) {
+    return fixture.write(true,[context](gguf_context* info) {
+        gguf_set_val_u32(info,"qwen3.context_length",context);
         const char* tokens[]{"a","b","c","d","e","f","g","<|endoftext|>","<|im_end|>"};
         const char* merges[]{"a b"};
         const std::int32_t types[]{1,1,1,1,1,1,1,3,3};
@@ -252,6 +263,26 @@ TEST(runtime_invalid_precision_is_rejected_before_model_or_device_loading) {
     unchanged_allocations(before);
 }
 
+TEST(runtime_paged_precision_and_invalid_capacity_fail_before_model_or_device_loading) {
+    auto config = config_for("missing-paged-model.gguf");
+    CHECK(config.kv_layout == CudaKvLayout::contiguous && config.kv_capacity_tokens == 0);
+    const auto before = allocation_stats();
+    config.kv_layout = CudaKvLayout::paged;
+    config.kv_capacity_tokens = 32;
+    config.precision_mode = PrecisionMode::f16_matrix_f32acc;
+    try { CudaRuntime runtime(config); CHECK(false); }
+    catch (const std::invalid_argument& error) {
+        CHECK(std::string(error.what()).find("F32") != std::string::npos);
+    }
+    config.kv_layout = CudaKvLayout::contiguous;
+    config.precision_mode = PrecisionMode::f32_pedantic;
+    test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
+    config.kv_capacity_tokens = 0;
+    config.page_tokens = 32;
+    test::throws<std::invalid_argument>([&] { CudaRuntime runtime(config); });
+    unchanged_allocations(before);
+}
+
 TEST(runtime_half_groups_metadata_clear_preflight_and_timing) {
     Qwen3Fixture fixture;
     const auto path = model_path(fixture,0.01f);
@@ -318,7 +349,113 @@ TEST(runtime_half_activation_cast_overflow_is_fail_stop) {
     CHECK(released.allocations-allocations.allocations == 4 && released.releases-allocations.releases == 4);
 }
 
+TEST(runtime_paged_matches_contiguous_and_reuses_mapping) {
+    Qwen3Fixture fixture;
+    auto config = config_for(model_path(fixture,0.01f,1.0f,64));
+    config.max_model_len = 64;
+    CudaRuntime contiguous(config);
+    config.kv_layout = CudaKvLayout::paged; config.kv_capacity_tokens = 128;
+    CudaRuntime paged(config);
+    CHECK(!contiguous.live_kv_pages() && paged.live_kv_pages() == 0);
+    CHECK(paged.diagnostics().capacity_pages == 8 && paged.diagnostics().resident.kv_table_bytes == 64);
+    const auto allocated = allocation_stats();
+    std::array<std::size_t,4> lengths{};
+    const auto run = [&](const std::vector<InputToken>& batch, bool timing = false) {
+        const auto a = contiguous.forward(batch,CudaOutputMode::debug_logits,timing);
+        const auto b = paged.forward(batch,CudaOutputMode::debug_logits,timing);
+        CHECK(a.samples.size() == b.samples.size() && a.logits.size() == b.logits.size());
+        for (std::size_t i = 0; i < a.samples.size(); ++i) {
+            CHECK(a.samples[i].token == b.samples[i].token && a.samples[i].sequence == b.samples[i].sequence);
+            CHECK(a.samples[i].input_index == b.samples[i].input_index);
+            CHECK(a.logits[i].values.size() == b.logits[i].values.size());
+            CHECK(std::memcmp(a.logits[i].values.data(),b.logits[i].values.data(),a.logits[i].values.size()*sizeof(float)) == 0);
+        }
+        for (const auto& token : batch) { ++lengths[std::size_t(token.sequence)]; }
+        const auto d = paged.diagnostics();
+        CHECK(d.sequence_lengths == std::vector<std::size_t>(lengths.begin(),lengths.end()));
+        std::size_t pages = 0;
+        for (auto n : lengths) { pages += (n+15)/16; }
+        CHECK(d.live_kv_pages == pages && d.kv_capacity_tokens == 128);
+    };
+    run({{1,0,3,false},{2,0,0,true},{3,1,3,true}});
+    for (std::size_t end = 2; end < 33; ++end) {
+        run({{std::int32_t(end%7),std::int32_t(end),3,true}});
+    }
+    const auto table_bytes = paged.diagnostics().page_table_h2d_bytes;
+    run({{2,1,0,true},{4,33,3,true}},true);
+    CHECK(paged.diagnostics().page_table_h2d_bytes == table_bytes);
+    contiguous.clear_sequence(3); paged.clear_sequence(3); lengths[3] = 0;
+    run({{4,0,1,true},{3,0,3,false},{5,1,3,true}},true);
+    CHECK(paged.diagnostics().page_table_h2d_bytes == table_bytes+64);
+    CHECK(paged.diagnostics().intermediate_h2d_bytes == 0 && paged.diagnostics().intermediate_d2h_bytes == 0);
+    unchanged_allocations(allocated);
+}
+
+TEST(runtime_paged_capacity_failure_keeps_ready_and_clear_dirty) {
+    Qwen3Fixture fixture;
+    auto config = config_for(model_path(fixture,0.01f,1.0f,64));
+    config.max_model_len = 64; config.kv_layout = CudaKvLayout::paged; config.kv_capacity_tokens = 16;
+    CudaRuntime runtime(config);
+    runtime.forward(std::array<InputToken,1>{{{1,0,0,false}}});
+    const auto before = runtime.diagnostics();
+    const auto allocated = allocation_stats();
+    test::throws<std::length_error>([&] {
+        runtime.forward(std::array<InputToken,2>{{{2,1,0,true},{3,0,1,true}}});
+    });
+    const auto failed = runtime.diagnostics();
+    CHECK(failed.state == CudaRuntimeState::ready && failed.live_kv_pages == 1);
+    CHECK(failed.sequence_lengths == before.sequence_lengths && failed.page_table_h2d_bytes == before.page_table_h2d_bytes);
+    CHECK(failed.metadata_h2d_bytes == before.metadata_h2d_bytes && failed.post_launch_failures == 0);
+    runtime.forward(std::array<InputToken,1>{{{2,1,0,true}}});
+    CHECK(runtime.diagnostics().page_table_h2d_bytes == before.page_table_h2d_bytes);
+    runtime.clear_sequence(0); runtime.clear_sequence(0);
+    CHECK(runtime.live_kv_pages() == 0);
+    test::throws<std::invalid_argument>([&] {
+        runtime.forward(std::array<InputToken,1>{{{1,1,1,true}}});
+    });
+    runtime.forward(std::array<InputToken,1>{{{3,0,1,true}}});
+    CHECK(runtime.diagnostics().page_table_h2d_bytes == before.page_table_h2d_bytes+64);
+    test::throws<std::invalid_argument>([&] { runtime.clear_sequence(4); });
+    CHECK(runtime.live_kv_pages() == 1);
+    unchanged_allocations(allocated);
+}
+
 #ifdef MINILLM_TEST_CUDA_COMPLETION_FAILURE
+TEST(runtime_paged_postlaunch_errors_quarantine_all_resident_storage) {
+    Qwen3Fixture fixture;
+    auto config = config_for(model_path(fixture,0.01f,1.0f,64));
+    config.max_model_len = 64; config.kv_layout = CudaKvLayout::paged; config.kv_capacity_tokens = 128;
+    for (int failure = 0; failure < 4; ++failure) {
+        const auto before_owner = allocation_stats();
+        {
+            CudaRuntime runtime(config);
+            for (std::int32_t position = 0; position < 16; ++position) {
+                runtime.forward(std::array<InputToken,1>{{{position%7,position,0,false}}});
+            }
+            const auto before = runtime.diagnostics();
+            const auto allocated = allocation_stats();
+            if (failure == 0) { fail_completion = true; }
+            if (failure == 1) { fail_h2d_countdown = 1; }
+            if (failure == 2) { fail_h2d_countdown = 2; }
+            if (failure == 3) { corrupt_next_h2d = true; }
+            test::throws<Error>([&] {
+                runtime.forward(std::array<InputToken,2>{{{2,16,0,true},{3,0,1,true}}},CudaOutputMode::debug_logits);
+            });
+            CHECK(!fail_completion && fail_h2d_countdown == 0 && !corrupt_next_h2d);
+            const auto failed = runtime.diagnostics();
+            CHECK(failed.state == CudaRuntimeState::poisoned && !failed.live_kv_pages);
+            CHECK(failed.sequence_lengths == before.sequence_lengths && failed.completed_forwards == before.completed_forwards);
+            CHECK(failed.post_launch_failures == 1 && failed.owned_device_bytes == before.owned_device_bytes);
+            CHECK(failed.resident.kv_bytes == before.resident.kv_bytes && failed.capacity_pages == 8);
+            test::throws<Error>([&] { runtime.clear_sequence(0); });
+            test::throws<Error>([&] { runtime.forward(std::array<InputToken,1>{{{2,16,0,true}}}); });
+            unchanged_allocations(allocated);
+        }
+        const auto after = allocation_stats();
+        CHECK(after.allocations-before_owner.allocations == after.releases-before_owner.releases);
+    }
+}
+
 TEST(runtime_checked_completion_failure_is_fail_stop) {
     Qwen3Fixture fixture;
     CudaRuntime runtime(config_for(model_path(fixture)));

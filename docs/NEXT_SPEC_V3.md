@@ -1,5 +1,7 @@
 # NEXT_SPEC_V3 — 共享 GPU KV 页池与直接分页 Attention
 
+> Historical（历史规范）。分页实现与采用研究已结束，最终决定见 `GPU_KV_DECISION.md`。
+
 > Spec ID：GPU-KV-001  
 > 对应提案：PROJECT_PLAN_V4 / PLAN-V4-KV-20260928  
 > 审计日期：2026-09-28，Asia/Tokyo  

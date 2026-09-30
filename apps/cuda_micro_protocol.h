@@ -16,6 +16,8 @@ using json = nlohmann::ordered_json;
 inline constexpr std::size_t calls_per_sample = 32, repetitions = 5, max_length = 2048, max_batch = 128;
 inline constexpr const char* precision_input_sha256 =
     "3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8";
+inline constexpr const char* gpu_kv_input_sha256 =
+    "77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e";
 
 struct Case {
     std::string name, operation, role, tensor;
@@ -42,6 +44,29 @@ inline std::vector<std::size_t> sample_columns(std::size_t count) {
 }
 
 inline std::vector<Case> make_cases(const json& recipe, const minillm::ModelDimensions& d) {
+    if (recipe.at("protocol_id") == "gpu-kv-experiment-v1") {
+        const auto& micro = recipe.at("micro");
+        const auto rows = micro.at("rows").get<std::vector<std::size_t>>();
+        const auto lengths = micro.at("effective_contexts").get<std::vector<std::size_t>>();
+        if (rows != std::vector<std::size_t>{1,4,32} || lengths != std::vector<std::size_t>{128,1536}) {
+            throw std::invalid_argument("GPU KV micro 必须为冻结的六类 shape");
+        }
+        std::vector<Case> result;
+        for (auto m : rows) {
+            for (auto length : lengths) {
+                const std::string role = m == 32 ? "prefill" : "decode";
+                Case c{"attention-"+role+"-m"+std::to_string(m)+"-l"+std::to_string(length),
+                    "attention",role,"",m,d.heads*d.head_dim,0,d.head_dim,length};
+                c.seed = micro.at("seed").get<std::size_t>()+result.size()+1;
+                for (std::size_t row = 0; row < m; ++row) {
+                    c.slots.push_back(m == 4 ? std::int32_t(row) : 0);
+                    c.positions.push_back(std::int32_t(m == 32 ? length-m+row : length-1));
+                }
+                result.push_back(std::move(c));
+            }
+        }
+        return result;
+    }
     if (recipe.at("protocol_id") == "precision-experiment-v1") {
         std::vector<Case> result;
         const auto rows = recipe.at("micro").at("rows").get<std::vector<std::size_t>>();

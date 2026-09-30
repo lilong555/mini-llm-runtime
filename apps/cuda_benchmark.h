@@ -19,6 +19,7 @@ using Clock = std::chrono::steady_clock;
 using Batch = std::vector<minillm::InputToken>;
 using Lengths = std::array<std::size_t, 4>;
 inline constexpr auto input_sha256 = "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6";
+inline constexpr auto gpu_kv_input_sha256 = "77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e";
 
 inline std::uint64_t elapsed(Clock::time_point start) {
     return static_cast<std::uint64_t>(

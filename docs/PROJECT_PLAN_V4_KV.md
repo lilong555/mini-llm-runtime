@@ -1,5 +1,7 @@
 # PROJECT_PLAN_V4 — GPU Memory Systems 收尾规划
 
+> Historical（历史计划）。分页功能和性能研究已完成，当前决定以 `GPU_KV_DECISION.md` 为准。
+
 > Proposal ID：PLAN-V4-KV-20260928  
 > 审计日期：2026-09-28，Asia/Tokyo  
 > 固定审计基点：`6ca7d2dfeccb38b11b7596a552046651afcb693e`  

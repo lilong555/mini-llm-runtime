@@ -207,7 +207,7 @@ json metrics_json(const Engine& engine) {
         resources = {{"layout", kv_layout_name(r.layout)}, {"live_kv_pages", r.live_kv_pages},
             {"resident_kv_payload_bytes", r.resident_kv_payload_bytes},
             {"capacity_tokens", r.capacity_tokens}, {"live_tokens", r.live_tokens},
-            {"owned_device_bytes", r.owned_device_bytes}, {"state_valid", r.state_valid},
+            {"owned_device_bytes", r.owned_device_bytes}, {"page_table_bytes", r.page_table_bytes}, {"state_valid", r.state_valid},
             {"reusable", r.reusable}, {"snapshot_boundary", "model_thread_publish"},
             {"batch_id", s.resources_batch_id}};
     }
@@ -235,7 +235,8 @@ json metrics_json(const Engine& engine) {
         {"waiting_requests", s.waiting_requests},
         {"capabilities", {{"max_sequences", caps.max_sequences}, {"max_batch_tokens", caps.max_batch_tokens},
             {"max_model_len", caps.max_model_len}, {"prefix_copy", caps.prefix_copy},
-            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute}}},
+            {"runtime_stage_profile", caps.runtime_stage_profile}, {"synchronous_execute", caps.synchronous_execute},
+            {"kv_page_tokens", caps.kv_page_tokens}}},
         {"resources", resources},
         {"initialization", m.model_load_ns ? json{{"model_load_ns", m.model_load_ns},
             {"storage_initialization_ns", m.storage_initialization_ns},

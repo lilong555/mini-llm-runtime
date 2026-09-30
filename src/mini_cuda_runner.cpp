@@ -14,7 +14,9 @@ public:
     MiniCudaRunner(const ModelConfig& model, const EngineConfig& engine)
         : runtime_({model.path, model.device, engine.max_active, engine.max_model_len,
                     engine.batch_tokens, model.device_budget_bytes,
-                    model.cuda_precision.value_or(minillm::cuda::PrecisionMode::f32_pedantic)}) {
+                    model.cuda_precision.value_or(minillm::cuda::PrecisionMode::f32_pedantic),
+                    model.cuda_kv_layout.value_or(minillm::cuda::CudaKvLayout::contiguous),
+                    model.cuda_kv_layout == minillm::cuda::CudaKvLayout::paged ? engine.context_tokens : 0}) {
         info_ = {"minillm-cuda", std::filesystem::path(model.path).stem().string(), "qwen3",
                  runtime_.device_info().name, engine.context_tokens, runtime_.dimensions().vocabulary,
                  true, model.threads, 0, "cuda-f32"};
@@ -26,14 +28,17 @@ public:
         info_.storage_initialization_ns = initial.storage_initialization_ns;
         info_.weight_decode_upload_ns = initial.weight_decode_upload_ns;
         info_.precision_mode = minillm::cuda::precision_mode_name(runtime_.config().precision_mode);
-        resident_ = {std::nullopt, initial.resident.kv_bytes, KvLayout::contiguous,
+        const bool paged = runtime_.config().kv_layout == minillm::cuda::CudaKvLayout::paged;
+        resident_ = {initial.live_kv_pages, initial.resident.kv_bytes, paged ? KvLayout::paged : KvLayout::contiguous,
                      initial.kv_capacity_tokens, 0, initial.owned_device_bytes};
+        resident_.page_table_bytes = initial.resident.kv_table_bytes;
     }
 
     const ModelInfo& info() const noexcept override { return info_; }
     BackendCapabilities capabilities() const noexcept override {
         const auto& config = runtime_.config();
-        return {config.max_sequences, config.batch_tokens, config.max_model_len, false, false, true};
+        return {config.max_sequences, config.batch_tokens, config.max_model_len, false, false, true,
+                config.kv_layout == minillm::cuda::CudaKvLayout::paged ? config.page_tokens : 0};
     }
     std::vector<Token> tokenize(std::string_view text) const override { return runtime_.tokenize(text); }
     std::string token_piece(Token token) const override { return runtime_.token_piece(token); }
@@ -88,6 +93,7 @@ public:
         auto result = resident_;
         result.state_valid = result.reusable = healthy();
         result.live_tokens = result.state_valid ? std::optional<std::size_t>(runtime_.live_kv_tokens()) : std::nullopt;
+        result.live_kv_pages = result.state_valid ? runtime_.live_kv_pages() : std::nullopt;
         return result;
     }
     void copy_sequence(SequenceId, SequenceId, std::size_t) override {

@@ -3,7 +3,8 @@ param(
     [string]$BinaryDirectory = '',
     [string]$Model = '',
     [switch]$PreflightOnly,
-    [switch]$PrecisionStudy
+    [switch]$PrecisionStudy,
+    [switch]$GpuKvStudy
 )
 
 $ErrorActionPreference = 'Stop'
@@ -12,9 +13,11 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
 . (Join-Path $PSScriptRoot 'Cuda-Benchmark-Common.ps1')
 $root = Split-Path -Parent $PSScriptRoot
+if ($PrecisionStudy -and $GpuKvStudy) { throw '精度与分页实验不能同时选择。' }
 $python = if (Get-Command python3 -ErrorAction SilentlyContinue) { 'python3' } else { 'python' }
 $inputFile = Join-Path $root 'benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json'
 if ($PrecisionStudy) { $inputFile = Join-Path $root 'benchmarks/runtime-inputs/qwen3-precision-v1.json' }
+if ($GpuKvStudy) { $inputFile = Join-Path $root 'benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json' }
 $analyzer = Join-Path $PSScriptRoot 'analyze_cuda_micro.py'
 if (-not $BinaryDirectory) {
     $platform = if ($env:OS -eq 'Windows_NT') { '' } else { 'wsl-' }
@@ -39,7 +42,8 @@ if ((Read-CMakeValue $cache 'CMAKE_HOME_DIRECTORY') -cne $root -or
 }
 $inputHash = Get-LowerSha256 $inputFile
 $modelHash = Get-LowerSha256 $Model
-$expectedInput = if ($PrecisionStudy) { '3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8' }
+$expectedInput = if ($GpuKvStudy) { '77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e' }
+    elseif ($PrecisionStudy) { '3b9ec80ee5e9cc83865378f21c46d5dedf4975530e7686a1dfb61d5f4af992b8' }
     else { '6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c' }
 if ($inputHash -cne $expectedInput -or
     $modelHash -cne '9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031') {
@@ -67,19 +71,25 @@ if ($LASTEXITCODE -ne 0) { throw '不能识别工作区状态。' }
 $scope = @('CMakeLists.txt', '.gitattributes', 'cmake', 'apps', 'include', 'src', 'scripts', 'tests', '.github',
     'models/manifest.json', 'models/reference-manifest.json', 'benchmarks/runtime-inputs', 'docs/NEXT_SPEC.md')
 if ($PrecisionStudy) { $scope += @('docs/NEXT_OPT_SPEC.md', 'docs/PRECISION_STUDY.md') }
+if ($GpuKvStudy) {
+    $scope += @('docs/NEXT_SPEC_V3.md', 'docs/GPU_KV_STUDY.md',
+        'benchmarks/traces/gpu-kv-capacity-v1.jsonl', 'benchmarks/traces/cuda-serving-mixed-s20260926.jsonl')
+}
 $sourceFiles = @(Get-BenchmarkSourceState $root $scope)
 $sourceJson = ConvertTo-Json -InputObject $sourceFiles -Depth 8 -Compress
 $scheduleArgs = @('--schedule')
 if ($PrecisionStudy) { $scheduleArgs += '--precision' }
+if ($GpuKvStudy) { $scheduleArgs += '--gpu-kv' }
 $planText = & $python $analyzer @scheduleArgs
 if ($LASTEXITCODE -ne 0) { throw '不能建立固定 micro 进程顺序。' }
 $plan = ($planText -join "`n") | ConvertFrom-Json
 $processCount = $plan.reports.Count
-$caseCount = if ($PrecisionStudy) { 16 } else { 375 }
+$caseCount = if ($GpuKvStudy) { 6 } elseif ($PrecisionStudy) { 16 } else { 375 }
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, 12), ([guid]::NewGuid().ToString('N').Substring(0, 8))
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path $root $(if ($PrecisionStudy) { ".run/cuda-precision-001/micro-$runId" }
+    $OutputDirectory = Join-Path $root $(if ($GpuKvStudy) { ".run/gpu-kv-001/micro-$runId" }
+                                       elseif ($PrecisionStudy) { ".run/cuda-precision-001/micro-$runId" }
                                        else { "benchmarks/results/cuda-micro-$runId" })
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
@@ -96,7 +106,8 @@ $snapshot = Join-Path $OutputDirectory 'source-snapshot.zip'
 Write-BenchmarkSourceSnapshot $root $sourceFiles $snapshot
 $manifest = [ordered]@{
     schema_version = $(if ($PrecisionStudy) { 2 } else { 1 }); benchmark = 'minillm-cuda-micro'
-    protocol_id = $(if ($PrecisionStudy) { 'precision-experiment-v1' } else { 'qwen3-cuda-micro-v0' }); run_id = $runId
+    protocol_id = $(if ($GpuKvStudy) { 'gpu-kv-experiment-v1' }
+                    elseif ($PrecisionStudy) { 'precision-experiment-v1' } else { 'qwen3-cuda-micro-v0' }); run_id = $runId
     created_at_utc = (Get-Date).ToUniversalTime().ToString('o')
     source = [ordered]@{ git_sha = $gitSha; git_dirty = $dirty.Count -gt 0; scope = $scope; state_file = 'source-state.json'
         worktree_state_sha256 = Get-LowerSha256 $stateFile
@@ -162,15 +173,18 @@ try {
         $arguments = @('--model', $Model, '--input', (Join-Path $OutputDirectory 'input.json'),
             '--output', $path, '--trial', "$($slot.trial)", '--manifest', $manifestPath)
         if ($PrecisionStudy) { $arguments += @('--cuda-precision', $slot.precision_mode) }
+        if ($GpuKvStudy) { $arguments += @('--kv-layout', $slot.kv_layout) }
         $before = Get-CudaBenchmarkEnvironment
         $started = (Get-Date).ToUniversalTime().ToString('o')
         & $executable @arguments 1> "$path.stdout.txt" 2> "$path.stderr.txt"
         $exitCode = $LASTEXITCODE
         $after = Get-CudaBenchmarkEnvironment
-        Write-BenchmarkJson "$path.process.json" ([ordered]@{ trial = $slot.trial; executable = $executable
+        $process = [ordered]@{ trial = $slot.trial; executable = $executable
             precision_mode = $(if ($PrecisionStudy) { $slot.precision_mode } else { 'f32-pedantic' })
             arguments = $arguments; exit_code = $exitCode; started_at_utc = $started
-            finished_at_utc = (Get-Date).ToUniversalTime().ToString('o'); before = $before; after = $after })
+            finished_at_utc = (Get-Date).ToUniversalTime().ToString('o'); before = $before; after = $after }
+        if ($GpuKvStudy) { $process.kv_layout = $slot.kv_layout }
+        Write-BenchmarkJson "$path.process.json" $process
         $record = [ordered]@{ file = $slot.file; exit_code = $exitCode; sha256 = $null; artifacts = @() }
         if (Test-Path -LiteralPath $path) { $record.sha256 = Get-LowerSha256 $path }
         foreach ($suffix in @('.stdout.txt', '.stderr.txt', '.process.json')) {
@@ -182,7 +196,9 @@ try {
             status = 'collecting'; reports = @($completed.ToArray()); planned_reports = $processCount })
         Assert-CudaMicroInputs
         Write-Host "CUDA micro $($completed.Count)/$processCount：$($slot.file)，退出码 $exitCode"
-        if ($PrecisionStudy -and $exitCode -ne 0) { throw 'precision 进程失败，停止后续采样并保留原始结果。' }
+        if (($PrecisionStudy -or $GpuKvStudy) -and $exitCode -ne 0) {
+            throw '受控实验进程失败，停止后续采样并保留原始结果。'
+        }
     }
     if ($failed) { throw '存在失败进程，全部样本保留；不能发布通过摘要。' }
     Write-BenchmarkJson (Join-Path $OutputDirectory 'collection-status.json') ([ordered]@{

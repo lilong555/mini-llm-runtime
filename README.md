@@ -2,6 +2,9 @@
 
 一个从底层推理到在线服务的 C++20 项目。**MiniLLM** 独立执行 Qwen3 前向计算，**LLMServe** 在其上实现迭代级调度与流式服务；llama.cpp 提供格式解析、tokenizer 和可切换的 CPU/CUDA 参照后端。
 
+阅读入口：[架构](docs/ARCHITECTURE.md) · [性能](docs/PERFORMANCE.md) ·
+[GPU KV 研究](docs/GPU_KV_STUDY.md) · [验证](docs/VALIDATION.md)。
+
 ```text
                   Mini LLM Runtime
 GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
@@ -9,7 +12,7 @@ GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
                          Qwen3: RMSNorm / RoPE / GQA / SwiGLU
                                              |
                        CPU: FP16 Paged KV + Page Tables
-                       CUDA: FP16 Contiguous KV
+                       CUDA: FP16 Contiguous / Paged KV
                                              |
                            LLM Serving
 HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
@@ -22,7 +25,7 @@ HTTP / SSE -> Bounded Queue -> Priority + Aging -> BatchPlan
 
 MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。自有 CPU/CUDA 模型均不调用 `llama_decode()`；可切换 llama.cpp 后端的模型执行与 GPU KV 属于上游能力。
 
-自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → 连续 FP16 KV → greedy token`。MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
+自有 CUDA 的路径为 `GGUF → 常驻 FP32 有效权重 → cuBLAS 与项目 CUDA 算子 → FP16 KV → greedy token`。KV 默认连续，也可显式选择共享页池和直接分页 attention；MiniCudaRunner 将同一 Runtime 接入现有 Engine 和 HTTP/SSE，不调用上游模型 forward。
 
 ## 能力边界
 
@@ -31,6 +34,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 | GGUF | 只读文件映射、TensorView、形状与文件范围检查；F32/F16/Q8_0 权重 |
 | Host model | 独立的 immutable Qwen3 绑定与 vocab-only tokenizer；不创建执行线程或 KV |
 | 自有 CUDA 模型 | 常驻 FP32 权重、cuBLAS GEMM、完整 Qwen3 forward、连续 FP16 KV、同步批处理与 greedy token CLI |
+| CUDA 分页研究路径 | C++ Runtime、CLI 与 Serving 可选共享 FP16 页池、设备块表与直接分页 attention；保守信用与物理容量一致，不改变连续默认 |
 | 自有 CUDA Serving | 现有 Engine/HTTP/SSE、动态 mixed batching、独立槽与 clear/reuse、poisoned fail-stop、模型线程资源快照 |
 | CPU SIMD | Q8_0 × F32、F16 × F32、F32 dot、FP16 V 到 F32 的加权累加；AVX2/FMA/F16C 运行时检测、非对齐尾部处理及 scalar fallback |
 | 模型执行 | Dense Qwen3、GQA、Q/K RMSNorm、NeoX RoPE、SwiGLU、FP32 accumulation、贪心采样 |
@@ -44,7 +48,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 
 支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing、PagedAttention 或异步执行。CPU 分页、自有 CUDA 连续 KV 和上游 GPU attention 分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。[GPU 分页研究](docs/GPU_KV_STUDY.md) 最终为容量／研究模式，默认 contiguous；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -227,14 +231,13 @@ benchmarks/          固定输入及实测报告
 
 ## 项目计划
 
-唯一活跃计划为 [PLAN-V4-KV-20260928](docs/PROJECT_PLAN_V4_KV.md)，实施规范为
-[GPU-KV-001](docs/NEXT_SPEC_V3.md)，实际进度见 [执行状态](docs/EXECUTION_STATUS.md)。
-GPU 分页尚未提供；计划能力不等于当前产品能力。
-
-1. M4-0：已有 HTTP 排空修复、可展示入口与发布验收。
-2. M4-1：共享 GPU 页池、设备块表与直接分页 attention，保持 F32 数学和同步完成。
-3. M4-2：分别研究同容量的延迟代价与同预算的异长请求能力。
-4. M4-3：功能冻结、技术报告与基于实际问题的 upstream 工作。
+项目处于 Portfolio Freeze 收尾，不新增主要功能。
+GPU 分页 Runtime、CLI 与 Serving 已提供；容量能力已验证，
+一次有限地址修订后的模型确认仍未通过长上下文延迟护栏，默认仍为 contiguous。
+kernel 优化与固定 Serving 对照已结束，最终为 B（容量／研究模式）；
+同容量吞吐退化 15.73%，同 KV 预算吞吐提升 4.31%，但 TPOT/ITL 更高。
+完整 raw、失败记录与复核入口见[单一公开证据包](benchmarks/results/gpu-kv-001/README.md)；
+详细分析见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
 
 [FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
 结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。

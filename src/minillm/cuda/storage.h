@@ -2,8 +2,10 @@
 
 #include "minillm/cuda/matrix.h"
 #include "minillm/cuda/precision.h"
+#include "minillm/cuda/kv_layout.h"
 #include "minillm/qwen3_model.h"
 
+#include <span>
 #include <string>
 #include <vector>
 
@@ -15,6 +17,9 @@ struct StorageLimits {
     std::size_t max_batch_tokens = 128;
     std::size_t device_budget_bytes = 0;
     PrecisionMode precision_mode = PrecisionMode::f32_pedantic;
+    CudaKvLayout kv_layout = CudaKvLayout::contiguous;
+    std::size_t kv_capacity_tokens = 0;
+    std::size_t page_tokens = kv_page_tokens;
 };
 
 enum class StorageType { f32, i32, f16 };
@@ -31,7 +36,7 @@ struct WeightRecord {
 enum class Workspace {
     hidden, normalized, query, key, value, attention, projected, gate, up, down,
     selected_hidden, scores, probabilities, logits, tokens, positions, slots,
-    selected_rows, pending_lengths, samples, status, rope_coefficients, matrix_input
+    selected_rows, pending_lengths, samples, status, rope_coefficients, matrix_input, kv_block_table
 };
 struct WorkspaceRegion {
     Workspace id;
@@ -48,6 +53,8 @@ struct MemoryPlan {
     std::size_t weight_payload = 0, weight_bytes = 0;
     std::size_t activation_bytes = 0, attention_bytes = 0, logits_bytes = 0, metadata_bytes = 0;
     std::size_t workspace_bytes = 0, kv_bytes = 0, rope_bytes = 0;
+    // kv_table_bytes 属于 metadata_bytes/workspace_bytes，不重复加入 total_bytes。
+    std::size_t kv_capacity_tokens = 0, physical_pages = 0, kv_table_bytes = 0;
     std::size_t cublas_bytes = CudaContext::default_workspace_bytes;
     std::size_t padding_bytes = 0, total_bytes = 0;
     std::string describe() const;
@@ -101,7 +108,13 @@ public:
                 r.columns, r.bytes / sizeof(T), context_.device()};
     }
     const void* kv_reservation() const noexcept { return kv_.data(); }
-    DeviceTensorView<std::uint16_t> kv_view() noexcept;
+    DeviceTensorView<std::uint16_t> kv_view();
+    DeviceTensorView<std::uint16_t> paged_kv_view();
+    DeviceTensorView<const std::int32_t> kv_block_table() const;
+    // 同 stream 上传；调用方保证 host table 不被修改/销毁，直至 checked completion。
+    // 独占页归属由 PageTableState 维护，本接口只校验表形状和 ID 范围。
+    void upload_page_table(std::span<const std::int32_t> table);
+    std::uint64_t page_table_h2d_bytes() const noexcept { return page_table_h2d_bytes_; }
 
 private:
     const WeightRecord& weight_record(const std::string& name) const;
@@ -117,6 +130,7 @@ private:
     std::size_t rope_uploaded_bytes_ = 0;
     std::uint64_t weight_decode_upload_ns_ = 0;
     std::uint64_t matrix_cast_calls_ = 0;
+    std::uint64_t page_table_h2d_bytes_ = 0;
 };
 
 } // namespace minillm::cuda

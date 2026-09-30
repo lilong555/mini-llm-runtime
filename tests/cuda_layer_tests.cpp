@@ -12,6 +12,7 @@ extern "C" {
 #include <algorithm>
 #include <array>
 #include <climits>
+#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <map>
@@ -70,6 +71,8 @@ TEST(batch_state_prepare_commit_clear_and_preflight_failure) {
     const auto summary = state.prepare(batch);
     CHECK(summary.tokens == 3 && summary.logits == 2 && summary.max_context == 2);
     CHECK(state.live_tokens() == 0 && state.phase() == BatchPhase::prepared);
+    CHECK((std::vector<std::size_t>(state.pending_lengths().begin(),state.pending_lengths().end()) ==
+           std::vector<std::size_t>{1,0,2}));
     test::throws<Error>([&] { state.clear(0); });
     test::throws<Error>([&] { state.prepare(batch); });
     test::throws<Error>([&] { state.commit(); });
@@ -77,6 +80,7 @@ TEST(batch_state_prepare_commit_clear_and_preflight_failure) {
     CHECK(state.live_tokens() == 0);
     state.prepare(batch); state.start();
     CHECK(state.live_tokens() == 0);
+    CHECK(state.pending_lengths()[0] == 1 && state.pending_lengths()[2] == 2);
     test::throws<Error>([&] { state.clear(0); });
     state.commit();
     CHECK(lengths(state) == (std::vector<std::size_t>{1,0,2}));
@@ -194,6 +198,130 @@ TEST(kv_store_device_failure_keeps_logical_lengths_uncommitted) {
     const auto data = download(context, matrix_view(cache,8,4));
     CHECK(data[0] == float_to_half(1.0f));
     CHECK(data[4] == float_to_half(65520.0f));
+}
+
+TEST(paged_store_random_pages_real_width_tail_and_guards) {
+    CudaContext context;
+    const KvShape shape{2,3,33,8,128};
+    constexpr std::size_t width = 1024, stride = width+5, pages = 5, page_tokens = 16;
+    constexpr std::size_t cache_rows = 3*2*pages*page_tokens, rows = 7, guard = 4, table_stride = 5;
+    std::vector<std::uint16_t> initial(cache_rows*stride+2*guard,0xa5a5);
+    for (std::size_t r = 0; r < cache_rows; ++r) { std::fill_n(initial.begin()+guard+r*stride,width,0xffff); }
+    std::array<std::int32_t,5> permutation{0,1,2,3,4};
+    std::mt19937 random(20260929);
+    std::shuffle(permutation.begin(),permutation.end(),random);
+    CHECK((permutation != std::array<std::int32_t,5>{0,1,2,3,4}));
+    std::vector<std::int32_t> table_data(2*table_stride+2*guard,0x5a5a);
+    table_data[guard] = permutation[0]; table_data[guard+1] = permutation[1]; table_data[guard+2] = permutation[2];
+    table_data[guard+table_stride] = permutation[3]; table_data[guard+table_stride+1] = permutation[4];
+    table_data[guard+table_stride+2] = -1;
+    const std::vector<std::int32_t> slots{0,0,0,0,0,1,1}, positions{0,15,16,31,32,0,16};
+    const std::vector<float> edges{0.0f,-0.0f,std::ldexp(1.0f,-24),-std::ldexp(1.0f,-24),
+        1.0f+std::ldexp(1.0f,-11),1.0f+3*std::ldexp(1.0f,-11),65504,-65504};
+    DeviceBuffer<std::uint16_t> cache(initial.size());
+    DeviceBuffer<std::int32_t> table(table_data.size()), s(rows), p(rows), status(2);
+    DeviceBuffer<float> k(rows*width), v(rows*width);
+    upload(context,matrix_view(cache,1,cache.size()),initial);
+    upload(context,matrix_view(table,1,table.size()),table_data);
+    upload(context,matrix_view(s,rows,1),slots); upload(context,matrix_view(p,rows,1),positions);
+    const DeviceTensorView<std::uint16_t> slab{cache.data()+guard,cache_rows,width,stride,cache.size()-2*guard,0};
+    const PagedKvMapping mapping{{table.data()+guard,2,3,table_stride,table.size()-2*guard,0},pages,page_tokens};
+    auto expected = initial;
+    const auto allocations = allocation_stats();
+    for (std::size_t layer = 0; layer < shape.layers; ++layer) {
+        std::vector<float> key(rows*width), value(rows*width);
+        for (std::size_t i = 0; i < key.size(); ++i) {
+            key[i] = edges[(i+layer)%edges.size()];
+            value[i] = edges[(i*3+layer+1)%edges.size()];
+        }
+        upload(context,matrix_view(k,rows,width),key); upload(context,matrix_view(v,rows,width),value);
+        reset_status(context,matrix_view(status,1,2));
+        store_kv(context,slab,shape,mapping,layer,read_only(matrix_view(k,rows,width)),
+            read_only(matrix_view(v,rows,width)),read_only(matrix_view(s,rows,1)),
+            read_only(matrix_view(p,rows,1)),matrix_view(status,1,2));
+        status_is(context,status);
+        for (std::size_t r = 0; r < rows; ++r) {
+            const auto page = std::size_t(table_data[guard+std::size_t(slots[r])*table_stride+std::size_t(positions[r])/16]);
+            for (std::size_t c = 0; c < width; ++c) {
+                const auto key_row = ((layer*2)*pages+page)*16+std::size_t(positions[r])%16;
+                const auto value_row = ((layer*2+1)*pages+page)*16+std::size_t(positions[r])%16;
+                expected[guard+key_row*stride+c] = float_to_half(key[r*width+c]);
+                expected[guard+value_row*stride+c] = float_to_half(value[r*width+c]);
+            }
+        }
+    }
+    CHECK(download(context,matrix_view(cache,1,cache.size())) == expected);
+    CHECK(download(context,matrix_view(table,1,table.size())) == table_data);
+    CHECK(allocation_stats().allocation_calls == allocations.allocation_calls);
+    CHECK(allocation_stats().release_calls == allocations.release_calls);
+}
+
+TEST(paged_store_masks_invalid_pages_before_access) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,4};
+    DeviceBuffer<std::uint16_t> cache(2*2*16*4);
+    DeviceBuffer<std::int32_t> table(2), slots(1), positions(1), status(2);
+    DeviceBuffer<float> key(4), value(4);
+    const auto slab = matrix_view(cache,64,4);
+    const PagedKvMapping mapping{read_only(matrix_view(table,1,2)),2,16};
+    const std::vector<std::uint16_t> initial(cache.size(),0xffff);
+    upload(context,matrix_view(key,1,4),std::vector<float>(4,1));
+    upload(context,matrix_view(value,1,4),std::vector<float>(4,2));
+    const auto run = [&](std::int32_t page, std::int32_t slot, std::int32_t position, int error) {
+        upload(context,matrix_view(cache,1,cache.size()),initial);
+        upload(context,matrix_view(table,1,2),std::vector<std::int32_t>{1,page});
+        upload(context,matrix_view(slots,1,1),std::vector<std::int32_t>{slot});
+        upload(context,matrix_view(positions,1,1),std::vector<std::int32_t>{position});
+        reset_status(context,matrix_view(status,1,2));
+        store_kv(context,slab,shape,mapping,0,read_only(matrix_view(key,1,4)),read_only(matrix_view(value,1,4)),
+            read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+        status_is(context,status,error,0);
+        CHECK(download(context,matrix_view(cache,1,cache.size())) == initial);
+    };
+    for (auto page : {-1,-2,2,INT_MAX}) { run(page,0,16,int(DeviceError::invalid_index)); }
+    for (auto slot : {-1,1,INT_MAX}) { run(0,slot,16,int(DeviceError::invalid_index)); }
+    for (auto position : {-1,17,INT_MAX}) { run(0,0,position,int(DeviceError::invalid_position)); }
+    upload(context,matrix_view(table,1,2),std::vector<std::int32_t>{1,0});
+    upload(context,matrix_view(slots,1,1),std::vector<std::int32_t>{0});
+    upload(context,matrix_view(positions,1,1),std::vector<std::int32_t>{16});
+    upload(context,matrix_view(key,1,4),std::vector<float>{65520.0f,0,0,0});
+    reset_status(context,matrix_view(status,1,2));
+    store_kv(context,slab,shape,mapping,0,read_only(matrix_view(key,1,4)),read_only(matrix_view(value,1,4)),
+        read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+    status_is(context,status,int(DeviceError::nonfinite),0);
+}
+
+TEST(paged_store_preflight_rejects_shape_extent_and_table_aliases) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,4};
+    DeviceBuffer<std::uint16_t> cache(2*2*16*4);
+    DeviceBuffer<std::int32_t> table(2), slots(1), positions(1), status(2);
+    DeviceBuffer<float> key(4), value(4);
+    const auto slab = matrix_view(cache,64,4);
+    const PagedKvMapping mapping{read_only(matrix_view(table,1,2)),2,16};
+    const auto reject = [&](auto kv, KvShape dimensions, PagedKvMapping pages, std::size_t layer) {
+        test::throws<std::invalid_argument>([&] {
+            store_kv(context,kv,dimensions,pages,layer,read_only(matrix_view(key,1,4)),
+                read_only(matrix_view(value,1,4)),read_only(matrix_view(slots,1,1)),
+                read_only(matrix_view(positions,1,1)),matrix_view(status,1,2));
+        });
+    };
+    reset_status(context,matrix_view(status,1,2));
+    auto bad = mapping;
+    bad.page_tokens = 0; reject(slab,shape,bad,0);
+    bad = mapping; bad.physical_pages = 0; reject(slab,shape,bad,0);
+    bad = mapping; bad.physical_pages = 513; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.capacity = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.rows = 2; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.columns = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.device = 1; reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.data = status.data(); reject(slab,shape,bad,0);
+    bad = mapping; bad.block_table.data = reinterpret_cast<const std::int32_t*>(cache.data());
+    reject(slab,shape,bad,0);
+    auto short_slab = slab; --short_slab.capacity; reject(short_slab,shape,mapping,0);
+    reject(slab,shape,mapping,1);
+    auto dimensions = shape; dimensions.layers = SIZE_MAX; reject(slab,dimensions,mapping,0);
+    status_is(context,status);
 }
 
 TEST(softmax_standalone_real_width_causal_nan_tail_and_preflight) {
@@ -351,6 +479,49 @@ void attention_case(std::size_t capacity, std::size_t length, std::size_t kv_hea
     }
     const auto after = allocation_stats();
     CHECK(before.allocation_calls == after.allocation_calls && before.release_calls == after.release_calls);
+
+    const auto blocks = (capacity+15)/16, page_count = 2*blocks, paged_rows = 2*2*page_count*16;
+    std::vector<std::int32_t> table_values(page_count,-1), permutation(page_count);
+    std::iota(permutation.begin(),permutation.end(),0);
+    std::mt19937 random(20260930);
+    std::shuffle(permutation.begin(),permutation.end(),random);
+    std::vector<std::uint16_t> paged_values(paged_rows*cache_stride,0xffff);
+    for (std::size_t slot = 0; slot < 2; ++slot) {
+        for (std::size_t b = 0; b < (length+15)/16; ++b) {
+            table_values[slot*blocks+b] = permutation[slot*blocks+b];
+        }
+        for (std::size_t pos = 0; pos < length; ++pos) {
+            const auto page = std::size_t(table_values[slot*blocks+pos/16]);
+            for (std::size_t kind = 0; kind < 2; ++kind) {
+                const auto target = (((1*2+kind)*page_count+page)*16+pos%16)*cache_stride;
+                for (std::size_t c = 0; c < width; ++c) {
+                    paged_values[target+c] = kv[cache_index(shape,1,slot,kind,pos,c,cache_stride)];
+                }
+            }
+        }
+    }
+    DeviceBuffer<std::uint16_t> paged_cache(paged_values.size());
+    DeviceBuffer<std::int32_t> table(table_values.size());
+    upload(context,matrix_view(paged_cache,1,paged_cache.size()),paged_values);
+    upload(context,matrix_view(table,2,blocks),table_values);
+    upload(context,matrix_view(scores,1,score.size()),score);
+    upload(context,matrix_view(probabilities,1,score.size()),score);
+    upload(context,matrix_view(out,1,initial.size()),initial);
+    reset_status(context,matrix_view(status,1,2));
+    causal_attention(context,{paged_cache.data(),paged_rows,width,cache_stride,paged_cache.size(),0},shape,
+        {read_only(matrix_view(table,2,blocks)),page_count,16},1,
+        {q.data(),rows,q_width,q_stride,q.size(),0},heads,read_only(matrix_view(s,rows,1)),
+        read_only(matrix_view(p,rows,1)),active,
+        {scores.data(),rows,heads*capacity,score_stride,scores.size(),0},
+        {probabilities.data(),rows,heads*capacity,score_stride,probabilities.size(),0},
+        {out.data()+guard,rows,q_width,q_stride,out.size()-2*guard,0},matrix_view(status,1,2));
+    status_is(context,status);
+    const auto paged_out = download(context,matrix_view(out,1,out.size()));
+    const auto paged_scores = download(context,matrix_view(scores,1,scores.size()));
+    const auto paged_probabilities = download(context,matrix_view(probabilities,1,probabilities.size()));
+    CHECK(std::memcmp(actual.data(),paged_out.data(),actual.size()*sizeof(float)) == 0);
+    CHECK(std::memcmp(observed_scores.data(),paged_scores.data(),observed_scores.size()*sizeof(float)) == 0);
+    CHECK(std::memcmp(probability.data(),paged_probabilities.data(),probability.size()*sizeof(float)) == 0);
 }
 }
 
@@ -359,6 +530,46 @@ TEST(attention_causal_gqa_nonwarp_and_long_context) {
     attention_case(23,17,1,4,33);
     attention_case(40,33,2,4,128);
     attention_case(2048,1536,8,16,128);
+    for (const auto length : {15u,16u,17u,127u,128u,129u,2048u}) {
+        attention_case(std::min<std::size_t>(2048,length+17),length,8,16,128);
+    }
+}
+
+TEST(paged_attention_invalid_mapping_and_future_pages) {
+    CudaContext context;
+    const KvShape shape{1,1,17,1,4};
+    DeviceBuffer<std::uint16_t> cache(64*4);
+    DeviceBuffer<std::int32_t> table(2), slots(1), positions(1), status(2);
+    DeviceBuffer<float> q(4), scores(17), probability(17), output(4);
+    upload(context,matrix_view(cache,64,4),std::vector<std::uint16_t>(256,float_to_half(1)));
+    upload(context,matrix_view(q,1,4),std::vector<float>(4,1));
+    upload(context,matrix_view(slots,1,1),std::vector<std::int32_t>{0});
+    const PagedKvMapping mapping{read_only(matrix_view(table,1,2)),2,16};
+    const auto run = [&](std::int32_t last, std::int32_t tail) {
+        upload(context,matrix_view(table,1,2),std::vector<std::int32_t>{0,tail});
+        upload(context,matrix_view(positions,1,1),std::vector<std::int32_t>{last});
+        reset_status(context,matrix_view(status,1,2));
+        causal_attention(context,read_only(matrix_view(cache,64,4)),shape,mapping,0,
+            read_only(matrix_view(q,1,4)),1,read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),
+            17,matrix_view(scores,1,17),matrix_view(probability,1,17),matrix_view(output,1,4),matrix_view(status,1,2));
+    };
+    run(0,-1);
+    status_is(context,status);
+    CHECK(download(context,matrix_view(output,1,4)) == std::vector<float>(4,1));
+    for (auto id : {-1,2,INT_MAX}) {
+        run(16,id);
+        const auto error = download(context,matrix_view(status,1,2));
+        CHECK((error[0]&int(DeviceError::invalid_index)) != 0 && error[1] == 0);
+        const auto values = download(context,matrix_view(output,1,4));
+        CHECK(std::all_of(values.begin(),values.end(),[](float value) { return std::isnan(value); }));
+    }
+    auto overlapping = mapping;
+    overlapping.block_table = read_only(matrix_view(status,1,2));
+    test::throws<std::invalid_argument>([&] {
+        causal_attention(context,read_only(matrix_view(cache,64,4)),shape,overlapping,0,
+            read_only(matrix_view(q,1,4)),1,read_only(matrix_view(slots,1,1)),read_only(matrix_view(positions,1,1)),
+            17,matrix_view(scores,1,17),matrix_view(probability,1,17),matrix_view(output,1,4),matrix_view(status,1,2));
+    });
 }
 
 TEST(attention_invalid_metadata_nonfinite_and_preflight) {

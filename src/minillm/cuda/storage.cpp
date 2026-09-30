@@ -43,6 +43,11 @@ std::string digest(sha256_t& state) {
 
 MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     precision_mode_name(limits.precision_mode);
+    const auto capacity = checked_kv_capacity(limits.kv_layout, limits.max_sequences, limits.max_model_len,
+                                              limits.kv_capacity_tokens, limits.page_tokens);
+    if (limits.kv_layout == CudaKvLayout::paged && limits.precision_mode != PrecisionMode::f32_pedantic) {
+        throw std::invalid_argument("分页 CUDA KV 仅支持 F32 矩阵，不同时改变精度与布局");
+    }
     dimension(limits.max_sequences); dimension(limits.max_model_len); dimension(limits.max_batch_tokens);
     const auto& d = model.dimensions();
     if (limits.max_model_len > d.trained_context) {
@@ -51,6 +56,8 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
     MemoryPlan p;
     p.limits = limits;
     p.dimensions = d;
+    p.kv_capacity_tokens = capacity;
+    p.physical_pages = limits.kv_layout == CudaKvLayout::paged ? capacity / limits.page_tokens : 0;
     const auto weight = [&](const std::string& name) {
         const auto t = model.source().tensor(name);
         dimension(t.rows); dimension(t.columns);
@@ -127,10 +134,16 @@ MemoryPlan make_memory_plan(const Qwen3Model& model, StorageLimits limits) {
         region(Workspace::matrix_input, "matrix_input", b, std::max({d.embedding, q, d.feed_forward}),
                StorageType::f16, p.activation_bytes);
     }
+    if (limits.kv_layout == CudaKvLayout::paged) {
+        const auto blocks = (limits.max_model_len + limits.page_tokens - 1) / limits.page_tokens;
+        region(Workspace::kv_block_table, "kv_block_table", limits.max_sequences, blocks,
+               StorageType::i32, p.metadata_bytes);
+        p.kv_table_bytes = p.regions.back().bytes;
+    }
     p.workspace_bytes = align(p.workspace_bytes);
-    // [sequence][layer][K_or_V][position][kv_head * head_dim]，物理元素为 FP16。
-    p.kv_bytes = checked_product(checked_product(checked_product(limits.max_sequences, d.layers), 2),
-                                checked_product(checked_product(limits.max_model_len, kv), 2));
+    // 连续为 [sequence][layer][K/V][position]；分页为 [layer][K/V][page][in_page]。
+    p.kv_bytes = checked_product(checked_product(checked_product(capacity, d.layers), 2),
+                                checked_product(kv, sizeof(std::uint16_t)));
     const auto payload = add(add(p.activation_bytes, p.attention_bytes), add(add(p.logits_bytes, p.metadata_bytes), p.rope_bytes));
     p.padding_bytes = add(p.weight_bytes - p.weight_payload, p.workspace_bytes - payload);
     p.total_bytes = add(add(p.weight_bytes, p.workspace_bytes), add(p.kv_bytes, p.cublas_bytes));
@@ -144,7 +157,9 @@ std::string MemoryPlan::describe() const {
       << " user_budget=" << limits.device_budget_bytes << " weight_payload=" << weight_payload
       << " weight_arena=" << weight_bytes << " activation=" << activation_bytes << " attention=" << attention_bytes
       << " logits=" << logits_bytes << " metadata=" << metadata_bytes << " rope=" << rope_bytes << " padding=" << padding_bytes
-      << " workspace_arena=" << workspace_bytes << " KV=" << kv_bytes << " cuBLAS=" << cublas_bytes << " total=" << total_bytes;
+      << " workspace_arena=" << workspace_bytes << " KV=" << kv_bytes << " cuBLAS=" << cublas_bytes << " total=" << total_bytes
+      << " kv_layout=" << kv_layout_name(limits.kv_layout) << " kv_capacity=" << kv_capacity_tokens
+      << " physical_pages=" << physical_pages << " kv_table_bytes=" << kv_table_bytes;
     for (const auto& w : weights) { s << "\nweight " << w.name << " " << w.rows << "x" << w.columns << " offset=" << w.offset << " bytes=" << w.bytes << " alias=" << w.alias_of; }
     for (const auto& r : regions) { s << "\nworkspace " << r.name << " " << r.rows << "x" << r.columns << " offset=" << r.offset << " bytes=" << r.bytes; }
     return s.str();
@@ -176,6 +191,11 @@ CudaStorage::CudaStorage(const Qwen3Model& model, StorageLimits limits, int devi
         workspace_ = DeviceBuffer<std::byte>(plan_.workspace_bytes, device);
         kv_ = DeviceBuffer<std::byte>(plan_.kv_bytes, device);
         check_cuda(cudaMemsetAsync(workspace_.data(), 0, workspace_.bytes(), context_.stream()), "初始化 workspace");
+        if (plan_.kv_table_bytes) {
+            const auto& table = region(Workspace::kv_block_table);
+            check_cuda(cudaMemsetAsync(workspace_.data() + table.offset, 0xff, table.bytes, context_.stream()),
+                       "初始化无映射的 CUDA block table");
+        }
         // 未使用 KV 填充为 FP16 NaN，后续 attention 必须先检查有效位置。
         check_cuda(cudaMemsetAsync(kv_.data(), 0xff, kv_.bytes(), context_.stream()), "初始化 KV 预留");
         upload(model);
@@ -188,12 +208,54 @@ CudaStorage::CudaStorage(const Qwen3Model& model, StorageLimits limits, int devi
 }
 CudaStorage::~CudaStorage() { finish_noexcept(context_); }
 
-DeviceTensorView<std::uint16_t> CudaStorage::kv_view() noexcept {
+DeviceTensorView<std::uint16_t> CudaStorage::kv_view() {
+    if (plan_.limits.kv_layout != CudaKvLayout::contiguous) {
+        throw std::invalid_argument("分页 KV 不能借用为连续布局");
+    }
     const auto& d = plan_.dimensions;
     const auto rows = plan_.limits.max_sequences * d.layers * 2 * plan_.limits.max_model_len;
     const auto width = d.kv_heads * d.head_dim;
     return {reinterpret_cast<std::uint16_t*>(kv_.data()), rows, width, width,
             plan_.kv_bytes / sizeof(std::uint16_t), context_.device()};
+}
+
+DeviceTensorView<std::uint16_t> CudaStorage::paged_kv_view() {
+    if (plan_.limits.kv_layout != CudaKvLayout::paged) {
+        throw std::invalid_argument("连续 KV 不能借用为分页布局");
+    }
+    const auto& d = plan_.dimensions;
+    const auto rows = d.layers * 2 * plan_.physical_pages * plan_.limits.page_tokens;
+    const auto width = d.kv_heads * d.head_dim;
+    return {reinterpret_cast<std::uint16_t*>(kv_.data()), rows, width, width,
+            plan_.kv_bytes / sizeof(std::uint16_t), context_.device()};
+}
+
+DeviceTensorView<const std::int32_t> CudaStorage::kv_block_table() const {
+    if (plan_.limits.kv_layout != CudaKvLayout::paged) {
+        throw std::invalid_argument("连续 KV 没有设备 block table");
+    }
+    const auto& r = region(Workspace::kv_block_table);
+    return {reinterpret_cast<const std::int32_t*>(workspace_.data() + r.offset),
+            r.rows, r.columns, r.columns, r.bytes / sizeof(std::int32_t), context_.device()};
+}
+
+void CudaStorage::upload_page_table(std::span<const std::int32_t> table) {
+    if (plan_.limits.kv_layout != CudaKvLayout::paged) {
+        throw std::invalid_argument("连续 KV 不支持上传 block table");
+    }
+    const auto& r = region(Workspace::kv_block_table);
+    if (table.size() != r.bytes / sizeof(std::int32_t)) {
+        throw std::invalid_argument("CUDA block table 上传元素数量不匹配");
+    }
+    for (const auto id : table) {
+        if (id < -1 || (id >= 0 && std::size_t(id) >= plan_.physical_pages)) {
+            throw std::invalid_argument("CUDA block table 上传包含越界页号");
+        }
+    }
+    DeviceScope scope(context_.device());
+    check_cuda(cudaMemcpyAsync(workspace_.data() + r.offset, table.data(), r.bytes,
+                               cudaMemcpyHostToDevice, context_.stream()), "上传 CUDA block table");
+    page_table_h2d_bytes_ += r.bytes;
 }
 
 void CudaStorage::initialize_rope() {

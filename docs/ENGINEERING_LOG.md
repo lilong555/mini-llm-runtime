@@ -759,7 +759,7 @@
 
 ## ENG-070：默认分支展示与已完成的 GPU Serving 不一致
 
-- 状态：未解决，等待候选验收与用户审阅整合。
+- 状态：未解决，候选已验收，等待用户审阅整合。
 - 影响：默认 README 不能展示现有自有 CUDA 模型与 Serving；旧基点也不包含已知
   HTTP 排空修复。不能将 feature 分支能力表述为 main 已有能力。
 - 复现或证据：2026-09-29 的 `git fetch origin` 后，
@@ -771,4 +771,149 @@
   `GPU-KV-001` 是唯一新增路线，尚未实现的分页不计作发布能力。
 - 验证：活跃入口指向 `PROJECT_PLAN_V4_KV.md` 与 `NEXT_SPEC_V3.md`，
   两者 SHA-256 与用户提供文件一致；旧精度版 V4 摘要保持不变。
+  候选 `e7e2ced` 自身 CI run `36517808344` 五任务成功；本机 own-CUDA
+  22/22 套 CTest、8-token golden 和 HTTP 12/12 通过。停服时 3 active + 3 queued
+  均收到唯一取消终态和 `[DONE]`，服务正常退出；证据为
+  `.run/gpu-kv-001/release-smoke-e7e2ced/verification.json`。
+  [PR #2](https://github.com/lilong555/mini-llm-runtime/pull/2) 已就绪等待审阅，
+  PR CI run `36517815149` 五任务同样通过。
   默认分支整合尚未发生，因此不标记已解决。
+
+## ENG-071：页状态测试的分配拦截触发编译告警
+
+- 状态：已解决，限定于 host 页状态测试的编译告警。
+- 影响：host 页状态测试通过，但 GCC 11 优化构建产生
+  `warning: ‘void free(void*)’ called on pointer returned from a mismatched allocation function [-Wmismatched-new-delete]`。
+- 复现或证据：首次 `cmake --build build/wsl-core --parallel 2` 与 own-CUDA 构建，
+  诊断指向 `tests/gpu_page_table_tests.cpp` 中 `std::make_unique<PageTableState>` 的清理路径。
+- 原因：测试用 malloc/free 实现普通 new/delete 拦截以禁止事务内分配；
+  编译器内联 delete 后对辅助 unique_ptr 的 new/free 配对发出告警。
+- 解决方法或下一步：状态随机测试用 `std::optional<PageTableState>::emplace`
+  在原位销毁和重建，不为测试对象额外分配。保留对实际 vector 分配的拦截，
+  不关闭编译告警，不改变产品 allocator。
+- 验证：`.run/gpu-kv-001/host-state/build-core.log`、`build-cuda.log`、
+  `build-asan.log` 均构建成功且没有该告警；三种配置 CTest 共 47/47 通过。
+  ASan/UBSan 的 host 9/9 用例包含禁止事务分配及 10,000 次状态操作，
+  无 sanitizer 错误；未据此声称尚未实现的设备分页已通过内存检查。
+
+## ENG-072：连续布局的块表入口缺少显式预检
+
+- 状态：已解决，限定于块表入口的布局拒绝。
+- 影响：不支持的连续布局块表访问暴露内部 workspace 查找异常，未遵循其他 KV view 的
+  `std::invalid_argument` 配置错误合同。
+- 复现或证据：`.run/gpu-kv-001/device-storage/ctest-initial.xml` 中
+  `storage_paged_pool_and_table_are_counted_once` 报告 `未知 workspace 区域`，
+  storage 为 18/19，layer 通过；初始源码快照和构建日志保留在同目录。
+- 原因：新增 getter 直接查找仅 paged 存在的 region，缺少与 `kv_view()` 对称的布局检查。
+- 解决方法或下一步：`kv_block_table()` 与 `upload_page_table()` 在 region 查找前
+  明确拒绝 contiguous；保留错误用法测试，不修改设备数值或放宽页映射检查。
+- 验证：同目录 `ctest-cuda.xml` 的 23/23 套与 `ctest-core.xml` 的 12/12 套通过；
+  存储单测 19/19，包含两个入口对 contiguous 的显式拒绝。
+  `storage-memcheck.log` 的单测及真实页池检查 20/20、`layer-memcheck.log` 的
+  12/12 均通过，均为 0 错误、0 泄漏。初始失败及其源码快照保留。
+
+## ENG-073：模型 memcheck 命令使用不存在的模型路径
+
+- 状态：已解决，限定于本次验证调用错误。
+- 影响：首次模型 memcheck 没有执行设备检查，不能计作验收通过。
+- 复现或证据：`.run/gpu-kv-001/runtime/memcheck-model.log` 保留
+  `无法读取文件：models/Qwen3-0.6B-Q8_736token0.gguf` 和
+  `Target application terminated before first instrumented API call`。
+- 原因：调用参数中的文件名误写，不是模型加载或分页实现缺陷。
+- 解决方法：使用 manifest 固定的 `models/Qwen3-0.6B-Q8_0.gguf`，
+  在新的 `paged-model-memcheck-verified/` 目录执行同一二进制；不覆盖首次失败报告。
+- 验证：`memcheck-model-verified.log` 为 S1/S4 2/2、0 错误、0 泄漏；
+  16 个 case、173 行 contiguous/paged 完整 logits 逐位相同。
+  源码、二进制与模型摘要见同阶段 `execution-identity.json`。
+
+## ENG-074：分页基准拒绝测试的错误文案断言不符
+
+- 状态：已解决，限定于新增测试的诊断断言。
+- 影响：两个新增 CLI 测试错误地报告失败；非法布局实际已被拒绝，不影响设备执行。
+- 复现或证据：`.run/gpu-kv-001/experiment-preflight/ctest-own-cuda.log` 和
+  `ctest-own-cuda.xml` 为 21/23，两个基准验证测试均报告
+  `CUDA KV layout 必须为 contiguous 或 paged`。
+  `initial-cli-test-source-snapshot.zip` 保留首次测试源码。
+- 原因：测试假定共用布局解析器的诊断包含 `--kv-layout`，与既有诊断合同不符。
+- 解决方法或下一步：断言匹配解析器的实际错误信息，继续要求非零退出和失败报告；
+  保持产品解析器及已固定的基准二进制不变。
+- 验证：同目录 `ctest-own-cuda-verified.xml` 为 23/23，
+  `ctest-core-verified.xml` 为 12/12；两套 CLI 拒绝检查通过。
+  `verification-source-snapshot.zip` 绑定最终测试源码，六个采集二进制摘要未变。
+  首次失败记录不覆盖。
+
+## ENG-075：协议摘要测试依赖字符串与 JSON 的混合比较
+
+- 状态：已解决，限定于协议摘要测试的编译兼容性。
+- 影响：`3691d25` 的 Linux CPU 产品 CI 编译失败，Windows 产品任务被取消；
+  三个核心与 sanitizer 任务成功，不能将该提交标为五任务通过。
+- 复现或证据：CI run `36560431481` 的 GCC 13 在
+  `tests/cuda_benchmark_tests.cpp` 报告
+  `error: no match for ‘operator==’`，比较操作数为 `std::string` 与 `ordered_json`。
+  `.run/gpu-kv-001/experiment-preflight/ci-3691d25-failed.log` 保留原始诊断。
+- 原因：新增 trace 摘要测试直接比较 C++ 字符串和 JSON 值，依赖编译器与库的
+  混合类型重载解析；本机编译通过未覆盖该组合。
+- 解决方法或下一步：使用 `get<std::string>()` 明确取出摘要，再比较相同类型；
+  保持协议原始字节、哈希值、产品源码与基准二进制不变。
+- 验证：`.run/gpu-kv-001/experiment-compatibility/` 的 CPU 产品 16/16、
+  own-CUDA 23/23 CTest 通过，六个采集二进制摘要与入口预检相同。
+  修正提交 `825ae1b` 自身 CI run `36562532454` 五任务成功，
+  包含 Linux GCC 13 与 Windows 产品构建；不继承 `3691d25` 的检查状态。
+
+## ENG-076：同容量分页 attention 微基准出现明显延迟退化
+
+- 状态：已确认，原因与模型层影响待定位。
+- 影响：六类 attention 的三个配对 trial 均比连续布局慢；容量功能通过不能替代
+  延迟护栏，当前不能据此将分页晋升为默认路径。
+- 复现或证据：`Benchmark-CudaMicro.ps1 -GpuKvStudy` 的正式记录在
+  `.run/gpu-kv-001/micro/`；六进程的 host 配对中位退化为 +61.63%～+410.27%，
+  event 区间为 +62.43%～+413.61%。`manifest.json` 绑定 `825ae1b` 加固定 dirty snapshot，
+  所有原始样本、进程边界环境和输出摘要保留。
+- 原因：尚未建立因果证据。分页访问增加地址计算、块表加载与合法性检查；
+  这些仅是待检查的源码因素，不是已测瓶颈。表上传在 attention micro 计时外，
+  不能把独立 2 KiB 上传 probe 当作该退化的原因。环境未锁频。
+- 解决方法或下一步：完成模型层固定协议的影响量化；按原门槛决定是否进入唯一一次
+  局部地址/table 改进。不增加 micro trial，不改数学、fusion、精度或 scheduler；
+  未通过后续门禁前保持 contiguous 默认。
+- 验证：180 个原始样本、108 个测量样本、5760 次 attention API 调用完成；
+  输出跨布局和 trial 一致，31 个必需文件独立工作目录复核通过。
+  初始模型六进程复验完成，四项配对退化中位数分别为 17.25%、71.07%、
+  96.75%、17.98%，均未通过模型护栏。唯一 NSys 已采集，长 decode
+  的 PV 占主要设备时间，PTX 保留运行时页大小除余；详见
+  `docs/GPU_KV_STUDY.md` 和 `docs/GPU_KV_DECISION.md`。
+  当前使用唯一一次 P16 常量寻址修订；编译后 PTX 已为 shift/mask，
+  唯一六进程确认已完成，长 prefill/decode 仍分别退化 32.61% 和 71.21%，
+  未通过护栏。停止 kernel 优化，保留研究候选进入固定 Serving B/C 取舍；
+  不将消除运行时除余视为完整性能问题已解决。
+  正式 Serving 已完成：同容量吞吐退化中位数 15.73%，同预算吞吐提升
+  4.31% 但 TPOT/ITL 更高。研究以 B 收束，保持 opt-in，不再优化。
+
+## ENG-077：HTTP 验证前后台服务进程已退出
+
+- 状态：已解决，限定于验证进程的存活管理。
+- 影响：首次 HTTP 验证在 health 请求处失败，执行检查数为零，
+  不能计作产品 HTTP 回归通过。
+- 复现或证据：`.run/gpu-kv-001/address-diagnostic/http.json`；
+  `Start-LLMServe.ps1` 返回 PID 9663，随后该 PID 已不存在，
+  HTTP 报告 `result && result->status == 200` 失败。
+- 原因：服务未在独立工具调用之间存活；当前证据不足以确定退出信号，
+  不将其归因于 CUDA kernel 或传输逻辑。
+- 解决方法或下一步：在持续前台工具会话中启动服务，再执行既有
+  HTTP 检查与 shutdown marker，报告写入独立 `http-verified.json`。
+- 验证：`http-verified.json` 为 12/12，包含停服时 active/queued SSE
+  单一终态检查；测试与前台服务均正常退出，原始失败输出保留。
+
+## ENG-078：修订数值证据的源码清单封装错误
+
+- 状态：已解决。
+- 影响：模型确认的 preflight 在正式采样前失败，没有消耗性能进程。
+- 复现或证据：`.run/gpu-kv-001/address-diagnostic/p16-preflight.log`
+  报告 `The property 'files' cannot be found on this object.`，
+  失败目录 `.run/gpu-kv-001/p16-preflight/` 保留原始清单。
+- 原因：本次数值验证元数据调用写入了裸文件数组，
+  而既有源码状态合同为包含 `scope` 和 `files` 的对象。
+- 解决方法或下一步：按既有合同封装相同文件记录，不修改源码、
+  数值结果或 SHA-256；使用新的预检目录，不覆盖首次失败。
+- 验证：`.run/gpu-kv-001/p16-preflight-verified/` 复验通过，
+  11 个前置产物、计划六进程、实际采样零进程；
+  原始数值 16 case、173 行逐位比较不受此元数据格式错误影响。

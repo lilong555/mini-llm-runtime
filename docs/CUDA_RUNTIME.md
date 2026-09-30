@@ -1,6 +1,6 @@
 # 自有 CUDA Runtime
 
-`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、连续 FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。[GPU Serving](CUDA_SERVING.md) 通过 MiniCudaRunner 复用现有 HTTP/Engine；prefix sharing 和 PagedAttention 尚未提供。全量固定语料、S=1/2/4、chunk/长度组合与 32-token 续写见 [CUDA 数值验证](CUDA_NUMERICS.md)；M1 模型基线冻结，Serving 验收单列于 [执行状态](EXECUTION_STATUS.md)。
+`MINILLM_ENABLE_CUDA` 默认关闭，与控制上游 ggml 的 `LLMSERVE_CUDA` 独立。`CudaRuntime` 在单 stream 执行完整 Qwen3 forward，由项目控制常驻 FP32 有效权重、workspace、FP16 KV、因果 GQA 和 greedy 输出，矩阵由 cuBLAS 提供。KV 默认连续，C++、CLI 与 Serving 可显式选择直接分页研究路径。[GPU Serving](CUDA_SERVING.md) 通过 MiniCudaRunner 复用现有 HTTP/Engine，不支持 GPU prefix sharing。全量连续路径数值验收见 [CUDA 数值验证](CUDA_NUMERICS.md)，分页对照见 [GPU KV 研究](GPU_KV_STUDY.md)；M1 模型基线冻结，Serving 验收单列于 [执行状态](EXECUTION_STATUS.md)。
 
 [模型性能对照](CUDA_BENCHMARKS.md) 提供同一 executable 的 CPU8、CPU16、CUDA 选择、独立前缀重建、完整 A/A 采集计划和严格统计复核。单进程报告不等同于正式性能基线。
 
@@ -34,9 +34,10 @@ bash scripts/dev.sh own-cuda model-memcheck
 - `CudaRuntimeConfig` 指定 model、device、S、Lmax、B 和可选设备预算；S 为 1–4，B 为 1–128，Lmax 不超过训练范围。默认 S=4、Lmax=2048、B=128，不自动缩小配置。
 - `forward(span<InputToken>, mode, device_timing)` 同步返回 `CudaForwardResult`。`InputToken` 的 token、position、sequence 与 CPU 接口相同，`logits` 选择需要输出的行；支持同一序列多 token 与交错序列。
 - `samples` 按原 batch 的 `input_index` 排序。默认 `greedy` 仅下载 token/status；显式 `debug_logits` 返回与 samples 对齐的全词表 `Logits`。没有输出行时仍完成 KV 写入与状态检查。
-- `clear_sequence` 只在 ready 完成点重置逻辑长度；`diagnostics` 返回已提交长度、常驻计划、计数与 ready/poisoned 状态。
+- `clear_sequence` 只在 ready 完成点重置逻辑长度，分页布局同时归还该序列的 page ID，不释放 resident slab；`diagnostics` 返回已提交长度、常驻计划、计数与 ready/poisoned 状态。
 - `state()` 与 `live_kv_tokens()` 是无分配状态查询；poisoned 的 committed 长度不能冒充有效设备状态。Serving 只在模型线程读取并发布副本，不在 `resources() noexcept` 中复制 diagnostics。
 - `tokenize`、`token_piece`、`is_eog` 使用独立 vocab-only tokenizer；`weight_manifest` 提供唯一权重及别名的形状、源 dtype、设备偏移和有效权重摘要。
+- `kv_layout=paged` 需要显式正的 `kv_capacity_tokens`，为 16 的倍数，且不超过可寻址容量；仅支持 F32 矩阵。`live_kv_pages()` 为无分配查询，连续布局或 poisoned 时返回 null。
 
 执行顺序为 embedding gather → 全部 28 层 → final norm → selected-row gather → LM head → finite/argmax → token/status 下载 → checked completion → 提交长度。完整路径不构造 CPU Runtime，不调用 `llama_decode()`，不回退 CPU。
 
@@ -54,6 +55,10 @@ build/wsl-own-cuda/bin/mini-cuda-llm \
 
 `--output` 必须是新文件；报告也写入 stdout。CLI 只生成 sequence 0，支持 chunked prefill 和逐 token decode，默认遵守 EOG，`--ignore-eos` 可固定输出数量。实际 KV 上限检查为 `prompt_tokens + completion_tokens - 1 <= Lmax`，最后一个输出无需再作为输入写入 KV。多序列通过 C++ 接口使用。
 
+CLI 的 `--kv-layout paged` 保持 `--context` 为每序列 Lmax，物理池按
+`S*ceil(Lmax/16)*16` 配置；不是 Serving 的全池 `--context` 语义。
+可变容量实验使用 C++ 配置或 Serving 入口。分页与 F16 矩阵的组合明确拒绝。
+
 报告包含模型 SHA-256、实际 source/device dtype、设备和版本、S/L/B、输入与输出 token、文本、每次 forward 和清理前后的 diagnostics。`host_forward_to_token_ns` 包含预检、必要 copy、GPU 执行、argmax 与完成检查，不含模型加载；可选 `device_elapsed_ms` 使用预创建 CUDA events，关闭时为 null。`model_load_ns`、`storage_initialization_ns` 与其内部的 `weight_decode_upload_ns` 单列，后两者不是可相加的独立阶段。
 
 显式 copy 的累计计数区分权重、RoPE、metadata、token、status 和 debug logits。每个成功 batch 的 metadata 为 `4*(3*M+R)` 字节，token 为 `4*R` 字节，status 为 8 字节；M 是输入行数，R 是输出行数。debug 另下载 `4*R*vocabulary` 字节。这些计数不包含 kernel 参数或 NVIDIA 库内部传输。Runtime 不搬运中间激活，稳态不再上传权重或 RoPE。
@@ -69,14 +74,14 @@ build/wsl-own-cuda/bin/mini-cuda-llm \
 - 每个对象记录设备编号。设备操作临时选择该设备，随后恢复调用线程先前的设备。
 - 入队成功不等于 GPU 执行完成。调用方在读取结果或释放、移动覆盖外部 buffer 前，必须调用并检查 `CudaContext::synchronize()`。context 析构只做尽力清理，不能代替显式错误检查，也不拥有调用方的 buffer。
 - `DeviceTensorView<T>` 只保存设备指针、行列数、stride、capacity 和设备编号；dtype 由 `T` 决定。view 的有效期受 owner 约束，host 不能解引用设备指针。
-- `CudaStorage` 持有一个权重 arena、一个 workspace arena 和一份连续 FP16 KV 预留。`output.weight` 在 tied 模型中直接别名到 embedding，不重复上传或释放。析构和构造异常路径先完成在途工作，再释放存储，context 最后销毁。
+- `CudaStorage` 持有一个权重 arena、一个 workspace arena 和一份 FP16 KV 预留；分页块表位于 workspace 中。`output.weight` 在 tied 模型中直接别名到 embedding，不重复上传或释放。析构和构造异常路径先完成在途工作，再释放存储，context 最后销毁。
 - `allocation_stats()` 是进程内项目分配器的累计计数，不含 CUDA/cuBLAS 内部资源，也不是显存占用率。归属到某个 owner 的测量区间不能有其他线程分配或释放。
 
 ## 权重与显存
 
 每个唯一 tensor 由既有 `decode_row` 转成 FP32；8 MiB host staging 按完整行分块，每块完成上传后才复用。非有限有效权重导致初始化失败。源模型的 Q8_0 量化并未恢复到量化前权重，也没有 Q8 CUDA GEMM。每个 tensor 记录源 dtype、形状、256-byte 对齐偏移、字节数、别名和有效权重 SHA-256。
 
-workspace 包含 hidden、normalized、Q/K/V、attention、投影、gate/up/down、选中行、scores/probabilities、logits、RoPE 表和整数 metadata/status/sample 区域。各层复用固定区域，类型和行数在返回 view 前检查。KV 布局为 `[sequence][layer][K_or_V][position][kv_head * head_dim]`；未使用区域初始化为 FP16 NaN。RoPE 表按 CPU 原公式初始化一次，有独立上传计数，不在层执行中上传。
+workspace 包含 hidden、normalized、Q/K/V、attention、投影、gate/up/down、选中行、scores/probabilities、logits、RoPE 表和整数 metadata/status/sample 区域。各层复用固定区域，类型和行数在返回 view 前检查。默认连续 KV 布局为 `[sequence][layer][K_or_V][position][kv_head * head_dim]`；未使用区域初始化为 FP16 NaN。RoPE 表按 CPU 原公式初始化一次，有独立上传计数，不在层执行中上传。
 
 目标模型在 S=4、Lmax=2048、B=128 下的计划与实际项目分配一致：
 
@@ -115,7 +120,7 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 
 ## 连续 KV 与层
 
-内部 `BatchState` 仅管理逻辑长度，`CudaStorage` 拥有实际设备 KV。sequence ID 直接对应固定 slot，每序列有独立 Lmax；不支持分页、alias 或 COW。状态按 `ready → prepared → executing → ready` 运行：
+内部 `BatchState` 仅管理逻辑长度，`CudaStorage` 拥有实际设备 KV。连续布局中 sequence ID 直接对应固定 slot，每序列有独立 Lmax；不支持 alias 或 COW。状态按 `ready → prepared → executing → ready` 运行：
 
 - `prepare` 在首个设备写入前校验所有 token、sequence、连续 position 和 batch/context 上限，只准备 pending lengths。
 - 预检失败不修改已提交长度，仍可继续使用；未启动的准备状态可以丢弃。
@@ -127,6 +132,33 @@ context/cuBLAS 建立后读取 free memory。预算取用户上限、free 的 80
 `LayerExecutor` 缓存同一 storage 的权重 views，在单 stream 串接 norm、Q/K/V、Q/K norm、RoPE、KV store、attention、output/residual、FFN 和 finite-check。调用方准备 hidden/metadata 并重置 status；层本身不 reset status、不同步、不提交长度、不分配设备内存。
 
 [连续 KV 与层验收](../benchmarks/results/validation/cuda-layer/README.md) 包含 7 项状态/数学测试、六组首层与末层真实权重对照、三种 sanitizer，以及四种构建共 741 次用例执行。基础算子与共享 Q/K/V 边界对照保持 `2e-4` 混合容差；独立真实整层使用固定模型门槛，FP16 舍入跨界的原始失败与较大误差保留在 `ENG-039` 和报告中。该证据不包含完整 28 层或实际生成 token。
+
+## 分页研究接口
+
+`CudaRuntimeConfig` 的 `kv_layout=CudaKvLayout::paged` 使用共享容量、独占页的
+FP16 slab，布局为 `[layer][K_or_V][physical_page][token_in_page][kv_width]`。
+设备 I32 表为 `[S,ceil(Lmax/16)]`；store/QK/PV 直接解析页号，不 gather 历史 KV。
+两种布局共用转换、QK/PV FMA 顺序与 FP64 分母 softmax，没有 fusion、prefix sharing 或 COW。
+
+`PageTableState` 仅管理页归属与映射，长度仍由 `BatchState` 唯一持有。
+prepare 验证整批页需求；进入执行时保留页并按需上传整张表；
+checked completion 后在无分配区提交映射和长度。执行前失败保留旧映射和 clear dirty；
+执行后失败隔离相关页并 poison，不能假装物理回滚。host 页表的借用保持至 stream 完成。
+`page_table_h2d_bytes` 单列，不混入 token metadata；`resident.kv_table_bytes`
+已包含在 workspace/metadata 中，不重复计入 owned。
+
+真实模型对照使用原验证程序，不需要另一个 F32 checkpoint：
+
+```bash
+build/wsl-own-cuda/bin/minillm-cuda-model-tests \
+  --model models/Qwen3-0.6B-Q8_0.gguf \
+  --contract tests/data/qwen3_validation_cases.json \
+  --output .run/paged-model-check --paged-kv
+```
+
+两种布局顺序构造，以相同批次和冻结续写轨迹逐位比较完整 logits。
+该入口验证模型正确性，不是 CLI/HTTP 验收或性能采样；
+同容量和同预算的采用门禁见 [GPU-KV-001](NEXT_SPEC_V3.md)。
 
 ## 完整模型验证
 

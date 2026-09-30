@@ -30,19 +30,44 @@ param(
     [ValidateSet('success', 'queue_full', 'timeout', 'cancelled', 'backpressure')]
     [string[]]$AllowedRequestOutcomes = @('success'),
     [Nullable[long]]$TraceSeed = $null,
-    [switch]$NoWarmup
+    [switch]$NoWarmup,
+    [ValidateSet('', 'same_capacity', 'same_budget')][string]$GpuKvStudy = '',
+    [switch]$PreflightOnly
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'Benchmark-Common.ps1')
 $root = Split-Path -Parent $PSScriptRoot
+$kvStudy = -not [string]::IsNullOrEmpty($GpuKvStudy)
+if ($kvStudy) {
+    $protocolPath = Join-Path $root 'benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json'
+    if ((Get-LowerSha256 $protocolPath) -cne '77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e') {
+        throw 'GPU KV 冻结协议摘要不符。'
+    }
+    $kvProtocol = Get-Content -Raw $protocolPath | ConvertFrom-Json
+    $experiment = $kvProtocol.serving.$GpuKvStudy
+    if ((Get-LowerSha256 $Trace) -cne $experiment.trace_sha256) { throw 'GPU KV trace 摘要不符。' }
+    if ($Backend -cne 'mini-cuda' -or $Trials -ne 3 -or $NoWarmup -or $ArrivalScale -ne 1 -or
+        $BatchTokens -ne 128 -or $PrefillChunk -ne 32 -or $MaxModelLen -ne 2048 -or
+        $PageSize -ne 16 -or $QueueCapacity -ne 64 -or $EventBuffer -ne 128 -or
+        $PrefixEntries -ne 0 -or $PrefixTokens -ne 0 -or $Telemetry -ne 'off' -or $Device -ne 0) {
+        throw 'GPU KV Serving 只接受冻结配置、三轮、原始到达与预热。'
+    }
+    $MaxActive = 4
+    $Context = 8192
+    $PolicyOrderOffset = if ($GpuKvStudy -ceq 'same_budget') { 1 } else { 0 }
+}
 
 function Get-SourceState {
     return @(Get-BenchmarkSourceState $root $sourceScope)
 }
 
 function Assert-RunInputs {
+    if ($kvStudy -and (Get-LowerSha256 $protocolPath) -cne
+        '77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e') {
+        throw 'GPU KV 冻结协议在运行期间发生变化。'
+    }
     foreach ($item in @($manifest.binaries.server, $manifest.binaries.benchmark_client, $manifest.model)) {
         if ((Get-LowerSha256 $item.path) -cne $item.sha256) {
             throw "Benchmark input changed during the run: $($item.path)"
@@ -107,6 +132,9 @@ $ModelManifest = (Resolve-Path -LiteralPath $ModelManifest).Path
 $modelProvenance = Get-Content -Raw -LiteralPath $ModelManifest | ConvertFrom-Json
 $modelHash = Get-LowerSha256 $Model
 $modelBytes = (Get-Item -LiteralPath $Model).Length
+if ($kvStudy -and $modelHash -cne $kvProtocol.model_sha256) {
+    throw '模型不是 GPU KV 冻结 checkpoint。'
+}
 if ($modelProvenance.file -ne (Split-Path -Leaf $Model) -or
     [int64]$modelProvenance.size_bytes -ne $modelBytes -or
     $modelProvenance.sha256.ToLowerInvariant() -ne $modelHash) {
@@ -196,6 +224,9 @@ if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
 $reports = @()
 for ($trial = 0; $trial -lt $Trials; ++$trial) {
     $policies = if (($trial + $PolicyOrderOffset) % 2 -eq 0) { @('mixed', 'prefill_first') } else { @('prefill_first', 'mixed') }
+    if ($kvStudy) {
+        $policies = if (($trial + $PolicyOrderOffset) % 2 -eq 0) { @('contiguous', 'paged') } else { @('paged', 'contiguous') }
+    }
     foreach ($policy in $policies) {
         $reports += [ordered]@{ file = "$policy-$trial.json"; variant = $policy; trial = $trial; order = $reports.Count
             telemetry_file = if ($Telemetry -eq 'off') { $null } else { "$policy-$trial-telemetry.jsonl" }
@@ -206,6 +237,12 @@ for ($trial = 0; $trial -lt $Trials; ++$trial) {
             client_stderr_file = "$policy-$trial-client.stderr.log"
             gpu_sample_file = if ($GpuSamplePeriodMs) { "$policy-$trial-gpu.csv" } else { $null }
             gpu_sample_error_file = if ($GpuSamplePeriodMs) { "$policy-$trial-gpu.stderr.log" } else { $null } }
+        if ($kvStudy) {
+            $reports[-1].policy = 'mixed'
+            $reports[-1].kv_layout = $policy
+            $reports[-1].max_active = if ($GpuKvStudy -ceq 'same_budget') { $experiment.$policy.max_active } else { 4 }
+            $reports[-1].context_tokens = if ($GpuKvStudy -ceq 'same_budget') { $experiment.$policy.context_tokens } else { 8192 }
+        }
     }
 }
 $metricsBackend = if ($Backend -eq 'mini') { 'minillm' } elseif ($Backend -eq 'mini-cuda') { 'minillm-cuda' } else { 'llama.cpp' }
@@ -324,16 +361,45 @@ $manifest = [ordered]@{
     }
     reports = $reports
 }
+if ($kvStudy) {
+    Copy-Item -LiteralPath $protocolPath -Destination (Join-Path $OutputDirectory 'input.json')
+    $manifest.gpu_kv = [ordered]@{
+        experiment = $GpuKvStudy; input = 'input.json'; input_sha256 = Get-LowerSha256 $protocolPath
+    }
+    $manifest.comparison = [ordered]@{
+        dimension = 'gpu_kv'
+        allowed_changes = if ($GpuKvStudy -ceq 'same_budget') {
+            @('resources.layout', 'engine.max_active', 'engine.context_tokens')
+        } else { @('resources.layout') }
+        variants = @('contiguous', 'paged')
+        reference = [ordered]@{ variant = 'contiguous'; trial = 0 }
+    }
+    $manifest.protocol.kv_layout = 'per_report'
+}
 $manifestPath = Join-Path $OutputDirectory 'manifest.json'
 Write-BenchmarkJson $manifestPath $manifest
 $manifestHash = Get-LowerSha256 $manifestPath
+if ($PreflightOnly) {
+    Assert-RunInputs
+    Write-Host "预检完成：$($reports.Count) 个进程，未启动服务。"
+    return
+}
 
 foreach ($spec in $reports) {
     Assert-RunInputs
     $trial = $spec.trial
     $policy = $spec.variant
+    $variant = $spec.variant
+    $armActive = $MaxActive
+    $armContext = $Context
     $deviceOptions = @{}
     if ($Backend -eq 'mini-cuda') { $deviceOptions = @{ Device = $Device; DeviceBudgetBytes = $DeviceBudgetBytes } }
+    if ($kvStudy) {
+        $policy = 'mixed'
+        $armActive = $spec.max_active
+        $armContext = $spec.context_tokens
+        $deviceOptions.KvLayout = $spec.kv_layout
+    }
     $server = $null
     $sampler = $null
     $clientExitCode = $null
@@ -343,9 +409,9 @@ foreach ($spec in $reports) {
     $started = (Get-Date).ToUniversalTime().ToString('o')
     try {
         $server = & (Join-Path $PSScriptRoot 'Start-LLMServe.ps1') -Backend $Backend -Policy $policy `
-            -Port $Port -Executable $serverExecutable -Model $Model -MaxActive $MaxActive `
+            -Port $Port -Executable $serverExecutable -Model $Model -MaxActive $armActive `
             -QueueCapacity $QueueCapacity -BatchTokens $BatchTokens -PrefillChunk $PrefillChunk `
-            -PrefixEntries $PrefixEntries -PrefixTokens $PrefixTokens -PageSize $PageSize -Context $Context `
+            -PrefixEntries $PrefixEntries -PrefixTokens $PrefixTokens -PageSize $PageSize -Context $armContext `
             -MaxModelLen $MaxModelLen -EventBuffer $EventBuffer -Threads $Threads -GpuLayers $GpuLayers `
             -Kernel $Kernel -Telemetry $Telemetry -TelemetryCapacity $TelemetryCapacity `
             -TelemetryOutput $(if ($spec.telemetry_file) { Join-Path $OutputDirectory $spec.telemetry_file } else { '' }) @deviceOptions
@@ -354,9 +420,9 @@ foreach ($spec in $reports) {
                 -RedirectStandardOutput (Join-Path $OutputDirectory $spec.gpu_sample_file) `
                 -RedirectStandardError (Join-Path $OutputDirectory $spec.gpu_sample_error_file)
         }
-        $output = Join-Path $OutputDirectory "$policy-$trial.json"
+        $output = Join-Path $OutputDirectory $spec.file
         $arguments = @('--port', $server.Port, '--trace', $archivedTrace, '--output', $output,
-            '--run-id', $runId, '--trial', $trial, '--variant', $policy,
+            '--run-id', $runId, '--trial', $trial, '--variant', $variant,
             '--trace-sha256', $manifest.trace.sha256, '--manifest-sha256', $manifestHash,
             '--model-sha256', $modelHash, '--server-sha256', $manifest.binaries.server.sha256,
             '--client-sha256', $manifest.binaries.benchmark_client.sha256)
@@ -395,7 +461,7 @@ foreach ($spec in $reports) {
                 }
             }
             Write-BenchmarkJson (Join-Path $OutputDirectory $spec.process_file) ([ordered]@{
-                variant = $policy; trial = $trial; order = $spec.order
+                variant = $variant; trial = $trial; order = $spec.order
                 started_at_utc = $started; finished_at_utc = (Get-Date).ToUniversalTime().ToString('o')
                 server = $server; shutdown_completed = $stopped; server_exit_code = $null
                 client_executable = $benchExecutable; client_arguments = $arguments; client_exit_code = $clientExitCode

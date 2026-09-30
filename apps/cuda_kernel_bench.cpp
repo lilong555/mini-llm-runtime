@@ -69,11 +69,13 @@ void download(const gpu::CudaContext& context, gpu::DeviceTensorView<T> source, 
     context.synchronize();
 }
 json memory(const gpu::MemoryPlan& p) {
-    return {{"weights_bytes", p.weight_bytes}, {"workspace_bytes", p.workspace_bytes}, {"kv_bytes", p.kv_bytes},
+    json result = {{"weights_bytes", p.weight_bytes}, {"workspace_bytes", p.workspace_bytes}, {"kv_bytes", p.kv_bytes},
         {"library_workspace_bytes", p.cublas_bytes}, {"activations_bytes", p.activation_bytes},
         {"attention_scratch_bytes", p.attention_bytes}, {"logits_bytes", p.logits_bytes},
         {"metadata_bytes", p.metadata_bytes}, {"rope_bytes", p.rope_bytes}, {"padding_bytes", p.padding_bytes},
         {"total_owned_bytes", p.total_bytes}};
+    if (p.kv_table_bytes) { result["kv_table_bytes"] = p.kv_table_bytes; }
+    return result;
 }
 json device(const gpu::CudaContext& context) {
     cudaDeviceProp properties{};
@@ -185,7 +187,13 @@ json initialize_kv(gpu::CudaStorage& storage) {
             const auto p = storage.workspace<std::int32_t>(gpu::Workspace::positions, max_batch);
             upload(context, k, key, transfers); upload(context, v, value, transfers);
             upload(context, s, slots, transfers); upload(context, p, positions, transfers);
-            gpu::store_kv(context, storage.kv_view(), shape, 0, read_only(k), read_only(v), read_only(s), read_only(p), status);
+            if (storage.plan().limits.kv_layout == gpu::CudaKvLayout::paged) {
+                gpu::store_kv(context, storage.paged_kv_view(), shape,
+                    {storage.kv_block_table(),storage.plan().physical_pages,16},0,
+                    read_only(k),read_only(v),read_only(s),read_only(p),status);
+            } else {
+                gpu::store_kv(context, storage.kv_view(), shape, 0, read_only(k), read_only(v), read_only(s), read_only(p), status);
+            }
             context.synchronize();
         }
     }
@@ -518,6 +526,10 @@ void run_case(json& report, const Case& c, const Qwen3Model& model, gpu::CudaSto
             else if (c.operation == "rope") { gpu::rope(context,p.x,read_only(positions),read_only(coefficients),status); }
             else if (c.operation == "softmax") {
                 gpu::causal_softmax(context,shape,d.heads,read_only(slots),read_only(positions),c.max_context,p.x,p.y,status);
+            } else if (storage.plan().limits.kv_layout == gpu::CudaKvLayout::paged) {
+                gpu::causal_attention(context,read_only(storage.paged_kv_view()),shape,
+                    {storage.kv_block_table(),storage.plan().physical_pages,16},0,read_only(p.x),d.heads,
+                    read_only(slots),read_only(positions),c.max_context,scores,probabilities,p.y,status);
             } else {
                 gpu::causal_attention(context,read_only(storage.kv_view()),shape,0,read_only(p.x),d.heads,
                     read_only(slots),read_only(positions),c.max_context,scores,probabilities,p.y,status);
@@ -547,18 +559,46 @@ void run_case(json& report, const Case& c, const Qwen3Model& model, gpu::CudaSto
     report["after_allocations"] = allocations();
     report["status"] = "passed";
 }
+
+json table_upload_probe(gpu::CudaStorage& storage, const std::vector<std::int32_t>& table, Events& events) {
+    json samples = json::array();
+    const auto& context = storage.context();
+    const auto before = allocations();
+    for (std::size_t iteration = 0; iteration < repetitions; ++iteration) {
+        const auto copied = storage.page_table_h2d_bytes();
+        const auto started = Clock::now();
+        gpu::check_cuda(cudaEventRecord(events.start,context.stream()),"table probe 起始 event");
+        for (std::size_t i = 0; i < calls_per_sample; ++i) { storage.upload_page_table(table); }
+        gpu::check_cuda(cudaEventRecord(events.stop,context.stream()),"table probe 结束 event");
+        context.synchronize();
+        const auto host_ns = elapsed(started);
+        float device_ms = 0;
+        gpu::check_cuda(cudaEventElapsedTime(&device_ms,events.start,events.stop),"table probe event 时间");
+        const auto bytes = storage.page_table_h2d_bytes()-copied;
+        if (bytes != calls_per_sample*table.size()*sizeof(std::int32_t) ||
+            !std::isfinite(device_ms) || device_ms <= 0 || allocations() != before) {
+            throw std::runtime_error("table probe 传输、时间或设备分配不符");
+        }
+        samples.push_back({{"iteration",iteration},{"phase",iteration < 2 ? "warmup" : "measured"},
+            {"calls",calls_per_sample},{"h2d_bytes",bytes},{"host_enqueue_to_completion_ns",host_ns},
+            {"device_interval_ms",device_ms}});
+    }
+    return {{"scope","只测完整设备表上传，不包含页分配或 attention；完整维护成本在模型计时内"},
+        {"bytes_per_call",table.size()*sizeof(std::int32_t)},{"samples",samples}};
+}
 }
 
 int main(int argc, char** argv) {
     json report = {{"schema_version",1},{"benchmark","minillm-cuda-micro"},{"status","failed"},{"cases",json::array()}};
     std::string output;
     try {
-        Options options(argc,argv,{"--model","--input","--output","--trial","--manifest","--cuda-precision"});
+        Options options(argc,argv,{"--model","--input","--output","--trial","--manifest","--cuda-precision","--kv-layout"});
         if (options.has("--help")) {
             std::cout << "mini-cuda-kernel-bench --model MODEL.gguf --input INPUT.json --output NEW_REPORT.json\n"
                          "                       [--trial 0..4] [--manifest MANIFEST.json]\n"
                          "                       [--cuda-precision f32-pedantic|f16-matrix-f32acc]\n"
-                         "precision-experiment-v1 为 16-shape 对照；旧协议仅支持 F32。\n";
+                         "                       [--kv-layout contiguous|paged]\n"
+                         "precision-experiment-v1 为 16-shape 对照；gpu-kv-experiment-v1 为六类 attention。\n";
             return 0;
         }
         const auto candidate = options.get("--output");
@@ -570,7 +610,12 @@ int main(int argc, char** argv) {
         report["precision_mode"] = gpu::precision_mode_name(precision);
         const auto input_hash = cuda_reports::file_hash(options.get("--input"));
         const bool precision_study = input_hash == precision_input_sha256;
-        if (!precision_study && input_hash != "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c") {
+        const bool kv_study = input_hash == gpu_kv_input_sha256;
+        const auto layout = gpu::parse_kv_layout(options.get("--kv-layout","contiguous"));
+        if (options.has("--kv-layout") && !kv_study) {
+            throw std::invalid_argument("--kv-layout 需要冻结的 gpu-kv-experiment-v1 输入");
+        }
+        if (!precision_study && !kv_study && input_hash != "6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c") {
             throw std::invalid_argument("micro 冻结输入摘要不符");
         }
         const auto recipe = read(options.get("--input"));
@@ -578,24 +623,32 @@ int main(int argc, char** argv) {
             throw std::invalid_argument("F16 micro 需要 precision-experiment-v1 冻结输入");
         }
         const auto model_hash = cuda_reports::file_hash(options.get("--model"));
-        if (recipe.at("protocol_id") != (precision_study ? "precision-experiment-v1" : "qwen3-cuda-micro-v0") ||
+        if (recipe.at("protocol_id") != (kv_study ? "gpu-kv-experiment-v1" :
+                precision_study ? "precision-experiment-v1" : "qwen3-cuda-micro-v0") ||
             model_hash != "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031") {
             throw std::invalid_argument("micro 输入或模型身份不符");
         }
-        const auto trial = options.integer("--trial",0,0,precision_study ? 2 : 4);
+        const auto trial = options.integer("--trial",0,0,(precision_study || kv_study) ? 2 : 4);
         if (precision_study) { report["schema_version"] = 2; report["protocol_id"] = "precision-experiment-v1"; }
+        if (kv_study) {
+            report["protocol_id"] = "gpu-kv-experiment-v1";
+            report["kv_layout"] = gpu::kv_layout_name(layout);
+            report["scope"] = "diagnostic_single_process";
+        }
         report["model_sha256"] = model_hash; report["input_sha256"] = input_hash; report["trial"] = trial;
         report["protocol"] = recipe.at("measurement"); report["run_identity"] = nullptr;
         if (options.has("--manifest")) {
             const auto manifest = read(options.get("--manifest"));
             const auto binary = cuda_reports::file_hash(std::filesystem::canonical(argv[0]));
-            const auto slot_index = precision_study ?
-                trial*2 + ((precision == gpu::PrecisionMode::f16_matrix_f32acc) != bool(trial % 2)) : trial;
+            const auto slot_index = kv_study ? trial*2 + ((layout == gpu::CudaKvLayout::paged) != bool(trial%2)) :
+                precision_study ? trial*2 + ((precision == gpu::PrecisionMode::f16_matrix_f32acc) != bool(trial % 2)) : trial;
             const auto& slot = manifest.at("reports").at(slot_index);
             if (manifest.at("benchmark") != "minillm-cuda-micro" || manifest.at("schema_version") != (precision_study ? 2 : 1) ||
                 manifest.at("binary").at("sha256") != binary || manifest.at("model").at("sha256") != model_hash ||
                 manifest.at("input").at("sha256") != input_hash ||
                 slot.at("trial") != trial || slot.at("file") != std::filesystem::path(output).filename().string() ||
+                (kv_study && (slot.at("kv_layout") != gpu::kv_layout_name(layout) ||
+                              manifest.at("protocol_id") != "gpu-kv-experiment-v1")) ||
                 (precision_study && (slot.at("precision_mode") != gpu::precision_mode_name(precision) ||
                                      manifest.at("protocol_id") != "precision-experiment-v1"))) {
                 throw std::invalid_argument("micro manifest 身份不符");
@@ -603,6 +656,7 @@ int main(int argc, char** argv) {
             report["run_identity"] = {{"run_id",manifest.at("run_id")},
                 {"manifest_sha256",cuda_reports::file_hash(options.get("--manifest"))},{"binary_sha256",binary},
                 {"source_state_sha256",manifest.at("source").at("worktree_state_sha256")}};
+            if (kv_study) { report["scope"] = "paired_kv_micro"; }
         }
         report["before_initialization_allocations"] = allocations();
         {
@@ -617,6 +671,13 @@ int main(int argc, char** argv) {
                 {"rms_epsilon",d.rms_epsilon},{"rope_base",d.rope_base}};
             gpu::StorageLimits limits;
             limits.precision_mode = precision;
+            limits.kv_layout = layout;
+            if (layout == gpu::CudaKvLayout::paged) { limits.kv_capacity_tokens = 8192; }
+            std::vector<std::int32_t> page_table;
+            if (layout == gpu::CudaKvLayout::paged) {
+                page_table.resize(512);
+                for (std::size_t i = 0; i < page_table.size(); ++i) { page_table[i] = std::int32_t(page_table.size()-1-i); }
+            }
             report["memory_plan"] = memory(gpu::make_memory_plan(model,limits));
             const auto storage_start = Clock::now();
             gpu::CudaStorage storage(model,limits);
@@ -645,6 +706,11 @@ int main(int argc, char** argv) {
             }
             Events events(storage.context());
             const auto kv_start = Clock::now();
+            if (!page_table.empty()) {
+                storage.upload_page_table(page_table);
+                storage.context().synchronize();
+                report["page_table_sha256"] = hash_sha256_hex(page_table.data(),page_table.size()*sizeof(std::int32_t));
+            }
             report["kv_initialization_transfers"] = precision_study ? Transfers{}.since({}) : initialize_kv(storage);
             report["kv_initialization_ns"] = elapsed(kv_start);
             report["before_cases_allocations"] = allocations();
@@ -658,6 +724,10 @@ int main(int argc, char** argv) {
             report["after_cases_allocations"] = allocations();
             if (report["before_cases_allocations"] != report["after_cases_allocations"]) {
                 throw std::runtime_error("micro 测量区间出现项目设备分配或释放");
+            }
+            if (kv_study) {
+                report["table_upload_probe"] = page_table.empty() ? json(nullptr) : table_upload_probe(storage,page_table,events);
+                report["page_table_h2d_bytes"] = storage.page_table_h2d_bytes();
             }
         }
         report["after_destruction_allocations"] = allocations();

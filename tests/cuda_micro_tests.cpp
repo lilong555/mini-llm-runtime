@@ -120,6 +120,27 @@ TEST(precision_micro_is_the_frozen_matrix_subset) {
     test::throws<std::invalid_argument>([&] { make_cases(spec, dimensions()); });
 }
 
+TEST(gpu_kv_micro_keeps_six_shapes_and_per_query_causality) {
+    const auto path = std::filesystem::path(__FILE__).parent_path().parent_path() /
+        "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json";
+    std::ifstream file(path);
+    auto spec = json::parse(file);
+    const auto cases = make_cases(spec,dimensions());
+    CHECK(cases.size() == 6);
+    for (std::size_t i = 0; i < cases.size(); ++i) {
+        const auto& c = cases[i];
+        CHECK(c.operation == "attention" && c.n == 2048 && c.seed == 20260929+i);
+        CHECK(c.max_context == (i%2 ? 1536 : 128));
+        CHECK(c.positions.size() == c.m && c.slots.size() == c.m);
+        for (std::size_t row = 0; row < c.m; ++row) {
+            CHECK(c.slots[row] == (c.m == 4 ? std::int32_t(row) : 0));
+            CHECK(c.positions[row] == std::int32_t(c.m == 32 ? c.max_context-32+row : c.max_context-1));
+        }
+    }
+    spec["micro"]["rows"].push_back(128);
+    test::throws<std::invalid_argument>([&] { make_cases(spec,dimensions()); });
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) { std::cerr << "需要冻结的 micro 输入 JSON\n"; return 1; }
     std::ifstream file(argv[1]);

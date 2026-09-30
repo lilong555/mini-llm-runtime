@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -23,6 +24,8 @@ SPEC_PATH = ROOT / "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json"
 SPEC = audit.read(SPEC_PATH)
 PRECISION_PATH = ROOT / "benchmarks/runtime-inputs/qwen3-precision-v1.json"
 PRECISION = audit.read(PRECISION_PATH)
+KV_PATH = ROOT / "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"
+KV_SPEC = audit.read(KV_PATH)
 
 
 def invalid(function):
@@ -33,7 +36,7 @@ def invalid(function):
     raise AssertionError("无效 micro 证据未被拒绝")
 
 
-def fixture():
+def fixture(kv_layout=None):
     report = dict(schema_version=1, benchmark=audit.BENCHMARK, status="passed", trial=0,
                   input_sha256=audit.INPUT_SHA256, model_sha256=audit.MODEL_SHA256,
                   protocol=deepcopy(SPEC["measurement"]), dimensions=deepcopy(audit.DIMENSIONS),
@@ -42,14 +45,25 @@ def fixture():
                   model_load_ns=1000, storage_initialization_ns=2000, weight_decode_upload_ns=1500,
                   kv_initialization_ns=3000, rope_h2d_bytes=2048 * 128 * 4,
                   kv_initialization_transfers=audit.transfers(h2d_bytes=67174400, d2h_bytes=8, h2d_calls=256, d2h_calls=1))
-    plan, payload, _ = audit.common.memory_plan(report)
+    spec = KV_SPEC if kv_layout else SPEC
+    if kv_layout:
+        report.update(protocol_id=audit.common.KV_PROTOCOL, precision_mode="f32-pedantic",
+            kv_layout=kv_layout, scope="paired_kv_micro", input_sha256=audit.common.KV_INPUT_SHA256,
+            protocol=deepcopy(spec["measurement"]), page_table_h2d_bytes=0, table_upload_probe=None)
+        if kv_layout == "paged":
+            report["page_table_sha256"] = hashlib.sha256(struct.pack("<512i", *reversed(range(512)))).hexdigest()
+            report["page_table_h2d_bytes"] = 2048 * 161
+            report["table_upload_probe"] = dict(bytes_per_call=2048, samples=[
+                dict(iteration=i, phase="warmup" if i < 2 else "measured", calls=32, h2d_bytes=65536,
+                     host_enqueue_to_completion_ns=32000, device_interval_ms=0.016) for i in range(5)])
+    plan, payload, _ = audit.common.memory_plan(report, kv_layout=kv_layout or "contiguous")
     report.update(memory_plan=plan, weight_h2d_bytes=payload, owned_device_bytes=plan["total_owned_bytes"])
     steady = dict(audit.ZERO_ALLOCATIONS, allocation_calls=4, allocations=4, allocated_bytes=plan["total_owned_bytes"])
     report["before_initialization_allocations"] = deepcopy(audit.ZERO_ALLOCATIONS)
     report["before_cases_allocations"] = deepcopy(steady)
     report["after_cases_allocations"] = deepcopy(steady)
     report["after_destruction_allocations"] = dict(steady, release_calls=4, releases=4)
-    for case in audit.make_cases(SPEC, audit.DIMENSIONS):
+    for case in audit.make_cases(spec, audit.DIMENSIONS):
         indices = audit.point_indices(case)
         digest = hashlib.sha256(case["name"].encode()).hexdigest()
         verification = dict(all_finite=True, checked_elements=len(indices) if indices else case["output_elements"],
@@ -81,6 +95,82 @@ def reports():
             report["cases"].reverse()
         result.append(report)
     return result
+
+
+def kv_reports():
+    result = []
+    for slot in audit.schedule(gpu_kv=True):
+        report = fixture(slot["kv_layout"])
+        report["trial"] = slot["trial"]
+        if slot["trial"] % 2:
+            report["cases"].reverse()
+        result.append(report)
+    return result
+
+
+def kv_shapes_statistics_and_table_probe_are_bounded():
+    assert audit.sha(KV_PATH) == audit.common.KV_INPUT_SHA256
+    slots = audit.schedule(gpu_kv=True)
+    assert [(s["trial"], s["kv_layout"]) for s in slots] == [
+        (0, "contiguous"), (0, "paged"), (1, "paged"), (1, "contiguous"), (2, "contiguous"), (2, "paged")]
+    invalid(lambda: audit.schedule(True, True))
+    cases = audit.make_cases(KV_SPEC, audit.DIMENSIONS)
+    assert len(cases) == 6 and [c["input_seed"] for c in cases] == list(range(20260929, 20260935))
+    assert cases[-1]["positions"] == list(range(1504, 1536)) and cases[2]["slots"] == [0, 1, 2, 3]
+    values = kv_reports()
+    for report in values:
+        for case in report["cases"]:
+            for sample in case["samples"]:
+                sample["host_enqueue_to_completion_ns"] = 640000 if report["kv_layout"] == "paged" else 320000
+    summary = audit.summarize(values, KV_SPEC)
+    assert summary["raw_samples"] == 180 and summary["measured_samples"] == 108 and summary["api_calls"] == 5760
+    assert summary["owned_device_bytes"] == dict(contiguous=3449229312, paged=3449231360)
+    assert all(c["comparisons"]["host_ns_per_call"]["paired_relative_percent"] == [100, 100, 100]
+               for c in summary["cases"])
+    probe = summary["table_upload_probe"]["measurements"]["host_ns_per_call"]
+    assert probe["trial_medians"] == [1000]*3 and probe["samples"] == [[1000]*3]*3
+    assert summary["end_to_end_speedup"] is None and not summary["product_eligible"]
+    assert "正数表示退化" in audit.analysis_text(summary)
+    samples = dict(contiguous=[[1, 2, 1e9]]*3, paged=[[1, 4, 1e9]]*3)
+    assert audit.common.kv_paired_statistics(samples)["paired_relative_percent"] == [100]*3
+    samples["paged"].append([1, 2, 3])
+    invalid(lambda: audit.common.kv_paired_statistics(samples))
+    for change in ("missing", "duplicate", "scope", "output"):
+        rows = kv_reports()
+        if change == "missing": rows.pop()
+        elif change == "duplicate": rows[-1] = deepcopy(rows[-2])
+        elif change == "scope": rows[0]["scope"] = "diagnostic_single_process"
+        else:
+            for sample in rows[-1]["cases"][0]["samples"]:
+                sample["verification"]["output_sha256"] = "0"*64
+        invalid(lambda: audit.summarize(rows, KV_SPEC))
+
+
+def kv_mapping_copy_precision_and_memory_tampering_are_rejected():
+    for change in ("mapping", "counter", "probe", "bytes", "samples", "phase", "time", "shape",
+                   "position", "precision", "layout", "memory", "table_memory", "double_count", "allocation"):
+        report = fixture("paged")
+        probe = report["table_upload_probe"]
+        if change == "mapping": report["page_table_sha256"] = "0"*64
+        elif change == "counter": report["page_table_h2d_bytes"] -= 2048
+        elif change == "probe": probe["bytes_per_call"] = 1024
+        elif change == "bytes": probe["samples"][0]["h2d_bytes"] -= 2048
+        elif change == "samples": probe["samples"].pop()
+        elif change == "phase": probe["samples"][0]["phase"] = "measured"
+        elif change == "time": probe["samples"][0]["device_interval_ms"] = float("nan")
+        elif change == "shape": report["cases"].pop()
+        elif change == "position": report["cases"][-1]["positions"] = [1535]*32
+        elif change == "precision": report["precision_mode"] = "f16-matrix-f32acc"
+        elif change == "layout": report["kv_layout"] = "contiguous"
+        elif change == "memory": report["memory_plan"]["total_owned_bytes"] -= 2048
+        elif change == "table_memory": report["memory_plan"]["kv_table_bytes"] -= 4
+        elif change == "double_count": report["memory_plan"]["total_owned_bytes"] += 2048
+        else: report["after_cases_allocations"]["allocation_calls"] += 1
+        invalid(lambda: audit.validate_report(report, KV_SPEC))
+    report = fixture("contiguous")
+    report["page_table_h2d_bytes"] = 2048
+    invalid(lambda: audit.validate_report(report, KV_SPEC))
+    invalid(lambda: audit.validate_report(fixture("paged"), SPEC))
 
 
 def precision_fixture(mode):
@@ -325,7 +415,7 @@ def independent_trials_not_calls_or_inner_repeats():
     invalid(lambda: audit.summarize(sequence, SPEC))
 
 
-def bundle_fixture(root, precision=False):
+def bundle_fixture(root, precision=False, gpu_kv=False):
     def write(name, value):
         (root / name).write_text(json.dumps(value, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
         return audit.sha(root / name)
@@ -335,7 +425,7 @@ def bundle_fixture(root, precision=False):
                                              "src/minillm/cuda/attention.cu")}
     for name in ("scripts/analyze_cuda_micro.py", "scripts/analyze_cuda_benchmark.py",
                  "benchmarks/runtime-inputs/qwen3-cuda-v0.json", "benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json",
-                 "benchmarks/runtime-inputs/qwen3-precision-v1.json"):
+                 "benchmarks/runtime-inputs/qwen3-precision-v1.json", "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"):
         sources[name] = (ROOT / name).read_bytes()
     scope = ["apps", "src", "scripts", "benchmarks/runtime-inputs"]
     files = [dict(path=name, sha256=hashlib.sha256(raw).hexdigest(), size_bytes=len(raw)) for name, raw in sources.items()]
@@ -343,23 +433,26 @@ def bundle_fixture(root, precision=False):
     with zipfile.ZipFile(root / "source-snapshot.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for name, raw in sources.items():
             archive.writestr(name, raw)
-    shutil.copyfile(PRECISION_PATH if precision else SPEC_PATH, root / "input.json")
+    shutil.copyfile(KV_PATH if gpu_kv else PRECISION_PATH if precision else SPEC_PATH, root / "input.json")
     shutil.copyfile(ROOT / "scripts/analyze_cuda_micro.py", root / "verify.py")
     shutil.copyfile(ROOT / "scripts/analyze_cuda_benchmark.py", root / "analyze_cuda_benchmark.py")
     manifest = dict(schema_version=2 if precision else 1, benchmark=audit.BENCHMARK,
-        protocol_id=audit.PRECISION_PROTOCOL if precision else audit.PROTOCOL_ID, run_id="synthetic-fixture",
-        reports=audit.schedule(precision), statistics=audit.PRECISION_STATISTICS if precision else audit.STATISTICS,
+        protocol_id=audit.common.KV_PROTOCOL if gpu_kv else audit.PRECISION_PROTOCOL if precision else audit.PROTOCOL_ID,
+        run_id="synthetic-fixture", reports=audit.schedule(precision, gpu_kv),
+        statistics=audit.KV_STATISTICS if gpu_kv else audit.PRECISION_STATISTICS if precision else audit.STATISTICS,
         dependencies=dict(llama_commit=audit.common.LLAMA_COMMIT),
         build=dict(own_cuda="ON", upstream_cuda="OFF", type="RelWithDebInfo"),
         model=dict(sha256=audit.MODEL_SHA256), binary=dict(sha256="0" * 64),
-        input=dict(path="input.json", sha256=audit.PRECISION_INPUT_SHA256 if precision else audit.INPUT_SHA256),
+        input=dict(path="input.json", sha256=audit.common.KV_INPUT_SHA256 if gpu_kv else
+                   audit.PRECISION_INPUT_SHA256 if precision else audit.INPUT_SHA256),
         source=dict(scope=scope, state_file="source-state.json", worktree_state_sha256=state_hash,
                     snapshot=dict(path="source-snapshot.zip", sha256=audit.sha(root / "source-snapshot.zip"))),
         artifacts=[dict(path=name, sha256=audit.sha(root / name)) for name in ("verify.py", "analyze_cuda_benchmark.py")])
     manifest_hash = write("manifest.json", manifest)
     identity = dict(run_id=manifest["run_id"], manifest_sha256=manifest_hash, source_state_sha256=state_hash, binary_sha256="0" * 64)
     completed = []
-    for slot, report in zip(audit.schedule(precision), precision_reports() if precision else reports()):
+    for slot, report in zip(audit.schedule(precision, gpu_kv),
+                            kv_reports() if gpu_kv else precision_reports() if precision else reports()):
         report["run_identity"] = identity
         record = dict(file=slot["file"], exit_code=0, sha256=write(slot["file"], report), artifacts=[])
         for suffix in (".stdout.txt", ".stderr.txt", ".process.json"):
@@ -367,9 +460,40 @@ def bundle_fixture(root, precision=False):
             content = dict(trial=slot["trial"], exit_code=0, before={}, after={}, arguments=["fixture"])
             if precision:
                 content.update(precision_mode=slot["precision_mode"], arguments=["--cuda-precision", slot["precision_mode"]])
+            if gpu_kv:
+                content.update(precision_mode="f32-pedantic", kv_layout=slot["kv_layout"],
+                               arguments=["--kv-layout", slot["kv_layout"]])
             record["artifacts"].append(dict(path=name, sha256=write(name, content)))
         completed.append(record)
-    write("collection-status.json", dict(status="passed", planned_reports=6 if precision else 5, reports=completed))
+    write("collection-status.json", dict(status="passed", planned_reports=6 if precision or gpu_kv else 5, reports=completed))
+
+
+def kv_portable_collection_keeps_layout_identity_and_raw():
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        bundle_fixture(root, gpu_kv=True)
+        result = audit.validate_bundle(root)
+        assert result["summary"]["case_count"] == 6 and set(result["memory"]) == {"contiguous", "paged"}
+        proc = subprocess.run([sys.executable, str(root / "verify.py"), "--directory", str(root)],
+                              cwd=root.parent, capture_output=True, encoding="utf-8")
+        assert proc.returncode == 0, proc.stderr
+        process_path = root / (audit.schedule(gpu_kv=True)[1]["file"] + ".process.json")
+        original = process_path.read_bytes()
+        process = audit.read(process_path)
+        process["arguments"] = ["--kv-layout", "contiguous"]
+        process_path.write_text(json.dumps(process), encoding="utf-8")
+        collection_path = root / "collection-status.json"
+        collection_raw = collection_path.read_bytes()
+        collection = audit.read(collection_path)
+        for item in collection["reports"][1]["artifacts"]:
+            if item["path"] == process_path.name:
+                item["sha256"] = audit.sha(process_path)
+        collection_path.write_text(json.dumps(collection), encoding="utf-8")
+        invalid(lambda: audit.validate_bundle(root))
+        collection_path.write_bytes(collection_raw)
+        process_path.write_bytes(original)
+        (root / audit.schedule(gpu_kv=True)[-1]["file"]).unlink()
+        invalid(lambda: audit.validate_bundle(root))
 
 
 def precision_bundle_is_portable_and_rejects_missing_evidence():
@@ -480,6 +604,20 @@ def executable_guards(executable):
                                      "--output", str(output), "--cuda-precision", mode],
                                     capture_output=True, encoding="utf-8", timeout=10)
             assert result.returncode == 1 and message in result.stderr
+        kv_input = ROOT / "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json"
+        for index, (input_path, layout, precision, message) in enumerate((
+                (SPEC_PATH, "paged", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (PRECISION_PATH, "contiguous", "f32-pedantic", "需要冻结的 gpu-kv-experiment-v1"),
+                (kv_input, "paged", "f16-matrix-f32acc", "需要 precision-experiment-v1"),
+                (kv_input, "invalid", "f32-pedantic", "CUDA KV layout 必须"),
+                (kv_input, "paged", "f32-pedantic", "模型"),
+                (kv_input, "contiguous", "f32-pedantic", "模型"))):
+            output = root / f"kv-{index}.json"
+            result = subprocess.run([executable, "--model", str(model), "--input", str(input_path),
+                                     "--output", str(output), "--cuda-precision", precision,
+                                     "--kv-layout", layout], capture_output=True, encoding="utf-8", timeout=10)
+            assert result.returncode == 1 and audit.read(output)["status"] == "failed"
+            assert message in result.stderr, result.stderr
         print("[PASS] executable_guards")
 
 
@@ -493,7 +631,10 @@ if __name__ == "__main__":
              independent_trials_not_calls_or_inner_repeats, portable_bundle_and_missing_tampered_artifacts,
              publication_failure_preserves_existing_summary, precision_shapes_pairing_memory_and_negative_results,
              precision_wrong_dtype_mirror_hash_and_cast_boundaries_are_rejected,
-             precision_bundle_is_portable_and_rejects_missing_evidence]
+             precision_bundle_is_portable_and_rejects_missing_evidence,
+             kv_shapes_statistics_and_table_probe_are_bounded,
+             kv_mapping_copy_precision_and_memory_tampering_are_rejected,
+             kv_portable_collection_keeps_layout_identity_and_raw]
     for test in tests:
         test()
         print(f"[PASS] {test.__name__}")

@@ -67,15 +67,26 @@ def check_resources(value, backend, version, engine):
         return
     require(value["state_valid"] is True and value["reusable"] is True, "成功时间线包含无效或隔离资源")
     if backend == "minillm-cuda":
-        require(value["layout"] == "contiguous" and value["live_kv_pages"] is None, "连续 GPU KV 不提供页数")
-        require(integer(value["capacity_tokens"], 1) == engine["max_active"] * engine["max_model_len"], "GPU 物理槽容量错误")
+        layout = engine.get("kv_layout", "contiguous")
+        require(layout in ("contiguous", "paged") and value["layout"] == layout, "GPU KV 布局不同")
+        if layout == "paged":
+            require(engine["block_size"] == 16 and value["capacity_tokens"] == engine["context_tokens"], "GPU 页池与信用不一致")
+            pages, live = integer(value["live_kv_pages"]), integer(value["live_tokens"])
+            require(pages <= live and 0 <= pages * 16 - live <= min(live, engine["max_active"]) * 15, "GPU 页载荷或尾部浪费越界")
+            require(integer(value["page_table_bytes"], 1) ==
+                    engine["max_active"] * ((engine["max_model_len"] + 15) // 16) * 4, "GPU 设备表大小错误")
+        else:
+            require(value["live_kv_pages"] is None and value.get("page_table_bytes", 0) == 0, "连续 GPU KV 不提供页数或设备表")
+            require(integer(value["capacity_tokens"], 1) == engine["max_active"] * engine["max_model_len"], "GPU 物理槽容量错误")
         require(integer(value["live_tokens"]) <= value["capacity_tokens"], "GPU live tokens 越界")
-        require(integer(value["owned_device_bytes"], 1) >= integer(value["resident_kv_payload_bytes"], 1), "GPU resident/owned 字节数非法")
+        require(integer(value["owned_device_bytes"], 1) >= integer(value["resident_kv_payload_bytes"], 1) +
+                value.get("page_table_bytes", 0), "GPU resident/owned 字节数非法")
     else:
         require(value["layout"] == "paged", "CPU KV 布局错误")
         integer(value["live_kv_pages"])
         require(value["capacity_tokens"] == engine["context_tokens"], "CPU KV 容量错误")
         require(value["live_tokens"] is None and value["owned_device_bytes"] is None, "CPU 不提供未测量的 token/device 数量")
+        require(value.get("page_table_bytes") is None, "CPU 不提供设备表字节数")
 
 
 def validate_capture(rows, report, engine):
@@ -106,7 +117,14 @@ def validate_capture(rows, report, engine):
         require(1 <= engine["max_active"] <= 4 and 1 <= engine["batch_tokens"] <= 128 and
                 2 <= engine["max_model_len"] <= 2048, "own-CUDA 容量超限")
         require(engine.get("prefix_cache_entries", 0) == engine.get("prefix_cache_tokens", 0) == 0, "own-CUDA 不支持 prefix")
-        require(engine["context_tokens"] <= engine["max_active"] * engine["max_model_len"], "GPU 容量信用超过物理槽")
+        if engine.get("kv_layout", "contiguous") == "paged":
+            require(caps.get("kv_page_tokens") == engine["block_size"] == 16, "GPU 页大小合同不一致")
+            require(engine["max_model_len"] <= engine["context_tokens"] <=
+                    engine["max_active"] * ((engine["max_model_len"] + 15) // 16) * 16 and
+                    engine["context_tokens"] % 16 == 0, "GPU 页池容量错误")
+        else:
+            require(caps.get("kv_page_tokens", 0) == 0, "连续 GPU 不提供页池合同")
+            require(engine["context_tokens"] <= engine["max_active"] * engine["max_model_len"], "GPU 容量信用超过物理槽")
     require(header["policy"] == report["server_before"]["policy"], "策略身份不同")
     require(integer(header["capacity"], 1) == engine["telemetry_capacity"], "缓冲容量不同")
     integer(header["storage_bytes"], 1)
@@ -141,8 +159,10 @@ def validate_capture(rows, report, engine):
             if batch[field] is not None and batch[field]["live_kv_pages"] is not None:
                 require(batch[field]["live_kv_pages"] <= engine["context_tokens"] // engine["block_size"], "物理页越界")
             if header["backend"] == "minillm-cuda":
-                for key in ("resident_kv_payload_bytes", "capacity_tokens", "owned_device_bytes"):
-                    require(batch[field][key] == footer["resources_final"][key], "GPU 常驻分配或容量发生变化")
+                for key in ("layout", "resident_kv_payload_bytes", "capacity_tokens", "owned_device_bytes", "page_table_bytes"):
+                    require(batch[field].get(key) == footer["resources_final"].get(key), "GPU 常驻分配或容量发生变化")
+                if engine.get("kv_layout") == "paged":
+                    require(batch[field]["live_kv_pages"] <= batch["reserved_unique_blocks"], "GPU 分派页数超过保守信用")
         if header["backend"] == "minillm-cuda":
             require(batch["resources_after"]["live_tokens"] == batch["resources_before"]["live_tokens"] +
                     batch["prefill_tokens"] + batch["decode_tokens"], "GPU committed token 数量不守恒")
@@ -182,6 +202,10 @@ def validate_capture(rows, report, engine):
         require(batch["prefill_tokens"] + batch["decode_tokens"] <= engine["batch_tokens"], "batch 超过预算")
         require(batch["context_before_sum"] == sum(contexts) and batch["context_before_max"] == max(contexts), "前置 KV 长度汇总不一致")
         require(batch["context_after_sum"] == sum(after_contexts) and batch["context_after_max"] == max(after_contexts), "后置 KV 长度汇总不一致")
+        if header["backend"] == "minillm-cuda" and engine.get("kv_layout") == "paged":
+            added = sum((end + 15) // 16 - (begin + 15) // 16 for begin, end in zip(contexts, after_contexts))
+            require(batch["resources_after"]["live_kv_pages"] == batch["resources_before"]["live_kv_pages"] + added,
+                    "GPU 页数增长与实际输入不一致")
         profile = batch["runner"]
         if header["mode"] == "stages" and header["backend"] == "minillm":
             require(type(profile) is dict and profile["completed"] is True, "缺少 Runtime 阶段")

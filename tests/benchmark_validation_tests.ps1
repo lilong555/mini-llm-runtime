@@ -206,6 +206,101 @@ function Assert-Passes([string]$Name, [scriptblock]$Mutate = $null) {
     Write-Host "[PASS] $Name"
 }
 
+function Assert-GpuKv([string]$ExperimentName, [string]$Fault = '') {
+    $directory = New-Fixture "gpu-kv-$ExperimentName-$Fault" $null $null
+    $manifest = Get-Content -Raw (Join-Path $directory 'manifest.json') | ConvertFrom-Json -AsHashtable
+    $root = Split-Path -Parent (Split-Path -Parent $Analyzer)
+    $inputPath = Join-Path $root 'benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json'
+    $protocol = Get-Content -Raw $inputPath | ConvertFrom-Json
+    $experiment = $protocol.serving.$ExperimentName
+    Copy-Item $inputPath (Join-Path $directory 'input.json')
+    Copy-Item (Join-Path $root $experiment.trace) (Join-Path $directory 'trace.jsonl')
+    Remove-Item (Join-Path $directory 'mixed-0.json'), (Join-Path $directory 'prefill_first-0.json')
+    $manifest.gpu_kv = @{experiment=$ExperimentName;input='input.json';input_sha256=Get-LowerSha256 $inputPath}
+    $tracePath = Join-Path $directory 'trace.jsonl'
+    $trace = @(Get-Content $tracePath | ForEach-Object { $_ | ConvertFrom-Json })
+    $manifest.trace.sha256 = Get-LowerSha256 $tracePath
+    $manifest.trace.fnv1a64 = Get-TraceFnv1a64 $tracePath
+    $manifest.trace.size_bytes = (Get-Item $tracePath).Length
+    $manifest.trace.request_count = $trace.Count
+    $manifest.model.sha256 = $protocol.model_sha256
+    $manifest.model.provenance.sha256 = $protocol.model_sha256
+    $manifest.build.own_cuda_enabled = 'ON'
+    $manifest.engine.backend = 'mini-cuda'
+    $manifest.engine.metrics_backend = 'minillm-cuda'
+    $manifest.engine.metrics_kernel_mode = 'cuda-f32'
+    foreach ($pair in @(@('max_active',4),@('context_tokens',8192),@('max_model_len',2048),
+        @('batch_tokens',128),@('prefill_chunk',32),@('queue_capacity',64),@('block_size',16),
+        @('prefix_cache_entries',0),@('prefix_cache_tokens',0),@('event_buffer_size',128))) {
+        $manifest.engine[$pair[0]] = $pair[1]
+    }
+    $manifest.engine.telemetry_mode = 'off'
+    $manifest.protocol.device_weight_dtype = 'F32'
+    $manifest.protocol.kv_layout = 'per_report'
+    $manifest.protocol.single_stream = $true
+    $manifest.protocol.trials_per_variant = 3
+    $manifest.protocol.arrival_scale = 1
+    $manifest.protocol.order_offset = if ($ExperimentName -ceq 'same_budget') { 1 } else { 0 }
+    $manifest.comparison = @{
+        dimension='gpu_kv';variants=@('contiguous','paged');reference=@{variant='contiguous';trial=0}
+        allowed_changes= if ($ExperimentName -ceq 'same_budget') {
+            @('resources.layout','engine.max_active','engine.context_tokens')
+        } else { @('resources.layout') }
+    }
+    $manifest.reports = @()
+    $reports = @()
+    for ($order=0; $order -lt 6; ++$order) {
+        $trial = [int][math]::Floor($order/2)
+        $layout = @('contiguous','paged')[($trial+$order+$manifest.protocol.order_offset)%2]
+        $arm = if ($ExperimentName -ceq 'same_budget') { $experiment.$layout } else { $experiment }
+        $spec = @{file="$layout-$trial.json";variant=$layout;trial=$trial;order=$order;policy='mixed'
+            kv_layout=$layout;max_active=$arm.max_active;context_tokens=$arm.context_tokens}
+        $manifest.reports += $spec
+        $report = New-Report $layout $manifest.trace.sha256 $manifest.trace.fnv1a64
+        $report.run_identity.trial = $trial
+        $report.run_identity.model_sha256 = $protocol.model_sha256
+        foreach ($name in @('server_before','server_after')) {
+            $s = $report[$name]
+            foreach ($field in $manifest.engine.Keys) {
+                if ($s.Contains($field)) { $s[$field] = $manifest.engine[$field] }
+            }
+            $s.policy='mixed'; $s.backend='minillm-cuda'; $s.gpu=$true; $s.device='GPU/fixture'
+            $s.kernel_mode='cuda-f32'; $s.context_tokens=$arm.context_tokens; $s.max_active=$arm.max_active
+            $s.kv_credits.block_size=16; $s.batches=1
+            $s.capabilities=@{prefix_copy=$false;runtime_stage_profile=$false;synchronous_execute=$true
+                max_sequences=$arm.max_active;max_batch_tokens=128;max_model_len=2048}
+            $table = if ($layout -ceq 'paged') { $arm.max_active*512 } else { 0 }
+            $s.resources=@{layout=$layout;capacity_tokens=$arm.context_tokens
+                live_kv_pages=if ($layout -ceq 'paged') { 0 } else { $null }
+                live_tokens=0;state_valid=$true;reusable=$true;snapshot_boundary='model_thread_publish';batch_id=1
+                resident_kv_payload_bytes=$arm.context_tokens*114688L;page_table_bytes=$table
+                owned_device_bytes=3000000000L+$arm.context_tokens*114688L+$table}
+        }
+        $report.requests = @($trace | ForEach-Object {
+            $r = New-Request $_.request_id $_.class_name @(1..32) $_.arrival_s
+            $r.token_times_ms=@(1..32); $r.e2e_ms=33; $r.finished_s=$_.arrival_s+0.033
+            $r.usage=@{prompt_tokens=$_.request.prompt.Count;completion_tokens=32;total_tokens=$_.request.prompt.Count+32}
+            $r
+        })
+        Update-Summary $report
+        $reports += $report
+    }
+    if ($Fault -ceq 'policy') { $reports[0].server_before.policy='prefill_first' }
+    if ($Fault -ceq 'capacity') { $reports[0].server_after.resources.capacity_tokens=8191 }
+    if ($Fault -ceq 'order') { $manifest.reports[0].kv_layout='wrong' }
+    Write-BenchmarkJson (Join-Path $directory 'manifest.json') $manifest
+    $hash = Get-LowerSha256 (Join-Path $directory 'manifest.json')
+    for ($i=0; $i -lt 6; ++$i) {
+        $reports[$i].run_identity.manifest_sha256=$hash
+        Write-BenchmarkJson (Join-Path $directory $manifest.reports[$i].file) $reports[$i]
+    }
+    $rejected=$false
+    try { & $Analyzer -Directory $directory | Out-Null } catch { $rejected=$true; if (-not $Fault) { throw } }
+    if ($Fault -and -not $rejected) { throw "GPU KV $Fault 未被拒绝。" }
+    ++$script:passed
+    Write-Host "[PASS] GPU KV $ExperimentName $Fault"
+}
+
 function Assert-Rejected([string]$Name, [scriptblock]$Mutate = $null, [string]$Pattern = '',
     [scriptblock]$AfterWrite = $null) {
     $directory = New-Fixture $Name $Mutate $AfterWrite
@@ -486,7 +581,7 @@ try {
     Assert-Rejected 'missing-variant' { param($manifest) $manifest.reports = @($manifest.reports[0]) } 'manifest report count'
     Assert-Rejected 'duplicate-report' { param($manifest) $manifest.reports[1] = $manifest.reports[0] } 'duplicate report'
     Assert-Rejected 'missing-trial' { param($manifest) $manifest.protocol.trials_per_variant = 2 } 'manifest report count'
-    Assert-Rejected 'changed-comparison' { param($manifest) $manifest.comparison.allowed_changes += 'engine.threads' } 'only allowed change'
+    Assert-Rejected 'changed-comparison' { param($manifest) $manifest.comparison.allowed_changes += 'engine.threads' } 'comparison.allowed_changes'
     Assert-Rejected 'live-kv' { param($manifest, $mixed, $prefill) $prefill.server_after.kv_credits.active_unique_blocks = 1 } 'kv_active_unique_blocks'
     Assert-Rejected 'missing-report-file' -Pattern 'Missing report' -AfterWrite {
         param($directory) Remove-Item -LiteralPath (Join-Path $directory 'prefill_first-0.json')
@@ -533,6 +628,11 @@ try {
     if (-not $rejected) { throw 'Truncated diagnostic XML was incorrectly accepted as complete evidence.' }
     ++$passed
     Write-Host '[PASS] ctest-diagnostic-classification'
+    Assert-GpuKv 'same_capacity'
+    Assert-GpuKv 'same_budget'
+    Assert-GpuKv 'same_capacity' 'policy'
+    Assert-GpuKv 'same_budget' 'capacity'
+    Assert-GpuKv 'same_capacity' 'order'
     Write-Host "$passed/$passed benchmark validation tests passed"
 } finally {
     $resolvedTestRoot = [System.IO.Path]::GetFullPath($testRoot)
