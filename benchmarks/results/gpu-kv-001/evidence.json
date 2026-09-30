@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "spec_id": "GPU-KV-001",
+  "decision_id": "GPU-KV-CLOSEOUT-001",
+  "outcome": "B_capacity_research_mode",
+  "canonical_bundle": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/gpu-kv-001-20260930/gpu-kv-001-20260930.zip",
+    "sha256": "123480f3295ae42d20ea0b5793bb2c53397907069f7594dc903dd57f03190807",
+    "size_bytes": 17667946,
+    "files": 446,
+    "execution_dependencies_included": false
+  },
+  "release": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/tag/gpu-kv-001-20260930",
+    "candidate_sha": "368d2741ecb43963a38b3e8f8167858bb49351e6",
+    "ci_run": 36699304668,
+    "required_jobs": 5
+  },
+  "collection_sources": {
+    "micro": "825ae1b + frozen dirty snapshot",
+    "initial_model": "5fc9428 + frozen dirty snapshot",
+    "p16_confirmation": "3d4572b + frozen dirty snapshot",
+    "serving": "3987492 + frozen dirty snapshot"
+  },
+  "protocol": {
+    "path": "benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json",
+    "sha256": "77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e",
+    "formal_processes": 30,
+    "nsys_captures": 1,
+    "ncu_sessions": 0
+  },
+  "archive_revalidation": [
+    "sha256sum -c SHA256SUMS",
+    "python3 micro/verify.py --directory micro",
+    "python3 model/verify.py --directory model",
+    "python3 model-p16-confirmation/verify.py --directory model-p16-confirmation",
+    "pwsh -NoProfile -File verification/Analyze-Benchmarks.ps1 -Directory serving-same-capacity",
+    "pwsh -NoProfile -File verification/Analyze-Benchmarks.ps1 -Directory serving-same-budget"
+  ],
+  "limits": [
+    "默认 contiguous；paged 是显式容量／研究入口，不宣称产品性能护栏通过。",
+    "初始模型与唯一修订确认独立，不合并成六个 trial；全部不利结果保留。",
+    "公开包的采集身份与 Release 候选身份分开。",
+    "离线复核不需要 GPU、模型或原始绝对路径，不是重新执行 GPU 实验。",
+    "Serving 只有前后 ready 资源快照，不重建运行中的页利用率或传输总量。",
+    "不删除唯一证据，不重写共享历史，不移动已发布标签。"
+  ]
+}

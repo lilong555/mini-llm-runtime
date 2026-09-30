@@ -236,8 +236,8 @@ GPU 分页 Runtime、CLI 与 Serving 已提供；容量能力已验证，
 一次有限地址修订后的模型确认仍未通过长上下文延迟护栏，默认仍为 contiguous。
 kernel 优化与固定 Serving 对照已结束，最终为 B（容量／研究模式）；
 同容量吞吐退化 15.73%，同 KV 预算吞吐提升 4.31%，但 TPOT/ITL 更高。
-剩余工作为证据发布与技术报告，
-见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
+完整 raw、失败记录与复核入口见[单一公开证据包](benchmarks/results/gpu-kv-001/README.md)；
+详细分析见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
 
 [FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，
 结论为 `blocked_correctness`；不重开该候选，不启动融合 attention 备选。

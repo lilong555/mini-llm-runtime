@@ -22,7 +22,9 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   正式 Serving 12 进程完成，288 请求全部成功、输出一致；
   同容量吞吐退化 15.73%，同预算提升 4.31%，但 TPOT/ITL 更高。
   最终 B：容量／研究模式，全部 30 个正式性能进程预算耗尽。
-  剩余仅公开 canonical bundle、文档导航与发布收尾，不新增功能。
+  [单一 canonical bundle](../benchmarks/results/gpu-kv-001/README.md) 已发布；
+  五个阅读入口齐全，旧计划标为 Historical，不新增功能。
+  默认分支整合仍需用户审阅，不能将 feature branch 发布等同于 main 已更新。
   新 NSys 预算已用完；默认 contiguous 不变。
 - M4 编号默认属于 `PLAN-V4-KV-20260928`；下文精度研究的旧编号显式加 `PREC`。
 - 技术基点 `103070a91f1451eee3ee92e9c691e519ba733539` 已包含 `57268f9` 的

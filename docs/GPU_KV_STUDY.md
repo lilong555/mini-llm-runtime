@@ -480,7 +480,8 @@ layer 13/13 与真实模型 S1/S4 的 memcheck 均为零错误。
 
 包含下述 Serving 在内，已用 micro 6、初始 model 6、唯一修订确认 6、
 Serving 12、NSys 1、NCU 0。正式性能进程总数 30，不再追加。
-原始证据尚待单一 canonical bundle 发布，不声称已公开可独立获取。
+原始证据通过[单一公开索引](../benchmarks/results/gpu-kv-001/README.md)获取，
+采集身份与发布候选分开。
 
 ## 正式 Serving 与最终决定
 
@@ -537,4 +538,6 @@ batch composition、页表 H2D 总量或最大排队人数；动态容量与等�
 non-KV allocation。工具测试 72/72，own-CUDA CTest 23/23；
 没有修改 Runtime 或再次采集模型。
 正式预算已用完：micro 6、初始 model 6、确认 model 6、Serving 12，
-合计 30；NSys 1、NCU 0。剩余工作仅为公开 canonical bundle 与作品收尾。
+合计 30；NSys 1、NCU 0。
+完整 raw、NSys、验证和失败诊断已归入单一 canonical bundle，
+见[公开证据](../benchmarks/results/gpu-kv-001/evidence.json)。

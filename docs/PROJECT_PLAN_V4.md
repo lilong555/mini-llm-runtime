@@ -1,5 +1,7 @@
 # PROJECT_PLAN_V4 — 一项精度/性能优化，然后冻结功能
 
+> Historical（历史计划）。FP16 候选已停止，当前收尾状态以 `GPU_KV_DECISION.md` 为准。
+
 ## 0. 文档身份与最终决定
 
 - Audit Date：2026-09-26，Asia/Tokyo。

@@ -1,5 +1,7 @@
 # PROJECT_PLAN_V3：自有 CUDA Serving
 
+> Historical（历史计划）。当前系统与收尾状态以 README 和 `GPU_KV_DECISION.md` 为准。
+
 ## 基线与主线
 
 - 规范：`CUDA-SERVE-001`，见 [NEXT_SPEC_V2](NEXT_SPEC_V2.md)。

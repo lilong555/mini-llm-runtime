@@ -50,3 +50,10 @@ validation、复现命令齐全且可获取即可。允许检查错 token、重�
 完整 raw/日志/源码快照/NSys/SQLite 不进入 Git；Git 中只保留固定输入与小摘要。
 实验的 source SHA/dirty snapshot 与最终发布候选分开，后者的 SHA 及自身 CI run
 由 Release 元数据绑定，不通过反复重封包更新候选身份。
+
+## GPU KV 研究
+
+`GPU-KV-001` 的[单一公开索引](../benchmarks/results/gpu-kv-001/evidence.json)
+定位最终 B 结论、446 文件的 canonical bundle、摘要及离线命令。
+30 个正式性能进程、唯一 NSys、不同阶段的必要源码快照和失败诊断
+保留在同一个外部包；Git 不存放 raw/profiler 或重复组件包。

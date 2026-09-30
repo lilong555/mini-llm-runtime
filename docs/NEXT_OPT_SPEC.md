@@ -1,5 +1,7 @@
 # NEXT_OPT_SPEC — 有界 FP16 矩阵路径实验
 
+> Historical（历史规范）。该精度候选已按原数值门槛停止，不再投入开发。
+
 ## 0. Spec ID / Audit HEAD / 执行身份
 
 - Spec ID：`CUDA-PREC-001`。

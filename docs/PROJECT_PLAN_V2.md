@@ -1,5 +1,7 @@
 # PROJECT_PLAN_V2 — MiniLLM / LLMServe
 
+> Historical（历史计划）。当前系统与收尾状态以 README 和 `GPU_KV_DECISION.md` 为准。
+
 ## 0. 审计身份与执行规则
 
 - Audit HEAD：`68ac275913207975a88e2090c6617467e351301c`

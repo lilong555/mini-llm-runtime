@@ -1,5 +1,7 @@
 # NEXT_SPEC_V2：最小 Own CUDA Serving
 
+> Historical（历史规范）。保留原有实验合同，不作为当前待开发清单。
+
 ## 标识与范围
 
 - Spec ID：`CUDA-SERVE-001`，对应 [PROJECT_PLAN_V3](PROJECT_PLAN_V3.md) / M3-1。

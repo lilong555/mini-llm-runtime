@@ -1,5 +1,7 @@
 # NEXT_SPEC — Own CUDA Resident Qwen3 Vertical Slice
 
+> Historical（历史规范）。保留原有实验合同，不作为当前待开发清单。
+
 ## 文档身份
 
 - Spec ID：`CUDA-VS-001`
