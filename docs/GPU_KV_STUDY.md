@@ -384,18 +384,18 @@ M4 的 micro 使用倒序物理页号直接读取分页 KV。M32 的 query 位�
 | `source-snapshot.zip` | `2569e255176979548a17d3cd77462f5d72d28a92b56fb596e81208ffc4f4ec33` |
 | `summary.json` | `50a2d8c193081a5c5761273bab3115659085c01a10e312d87df0e778c7476d27` |
 
-## 剩余门禁
+## 实验边界
 
 模型与 Serving 分页路径、固定实验入口和指定容量功能检查已通过。
-微基准和初始模型采集已完成；Serving 的正式工具尚未支持本协议，
-不能直接运行旧模型 70 进程协议或 mixed/prefill_first 对照。
+微基准、模型与 Serving 均使用独立的冻结协议分支，
+不运行旧模型 70 进程协议或 mixed/prefill_first 对照。
 模型护栏超限后仅使用下述一次 P16 编译期地址改进；
 不能用 micro 的百分比替代模型及 Serving 护栏，也不扩大正式实验预算。
 保持 mixed、F32、单 stream、同步完成与保守 reservation；不引入 incremental admission、
 prefix sharing、fusion 或新的 scheduler。可执行不等于已通过最终采用门槛。
 
-正式性能预算已用 micro 6/6、初始 model 6/6、Serving 0/12；
-新增 NSys 1/1、NCU 0/1，修订后的模型确认独立计数。
+正式性能预算已用 micro 6/6、初始 model 6/6、确认 model 6/6、Serving 12/12；
+新增 NSys 1/1、NCU 0/1，不合并不同 cohort。
 同容量 8192-token 的执行代价与同 288 MiB KV 预算的异长请求能力分别验收。
 不将 host 状态测试或较小的容量参数称为显存节省或吞吐提升。
 
@@ -419,7 +419,7 @@ dirty snapshot，不是后续 P16 修订后的测量。
 | decode-batch4-prefix256 | 17.98%、21.02%、1.83% | 17.98% |
 
 四项均未通过各自的 10% 护栏；采集成功不代表性能通过。
-不利结果保留，正式 Serving 尚未采集，最终 A/B/C 待定。
+不利结果保留，Serving 与最终 B 决定见末节。
 
 唯一 NSys 使用同一初始模型二进制运行冻结输入，不计正式性能样本；
 原始报告、SQLite、PTX/SASS 在 `.run/gpu-kv-001/address-diagnostic/`。
@@ -478,6 +478,63 @@ layer 13/13 与真实模型 S1/S4 的 memcheck 均为零错误。
 | P16 confirmation manifest | `b3069f56dbc0bf494448bc78fcf4d681814c2a64ceeb9f33a4ddbe574a732ddc` |
 | P16 confirmation summary | `8686e4afa970ad46699c2370c1ed7976130a293fd28daa23034f74f0612453d9` |
 
-当前已用 micro 6、初始 model 6、唯一修订确认 6、NSys 1；
-Serving 0、NCU 0。剩余正式性能预算仅 Serving 12，总上限 30。
+包含下述 Serving 在内，已用 micro 6、初始 model 6、唯一修订确认 6、
+Serving 12、NSys 1、NCU 0。正式性能进程总数 30，不再追加。
 原始证据尚待单一 canonical bundle 发布，不声称已公开可独立获取。
+
+## 正式 Serving 与最终决定
+
+**最终结果：B，容量／研究模式。** `paged` 保留显式入口，默认仍为
+`contiguous`。模型确认与同容量 Serving 护栏均未通过，A 不成立；
+共享页池的容量能力和限定同预算负载的收益支持保留研究路径，不选择 C。
+停止主要功能开发和 kernel 优化，不追加性能 trial。
+
+两组均为固定 mixed、F32、P16、B128、chunk32、prefix0，
+每臂三进程；先同容量 C/P、P/C、C/P，再同预算 P/C、C/P、P/C。
+共 288 个成功请求、9216 个输出 token，无失败、拒绝或超时，
+每个请求与该 trace 的 contiguous trial 0 输出逐 token 一致。
+表内指标为各 trial 指标的中位数，不是跨进程拼接 token 的分位数。
+
+| 比较 | 布局 | token/s | goodput req/s | TTFT P95 ms | mean TPOT P95 ms | 请求最大 ITL P95 ms | SLO |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 同容量 | contiguous | 115.67 | 2.711 | 1150.95 | 25.90 | 40.25 | 57/72 |
+| 同容量 | paged | 97.48 | 1.142 | 2088.31 | 31.18 | 48.55 | 29/72 |
+| 同预算 | contiguous | 33.64 | 0.088 | 21793.15 | 20.19 | 21.29 | 7/72 |
+| 同预算 | paged | 35.15 | 0.320 | 17862.02 | 48.55 | 85.49 | 21/72 |
+
+同容量的吞吐配对退化为 15.93%、15.09%、15.73%，中位数 15.73%，
+超过冻结的 10% 护栏。两臂均 S4/L2048/cap8192、896 MiB KV；
+paged 额外 2 KiB table，不节省该组的实际 KV 分配。
+
+同 288 MiB KV 子预算下，contiguous S1/cap2048 使用 224 MiB，
+paged S4/cap2560 使用 280 MiB 加 2 KiB table，非 KV owned 相同。
+分页吞吐三轮分别提升 7.26%、2.24%、4.31%，配对中位数提升 4.31%；
+但 decode 的平均 token 间隔和最大停顿明显更高。
+24 条同时到达的请求包含六组固定异长输入，队列等待使两臂 TTFT 都很高。
+这是限定负载的容量与延迟取舍，不是四倍吞吐或生产级 SLO。
+未注册统一的尾延迟百分比门槛，不声称通过不存在的 tail gate。
+
+每进程前后 ready 快照均无 active/waiting/outstanding 请求；
+live tokens、assigned pages 和信用归零，设备 slab 保留，状态有效且可复用。
+这些边界的 tail slack 为零，未分派池为全池容量。
+本组没有连续 batch/page 快照，不能重建运行中页利用率、
+batch composition、页表 H2D 总量或最大排队人数；动态容量与等待证据
+来自前述独立功能验证，不能冒充本组性能采样。
+每秒 `nvidia-smi` 原始温度、频率、功耗和整设备占用保留，未锁频。
+
+正式目录为 `.run/gpu-kv-001/serving-same-capacity/` 与
+`.run/gpu-kv-001/serving-same-budget/`。两组使用同一
+`3987492` 加固定 dirty source snapshot：
+
+| 身份 | SHA-256 |
+| --- | --- |
+| source snapshot | `b42d7f86355e92a6d7353cb5b4bf83c199c37439a9b550bc5866bd160f6cd486` |
+| server binary | `b698bbc736486b8c869fc3f8679bbe4a36e9ef673632aafb981f3d6131cba8cb` |
+| 同容量 manifest | `a9a94e142dbb8c811e0f4a05485dc521d377be94687f04060e599bbd0bec4eb6` |
+| 同预算 manifest | `b9ac8ce968e062852313e20f5655c60f0e18db3c9744f735c8fbbd18c1c05992` |
+
+既有分析器复核请求时序、SLO 分母、输出、配置、容量、表字节数和
+non-KV allocation。工具测试 72/72，own-CUDA CTest 23/23；
+没有修改 Runtime 或再次采集模型。
+正式预算已用完：micro 6、初始 model 6、确认 model 6、Serving 12，
+合计 30；NSys 1、NCU 0。剩余工作仅为公开 canonical bundle 与作品收尾。

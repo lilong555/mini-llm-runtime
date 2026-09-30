@@ -2,6 +2,9 @@
 
 一个从底层推理到在线服务的 C++20 项目。**MiniLLM** 独立执行 Qwen3 前向计算，**LLMServe** 在其上实现迭代级调度与流式服务；llama.cpp 提供格式解析、tokenizer 和可切换的 CPU/CUDA 参照后端。
 
+阅读入口：[架构](docs/ARCHITECTURE.md) · [性能](docs/PERFORMANCE.md) ·
+[GPU KV 研究](docs/GPU_KV_STUDY.md) · [验证](docs/VALIDATION.md)。
+
 ```text
                   Mini LLM Runtime
 GGUF -> Memory Mapping -> Tensor Views -> SIMD / Scalar Kernels
@@ -45,7 +48,7 @@ MiniLLM 的 CPU 模型使用项目 SIMD/Scalar、attention 和物理 KV 页。�
 
 支持范围：单机、单模型、纯文本、`temperature=0`、`n=1`。首个验证模型为 Qwen3-0.6B Q8_0。Serving 的 `mini` 为自有 CPU，`mini-cuda` 为自有 CUDA，`llama` 为上游 CPU/CUDA。自有 CUDA Serving 支持最多 4 个独立序列、128 个 batch tokens、每序列最长 2048，关闭 prefix cache，见 [CUDA Serving](docs/CUDA_SERVING.md)。
 
-不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。[GPU 分页研究](docs/GPU_KV_STUDY.md) 尚无正式容量/延迟采用结论；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
+不支持：chat-template 自动套用、随机采样、任意 GGUF 模型架构、Q4/MoE、多 GPU、抢占重算、PD 分离、CUDA prefix sharing 或异步执行。[GPU 分页研究](docs/GPU_KV_STUDY.md) 最终为容量／研究模式，默认 contiguous；CPU 分页、自有 CUDA KV 和上游 GPU attention 分别评价。
 
 ## 快速运行
 
@@ -231,7 +234,9 @@ benchmarks/          固定输入及实测报告
 项目处于 Portfolio Freeze 收尾，不新增主要功能。
 GPU 分页 Runtime、CLI 与 Serving 已提供；容量能力已验证，
 一次有限地址修订后的模型确认仍未通过长上下文延迟护栏，默认仍为 contiguous。
-kernel 优化已停止；剩余工作为固定 Serving 对照、研究取舍、证据发布与技术报告，
+kernel 优化与固定 Serving 对照已结束，最终为 B（容量／研究模式）；
+同容量吞吐退化 15.73%，同 KV 预算吞吐提升 4.31%，但 TPOT/ITL 更高。
+剩余工作为证据发布与技术报告，
 见 [GPU 分页研究](docs/GPU_KV_STUDY.md) 和 [执行状态](docs/EXECUTION_STATUS.md)。
 
 [FP16 研究](benchmarks/results/cuda-precision-001/README.md) 已按原数值门槛停止，

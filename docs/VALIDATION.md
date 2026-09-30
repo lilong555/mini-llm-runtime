@@ -1,6 +1,21 @@
 # Validation And Evidence
 
-## 当前 WSL 验收
+## 当前系统
+
+Own CUDA 完整模型、GPU 分页与 Serving 已实现。分页最终为 B
+（容量／研究模式），不是性能门槛已通过的产品默认配置。
+P16 候选的 16 case、173 行完整 logits 与连续路径逐位相同；
+HTTP 12/12、layer 与模型 memcheck 零错误，既有核心/own-CUDA
+CTest 35/35。Serving 采集接线的工具验证 72/72、own-CUDA CTest 23/23。
+
+正式 Serving 两组共 12 进程，288 请求全部成功、输出一致，
+模型与同容量吞吐护栏仍未通过。细节与证据可获取状态以
+[GPU KV 研究](GPU_KV_STUDY.md)为准；本机 GPU 验证不冒充远程 GPU CI。
+
+## 历史验证
+
+以下记录只描述各自阶段及采集身份；其中“尚未完成”不是当前功能状态，
+历史全语料数值覆盖也不等于对后续每个提交重新跑过全矩阵。
 
 [CUDA Profiler 与证据工具验收](../benchmarks/results/validation/cuda-profiler/README.md) 记录四种构建共 62 项 CTest、1034 次用例执行，CPU 模型 13/13、HTTP 8/8；完整数值的 12528 次比较按相同 Runtime 源码与二进制继承，没有虚称重跑。236 个产物包含当前验证、原始失败和诊断；独立目录复核及三项反例通过。
 

@@ -2,7 +2,8 @@
 
 - 决策标识：`GPU-KV-CLOSEOUT-001`。
 - 功能已完成，新增 Major Feature 冻结；不扩展分页正确性矩阵，保留既有回归。
-- 当前默认 `contiguous`，唯一模型确认仍超限，A 不成立；最终 B/C 待 Serving。
+- 最终结果为 **B：容量／研究模式**。默认 `contiguous`，
+  `paged` 显式 opt-in；模型及同容量 Serving 护栏均超限，A 不成立。
 - 冻结输入：`benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json`，
   SHA-256 `77b44ce8578e73e05889c21e4aa167b5cff5f858110fc4f62981cc49e002bb5e`。
 - 本合同优先于历史计划中未执行的建议，不产生新功能路线。
@@ -27,7 +28,10 @@ QK 约 1.06 ms；PV 内层仍加载运行时 `page_tokens` 并执行除余。
 这支持有限修订假设，不预先证明收益或全部根因。
 
 修订后既有正确性、模型、HTTP 与 memcheck 均通过；独立的六进程模型确认
-已完成，长 prefill/decode 仍超限。停止优化，完成 Serving 并决定 B/C。
+已完成，长 prefill/decode 仍超限。12 个 Serving 进程全部完成，
+同容量吞吐退化中位数 15.73%，同预算吞吐提升中位数 4.31%，
+后者伴随更高 TPOT/ITL。完整结果与限制见 [研究记录](GPU_KV_STUDY.md)。
+优化与性能采样均已停止。
 禁止第二次优化、fusion、Graph、异步、精度和调度变更。
 
 ## 预算
