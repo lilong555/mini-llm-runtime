@@ -9,10 +9,10 @@ bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda micro-benchmark \
   -PreflightOnly -OutputDirectory .run/cuda-micro-preflight
 bash scripts/dev.sh own-cuda micro-benchmark \
-  -OutputDirectory benchmarks/results/cuda-micro-baseline
+  -OutputDirectory .run/cuda-micro-new-run
 
 pwsh -NoProfile -File scripts/Analyze-CudaMicro.ps1 \
-  -Directory benchmarks/results/cuda-micro-baseline
+  -Directory .run/cuda-micro-new-run
 ```
 
 采集目录必须为空。`PreflightOnly` 不采样；正式采集使用另一个新目录。模型、设备容量、输入、算术和重复次数由 `benchmarks/runtime-inputs/qwen3-cuda-micro-v0.json` 固定，文件 SHA-256 为 `6aa2bc8af5de001ab3a8baedd305d0c77822a48b5baddc8f5708e79f496e706c`。不能通过删减慢用例、降低容量或减少重复次数形成正式结果。
@@ -57,6 +57,9 @@ RoPE 是原地算子，每个 sample 前恢复原输入，sample 内连续旋转
 全部输出检查 finite。矩阵检查首/中/末行及八个均匀列；attention 检查首/中/末行、head 0/7/8/15、维度 0/1/63/127。其他算子全元素对照，固定 `atol=2e-4, rtol=2e-4`。抽样值、全量对照摘要、误差指标与输出摘要均保留；全部 sample 和 trial 的输出应一致。离线分析检查记录与协议，不在无模型的归档中重新计算全部数学结果。
 
 ## 归档与边界
+
+冻结基线的完整原件通过 [CUDA-VS-001 公开归档](../benchmarks/results/cuda-vs-001/README.md)获取。
+仓库保留分析、汇总和配置；新采集默认输出到 `.run/cuda-micro-<run-id>`。
 
 归档含源码状态/ZIP、冻结输入、实际权重与内存计划、五份完整进程报告、命令、stdout/stderr 和进程边界环境。源码、模型、二进制与依赖在每个进程前后核对。显式传输和项目设备分配分别记录准备、测量、验证与析构，不覆盖 NVIDIA 库内部资源。
 

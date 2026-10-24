@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from unittest.mock import patch
+from urllib.parse import urlsplit
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -226,6 +227,30 @@ def failed_publication_rolls_back_only_its_own_files():
         assert preserved.read_bytes() == b"unchanged"
 
 
+def public_archive_index_keeps_frozen_identity_and_local_summaries():
+    directory = ROOT / "benchmarks/results/cuda-vs-001"
+    index = audit.read(directory / "evidence.json")
+    original = audit.read(directory / "export.json")
+    archive = index["canonical_bundle"]
+    checksum = (directory / index["local_documents"]["checksum"]).read_text(encoding="ascii").split()
+    assert index["schema_version"] == 1 and index["spec_id"] == "CUDA-VS-001"
+    assert index["components"] == audit.COMPONENTS
+    assert archive["sha256"] == original["sha256"] == checksum[0]
+    assert archive["size_bytes"] == original["size_bytes"] == 56872322
+    assert archive["files"] == original["independent_directory_revalidation"]["result"]["artifact_count"] == 1050
+    assert archive["execution_dependencies_included"] is False
+    url = urlsplit(archive["url"])
+    assert url.scheme == "https" and url.netloc == "github.com" and not url.query and not url.fragment
+    assert url.path == f"/lilong555/mini-llm-runtime/releases/download/{index['release']['tag']}/{checksum[1]}"
+    assert set(index["repository_summaries"]) == set(audit.COMPONENTS)
+    for component, name in index["repository_summaries"].items():
+        path = ROOT / name
+        assert path.is_file() and path.is_relative_to(ROOT / audit.COMPONENTS[component])
+        assert audit.read(path)
+    for name in index["local_documents"].values():
+        assert (directory / name).is_file()
+
+
 if __name__ == "__main__":
     tests = [derived_summaries_are_recomputed_even_with_valid_file_hashes,
              closed_file_index_is_verified, missing_tampered_or_unregistered_files_are_rejected,
@@ -233,7 +258,8 @@ if __name__ == "__main__":
              duplicate_paths_boolean_versions_and_omitted_components_are_rejected,
              model_files_and_symlinks_are_not_exported, existing_archive_or_checksum_is_preserved,
              export_publication_is_atomic_and_sources_are_preserved,
-             failed_publication_rolls_back_only_its_own_files]
+             failed_publication_rolls_back_only_its_own_files,
+             public_archive_index_keeps_frozen_identity_and_local_summaries]
     for test in tests:
         test()
         print(f"[PASS] {test.__name__}")

@@ -2,6 +2,9 @@
 
 本目录为完整 Qwen3 模型的外部诊断，关联 [70 进程无 Profiler 基线](../cuda-model-baseline/README.md)。五个进程依次为无 Profiler、NSys、无 Profiler、NCU、无 Profiler，均执行 585 次 forward；输出 token 与关联基线一致。
 
+仓库保留分析、摘要、配置和选定 kernel 的 CSV。完整模型报告、源码快照及 Nsight 原件位于
+[CUDA-VS-001 公开归档](../cuda-vs-001/README.md)的 `benchmarks/results/cuda-model-profiler/`。
+
 ## 结果
 
 - NSys：585 次完整 forward、每次 28 层、368610 次 kernel，单项目 stream；测量部分为 258 次 forward。
@@ -18,12 +21,14 @@
 
 Run ID 为 `20260926T080547Z-0754722511b9-2218194b`，源码基点为 `0754722511b98a8d834167e3befb2c3307e81fa2`，采集时为 dirty worktree；实际代码由源码状态与 ZIP 固定。模型基准二进制与关联基线相同，SHA-256 为 `d7eb569942f6ffa6621f346c351e16d531dad70041afc76c0cc25dbac0f53180`。
 
-`artifact-manifest.json` 登记 42 个必需原始产物。`profiler-raw.zip` 为 24217543 字节，实际包含 `nsys.nsys-rep`、`nsys.sqlite`、`ncu.ncu-rep`，各成员及 ZIP 均有 SHA-256，不依赖作者 `.run` 路径获取。工具为 NSys `2026.1.3.425`、NCU `2025.1.1.0`，完整命令、版本输出、进程环境白名单和日志均保留。
+`artifact-manifest.json` 登记 42 个必需原始产物。包内 `profiler-raw.zip` 为 24217543 字节，实际包含 `nsys.nsys-rep`、`nsys.sqlite`、`ncu.ncu-rep`，各成员及 ZIP 均有 SHA-256，不依赖作者 `.run` 路径获取。工具为 NSys `2026.1.3.425`、NCU `2025.1.1.0`，完整命令、版本输出、进程环境白名单和日志均保留。
 
-Python 3.10+ 可在独立目录复核，无需模型、二进制、CUDA、Nsight 或原路径：
+按[完整包入口](../cuda-vs-001/README.md)下载并解压后，在仓库根目录执行。
+此组件复核使用 Python 3.10+：
 
 ```bash
-python3 -B verify.py --directory .
+python3 -B .run/cuda-vs-001/benchmarks/results/cuda-model-profiler/verify.py \
+  --directory .run/cuda-vs-001/benchmarks/results/cuda-model-profiler
 ```
 
 48 个既有文件在迁移复核中保持不变；缺少原始 ZIP、NCU 单位篡改、选定层不符三项反例被拒绝，见 `revalidation.json`。

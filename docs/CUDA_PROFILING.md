@@ -4,17 +4,22 @@
 
 ## 运行
 
-采集入口面向 Linux/WSL2，需要已有完整 70 进程模型基线、Python 3.10+、PowerShell 7、Nsight Systems 2026.1.3 和 Nsight Compute 2025.1.1：
+采集入口面向 Linux/WSL2，需要已有完整 70 进程模型基线、Python 3.10+、PowerShell 7、Nsight Systems 2026.1.3 和 Nsight Compute 2025.1.1。
+默认基线目录为 `.run/cuda-vs-001/benchmarks/results/cuda-model-baseline`，
+按 [CUDA-VS-001 获取入口](../benchmarks/results/cuda-vs-001/README.md)准备完整原件：
 
 ```bash
 bash scripts/dev.sh own-cuda runtime-profile \
   -PreflightOnly -OutputDirectory .run/cuda-profiler-preflight
 
 bash scripts/dev.sh own-cuda runtime-profile \
-  -OutputDirectory benchmarks/results/cuda-profiler-new-run
+  -OutputDirectory .run/cuda-profiler-new-run
 ```
 
 输出目录必须为空。`BaselineDirectory`、`BinaryDirectory`、`Model`、`NsightSystems`、`NsightCompute` 可显式指定；不能更换模型或基准二进制身份。默认优先使用 `$HOME/.local/bin/nsys`，不将 CUDA 附带的旧版 Nsight Systems 当成已验证工具。NCU 硬件计数器权限由主机配置决定，WSL root 不替代 Windows 主机授权。
+
+报告默认存放于 `.run/cuda-profiler-reports-<run-id>`，原始采集存放于
+`.run/cuda-profiler-<run-id>`，两个目录分别管理。
 
 五个独立进程固定为 `off-before → nsys → off-middle → ncu → off-after`。每个进程均执行全部 12 项 workload、585 次 forward，保持 S=4、Lmax=2048、B=128；没有缩短模型或共享 prefix。每种 Profiler 只有一个独立进程，相邻无 Profiler 进程只提供诊断参照，不计算显著性。
 
@@ -32,30 +37,27 @@ NCU 自动名称简化关闭，CSV 使用原始 mangled symbol，与 NSys 的 `m
 
 ## 归档
 
-[完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 包含五份模型报告、原始命令和工具版本、源码快照、NCU CSV，以及 `profiler-raw.zip`：
+[完整模型 Profiler](../benchmarks/results/cuda-model-profiler/README.md) 的原件位于
+[CUDA-VS-001 完整包](../benchmarks/results/cuda-vs-001/README.md)，包括五份模型报告、
+原始命令和工具版本、源码快照、NCU CSV，以及 `profiler-raw.zip`：
 
 - `nsys.nsys-rep`：原始 Nsight Systems 报告。
 - `nsys.sqlite`：完整时间线的离线导出。
 - `ncu.ncu-rep`：选定 kernel 的原始 Nsight Compute 报告。
 
-`artifact-manifest.json` 记录包和成员的 SHA-256、尺寸及可获取位置。无需 CUDA、Nsight、模型或原绝对路径即可复核：
+`artifact-manifest.json` 记录包和成员的 SHA-256、尺寸及可获取位置。
+下载并解压后，从仓库根目录复核 Profiler 组件：
 
 ```bash
-python3 -B /path/to/profiler/verify.py --directory /path/to/profiler
+python3 -B .run/cuda-vs-001/benchmarks/results/cuda-model-profiler/verify.py \
+  --directory .run/cuda-vs-001/benchmarks/results/cuda-model-profiler
 ```
 
-完整交付包将模型基线、微基准、数值、Profiler 和工具回归放在各自目录，保留独立来源。导出和包内复核还需要 PowerShell 7：
+完整交付包将模型基线、微基准、数值、Profiler 和工具回归放在各自目录，保留独立来源。
+五组件关联复核还需要 PowerShell 7，使用包内绑定采集身份的复核器：
 
 ```bash
-python3 -B scripts/cuda_evidence_bundle.py \
-  --model benchmarks/results/cuda-model-baseline \
-  --micro benchmarks/results/cuda-micro-baseline \
-  --numerical benchmarks/results/validation/cuda-micro \
-  --profiler benchmarks/results/cuda-model-profiler \
-  --validation benchmarks/results/validation/cuda-profiler \
-  --export /existing/directory/cuda-vs-001.zip
-
-python3 -B /path/to/extracted/verify.py --directory /path/to/extracted
+python3 -B .run/cuda-vs-001/verify.py --directory .run/cuda-vs-001
 ```
 
 归档不含模型权重、编译产物或依赖 checkout；离线复核不是同一二进制重跑或可信执行证明。

@@ -19,7 +19,12 @@ $python = (Get-Command python3 -ErrorAction Stop).Source
 if (-not [Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([Runtime.InteropServices.OSPlatform]::Linux)) {
     throw '当前 Profiler 采集入口仅验收 Linux/WSL2；CPU 和 CUDA 产品构建不依赖该入口。'
 }
-if (-not $BaselineDirectory) { $BaselineDirectory = Join-Path $root 'benchmarks/results/cuda-model-baseline' }
+if (-not $BaselineDirectory) {
+    $BaselineDirectory = Join-Path $root '.run/cuda-vs-001/benchmarks/results/cuda-model-baseline'
+    if (-not (Test-Path -LiteralPath $BaselineDirectory -PathType Container)) {
+        throw '请按 benchmarks/results/cuda-vs-001/README.md 下载完整证据包，或通过 -BaselineDirectory 指定模型基线。'
+    }
+}
 if (-not $BinaryDirectory) { $BinaryDirectory = Join-Path $root 'build/wsl-own-cuda/bin' }
 if (-not $Model) { $Model = Join-Path $root 'models/Qwen3-0.6B-Q8_0.gguf' }
 if (-not $NsightSystems) {
@@ -83,7 +88,7 @@ if ($LASTEXITCODE -ne 0) { throw '无法建立 Profiler 诊断计划。' }
 $plan = ($planText -join "`n") | ConvertFrom-Json
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, 12), ([guid]::NewGuid().ToString('N').Substring(0, 8))
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root "benchmarks/results/cuda-profiler-$runId" }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root ".run/cuda-profiler-reports-$runId" }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count) {
     throw 'Profiler 输出目录必须为空，原始采集不会被覆盖。'
