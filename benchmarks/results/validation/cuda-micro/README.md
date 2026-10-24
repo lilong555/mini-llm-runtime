@@ -2,6 +2,11 @@
 
 本目录验证真实形状微基准工具、独立 softmax 入口及当前编译产物的完整模型数值。五进程性能原始数据位于 [微基准基线](../../cuda-micro-baseline/README.md)，不计入本目录的功能或 CTest 数量。
 
+此页记录 2026-09-26 的冻结验证。仓库保留数值摘要、CTest XML 和代表性验证记录；
+完整数值报告、诊断、源码快照与复核器位于
+[CUDA-VS-001 公开归档](../../cuda-vs-001/README.md)的 `benchmarks/results/validation/cuda-micro/`。
+下文的原始报告路径均相对于包内组件目录。
+
 ## 验证范围
 
 | 检查 | 结果 |
@@ -36,10 +41,12 @@
 
 ## 独立复核
 
-需要 PowerShell 7 与 Python 3.10+，不需要 CUDA 设备、模型权重、依赖 checkout 或原二进制：
+按[完整包入口](../../cuda-vs-001/README.md)下载并解压后，在仓库根目录执行。
+此组件复核使用 PowerShell 7 与 Python 3.10+：
 
 ```powershell
-pwsh -NoProfile -File ./verify.ps1
+pwsh -NoProfile -File .run/cuda-vs-001/benchmarks/results/validation/cuda-micro/verify.ps1 `
+  -Directory .run/cuda-vs-001/benchmarks/results/validation/cuda-micro
 ```
 
 入口从已校验的源码快照提取复核工具，核对原始文件、完整数值、CTest、sanitizer、CPU HTTP、编译身份与模型预检来源。旧 [全量数值归档](../cuda-full/README.md) 保持独立身份。

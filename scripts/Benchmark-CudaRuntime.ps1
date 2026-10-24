@@ -24,7 +24,10 @@ if (-not $BinaryDirectory) {
 if (-not $Model) { $Model = Join-Path $root 'models/Qwen3-0.6B-Q8_0.gguf' }
 if (-not $NumericalDirectory) {
     $NumericalDirectory = Join-Path $root $(if ($GpuKvStudy) { '.run/gpu-kv-001/model-numerics' }
-                                           else { 'benchmarks/results/validation/cuda-micro' })
+                                           else { '.run/cuda-vs-001/benchmarks/results/validation/cuda-micro' })
+    if (-not $GpuKvStudy -and -not (Test-Path -LiteralPath $NumericalDirectory -PathType Container)) {
+        throw '请按 benchmarks/results/cuda-vs-001/README.md 下载完整证据包，或通过 -NumericalDirectory 指定数值归档。'
+    }
 }
 $BinaryDirectory = (Resolve-Path -LiteralPath $BinaryDirectory).Path
 $Model = (Resolve-Path -LiteralPath $Model).Path
@@ -102,7 +105,7 @@ $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmss
     $gitSha.Substring(0, 12), ([guid]::NewGuid().ToString('N').Substring(0, 8))
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $root $(if ($GpuKvStudy) { ".run/gpu-kv-001/model-$runId" }
-                                       else { "benchmarks/results/cuda-model-$runId" })
+                                       else { ".run/cuda-model-$runId" })
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count) {

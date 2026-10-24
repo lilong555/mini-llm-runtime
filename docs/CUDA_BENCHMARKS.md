@@ -6,7 +6,9 @@
 
 ## 运行入口
 
-需要自有 CUDA 构建、固定模型、Python 3.10+、PowerShell，以及已通过复核的完整数值归档：
+需要自有 CUDA 构建、固定模型、Python 3.10+、PowerShell，以及已通过复核的完整数值归档。
+冻结原件按 [CUDA-VS-001 获取入口](../benchmarks/results/cuda-vs-001/README.md)
+解压到 `.run/cuda-vs-001`；新的采集默认写入 `.run/cuda-model-<run-id>`：
 
 ```bash
 bash scripts/dev.sh own-cuda build
@@ -15,10 +17,10 @@ bash scripts/dev.sh own-cuda runtime-benchmark \
   -PreflightOnly -OutputDirectory .run/cuda-benchmark-preflight
 
 bash scripts/dev.sh own-cuda runtime-benchmark \
-  -OutputDirectory benchmarks/results/cuda-model-new-run
+  -OutputDirectory .run/cuda-model-new-run
 
 pwsh -NoProfile -File scripts/Analyze-CudaRuntime.ps1 \
-  -Directory benchmarks/results/cuda-model-new-run
+  -Directory .run/cuda-model-new-run
 ```
 
 输出目录必须为空。`PreflightOnly` 检查模型、冻结输入、源码继承、依赖、构建和可获取环境信息，只生成预检证据，不执行性能采样；正式采集使用另一个新目录。`BinaryDirectory`、`Model`、`NumericalDirectory` 可指定路径，但不能改变模型摘要、工作区、构建开关或冻结参数。
@@ -76,6 +78,8 @@ python3 scripts/analyze_cuda_benchmark.py \
 python3 /path/to/bundle/verify.py --directory /path/to/bundle
 ```
 
-已提供的 `cuda-model-baseline` 以 `revalidate.py` 为当前复核入口，`verify.py` 保留采集源码身份；两者摘要及独立目录复核结果见归档的 `revalidation.json`。
+已提供的 `cuda-model-baseline` 位于 [CUDA-VS-001 完整包](../benchmarks/results/cuda-vs-001/README.md)
+的 `benchmarks/results/cuda-model-baseline/`。包内以 `revalidate.py` 为当前复核入口，
+`verify.py` 保留采集源码身份；两者摘要及独立目录复核结果见归档的 `revalidation.json`。
 
-模型权重、二进制、依赖 checkout 和完整数值归档不重复装入该模型性能包。数值摘要只在 `include/minillm/`、`src/minillm/` 文件集合和摘要一致，且重新构建的 `minillm-cuda-model-tests` 与完整数值验收的二进制 SHA-256 一致时继承；编译身份不同须在当前构建下重新进行数值验收。默认数值归档为 `benchmarks/results/validation/cuda-micro`；`NumericalDirectory` 指定其他归档时，manifest 记录其实际相对位置。原有 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 保持独立身份。归档复核不是原二进制重跑，也不是可信执行证明。Step 8 的 microbenchmark 与 Step 9 的完整 Profiler/交付门禁不由本报告替代。
+模型权重、二进制、依赖 checkout 和完整数值归档不重复装入该模型性能包。数值摘要只在 `include/minillm/`、`src/minillm/` 文件集合和摘要一致，且重新构建的 `minillm-cuda-model-tests` 与完整数值验收的二进制 SHA-256 一致时继承；编译身份不同须在当前构建下重新进行数值验收。默认数值归档为 `.run/cuda-vs-001/benchmarks/results/validation/cuda-micro`；`NumericalDirectory` 指定其他归档时，manifest 记录其实际相对位置。原有 [CUDA 全量数值验收](../benchmarks/results/validation/cuda-full/README.md) 保持独立身份。归档复核不是原二进制重跑，也不是可信执行证明。Step 8 的 microbenchmark 与 Step 9 的完整 Profiler/交付门禁不由本报告替代。

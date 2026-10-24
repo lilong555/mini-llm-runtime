@@ -2,6 +2,11 @@
 
 本目录验证模型输出一致性、完整模型 Profiler、可迁移证据包及现有 CPU 产品。Runtime、算子和模型基准二进制与正式模型基线相同；工具验证和模型性能统计分开记录。
 
+此页记录 2026-09-26 的冻结验证。仓库保留结果摘要、CTest XML 与代表性验证记录；
+完整日志、诊断、源码快照和复核器位于
+[CUDA-VS-001 公开归档](../../cuda-vs-001/README.md)的 `benchmarks/results/validation/cuda-profiler/`。
+下文的原始报告路径均相对于包内组件目录。
+
 ## 验证结果
 
 | 检查 | 结果 |
@@ -27,12 +32,14 @@
 
 ## 独立复核
 
-需要 PowerShell 7 与 Python 3.10+，不需要模型、二进制、CUDA 或 Nsight：
+按[完整包入口](../../cuda-vs-001/README.md)下载并解压后，在仓库根目录执行。
+此组件复核使用 PowerShell 7 与 Python 3.10+：
 
 ```bash
-pwsh -NoProfile -File verify.ps1 -Directory .
+pwsh -NoProfile -File .run/cuda-vs-001/benchmarks/results/validation/cuda-profiler/verify.ps1 \
+  -Directory .run/cuda-vs-001/benchmarks/results/validation/cuda-profiler
 ```
 
-`evidence.json` 登记 236 个产物。237 个既有文件在独立目录复核中保持不变，缺少源码 ZIP、伪造 CTest 通过、数值编译身份不符三项反例均被拒绝，见 `revalidation.json`。本组没有重跑全量数值或 sanitizer。
+包内 `evidence.json` 登记 236 个产物。237 个既有文件在独立目录复核中保持不变，缺少源码 ZIP、伪造 CTest 通过、数值编译身份不符三项反例均被拒绝，见 `revalidation.json`。本组没有重跑全量数值或 sanitizer。
 
 HTTP 检查为 CPU `minillm` 后端，不是 GPU Serving；Windows 和远程 CI 未在本机复测。

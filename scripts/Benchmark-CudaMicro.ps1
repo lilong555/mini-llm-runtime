@@ -90,7 +90,7 @@ $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmss
 if (-not $OutputDirectory) {
     $OutputDirectory = Join-Path $root $(if ($GpuKvStudy) { ".run/gpu-kv-001/micro-$runId" }
                                        elseif ($PrecisionStudy) { ".run/cuda-precision-001/micro-$runId" }
-                                       else { "benchmarks/results/cuda-micro-$runId" })
+                                       else { ".run/cuda-micro-$runId" })
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count) {

@@ -2,6 +2,9 @@
 
 本目录包含 RTX 4070 Laptop、WSL2、CUDA 12.8 上的 CPU8、CPU16 与自有 CUDA 完整模型对照。30 个 A/A 进程和 40 个异构配对进程全部完成，共 40950 次 forward、2520 次 measured repetition；每个配置以五个独立 trial 统计，不将进程内重复视为独立 trial。
 
+仓库保留结果、配置与采集元数据。完整原始报告、源码快照和复核器位于
+[CUDA-VS-001 公开归档](../cuda-vs-001/README.md)的 `benchmarks/results/cuda-model-baseline/`。
+
 ## 结果
 
 | 检查 | 结果 |
@@ -33,14 +36,16 @@
 
 ## 独立复核
 
-需要 Python 3.10+，无需原采集绝对路径、模型权重、编译产物、CUDA 或 Nsight：
+按[完整包入口](../cuda-vs-001/README.md)下载并解压后，在仓库根目录执行。
+此组件复核使用 Python 3.10+：
 
 ```bash
-python3 -B revalidate.py --directory .
+python3 -B .run/cuda-vs-001/benchmarks/results/cuda-model-baseline/revalidate.py \
+  --directory .run/cuda-vs-001/benchmarks/results/cuda-model-baseline
 ```
 
-`manifest.json`、原始报告、`source-state.json`、`source-snapshot.zip` 和 `verify.py` 固定采集身份。`revalidate.py` 是包含全部同后端一致性门禁的当前复核入口；两份工具的摘要分别记录于 `revalidation.json`，不改写采集身份。
+包内 `manifest.json`、原始报告、`source-state.json`、`source-snapshot.zip` 和 `verify.py` 固定采集身份。`revalidate.py` 是包含全部同后端一致性门禁的当前复核入口；两份工具的摘要分别记录于 `revalidation.json`，不改写采集身份。
 
-`availability.json` 登记 289 个必需原始产物。独立目录复核通过，295 个既有文件保持不变；缺源码 ZIP、进程不完整、稳态传输、设备身份和权重别名五项反例均被拒绝。同后端 A/A 与跨 trial 的真实报告反例见 [工具回归证据](../validation/cuda-profiler/same-backend-regression/same-backend-regression.json)。
+包内 `availability.json` 登记 289 个必需原始产物。独立目录复核通过，295 个既有文件保持不变；缺源码 ZIP、进程不完整、稳态传输、设备身份和权重别名五项反例均被拒绝。同后端 A/A 与跨 trial 的真实报告反例见 [工具回归证据](../validation/cuda-profiler/same-backend-regression.json)。
 
 本目录只验收模型层，不是 HTTP TTFT、GPU Serving、自有 PagedAttention 或微基准加速结论。Profiler 和完整交付包有独立门禁。

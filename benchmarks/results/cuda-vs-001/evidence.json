@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "spec_id": "CUDA-VS-001",
+  "canonical_bundle": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-vs-001-20260926/cuda-vs-001.zip",
+    "sha256": "a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c",
+    "size_bytes": 56872322,
+    "files": 1050,
+    "execution_dependencies_included": false
+  },
+  "release": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/tag/cuda-vs-001-20260926",
+    "tag": "cuda-vs-001-20260926",
+    "tag_commit": "9a571a5d7a6570c6dfeeac9062adefca1840534e",
+    "ci_run": 36709597589,
+    "required_jobs": 5
+  },
+  "archive_source_commit": "5a4508d6ace7777e39460675de9ed770fcb66d43",
+  "components": {
+    "model": "benchmarks/results/cuda-model-baseline",
+    "micro": "benchmarks/results/cuda-micro-baseline",
+    "numerical": "benchmarks/results/validation/cuda-micro",
+    "profiler": "benchmarks/results/cuda-model-profiler",
+    "validation": "benchmarks/results/validation/cuda-profiler"
+  },
+  "repository_summaries": {
+    "model": "benchmarks/results/cuda-model-baseline/summary.json",
+    "micro": "benchmarks/results/cuda-micro-baseline/summary.json",
+    "numerical": "benchmarks/results/validation/cuda-micro/real-model/validation-summary.json",
+    "profiler": "benchmarks/results/cuda-model-profiler/nsys-summary.json",
+    "validation": "benchmarks/results/validation/cuda-profiler/ctest-audit.json"
+  },
+  "local_documents": {
+    "commands": "README.md",
+    "checksum": "cuda-vs-001.zip.sha256",
+    "historical_export": "export.json",
+    "historical_revalidation": "revalidation.json"
+  },
+  "archive_revalidation": [
+    "python3 -B .run/cuda-vs-001/verify.py --directory .run/cuda-vs-001"
+  ],
+  "publication_checks": {
+    "verified_at_utc": "2026-10-24",
+    "anonymous_download": true,
+    "download_size_bytes": 56872322,
+    "download_matches_original": true,
+    "zip_integrity": "passed",
+    "archive_revalidation": "passed",
+    "verified_files": 1050
+  },
+  "scope": [
+    "各阶段采集身份由包内 manifest、源码状态与必要的 dirty snapshot 绑定。",
+    "模型、微基准、数值、Profiler 和工具验证保留各自的原始结果与失败记录。",
+    "离线复核检查冻结原件与派生统计；实际 GPU 重跑使用相应模型、依赖和硬件环境。"
+  ]
+}

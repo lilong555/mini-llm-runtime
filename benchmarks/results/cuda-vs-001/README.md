@@ -1,6 +1,9 @@
 # CUDA-VS-001 完整证据包
 
-本目录交付 V2-M1 的完整模型、数据路径、数值、性能测量和 Profiler 证据。自有 CUDA Runtime 与真实 token CLI 已验收；GPU Serving、GPU paging 和自有 PagedAttention 尚未提供，下一阶段为 V2-M2。
+本目录提供 2026-09-26 冻结的 V2-M1 模型、数据路径、数值、性能测量和 Profiler 证据索引。
+完整原件通过 GitHub Release 获取，仓库保留结果摘要与复现入口。
+后续 GPU Serving 与分页研究分别见 [Serving](../cuda-serving-001/README.md)
+和 [GPU KV](../gpu-kv-001/README.md)。
 
 ## 内容与结果
 
@@ -18,18 +21,28 @@
 
 ## 获取与复核
 
-- 完整包：[cuda-vs-001.zip](cuda-vs-001.zip)，56872322 字节、1050 个文件。
+- 完整包：[cuda-vs-001.zip](https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-vs-001-20260926/cuda-vs-001.zip)，56872322 字节、1050 个文件。
 - SHA-256：`a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c`。
 - 独立摘要：[cuda-vs-001.zip.sha256](cuda-vs-001.zip.sha256)。
-- 导出及复核结果：[export.json](export.json)、[revalidation.json](revalidation.json)。
+- 公开索引：[evidence.json](evidence.json)；历史导出及复核结果：[export.json](export.json)、[revalidation.json](revalidation.json)。
 
-需要 Python 3.10+、PowerShell 7 和 ZIP 解压工具，不需要模型、编译产物、CUDA、Nsight 或原采集绝对路径。在本目录校验并解压到新的目录：
+需要 Python 3.10+、PowerShell 7、curl 和 unzip。离线复核可独立于模型、编译产物、
+CUDA、Nsight 和原采集绝对路径运行。从仓库根目录执行，解包目录使用新的 `.run/cuda-vs-001`：
 
 ```bash
-sha256sum -c cuda-vs-001.zip.sha256
-unzip cuda-vs-001.zip -d /path/to/new-directory
-python3 -B /path/to/new-directory/verify.py --directory /path/to/new-directory
+mkdir -p .run
+cd .run
+curl --fail --location --output cuda-vs-001.zip \
+  https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-vs-001-20260926/cuda-vs-001.zip
+sha256sum -c ../benchmarks/results/cuda-vs-001/cuda-vs-001.zip.sha256
+unzip cuda-vs-001.zip -d cuda-vs-001
+python3 -B cuda-vs-001/verify.py --directory cuda-vs-001
+cd ..
 ```
+
+五个组件在解包目录中保留原有 `benchmarks/results/` 路径。组件内的 manifest、
+文件清单和复核命令以完整解包内容为根；仓库中的同名目录用于阅读摘要与配置。
+发布标签固定 `9a571a5`，各阶段实际采集源码由包内元数据独立标识。
 
 包内根目录的复核器检查五个组件及其关联、全部文件摘要、派生统计和工具来源。Profiler 子归档的 `profiler-raw.zip` 实际包含 NSys 原始报告、SQLite 和 NCU 原始报告，各成员都有摘要与尺寸。
 

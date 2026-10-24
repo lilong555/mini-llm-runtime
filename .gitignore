@@ -39,6 +39,14 @@ CMakeUserPresets.json
 *.dmp
 *.user
 gguf-test-*/
+# 完整实验包和 Profiler 原件通过 Release 获取，本地解包使用 .run/。
+benchmarks/results/cuda-vs-001/*.zip
+benchmarks/results/**/profiler-raw.zip
+benchmarks/results/**/*.nsys-rep
+benchmarks/results/**/*.ncu-rep
+benchmarks/results/**/*.sqlite
+benchmarks/results/**/*.sqlite-shm
+benchmarks/results/**/*.sqlite-wal
 benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/wsl-runtime-profile/context/source-snapshot.zip
 !benchmarks/results/evidence-m0/baseline/source-snapshot.zip
@@ -57,15 +65,4 @@ benchmarks/results/**/source-snapshot.zip
 !benchmarks/results/validation/cuda-full/diagnostics/fused-reference/reference-diagnostic-source/source-snapshot.zip
 !benchmarks/results/validation/cuda-benchmark/preflight/source-snapshot.zip
 !benchmarks/results/validation/cuda-benchmark/final-preflight/source-snapshot.zip
-!benchmarks/results/validation/cuda-micro/source-snapshot.zip
-!benchmarks/results/validation/cuda-micro/model-preflight/source-snapshot.zip
-!benchmarks/results/cuda-micro-baseline/source-snapshot.zip
-!benchmarks/results/cuda-model-baseline/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/source-snapshot.zip
-!benchmarks/results/cuda-model-profiler/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/diagnostics/initial-tools/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/diagnostics/ncu-symbol-profiler/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/initial-tools/source-snapshot.zip
-!benchmarks/results/validation/cuda-profiler/diagnostics/pre-bundle-tools/diagnostics/ncu-symbol-profiler/source-snapshot.zip
 !benchmarks/results/validation/windows-ci/source-snapshot.zip

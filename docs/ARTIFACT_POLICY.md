@@ -11,6 +11,10 @@
 
 ## 存放边界
 
+`CUDA-VS-001` 的完整原件由 GitHub Release 提供，[公开索引](../benchmarks/results/cuda-vs-001/evidence.json)
+记录下载地址、SHA-256、尺寸、五组件路径和匿名下载复核结果。
+仓库内对应目录保存摘要、配置、采集元数据及代表性验证记录；完整包解压到已忽略的 `.run/`。
+
 | 位置 | 内容 |
 | --- | --- |
 | Git | 产品源码、测试、固定输入/seed/schema、复现命令、小型证据索引、主要结论与限制、必要代表性原始样本 |
@@ -31,11 +35,11 @@ Release 暂不可用不阻塞产品开发。
 ## 冻结基线
 
 - 实验：`CUDA-VS-001`，模型/微基准/数值/Profiler/验证五组件。
-- 当前 locator：`benchmarks/results/cuda-vs-001/cuda-vs-001.zip`。
+- 当前 locator：[cuda-vs-001.zip](https://github.com/lilong555/mini-llm-runtime/releases/download/cuda-vs-001-20260926/cuda-vs-001.zip)。
 - 尺寸：56872322 字节。
 - SHA-256：`a0cecd6ae37413705613daeb20e1e67c3ec1bbc45ce5a1737f72f40b845c9a0c`。
-- 既有复验入口：`scripts/cuda_evidence_bundle.py`。
-- 原组件和历史失败保留；M1 不再扩展 sweep、trial 或嵌套封包。
+- 既有复验入口：完整包根目录的 `verify.py`；[获取与命令](../benchmarks/results/cuda-vs-001/README.md)。
+- 原组件、复核器和历史失败保留在同一个完整包；M1 不再扩展 sweep、trial 或嵌套封包。
 
 ## 证据停止线
 

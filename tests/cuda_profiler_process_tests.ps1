@@ -50,7 +50,49 @@ exit 7'
         throw '已有输出没有受到保护。'
     }
     Write-Output '[PASS] existing_process_output_is_preserved'
-    Write-Output '2/2 tests passed'
+    $repository = Split-Path -Parent $PSScriptRoot
+    $runId = 'fixture'
+    $GpuKvStudy = $false
+    $PrecisionStudy = $false
+    $localPrefix = [IO.Path]::GetFullPath((Join-Path $root '.run')) + [IO.Path]::DirectorySeparatorChar
+    $targets = @{
+        'Benchmark-CudaRuntime.ps1' = @('OutputDirectory', 'NumericalDirectory')
+        'Benchmark-CudaMicro.ps1' = @('OutputDirectory')
+        'Profile-CudaRuntime.ps1' = @('OutputDirectory', 'rawDirectory', 'BaselineDirectory')
+    }
+    $defaults = @{}
+    foreach ($scriptName in $targets.Keys) {
+        $path = if ($scriptName -ceq 'Profile-CudaRuntime.ps1') { $Collector }
+            else { Join-Path $repository "scripts/$scriptName" }
+        $tree = [Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
+        if ($errors.Count) { throw "采集脚本存在语法错误：$scriptName" }
+        $defaults[$scriptName] = @{}
+        foreach ($variable in $targets[$scriptName]) {
+            $assignments = @($tree.FindAll({
+                param($node)
+                $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+                $node.Left -is [Management.Automation.Language.VariableExpressionAst] -and
+                $node.Left.VariablePath.UserPath -ceq $variable -and
+                $node.Right -is [Management.Automation.Language.PipelineAst] -and
+                $node.Right.PipelineElements[0] -is [Management.Automation.Language.CommandAst] -and
+                $node.Right.PipelineElements[0].GetCommandName() -ceq 'Join-Path'
+            }, $true))
+            if ($assignments.Count -ne 1) { throw "默认产物路径定义不唯一：$scriptName/$variable" }
+            $value = [IO.Path]::GetFullPath((Invoke-Expression $assignments[0].Right.Extent.Text))
+            if (-not $value.StartsWith($localPrefix, [StringComparison]::Ordinal)) {
+                throw "默认产物应位于已忽略的 .run 目录：$scriptName/$variable"
+            }
+            $defaults[$scriptName][$variable] = $value
+        }
+    }
+    $report = $defaults['Profile-CudaRuntime.ps1']['OutputDirectory']
+    $raw = $defaults['Profile-CudaRuntime.ps1']['rawDirectory']
+    $separator = [IO.Path]::DirectorySeparatorChar
+    if ($report -ceq $raw -or $report.StartsWith($raw + $separator) -or $raw.StartsWith($report + $separator)) {
+        throw 'Profiler 报告目录与原始采集目录应分别管理。'
+    }
+    Write-Output '[PASS] default_artifact_paths_are_local_and_distinct'
+    Write-Output '3/3 tests passed'
 } finally {
     [Environment]::SetEnvironmentVariable($privateName, $oldPrivate)
     Remove-Item -LiteralPath $root -Recurse -Force
