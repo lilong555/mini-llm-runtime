@@ -169,7 +169,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the dependency revision.' }
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, [Math]::Min(12, $gitSha.Length)), ([guid]::NewGuid().ToString('N').Substring(0, 8))
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path $root $(if ($Backend -eq 'mini-cuda') { ".run/cuda-serving-$runId" } else { "benchmarks/results/$runId" })
+    $OutputDirectory = Join-Path $root $(if ($Backend -eq 'mini-cuda') { ".run/cuda-serving-$runId" } else { ".run/policy-$runId" })
 }
 $OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and

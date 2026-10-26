@@ -1,5 +1,8 @@
 # WSL Runtime 阶段基线
 
+完整原始报告与源码快照见[历史证据归档](../historical-evidence/README.md)。
+仓库保留汇总、输入、manifest 和代表性报告；下文原始文件路径以完整包内同名目录为根。
+
 2026-09-22，WSL2、Ryzen 7 7745HX（8 核、16 逻辑 CPU）、GCC 11.4、`RelWithDebInfo`，Qwen3-0.6B Q8_0、F32 激活、F16 KV、AVX2/FMA/F16C。数据来自直接调用 MiniLLM CPU Runtime 的独立进程，不包含 HTTP 或调度器。
 
 ## 证据与协议
@@ -11,7 +14,7 @@
 
 每个线程/模式三轮独立进程，每种输入预热一次、测量三次，因此每个配置有九个样本，但不是九个独立进程。off/on 和线程顺序交替。两组使用相同源码快照、模型和基准二进制，各自的 manifest 固定输入和比较规则；不合并两组样本计算加速比或开销。
 
-36 份原始报告、558 次测量均通过验收：完整 logits SHA-256 与贪心 token 在各组的线程、模式和轮次间一致，KV 状态合法，逐样本满足阶段时间加未归类时间等于 profile forward 时间。源码快照、原始输入、逐层矩阵形状、线程池统计及每个样本均在子目录保留。
+36 份原始报告、558 次测量均通过验收：完整 logits SHA-256 与贪心 token 在各组的线程、模式和轮次间一致，KV 状态合法，逐样本满足阶段时间加未归类时间等于 profile forward 时间。源码快照、原始输入、逐层矩阵形状、线程池统计及每个样本均在完整包的同名子目录保留。
 
 每次测量从同一只读 KV 前缀恢复活动序列，不随重复次数增长上下文。模型加载、前缀构建、恢复、argmax 和摘要计算单独记录或排除在 forward 外。协议及计时定义见 [Runtime 计时与模型基准](../../../docs/RUNTIME_PROFILING.md)；数值、HTTP、内存检查及目录迁移证据见 [正确性验证](../validation/wsl-runtime-profile/README.md)。
 
@@ -71,8 +74,8 @@ bash scripts/dev.sh runtime-benchmark \
 bash scripts/dev.sh runtime-benchmark \
   -Threads 8 -Trials 3 -Repeats 3 -Warmup 1 -OutputDirectory .run/runtime-context
 
-pwsh -NoProfile -File scripts/Analyze-Runtime.ps1 \
-  -Directory benchmarks/results/wsl-runtime-profile/scaling
-pwsh -NoProfile -File scripts/Analyze-Runtime.ps1 \
-  -Directory benchmarks/results/wsl-runtime-profile/context
+pwsh -NoProfile -File .run/historical-evidence/scripts/Analyze-Runtime.ps1 \
+  -Directory .run/historical-evidence/benchmarks/results/wsl-runtime-profile/scaling
+pwsh -NoProfile -File .run/historical-evidence/scripts/Analyze-Runtime.ps1 \
+  -Directory .run/historical-evidence/benchmarks/results/wsl-runtime-profile/context
 ```

@@ -1,5 +1,8 @@
 # CUDA 基础算子验收
 
+完整原始报告、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 5`。单 stream 基础算子由本项目实现，block 归约复用 CUDA 12.8 随附的 CUB 2.7.0，矩阵继续使用 cuBLAS FP32 PEDANTIC。没有完整 GPU transformer layer、模型、Serving 或性能结论。
 
 ## 正确性
@@ -37,7 +40,7 @@ compute-sanitizer --tool racecheck --error-exitcode 1 \
   build/wsl-own-cuda/bin/minillm-cuda-ops-tests
 compute-sanitizer --tool synccheck --error-exitcode 1 \
   build/wsl-own-cuda/bin/minillm-cuda-ops-tests
-pwsh -NoProfile -File benchmarks/results/validation/cuda-ops/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-ops/verify.ps1
 ```
 
 归档复核不运行 GPU，也不等于模型重跑。源/设备权重分别为 Q8_0/F32；算子通过不能证明连续 KV 状态、causal attention、完整 28 层或生成 token 已完成。

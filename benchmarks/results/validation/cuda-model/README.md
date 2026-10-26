@@ -1,5 +1,8 @@
 # CUDA 完整模型与 CLI 验收
 
+完整原始报告、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 7`。自有 `CudaRuntime` 与 `mini-cuda-llm` 在 `GGML_CUDA=OFF` 下执行完整 28 层 Qwen3 并输出真实 greedy token。矩阵由 cuBLAS 提供，源权重为 Q8_0、设备权重为 F32。该组不是 V2-M1 全量语料或性能基线，不包含 GPU Serving/PagedAttention。
 
 ## 回归与数值
@@ -42,7 +45,7 @@ bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda model-check
 bash scripts/dev.sh own-cuda model-memcheck
 bash scripts/dev.sh own-cuda generate --prompt "The capital of France is" --tokens 8
-pwsh -NoProfile -File benchmarks/results/validation/cuda-model/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-model/verify.ps1
 ```
 
 `evidence.json` 固定实际源码、模型、二进制、工具环境和产物摘要。归档带源码 ZIP 与包内校验入口；独立目录复核、缺 ZIP、篡改、已有报告保护、错误 checkpoint 和预算拒绝分别记录。模型权重、二进制、依赖 checkout 与工具链不在包中；归档复核不执行模型，不等于另一台机器重跑。

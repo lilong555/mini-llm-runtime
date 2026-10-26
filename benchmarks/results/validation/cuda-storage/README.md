@@ -1,5 +1,8 @@
 # CUDA 权重与存储验收
 
+完整原始报告、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 4`，环境为 WSL2、RTX 4070 Laptop、CUDA 12.8、cuBLAS 12.8.5、GCC 11.4。自有 CUDA 开启，上游 ggml CUDA 关闭。这里提供常驻有效权重、预分配 workspace、KV 容量预留和真实矩阵正确性证据，不包含完整 GPU forward、token 生成、GPU Serving 或性能结论。
 
 ## 验收结果
@@ -32,7 +35,7 @@
 只需 PowerShell 即可核对归档，验证工具从包内源码快照取得，不依赖原采集绝对路径：
 
 ```bash
-pwsh -NoProfile -File benchmarks/results/validation/cuda-storage/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-storage/verify.ps1
 ```
 
 实机重跑：

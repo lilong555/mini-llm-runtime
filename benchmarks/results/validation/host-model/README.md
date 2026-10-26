@@ -1,5 +1,8 @@
 # Host Model 验收
 
+完整逐样本报告与源码快照见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、输入、协议和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 3`。当前系统提供独立的 `Qwen3Model` 与 `Tokenizer`，CPU Runtime 的计算区段、SIMD、线程池、物理 KV 和 Serving 保持已有实现；`source-comparison.json` 固定计算区段的字节摘要。环境为 WSL2、Ryzen 7 7745HX、GCC 11.4、RelWithDebInfo，依赖和模型身份见 `checks.json`、模型 manifest 与 `environment.json`。
 
 ## 正确性与构建

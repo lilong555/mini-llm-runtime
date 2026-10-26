@@ -1,5 +1,8 @@
 # CUDA 全量数值验收
 
+完整数值报告、失败诊断、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001` Step 8 的数值与数据路径门禁。正式性能、A/A、microbenchmark、完整模型 Profiler 和 GPU Serving 不在本次结论内。
 
 ## 验收结果
@@ -49,9 +52,9 @@ S=4、Lmax=2048、B=128 的项目设备分配为 3,449,229,312 字节，与计�
 ```bash
 bash scripts/dev.sh own-cuda model-full-check .run/cuda-full
 python3 scripts/analyze_cuda_validation.py --directory .run/cuda-full
-pwsh -NoProfile -File benchmarks/results/validation/cuda-full/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-full/verify.ps1
 ```
 
-实模型运行需要固定权重和新输出目录；归档复核只需要 Python 3、PowerShell 及本目录文件，不依赖权重、二进制或原采集绝对路径。`source-snapshot.zip` 对应完整模型采集，`verification-source/` 对应回归与复核工具；失败采集及其诊断另有独立源码身份。
+实模型运行需要固定权重和新输出目录；归档复核使用 Python 3、PowerShell 及完整解包目录。`source-snapshot.zip` 对应完整模型采集，`verification-source/` 对应回归与复核工具；失败采集及其诊断另有独立源码身份。
 
 `real-model/` 保存逐组合、逐位置和逐生成步的原始指标与摘要。`numerical-audit.json` 为独立数值检查，`revalidation.json` 记录迁移与反例；源码及逐文件身份由 `evidence.json` 固定。协议和接口见 [CUDA 数值验证](../../../../docs/CUDA_NUMERICS.md)，后续门禁见 [执行状态](../../../../docs/EXECUTION_STATUS.md)。

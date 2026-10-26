@@ -1,5 +1,8 @@
 # CPU 融合 attention 参照诊断
 
+完整失败报告、源码快照与复核器见[历史证据归档](../../../../historical-evidence/README.md)。
+下文原始文件路径以完整包内同名目录为根，原始失败分类保持原样。
+
 本目录的完整数值门禁状态为 **失败**，不是验收通过的模型基线。源码、模型与二进制身份、全部输入、240 个组合和 12 组续写结果均保留。
 
 ## 结果
@@ -21,7 +24,7 @@
 ## 复核
 
 ```bash
-pwsh -NoProfile -File benchmarks/results/validation/cuda-full/diagnostics/fused-reference/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-full/diagnostics/fused-reference/verify.ps1
 ```
 
 脚本校验源码 ZIP、逐文件摘要、原始数值失败及重放结果，返回 `Status=completed_numeric_failure`、`NumericalGatePassed=False`。验证工具来自本目录的诊断源码快照，不需要模型权重、二进制或原始采集绝对路径。

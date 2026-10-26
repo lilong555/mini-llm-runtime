@@ -1,5 +1,8 @@
 # ENG-018：长上下文 decode 的在线阶段归因
 
+完整原始报告与 JSONL 见[历史证据归档](../historical-evidence/README.md)；
+下文原始文件路径以完整包内的 `benchmarks/results/wsl-batch-telemetry/` 为根。
+
 同一 MiniLLM CPU 产品、8 线程、16-token 页、关闭 prefix cache，使用初始 16、256、1536 token 的单请求 trace，每个请求生成 33 token。每种策略/观测模式各一个独立进程。这是限定输入诊断，没有同源码的分页/连续布局切换。
 
 ## 测量范围

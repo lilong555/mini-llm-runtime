@@ -1,5 +1,8 @@
 # ENG-008：平均 TPOT 与单次停顿的在线归因
 
+完整原始报告与 JSONL 见[历史证据归档](../historical-evidence/README.md)；
+下文原始文件路径以完整包内的 `benchmarks/results/wsl-batch-telemetry/` 为根。
+
 同一 CPU 二进制、模型、原始 trace、8 线程、相同预热和容量条件下，mixed 的请求平均 TPOT 较高，而单次 ITL 的尾部较低。调度器选 batch 的计算耗时很小，输出停顿主要与实际模型执行批次重叠。
 
 ## 未启用观测的服务指标

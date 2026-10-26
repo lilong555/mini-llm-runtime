@@ -14,6 +14,12 @@ CTest 35/35。Serving 采集接线的工具验证 72/72、own-CUDA CTest 23/23�
 
 ## 历史验证
 
+CPU 阶段基线、在线 batch 观测与早期 CPU/CUDA 验证的完整原件通过
+[历史证据归档](../benchmarks/results/historical-evidence/README.md)获取。
+仓库保留结论、配置、代表性样本和全部 CTest XML；完整包保存逐样本数据、源码快照及失败诊断。
+CUDA 模型基线、micro 和 Profiler 的完整原件见
+[CUDA-VS-001](../benchmarks/results/cuda-vs-001/README.md)。
+
 以下记录只描述各自阶段及采集身份；其中“尚未完成”不是当前功能状态，
 历史全语料数值覆盖也不等于对后续每个提交重新跑过全矩阵。
 
@@ -300,14 +306,15 @@ also require separate evidence. Local GPU validation is not remote GPU CI.
 ## Reproduce
 
 ```powershell
+New-Item -ItemType Directory -Path .run -Force | Out-Null
 .\scripts\Build-LLMServe.ps1
 ctest --test-dir build/cpu --output-on-failure --test-output-size-passed 65536 `
-    --output-junit ../../benchmarks/results/validation/windows-cpu-ctest.xml
+    --output-junit ../../.run/windows-cpu-ctest.xml
 .\scripts\Validate-Model.ps1 `
-    -Output benchmarks/results/validation/model-f32-cpu-only-reference.json
+    -Output .run/model-f32-cpu-only-reference.json
 $server = .\scripts\Start-LLMServe.ps1 -Backend mini
 .\build\cpu\bin\llmserve-http-tests.exe --port $server.Port `
-    --output benchmarks/results/validation/http-mini-cpu-only.json
+    --output .run/http-mini-cpu-only.json
 .\scripts\Stop-LLMServe.ps1 -Port $server.Port
 ```
 

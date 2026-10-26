@@ -1,5 +1,8 @@
 # CUDA 模型基准工具验收
 
+完整原始报告、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 8` 的模型 workload、采集协议与统计工具。**不是正式性能基线**，没有 A/A 加速结论、microbenchmark、Profiler 或 GPU Serving 完成声明。
 
 ## 验收结果
@@ -41,7 +44,7 @@
 ## 复核
 
 ```bash
-pwsh -NoProfile -File benchmarks/results/validation/cuda-benchmark/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-benchmark/verify.ps1
 ```
 
-整个目录迁移后可直接运行其中的 `verify.ps1`，不需要原绝对路径中的模型、二进制或依赖 checkout。归档复核不等于二进制重跑。完整采集和分析入口见 [模型性能对照](../../../../docs/CUDA_BENCHMARKS.md)；正式 70 进程 A/A/异构基线、microbenchmark 和 Step 9 仍待验收。
+完整解包后可直接运行对应目录中的 `verify.ps1`，使用包内报告和源码快照完成离线复核。完整采集和分析入口见 [模型性能对照](../../../../docs/CUDA_BENCHMARKS.md)；正式 70 进程 A/A/异构基线、microbenchmark 和 Step 9 属于后续独立验收。

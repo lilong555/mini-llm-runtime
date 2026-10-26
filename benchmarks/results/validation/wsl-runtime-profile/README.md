@@ -1,5 +1,8 @@
 # Runtime Profiler 正确性验证
 
+完整原始报告见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 2026-09-22 的 WSL2 原生验证。`evidence.json` 固定当前源码快照、构建配置、CPU/CUDA/ASan 二进制、两份模型来源与摘要，以及本目录各份原始报告的 SHA-256。源码身份关联到 [Runtime 基准 manifest](../../wsl-runtime-profile/scaling/manifest.json)，不依赖 Git 提交号代表未提交的工作区内容。
 
 ## 验证结果

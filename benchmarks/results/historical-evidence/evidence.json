@@ -1,0 +1,2164 @@
+{
+  "schema_version": 1,
+  "archive_id": "historical-evidence-20261024",
+  "release": {
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/tag/historical-evidence-20261024",
+    "tag_commit": "155dd980cba7f4dc0344b6b2b1636a33013bdef2"
+  },
+  "canonical_bundle": {
+    "filename": "historical-evidence-20261024.zip",
+    "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/historical-evidence-20261024/historical-evidence-20261024.zip",
+    "sha256": "3fb7e3aea8de34be470aff1f8abf92c3d29488bb1dadd5962a246ff7f3f2d5b5",
+    "size_bytes": 18428252,
+    "files": 1682,
+    "file_index": "archive-manifest.json",
+    "purpose": "historical_archive_revalidation"
+  },
+  "components": {
+    "runtime_profile": "benchmarks/results/wsl-runtime-profile",
+    "batch_telemetry": "benchmarks/results/wsl-batch-telemetry",
+    "validation": "benchmarks/results/validation"
+  },
+  "independent_components": {
+    "validation/cuda-micro": "benchmarks/results/cuda-vs-001/evidence.json",
+    "validation/cuda-profiler": "benchmarks/results/cuda-vs-001/evidence.json"
+  },
+  "source_snapshots": [
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/manifest.json",
+      "sha256": "cf8ebfc0853a9537aa8ef4c7f29e985e5e2cc32fb888a4e8c3b23aee138a2f3d"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/source-snapshot.zip",
+      "manifest": "benchmarks/results/wsl-runtime-profile/scaling/manifest.json",
+      "sha256": "9b7f243855874a12fb5f42e6053cb3e3b5e205ffb53865e85f89df0b741d689c"
+    }
+  ],
+  "verification": {
+    "checked_at_utc": "2026-10-26T10:00:08.467233+00:00",
+    "download": {
+      "status": "passed",
+      "checked_at_utc": "2026-10-24T14:12:52.094Z",
+      "anonymous_download": true,
+      "http_status": 200,
+      "url": "https://github.com/lilong555/mini-llm-runtime/releases/download/historical-evidence-20261024/historical-evidence-20261024.zip",
+      "sha256": "3fb7e3aea8de34be470aff1f8abf92c3d29488bb1dadd5962a246ff7f3f2d5b5",
+      "size_bytes": 18428252,
+      "byte_identical_to_local_archive": true
+    },
+    "zip_integrity": "passed",
+    "file_hashes": "passed",
+    "offline_checks_passed": 14,
+    "offline_checks": [
+      {
+        "group": "runtime",
+        "name": "scaling",
+        "exit_code": 0
+      },
+      {
+        "group": "runtime",
+        "name": "context",
+        "exit_code": 0
+      },
+      {
+        "group": "telemetry",
+        "name": "mixed",
+        "exit_code": 0
+      },
+      {
+        "group": "telemetry",
+        "name": "low-load",
+        "exit_code": 0
+      },
+      {
+        "group": "telemetry",
+        "name": "context-16",
+        "exit_code": 0
+      },
+      {
+        "group": "telemetry",
+        "name": "context-256",
+        "exit_code": 0
+      },
+      {
+        "group": "telemetry",
+        "name": "context-1536",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-storage",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-ops",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-layer",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-model",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-full",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "cuda-benchmark",
+        "exit_code": 0
+      },
+      {
+        "group": "validation",
+        "name": "ctest-evidence",
+        "exit_code": 0
+      }
+    ],
+    "raw_files_unchanged": true
+  },
+  "git_lf_local_crlf": [
+    "benchmarks/results/validation/cli-mini-cpu-only.json",
+    "benchmarks/results/validation/http-mini-cpu-only.json",
+    "benchmarks/results/validation/http-mini.json",
+    "benchmarks/results/validation/model-f32-cpu-only-reference.json",
+    "benchmarks/results/validation/model-f32-cpu-reference.json",
+    "benchmarks/results/validation/model-f32-cuda-reference.json",
+    "benchmarks/results/validation/windows-cpu-ctest.xml",
+    "benchmarks/results/validation/windows-cpu-imports.txt"
+  ],
+  "repository_files": [
+    {
+      "path": "benchmarks/results/validation/cli-mini-cpu-only.json",
+      "size_bytes": 538,
+      "sha256": "1f1408ea0ba1976f1a25db3cc3447d949712519b09f5c044d16f59ae07b2e310"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/audit-cpu16-command.json",
+      "size_bytes": 503,
+      "sha256": "697abd7dbf9595d06e2500ef71b7958a698c324d83213f3855a716bdb2e68fe7"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/audit-cpu8-command.json",
+      "size_bytes": 502,
+      "sha256": "97e07723ecacaf3a439162a790145d4ffdfa99fa58ba66934a23c1604a5356ab"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/audit-cuda-command.json",
+      "size_bytes": 502,
+      "sha256": "c2a39fe28725019a7c8a7397a0590c78f29e2f2689a9c580393b5bfc6137b0da"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/audit-manifest-process-command.json",
+      "size_bytes": 511,
+      "sha256": "fb5cf39d41534b0464c882d8b40c347f11370475ac82b45eaa57e5b546c6f793"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/build-boundaries.json",
+      "size_bytes": 1659,
+      "sha256": "c877c9bb58c06a664cb19e36d1208c0fcf519a0e9f5809c14b7d1c58afc6eab0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/core-ctest.xml",
+      "size_bytes": 7697,
+      "sha256": "a3ec48b9bea3f31f6951e57183edbcefa7e2953993e1694b3fa39fbacc1b6fb4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/cpu-ctest.xml",
+      "size_bytes": 9424,
+      "sha256": "7666b93e256cea1d09a78b437753f42fe9587106375d7ae31b60ba8da883dd70"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/ctest-audit.json",
+      "size_bytes": 650,
+      "sha256": "ab3f102357429c49b762ac0db15d673dd3ca70117a7b6fdcf540e457b24ec123"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/core-ctest.xml",
+      "size_bytes": 7696,
+      "sha256": "bde72444f5c0f096496752d35c4852ab7f60a1623ccdd400db93397dca1e7cbe"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/cpu-ctest.xml",
+      "size_bytes": 9422,
+      "sha256": "0b52f5490ebcbb3e7f66b199f0dd6c05a27cc4170d70bfb6309db7ac34f289c3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/ctest-audit.json",
+      "size_bytes": 150,
+      "sha256": "8792333e8d79cc607b5409efa5ea94825a6cac4e4cc4510be200183bba9bc8a6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/own-ctest.xml",
+      "size_bytes": 13653,
+      "sha256": "ab42f5ad0f8f6eaf5be9457ba843540abb11161bb265ca920e9612ce0fe1dfbf"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/diagnostics/initial-ctest/upstream-ctest.xml",
+      "size_bytes": 9422,
+      "sha256": "e89658f3c722e3e56c477e92578a26e4deccb5773293e90a8440b551cad0a4cf"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/evidence.json",
+      "size_bytes": 20289,
+      "sha256": "112e000e4b2953838e8abaefb1d0f6b03860fbc329842399d6bce7e1a2dcf787"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/collection-status.json",
+      "size_bytes": 174,
+      "sha256": "49df0c3163ab0536ce0481280971aa302e7ea7e41c664bde813e1a74a1aa407d"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/input.json",
+      "size_bytes": 3226,
+      "sha256": "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/manifest.json",
+      "size_bytes": 17132,
+      "sha256": "e223be44823436b8324b35b371b4da8286a026695083de7d86b03f94a137bbeb"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/numerical-environment.json",
+      "size_bytes": 3808,
+      "sha256": "4431276b52ec4471d6f84c9ba192589a638625a6fac38db2fd3fbf7fdd576a27"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/numerical-source-state.json",
+      "size_bytes": 20403,
+      "sha256": "24ee7c74bcb80d7b8bf6fc1df4d34c8b0cc5cd4854ddf16022a4a1d2ffbd65a4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/preflight-environment.json",
+      "size_bytes": 914,
+      "sha256": "19f22e6eb19823ffe4fc92168c366f27c8e172a343a529c6f484b81e1279ed43"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/source-state.json",
+      "size_bytes": 21451,
+      "sha256": "c522bd5e4ac720bb25e892498a831df2e581ef4feefc57966050d1f5bee2a64a"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/final-preflight/validation-summary.json",
+      "size_bytes": 925,
+      "sha256": "6deecc26fdc699c905641da59c8a4938ecdf461bc261d73165894bb598f98fa3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/model-manifest-process-command.json",
+      "size_bytes": 800,
+      "sha256": "81129d7284fbd8a485612670a9d8a0c1bc3ed81779d2e99ba36f24cc4c4ae162"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/negative-checks.json",
+      "size_bytes": 244,
+      "sha256": "7190cf3bdacf6c7995454717c078d5d02d3759849a7eb30d38abb55a96f574d0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/own-ctest.xml",
+      "size_bytes": 13653,
+      "sha256": "08f994ebd9251ed30b91b1110b7529bbf4fc830ad632d8d8103d2f2c74890c98"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/collection-status.json",
+      "size_bytes": 174,
+      "sha256": "49df0c3163ab0536ce0481280971aa302e7ea7e41c664bde813e1a74a1aa407d"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/input.json",
+      "size_bytes": 3226,
+      "sha256": "f5a311a0d7c993640ba5b761844a39e70a5ae5015db3ce9dcd07c01b6ad2a6c6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/manifest.json",
+      "size_bytes": 16878,
+      "sha256": "b30952bdac9eec94163ec22ff3d8048380884befec789d8e6b045e9817dc4795"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/numerical-source-state.json",
+      "size_bytes": 20403,
+      "sha256": "24ee7c74bcb80d7b8bf6fc1df4d34c8b0cc5cd4854ddf16022a4a1d2ffbd65a4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/preflight-environment.json",
+      "size_bytes": 914,
+      "sha256": "fa3d6b6f2cd7e8a8302fd5e598d4bb03f1138aad33dc54824c7d35be12d0095f"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/source-state.json",
+      "size_bytes": 21451,
+      "sha256": "f62b30f4d85be34adac0d127c80ea1f985fb06420f69ff1bd7b2742048e82f3a"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/preflight/validation-summary.json",
+      "size_bytes": 925,
+      "sha256": "6deecc26fdc699c905641da59c8a4938ecdf461bc261d73165894bb598f98fa3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/revalidation.json",
+      "size_bytes": 685,
+      "sha256": "08fb324cc04091d983b0aeb6b190e4575be6444a386be5faf12f79ed632d2933"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/short-model/input.json",
+      "size_bytes": 61297,
+      "sha256": "33b5e2b9bff690e906c44ff066cd3a69fec040b996328d59f9ba42d7bbf34ee6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/short-model/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/short-model/validation-summary.json",
+      "size_bytes": 388,
+      "sha256": "aa133f71685fac67c6b915fc678494719553631898713e9e064427fdfa09c833"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-benchmark/upstream-ctest.xml",
+      "size_bytes": 9421,
+      "sha256": "13029be482c2daf7c243e33ef1d638dfa4b67bc3ae554be2546ed0a1c9ba5c84"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/build-boundaries.json",
+      "size_bytes": 15077,
+      "sha256": "efe45e0378a24d65c55a1f9b28def754a962e6d2150cb1f8fedf7bf12feb46f6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/core-ctest.xml",
+      "size_bytes": 6792,
+      "sha256": "009a88fcd54b933a46dd953de27a3ddd103a6b7398531034bf1eac9b717752b2"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/cpu-ctest.xml",
+      "size_bytes": 8019,
+      "sha256": "d4f8643fd9fea937334a3a731a57a9090b34eafca45f3673a6e65b8400fbb948"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/core-ctest.xml",
+      "size_bytes": 6743,
+      "sha256": "62af413d953edf3c7b40b10abbec0bd608da6906e410ff6c52475489a5b2ccba"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/environment.json",
+      "size_bytes": 3808,
+      "sha256": "2747bf3f294b151ba69c5716e87b1a347797abfc35056b8f197ff60cc5e5ee8e"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/evidence.json",
+      "size_bytes": 69708,
+      "sha256": "034a37a464f25d1238a83da1d7942c6f00f2da907cdc1c959208e253e2c7c0b5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/numerical-audit.json",
+      "size_bytes": 1984,
+      "sha256": "fc1ef4803cf0daaeef6b44b320361e509dc0f9e080c346a620dbd999f3b73298"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/real-model/input.json",
+      "size_bytes": 180836,
+      "sha256": "f9c5f21ce7fbd57a497cc07f8bb5fe6a3977aa5c88e5df463291b496402e4d75"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/real-model/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/real-model/validation-summary.json",
+      "size_bytes": 1490,
+      "sha256": "515333708bed08864c3b8b4d28576339de1c4458f8c8854a371a24b888ed12d1"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/reference-diagnostic-source/source-state.json",
+      "size_bytes": 20403,
+      "sha256": "cabcd6cb6fb603e9bd9e65ece5338011cc243beaa877667e27f148bd2cb0890b"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/reference-diagnostic/attention-reference.json",
+      "size_bytes": 100432,
+      "sha256": "527ab934381a2f1f5d00d744522d0ee978ff0fd6929b025882a8e3ebb2e8a085"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/reference-diagnostic/summary.json",
+      "size_bytes": 237,
+      "sha256": "1f6e4c9293bf5b11fdce52ca9e01ed62c7d484d65b8b987f82261fc7f3a88325"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/source-state.json",
+      "size_bytes": 19875,
+      "sha256": "42b27b5c8f6e7a541cba89c6862d54d15aac3705422db7712bf7a5da7ea86fcd"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/diagnostics/fused-reference/source.json",
+      "size_bytes": 945,
+      "sha256": "66fbf77b8c252bb7dc0f32d226365f7d051ead69bad2c707d24520a39ba7acda"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/environment.json",
+      "size_bytes": 3808,
+      "sha256": "4431276b52ec4471d6f84c9ba192589a638625a6fac38db2fd3fbf7fdd576a27"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/evidence.json",
+      "size_bytes": 155634,
+      "sha256": "bf219154b844492809fca2ab64d11900c2065fd29f6b8002fef9f8d2e934fb43"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/negative-checks.json",
+      "size_bytes": 243,
+      "sha256": "b92000c0248105a1011201cb0f0dd917898f9b43f60a1c351dd40646e3c373a5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/numerical-audit.json",
+      "size_bytes": 1378,
+      "sha256": "eb8a145f72355a9b35ba6e99838bd95c2b52736dae5ec52647cad241a23edd8f"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/own-ctest.xml",
+      "size_bytes": 12215,
+      "sha256": "e8b4c5365e7db7e15ed9e34128d0040fc9ce83d659f5f25c424a4c69e35ddc5d"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/real-model/input.json",
+      "size_bytes": 180836,
+      "sha256": "f9c5f21ce7fbd57a497cc07f8bb5fe6a3977aa5c88e5df463291b496402e4d75"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/real-model/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/real-model/validation-summary.json",
+      "size_bytes": 925,
+      "sha256": "6deecc26fdc699c905641da59c8a4938ecdf461bc261d73165894bb598f98fa3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/reference-mode-comparison.json",
+      "size_bytes": 949,
+      "sha256": "0c6f4e8b5f2ad9838f8ba0d295c1a10e881335e60da2c4a57a17e4604c9b2b06"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/revalidation.json",
+      "size_bytes": 1099,
+      "sha256": "67abf25a40e1cda9a4acc45c1bb31ebce14f2e041f3243a2f51fd744ac3228df"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/short-model/input.json",
+      "size_bytes": 61297,
+      "sha256": "33b5e2b9bff690e906c44ff066cd3a69fec040b996328d59f9ba42d7bbf34ee6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/short-model/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/short-model/validation-summary.json",
+      "size_bytes": 388,
+      "sha256": "aa133f71685fac67c6b915fc678494719553631898713e9e064427fdfa09c833"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/source-state.json",
+      "size_bytes": 20403,
+      "sha256": "24ee7c74bcb80d7b8bf6fc1df4d34c8b0cc5cd4854ddf16022a4a1d2ffbd65a4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/source.json",
+      "size_bytes": 1150,
+      "sha256": "01799bba7ae3f160f353720908d76e0ac72ad39935d8bff6750a67c891beae05"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/upstream-ctest.xml",
+      "size_bytes": 8017,
+      "sha256": "c92cedf2ea32b1cf9174f9eaccb33eb4b4452e2b05090ccd4c0015016bbb3868"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/verification-source/source-state.json",
+      "size_bytes": 20403,
+      "sha256": "24ee7c74bcb80d7b8bf6fc1df4d34c8b0cc5cd4854ddf16022a4a1d2ffbd65a4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-full/wrong-checkpoint/validation-summary.json",
+      "size_bytes": 44,
+      "sha256": "86411f0ec53961a1560ffaf024e85e2a041322b38b1516d1228e7f79db9d83eb"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/build-boundaries.json",
+      "size_bytes": 20561,
+      "sha256": "36647f1857763dc74792d9985b436eef67f1a932be7ab57d6a07e25b94502fa0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/core-ctest.xml",
+      "size_bytes": 5980,
+      "sha256": "da07b53360326e17dc190566073c5599f1af6a587d6c1ea20004ac98cf5296a3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/cpu-ctest.xml",
+      "size_bytes": 6422,
+      "sha256": "5e60cc0153efdab74c7b753b1b244e9837c185e516f319606c81053897899b6b"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/environment.json",
+      "size_bytes": 1159,
+      "sha256": "7f434d03f66de97ab028a3b4e72ebab32c9925f66ed00ebd8c665bf7fadee183"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/evidence.json",
+      "size_bytes": 7062,
+      "sha256": "37fd625e89be68a1b57a98079dd94df9c1e64739e985f30dcf164000c6ada9d2"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/own-ctest.xml",
+      "size_bytes": 7187,
+      "sha256": "033a48d7deb6bfa6bd5559eb2f37357982e5446906a431b1a719a3e818188062"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/source-state.json",
+      "size_bytes": 14353,
+      "sha256": "97d56fde698aaacbab17a3380dbca0a48e59964538c979a4d4692c4a17386b03"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-infra/upstream-ctest.xml",
+      "size_bytes": 6422,
+      "sha256": "54da9c9ba5544660797af826d2ed1ad93c8d21b4e3ef862725f9c5362427e87b"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/build-boundaries.json",
+      "size_bytes": 21839,
+      "sha256": "b0f3f1ed7a4c8f07137b7e1c186ea9c81ff99d329e551275cd01fe1e538c90c5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/core-ctest.xml",
+      "size_bytes": 5981,
+      "sha256": "f21e734931a792fb3526b14c0cb51c76bc99893aa7b6ef82ce329ccea1538d22"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/cpu-ctest.xml",
+      "size_bytes": 7203,
+      "sha256": "a4631f08bdf94817f7e737d1b5c254a263e14395828b11786500488aef57166d"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/diagnostics/failed-summary.json",
+      "size_bytes": 44,
+      "sha256": "86411f0ec53961a1560ffaf024e85e2a041322b38b1516d1228e7f79db9d83eb"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/diagnostics/source-state.json",
+      "size_bytes": 18369,
+      "sha256": "9ecea928ae9a4f1f75b54511c7cb9d492587094ca18902b3ba3451af500b6f4c"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/environment.json",
+      "size_bytes": 936,
+      "sha256": "a4252fc2b563d80fa15db3f8c4f1a3d42933e062ca5cf5094cecd3ffcbca91d5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/evidence.json",
+      "size_bytes": 11154,
+      "sha256": "a80987b0e59a5104f472ea74c89ffb3a781e423ae298a9a29c41243fcb78afed"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/negative-checks.json",
+      "size_bytes": 218,
+      "sha256": "fa66f4f1ea8544ac120dd1a67a0c2491d86a00fe4603381abdd7734598c31fa0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/own-ctest.xml",
+      "size_bytes": 10219,
+      "sha256": "05875873f0371a7776be7381afb881b537375fab2e9e5c881e8551105461cae8"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-layer-memcheck/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-layer-memcheck/validation-summary.json",
+      "size_bytes": 181,
+      "sha256": "24396fdf4d2545881ba3c12473b2f922335d41a4f6b2c5d35f73f8074f33efd5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-layer/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-layer/validation-summary.json",
+      "size_bytes": 181,
+      "sha256": "24396fdf4d2545881ba3c12473b2f922335d41a4f6b2c5d35f73f8074f33efd5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-storage/copy-allocation-summary.json",
+      "size_bytes": 476,
+      "sha256": "4bde66938552cee43bab8753bf4aa28ccfff1914c6947d47c17bdb5dd0ec2401"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-storage/environment.json",
+      "size_bytes": 720,
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-storage/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/real-storage/validation-summary.json",
+      "size_bytes": 265,
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/rejected-model/validation-summary.json",
+      "size_bytes": 44,
+      "sha256": "86411f0ec53961a1560ffaf024e85e2a041322b38b1516d1228e7f79db9d83eb"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/revalidation.json",
+      "size_bytes": 295,
+      "sha256": "56471312d88a7591573e6f1f1efb72b7521e212b2b0347e6c4151334ad32e2cc"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/source-state.json",
+      "size_bytes": 18370,
+      "sha256": "3f147d8f22a370b1c9b86a5fe12d088a7d9b9306e7cfbb299ccb54e596d7da28"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-layer/upstream-ctest.xml",
+      "size_bytes": 7206,
+      "sha256": "6ec6794e256171bea1db8ce3203a7bffa1a55a4467d3457e58baead697e4a659"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/build-boundaries.json",
+      "size_bytes": 27721,
+      "sha256": "a8f3fcd5d3a16b234fbf5a529b0a1150987eb03d2de5168b7effea0453792aef"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/core-ctest.xml",
+      "size_bytes": 5980,
+      "sha256": "84a44c8686d0cc2b0485495afe8c5197f0e29b65c1fa232b0863ff9d9c39fd28"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/cpu-ctest.xml",
+      "size_bytes": 7206,
+      "sha256": "06c0a62727d7e7a4d00559d78cb4b86cb6c2c56a74b5ca1c50c179d3d691257a"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/environment.json",
+      "size_bytes": 936,
+      "sha256": "e53e6b43d706087749546b7d6039d85444febeeda09bc619ff9f7aa007f2a9e0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/evidence.json",
+      "size_bytes": 10612,
+      "sha256": "42b89317e86c4ac169d0285354bc6cf6fbca91fbe7cfc118174dab97e870e1f9"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/negative-checks.json",
+      "size_bytes": 428,
+      "sha256": "b7ab602d02e983a97fc9890ba3d396e39c88e7fd133c888be5a8043d9e146624"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/own-ctest.xml",
+      "size_bytes": 10827,
+      "sha256": "93e0e1f572c06445507a42c518ed7c21b6e7097697e0691007125366f46da4fa"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model-memcheck/input.json",
+      "size_bytes": 61297,
+      "sha256": "33b5e2b9bff690e906c44ff066cd3a69fec040b996328d59f9ba42d7bbf34ee6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model-memcheck/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model-memcheck/validation-summary.json",
+      "size_bytes": 388,
+      "sha256": "aa133f71685fac67c6b915fc678494719553631898713e9e064427fdfa09c833"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model/input.json",
+      "size_bytes": 61297,
+      "sha256": "33b5e2b9bff690e906c44ff066cd3a69fec040b996328d59f9ba42d7bbf34ee6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/real-model/validation-summary.json",
+      "size_bytes": 388,
+      "sha256": "aa133f71685fac67c6b915fc678494719553631898713e9e064427fdfa09c833"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/rejected-checkpoint/validation-summary.json",
+      "size_bytes": 44,
+      "sha256": "86411f0ec53961a1560ffaf024e85e2a041322b38b1516d1228e7f79db9d83eb"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/revalidation.json",
+      "size_bytes": 295,
+      "sha256": "56471312d88a7591573e6f1f1efb72b7521e212b2b0347e6c4151334ad32e2cc"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/source-state.json",
+      "size_bytes": 19362,
+      "sha256": "68012bf5d8dca9bcca45ff67e408a1f19b55e0d26fe97f4345678747324ac5c4"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-model/upstream-ctest.xml",
+      "size_bytes": 7203,
+      "sha256": "690701ce6cbc86b792a12857bad563998801577c3c0e6a548b055a87a059a7de"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/build-boundaries.json",
+      "size_bytes": 19447,
+      "sha256": "e14ba5c70372976a3b0d49162a4afad9cca3d33371423689f846c17b508be5e1"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/core-ctest.xml",
+      "size_bytes": 5979,
+      "sha256": "f5d2a9d1fa64f385f5d433affde4a0e72643665041f3326156296c15d33ed873"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/cpu-ctest.xml",
+      "size_bytes": 7206,
+      "sha256": "c2f62f7093442760ddfe08f9534c22ba637f577fa01d4e94a3337c547bab800c"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/environment.json",
+      "size_bytes": 936,
+      "sha256": "a833e4173e447714d7f624343631cadf10b9be409cd5162d14ae50be55df30ba"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/evidence.json",
+      "size_bytes": 7524,
+      "sha256": "0b69a4e910c27f55cfec3eb8ab263bf0c510e89132457dcc59b2ca2e49837fca"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/own-ctest.xml",
+      "size_bytes": 9538,
+      "sha256": "de63bf830debb6bb9107342753aeb18d47a201f2343000b39aedebe22d9a7ee0"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/real-storage/copy-allocation-summary.json",
+      "size_bytes": 444,
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/real-storage/environment.json",
+      "size_bytes": 720,
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/real-storage/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/real-storage/validation-summary.json",
+      "size_bytes": 265,
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/revalidation.json",
+      "size_bytes": 295,
+      "sha256": "56471312d88a7591573e6f1f1efb72b7521e212b2b0347e6c4151334ad32e2cc"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/source-state.json",
+      "size_bytes": 17019,
+      "sha256": "ba04049f0a4e740bf3c581a25d6fca3e7d79e5e5cd8507de5df9f887cb4894fe"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-ops/upstream-ctest.xml",
+      "size_bytes": 7203,
+      "sha256": "ffb6d7fd3998a523c7f202aa6f793a91550444a6c964db7c5a8dc648149ef46a"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/build-boundaries.json",
+      "size_bytes": 29391,
+      "sha256": "7a207d6342eee5f3b7347b0b02e08a2fcc44aa4024e984aa03fec5607bfa5eec"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/core-ctest.xml",
+      "size_bytes": 5980,
+      "sha256": "150d8bf12dece5e7e3bba1d490da5f6c668a3235b3c958965a97a853111f21ff"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/cpu-ctest.xml",
+      "size_bytes": 7204,
+      "sha256": "96f98b268cbb94544f0d083e2a1b170afdfa00b2b30c6a761f4d8925126f5bf3"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/diagnostics/wrong-model/validation-summary.json",
+      "size_bytes": 98,
+      "sha256": "dfc8041dc873c23ff7478ff8f64c59fb8415512791c38e83b02b03f4d385e134"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/evidence.json",
+      "size_bytes": 13292,
+      "sha256": "bea05bd962ec60abb4decd3161b5c0fc3c6c5ecb3fbe36d6a8d14a567d9d49f5"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/memcheck/copy-allocation-summary.json",
+      "size_bytes": 444,
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/memcheck/environment.json",
+      "size_bytes": 720,
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/memcheck/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/memcheck/validation-summary.json",
+      "size_bytes": 265,
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/negative-checks.json",
+      "size_bytes": 272,
+      "sha256": "6f2c97b50f80ef1fe2357fe85293207401234aa3fa73a9eadb877203f1e1a01c"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/own-ctest.xml",
+      "size_bytes": 8722,
+      "sha256": "427b67eca6635574e07d7d02e0dc0ad09819909534e7b4d51ad7dccf52580d10"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/real/copy-allocation-summary.json",
+      "size_bytes": 444,
+      "sha256": "e365ec75448b99e2f6484ede213fa5c946a908d52afb426efa337246813b7e64"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/real/environment.json",
+      "size_bytes": 720,
+      "sha256": "4c0a43ff05ebcf71c7093e1de4dfc19eb02e4ad69c3876bdf71880d1ccdf62de"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/real/validation-contract.json",
+      "size_bytes": 4764,
+      "sha256": "23377e2cbd919504ac453d591c4a6b3308e7dbc8166172e57a4ae6f66d061923"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/real/validation-summary.json",
+      "size_bytes": 265,
+      "sha256": "f879a45441269b848c355762d966556b4215570a71ee60d613c86c3660257825"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/revalidation-final.json",
+      "size_bytes": 273,
+      "sha256": "f4549c589a00094eebfe4787b8f8cee06442a5af97e7e6a5c08d29044381ff12"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/revalidation.json",
+      "size_bytes": 273,
+      "sha256": "f4549c589a00094eebfe4787b8f8cee06442a5af97e7e6a5c08d29044381ff12"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/source-state.json",
+      "size_bytes": 16353,
+      "sha256": "34c4ef1463e75908d62497824453b0b8d7272d2938c48f1f13b8775d3b47a8c6"
+    },
+    {
+      "path": "benchmarks/results/validation/cuda-storage/upstream-ctest.xml",
+      "size_bytes": 7201,
+      "sha256": "5e1dee465a77562f8e61972997ef3e5677f8a5a0bcb342dcd89ab74a10ce33e1"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/core-ctest.xml",
+      "size_bytes": 5981,
+      "sha256": "892c4bc8f9dd4d33fcad332d41cf092bb858838b93d8b0b520e8f7e493140850"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/cpu-ctest.xml",
+      "size_bytes": 6421,
+      "sha256": "952aca3c00fb631a20890c4ed9176eea4769fac031827134191dd6f62ce2e49b"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/evidence.json",
+      "size_bytes": 5518,
+      "sha256": "27c718af01398287270ccda8f671ab67b258d91d6994f6975a35cd7c533cfd75"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/historical-revalidation.json",
+      "size_bytes": 753,
+      "sha256": "443873d3b74ad2e414f4722bdec88b9227addd0fe5ea3f47d7fbc0a1eb691d22"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/independent-revalidation.json",
+      "size_bytes": 934,
+      "sha256": "551a1282c3405997c129e6c98b8faa3052b64737bbb4fc37490eea307095e890"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/source-state.json",
+      "size_bytes": 13169,
+      "sha256": "d7c85293533a6951441b79cf102b67583b73f0f209c4b118fe4e34bf9724f241"
+    },
+    {
+      "path": "benchmarks/results/validation/evidence-m0/telemetry-revalidation.json",
+      "size_bytes": 937,
+      "sha256": "5674623ff1fccb50e67710425910afb71d91ffaa0a649fbb83a08d3cb08e7105"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/after/source-state.json",
+      "size_bytes": 15355,
+      "sha256": "ed9e9270fec35665147d67e79e4a6f72dfcd3b3850ece469e586b0ba653b7f1e"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/before/source-state.json",
+      "size_bytes": 14353,
+      "sha256": "97d56fde698aaacbab17a3380dbca0a48e59964538c979a4d4692c4a17386b03"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/build-boundaries.json",
+      "size_bytes": 40959,
+      "sha256": "7ba06a72d78bd49d87945854fa30f248d74bd81eda024c25416ee16db98c8803"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/checks.json",
+      "size_bytes": 3342,
+      "sha256": "9dfa6e6035f2ad7deb7d4a1c7041059a747f477a9338fea511ded4211cf341d4"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/comparison.json",
+      "size_bytes": 19922,
+      "sha256": "39783df576f3ef77aac14a1c8ca8de15d320f8525f082631e045d71954b3a68d"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/core-ctest.xml",
+      "size_bytes": 5981,
+      "sha256": "92aaff9708f4137ee07dbb67b72cc608c4686b25f1b60535f1d11b47408179be"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/cpu-ctest.xml",
+      "size_bytes": 7209,
+      "sha256": "28f0b98b23c2214f79e4a9a2c6d76ee10dda9c1b3eae145caf94e545076355f0"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/environment.json",
+      "size_bytes": 1159,
+      "sha256": "7f434d03f66de97ab028a3b4e72ebab32c9925f66ed00ebd8c665bf7fadee183"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/evidence.json",
+      "size_bytes": 22646,
+      "sha256": "7aecf89f1237c4729128f74169c3b47c2e0c7b9ca5e99393c0d071c201f25ad9"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/input.json",
+      "size_bytes": 917,
+      "sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/model-manifest.json",
+      "size_bytes": 395,
+      "sha256": "eb269e2ef9b28289e65cb90273c8b98e3f172048cb9759fd26214eb175f1bfd7"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/model-reference-manifest.json",
+      "size_bytes": 508,
+      "sha256": "086535e8b21133002b7cb083509aef5d1119cf97587024a8b84c68431b82a3e3"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/own-ctest.xml",
+      "size_bytes": 7975,
+      "sha256": "0f5c31e920630dec79a9b8f19a07040c144f439b22e4b7ff19cdb5bf2112eb79"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/protocol.json",
+      "size_bytes": 1337,
+      "sha256": "19d1bb3ffb4cee2467d3a5ffae72810bc1e80b4d930b38d9060264a15ee753f9"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/source-comparison.json",
+      "size_bytes": 838,
+      "sha256": "8c8a36bde25e3909915d7844c1f49b0d0fcb009d2b0146a81d332767095a9792"
+    },
+    {
+      "path": "benchmarks/results/validation/host-model/upstream-ctest.xml",
+      "size_bytes": 7203,
+      "sha256": "70ca5d5f3f30b0488792515dcdc835092bd1bdb24480d9612b53efc17ef43607"
+    },
+    {
+      "path": "benchmarks/results/validation/http-mini-cpu-only.json",
+      "size_bytes": 3285,
+      "sha256": "94b9f850ede32db5f4e4188c269359aaef81f0b41eeb799c35fc25a76fc8d3ff"
+    },
+    {
+      "path": "benchmarks/results/validation/http-mini.json",
+      "size_bytes": 3286,
+      "sha256": "afc2d0e900e9501ab6e8f3d7f0419e2442cd54276fb3e12113ec0a26e031dab5"
+    },
+    {
+      "path": "benchmarks/results/validation/model-f32-cpu-only-reference.json",
+      "size_bytes": 3507,
+      "sha256": "b1d57676082879c732985d052d1ef9c7a670f755bec08c0712bf36f891ba426e"
+    },
+    {
+      "path": "benchmarks/results/validation/model-f32-cpu-reference.json",
+      "size_bytes": 3448,
+      "sha256": "780ad60c72730d79852ae99f9b6407f5404be7bcf72e316f7b0c638bac66b7ea"
+    },
+    {
+      "path": "benchmarks/results/validation/model-f32-cuda-reference.json",
+      "size_bytes": 3444,
+      "sha256": "c2b27432a60b99bf7993a3cbe00d9f2863c03521f954b4d9286251832666f318"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/ctest-core.xml",
+      "size_bytes": 10351,
+      "sha256": "5e711f3ee5d98510a64c3a17f7fc981e583f6e1035e55edadec93568786326b8"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/ctest-cp1252.xml",
+      "size_bytes": 2701,
+      "sha256": "7baf99929c92d8d7f98bbd01976280b8cc5ebb28bdc292633cffa834e70b3ad8"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/ctest-cpu.xml",
+      "size_bytes": 12455,
+      "sha256": "d72863d9e5227ce46e2965851aa21d52d53c2989a0723346bed441b1e6503cf0"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/ctest-own.xml",
+      "size_bytes": 16828,
+      "sha256": "ab13ccb3d694cc754f46473a1f5036b8bab1f7b96347f1f66018fa53dc47f53e"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/ctest-upstream.xml",
+      "size_bytes": 12455,
+      "sha256": "ef5783973b2c8f59fd4a5f6db8ba53464f1c9e6453c753d10678230c26c2b7d5"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/environment.json",
+      "size_bytes": 1384,
+      "sha256": "1e0750497c70ccf6939916f5dcdc2f29c7ed350941e2dd93eb3936c65b0eae50"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/evidence.json",
+      "size_bytes": 10005,
+      "sha256": "c636ac6ff40dc545827f832ee94b165e84f67a7bd99717deb2a1ba1bc07852d3"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-ci/source-state.json",
+      "size_bytes": 24464,
+      "sha256": "ef7d78fa59c9655d947af90cf363f51b08429344f058b61378c3283fda9eebd6"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-cpu-ctest.xml",
+      "size_bytes": 2157,
+      "sha256": "0145851617f9a2ab42d8d8f370358081ee0da0a9fa5448f02bd4da4ede41f1a7"
+    },
+    {
+      "path": "benchmarks/results/validation/windows-cpu-imports.txt",
+      "size_bytes": 1522,
+      "sha256": "7c2a1056f38cd0a7e8098f415dc01bd57c07208e76d352242522b1de693c3bc5"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/asan-ctest.xml",
+      "size_bytes": 5353,
+      "sha256": "c643c7f3cc904e7a8b9971e2974293c51d9d1d3cdaaa1b9c35496d2a0a1c93af"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-ctest.xml",
+      "size_bytes": 5794,
+      "sha256": "60114a220322e7c0035d7c79fa7b8195b70f010b64493b8cec37675632b4dcfc"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-model-1.json",
+      "size_bytes": 3955,
+      "sha256": "7926761e338461d56c2ca8ac33634840ae83d0880d4479edec00a0e561cb5fe3"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cpu-model-8.json",
+      "size_bytes": 3955,
+      "sha256": "802d70c62c6a0a6f72aedbc75073418ed8fb79f3000ca41ba561f2bfbb062efd"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cuda-ctest.xml",
+      "size_bytes": 5791,
+      "sha256": "47640ea1af5b6136e53c61a58869a83a400b5b80aa6d696437a703e9dd91c881"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/cuda-model-8.json",
+      "size_bytes": 3952,
+      "sha256": "af5821534a353d7a8512969050da16e3af3692a522793a2e1463428685a902e7"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/evidence.json",
+      "size_bytes": 8030,
+      "sha256": "81ed43577b05b2fbd82c9d7415cdb9486b704ddf84cff1fd68ff6e6252856069"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-off.json",
+      "size_bytes": 3843,
+      "sha256": "3b96110ca00a730b08cc1667d437ca6a26c20bfd50a713ccbccbd1b469905211"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-stages.json",
+      "size_bytes": 3848,
+      "sha256": "3e0ebd5aeeff25ad70da3e747b285a7e8b99c8ca236fd67a5b3d820844298e07"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cpu-stages.jsonl",
+      "size_bytes": 132705,
+      "sha256": "b49ca66295d4536bc531935747c812ee6e10776ddeffdc01005a9d95a8f7a339"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cuda-stages.json",
+      "size_bytes": 3895,
+      "sha256": "bed603e9cc275a0dba5110bc0fc69f1fe1c396214b9843c1f8818c489b0d462d"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/http-cuda-stages.jsonl",
+      "size_bytes": 26289,
+      "sha256": "02d3841a2e9f67ff75deb773d846dc9c4be7ee3a9b91e1bf30ec394db906b974"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-batch-telemetry/relocation.json",
+      "size_bytes": 154,
+      "sha256": "b50560a8a6a0775c5565d40640b4d88d87cf2f9bce36cccb27e47acf632ae8f6"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/benchmark-relocation.json",
+      "size_bytes": 563,
+      "sha256": "9c8befde50088d3fecff859bf26256c27c06a193012c271281414c045a0ec705"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/ctest-asan.xml",
+      "size_bytes": 3262,
+      "sha256": "1afb6999566e41702f08b624e4fe5b7162484f63ed962710e9dc7c640182fe62"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/ctest-cpu.xml",
+      "size_bytes": 3676,
+      "sha256": "a683862cba53ee69c322d3332163f73c4cd51b2b6e95a57dfcdb0cb328a33cb3"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/ctest-cuda.xml",
+      "size_bytes": 3677,
+      "sha256": "680ab9c8115fee74b9921fd3d940c0604eaec63e48e808914f931143fe12bbbf"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/evidence.json",
+      "size_bytes": 8497,
+      "sha256": "505874cb8f8a1e4250b2ea7e8856cd4600f7a7a9a4dabbc26d6577ea65284ad7"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/http-cpu.json",
+      "size_bytes": 3721,
+      "sha256": "ed53e6582d7ef75eebb70ff64a2ca50d47453b89a09ad354ee2c1ed697b1e662"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/http-cuda.json",
+      "size_bytes": 3767,
+      "sha256": "e211ceb37b6c6b50f1d345f1c5ebc3a24319c4d1ec66c67a7fbb6ff214da9766"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/model-cpu-1t-1.json",
+      "size_bytes": 3521,
+      "sha256": "e733efa69a7f6072e92016d2a830fa2df9ec2230daf2f3fbfc0861b37649ab1c"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/model-cpu-2t-2.json",
+      "size_bytes": 3521,
+      "sha256": "2cb6aaba4e0601f92383254b203ec219608c2fcbac4b7f0632aae35024409261"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-deterministic/model-cuda-8t.json",
+      "size_bytes": 3518,
+      "sha256": "0d1589f13f8de1d09eb5f71f9543ca1ecf1a6716cc6cd9340c24d10b0127fc82"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/asan-ctest.xml",
+      "size_bytes": 4221,
+      "sha256": "d4fba607f93ab8acbc197a7f02d0c15a8c427ca8cb49233fd86128ae51de9638"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cpu-ctest.xml",
+      "size_bytes": 4660,
+      "sha256": "4da6171cf7d2e3f41cb9bf1c0a607b579f86247d8c6adf4cf023459935279d5f"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cpu-http.json",
+      "size_bytes": 3720,
+      "sha256": "820205dce7bfb768f30aa378fb4f0fa5af19c5359d878a4c81fbc7bf2ca235b0"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cpu-model-1.json",
+      "size_bytes": 3807,
+      "sha256": "4ff852b147dfa4c706bdb17dd69e73ce2f08398b7cc02e084ba7351de811f889"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cpu-model-8.json",
+      "size_bytes": 3807,
+      "sha256": "4ca60908256b21cd2b1617799291b69e35798fcacd4debd476f5f55e1f8c9fd5"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/ctest-archive-evidence.json",
+      "size_bytes": 281,
+      "sha256": "82b7c1a021a3c51c64c7d4cf218f48e0a9c1908bc17c6f8369c775bed4eac34c"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/ctest-evidence.json",
+      "size_bytes": 150,
+      "sha256": "7d2d36f9e883d0543c4183ad85141de1f666d79ba214637164f3cd974800ad07"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cuda-ctest.xml",
+      "size_bytes": 4661,
+      "sha256": "3b540baaf8d141d184866e7b6fc8cf02f2763c79a4d4eb424c5f9111e7eca52f"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cuda-http.json",
+      "size_bytes": 3764,
+      "sha256": "3c673a4bad73b40655c2c6c4f509ec6bafd3c588f0bda6280b75879424af4d9d"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/cuda-model-8.json",
+      "size_bytes": 3804,
+      "sha256": "b0a44360879998130eeaaddc2dc427c0f1fbf1e01e1e8c1aea010bc584f6d27b"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/evidence.json",
+      "size_bytes": 8044,
+      "sha256": "0aaaa85d875c0470916bfce8682d8e411bb84d84cd190580872b6f9adff16ee6"
+    },
+    {
+      "path": "benchmarks/results/validation/wsl-runtime-profile/runtime-relocation.json",
+      "size_bytes": 510,
+      "sha256": "5950783d59b16d445a8e2a2ebb68750d3d3d92a956bbf73fb09c60dd1c069b36"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/collection-status.json",
+      "size_bytes": 74,
+      "sha256": "04f003157f14037a19193296013d2580546edf13fa6815605b13bd36d6ac53cf"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/experiment.json",
+      "size_bytes": 647,
+      "sha256": "9b450cfd827879de0b4030d766bbb250ee6ff439a8eb2c72bb252519128b1cbc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/telemetry-summary.json",
+      "size_bytes": 25163,
+      "sha256": "ed1f41eb953f7d56ec6698e7028455155b13fa1c1860586f66e65507be1b9745"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/manifest.json",
+      "size_bytes": 4758,
+      "sha256": "82f9fe62ea5180dd3055c723c2b339bac65262ae9c06792f12ab91a6fa96bf4c"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/summary.json",
+      "size_bytes": 970,
+      "sha256": "06d2b4dccf8c4274bac0f79a675159a1db49f41e53be7065d213d50d6ffe48bb"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/telemetry-summary.json",
+      "size_bytes": 7692,
+      "sha256": "be007d11b557d404cc57981c8ff425ba54c4ba299083731a5402b18674db5b42"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/trace.jsonl",
+      "size_bytes": 6827,
+      "sha256": "a6ac3666ce08e9f7db4600e4ad9348207ea353ac89f2f36c633062e6b4b8a781"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-batches/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "86904f7caa76f6e3e03706146fae94df69d35bd24542b09fac04b0c61fd9582d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/manifest.json",
+      "size_bytes": 4701,
+      "sha256": "f854f21103a19408ecd05d58e58ff826af7bb71aace56f05555b07a0f740b706"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/summary.json",
+      "size_bytes": 965,
+      "sha256": "6a4dab49385f6aae2bce5214bcb05f0c750d5305f34f0bef740d30169063df5b"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/trace.jsonl",
+      "size_bytes": 6827,
+      "sha256": "a6ac3666ce08e9f7db4600e4ad9348207ea353ac89f2f36c633062e6b4b8a781"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-off/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "6ac3853a2ce2fbd871279e0cfd12d2faf92da9098546cddbabedf7f576e88e6a"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/manifest.json",
+      "size_bytes": 4756,
+      "sha256": "e0eaf103b499c90231b47b0f8d692039d25019280a01d92ab015f4120d6c8fb1"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/summary.json",
+      "size_bytes": 965,
+      "sha256": "fd58a45cba3b70d2362995d17bac1455cfa1417ddd6b8e23d37bfdf9ab0d4805"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/telemetry-summary.json",
+      "size_bytes": 9152,
+      "sha256": "d63ea7d941590fac7bd60fec7750d56e6e59c0e196d3531229759c29a4c74eb2"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/trace.jsonl",
+      "size_bytes": 6827,
+      "sha256": "a6ac3666ce08e9f7db4600e4ad9348207ea353ac89f2f36c633062e6b4b8a781"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-1536/trial-0-stages/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "d419cddb46fc054fb0b952f958ecf021d5996826a394b1cfa122f65672422ea3"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/collection-status.json",
+      "size_bytes": 74,
+      "sha256": "04f003157f14037a19193296013d2580546edf13fa6815605b13bd36d6ac53cf"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/experiment.json",
+      "size_bytes": 647,
+      "sha256": "9b450cfd827879de0b4030d766bbb250ee6ff439a8eb2c72bb252519128b1cbc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/telemetry-summary.json",
+      "size_bytes": 25050,
+      "sha256": "9fe2bdcc1d0ae708b74355c39c2552205e84d7637582dcfbdf5e50ccaae11dad"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/manifest.json",
+      "size_bytes": 4755,
+      "sha256": "dc5c0df9d21a1b04f4b90af9a630fc207b65ac0ed55d3ba52509175b677a6fa9"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/summary.json",
+      "size_bytes": 989,
+      "sha256": "a6f34c6bddc9fb51a729de41ecdab1cacc3de0231153565dad1d7b71c651d885"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/telemetry-summary.json",
+      "size_bytes": 7655,
+      "sha256": "e3c891c607bcbb43ef80a5dc9372ed7bda60ac20d39cb8652f76bf840d2bad98"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/trace.jsonl",
+      "size_bytes": 291,
+      "sha256": "f7bf276689c15c7936058bd32ec40bcceb0d8c1bc7d6c63e0c7d7250e2112e59"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-batches/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "c4224be582249758c045966de49c4652aeff2ffdf8fc6b3dff2962a98d6c6e4f"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/manifest.json",
+      "size_bytes": 4698,
+      "sha256": "fedd590c6933e89e42488a7692804f29f62e95671bc66b772c21e19c5f648470"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/summary.json",
+      "size_bytes": 986,
+      "sha256": "40195a47ed5f945f8cab779ed41cf2eb845e7e7a10e22fac354612d965530435"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/trace.jsonl",
+      "size_bytes": 291,
+      "sha256": "f7bf276689c15c7936058bd32ec40bcceb0d8c1bc7d6c63e0c7d7250e2112e59"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-off/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "bb3d0c96eaeed60620f0fb4c54862f0c84ced888bab0edeecc4103e59689daa9"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/manifest.json",
+      "size_bytes": 4753,
+      "sha256": "6ec32be1204b3019791c85babf3d30699b75664ae2e18c80712865b227e62424"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/mixed-0-telemetry.jsonl",
+      "size_bytes": 186429,
+      "sha256": "75b38285f2f14bdc2df5677225303bba1322fd7fe2a58a6161fdbc76b1d781ed"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/mixed-0.json",
+      "size_bytes": 12229,
+      "sha256": "10f60bf56ef5d958befd0d675eedb3a4dabbe1551351916e5b87394229958f66"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/summary.json",
+      "size_bytes": 987,
+      "sha256": "6e1e16dc78205008a52b8b59f170a50303d0439246fab6108048ac248e50cc6c"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/telemetry-summary.json",
+      "size_bytes": 9083,
+      "sha256": "371448b2ad9bec858bc65e30bd3088ec63ee2447b3fa4ea436497d38cf828261"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/trace.jsonl",
+      "size_bytes": 291,
+      "sha256": "f7bf276689c15c7936058bd32ec40bcceb0d8c1bc7d6c63e0c7d7250e2112e59"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-16/trial-0-stages/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "ab0e85f881a69b3bd9cc78d1807f30b9b2014dc51a3de94f71c68769acdf0e94"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/collection-status.json",
+      "size_bytes": 74,
+      "sha256": "04f003157f14037a19193296013d2580546edf13fa6815605b13bd36d6ac53cf"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/experiment.json",
+      "size_bytes": 647,
+      "sha256": "9b450cfd827879de0b4030d766bbb250ee6ff439a8eb2c72bb252519128b1cbc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/telemetry-summary.json",
+      "size_bytes": 24996,
+      "sha256": "96ca09f60d2276d393d2da85b86e51131daf8070177eae8ded92dfd0639e3183"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/manifest.json",
+      "size_bytes": 4758,
+      "sha256": "874f09ea0af18fabc9ccb07d6470d0f7fbfdfe6b1dbd0831008847cc2e8152e1"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/summary.json",
+      "size_bytes": 968,
+      "sha256": "7f48bb04144b9f0abfc524c17f2225448849616a1316cf76e899f043f79f3c79"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/telemetry-summary.json",
+      "size_bytes": 7660,
+      "sha256": "88e7de8877f0bc0c6318f52d519137dc320418d803b648b4fd8e30278d4f08c5"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/trace.jsonl",
+      "size_bytes": 1323,
+      "sha256": "6973a7e6d35c7e4a083619bf08dfc8b491a373d37704faeb7ae5b57338c88fcc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-batches/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "c0a535790ea2193fe8c44411b6cd235e41d4e520cc91e08aa64d7b8d3a03444d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/manifest.json",
+      "size_bytes": 4701,
+      "sha256": "de9366a936d9c70138e0923666b02428879b2f650064dc3d5a0b19fbf5bf49f2"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/summary.json",
+      "size_bytes": 961,
+      "sha256": "2e2913ed576708a176fec5c94feb03b53c7087fe8390d24b06ba9b636448382a"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/trace.jsonl",
+      "size_bytes": 1323,
+      "sha256": "6973a7e6d35c7e4a083619bf08dfc8b491a373d37704faeb7ae5b57338c88fcc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-off/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "3a76e4b4cc2f71af6114335a95128e0cbb2f9c885125b7438453b3de54204837"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/manifest.json",
+      "size_bytes": 4756,
+      "sha256": "641c8dc23af6b8f08fa5758f24c6076067e2819932f7c9f91f745c9b27714ac0"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/summary.json",
+      "size_bytes": 961,
+      "sha256": "878eb5b6085fdbf5a106944df65596979b1f465dbe2a90ebb574f5fbcf785bc4"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/telemetry-summary.json",
+      "size_bytes": 9066,
+      "sha256": "861581da94fb6a90cc4ab2a58f18f9c2a09cd616052d283acfd163e1fedb9e3b"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/trace.jsonl",
+      "size_bytes": 1323,
+      "sha256": "6973a7e6d35c7e4a083619bf08dfc8b491a373d37704faeb7ae5b57338c88fcc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/context-256/trial-0-stages/validation-summary.json",
+      "size_bytes": 559,
+      "sha256": "7756cf1ec46d4405d95d264cfacac855663437774100aeded73b07d7d6ffa546"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/evidence.json",
+      "size_bytes": 1697,
+      "sha256": "4599f36de5ccb269699f0040b8eff4ebeb6e1df7ee35095cf89b7ba4a2f14bb0"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/hypothesis-table.json",
+      "size_bytes": 14597,
+      "sha256": "ebeac4d5d142da80a9b6dadae723492e6201d4ea4854cdb8a5b88d9afd4f4a2a"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/collection-status.json",
+      "size_bytes": 74,
+      "sha256": "04f003157f14037a19193296013d2580546edf13fa6815605b13bd36d6ac53cf"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/experiment.json",
+      "size_bytes": 647,
+      "sha256": "9b450cfd827879de0b4030d766bbb250ee6ff439a8eb2c72bb252519128b1cbc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/telemetry-summary.json",
+      "size_bytes": 88344,
+      "sha256": "5effbe0af37f2b176dfdb7d566fba211984f2229d87ff3221854175705c8a54b"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/manifest.json",
+      "size_bytes": 4764,
+      "sha256": "1ed3d3e8e391938c1e806063b82ff195b767746fc3015b6d3d3e47bd0fbfe323"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/summary.json",
+      "size_bytes": 1016,
+      "sha256": "4e8d5505b755b483290af44d2e3485df687294d8b7c70065c5a15c249d2988ff"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/telemetry-summary.json",
+      "size_bytes": 39217,
+      "sha256": "cf978554b7e762ad18aa12fb3eb134319375fe22aba5e05905e07cb913671254"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-batches/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "52e3808c987878942675afe54f30ef0456eb7782f5bae7e325540d5184d73977"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/manifest.json",
+      "size_bytes": 4707,
+      "sha256": "a76b16aeaf0ddb096266e485917abc35825cc239ecbae58d185f0a7677540c67"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/summary.json",
+      "size_bytes": 1015,
+      "sha256": "6dd522ce2b4d8a01b5620b95aa65854cafea9a943eec1d1548455c20d4910983"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-off/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "ae7b1426fff7f9a9a2e5d5b4657fdf2f5ec2ffb30caf4162290e26d152fc9c62"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/manifest.json",
+      "size_bytes": 4762,
+      "sha256": "0086adee34840bb527b39ca0a532a5271166dd662b659d22d033b76b4deb1fc0"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/summary.json",
+      "size_bytes": 1017,
+      "sha256": "e48c7e3035ece69b90d17f44d92d13d5b4d878b13d0f91ecf31c50bf93941a5f"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/telemetry-summary.json",
+      "size_bytes": 40678,
+      "sha256": "8ba2ecec01f5e2bc4694c4dc361d7ef6833a018cdbf91b631760b5e8e94715c6"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/low-load/trial-0-stages/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "0bd1efc2e4ee8b5dd6e98c16f890708bae4c1f054963ab51d5cec89b343bfddd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/collection-status.json",
+      "size_bytes": 74,
+      "sha256": "f79f1a2fba6d8cc656534017c0812086000c2e7382d24dc88f8edb411e05e587"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/experiment.json",
+      "size_bytes": 1293,
+      "sha256": "10e82856731e88d5da40b3a2f2c3837bae8d545d22419bfc2de5c61516f9ff25"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/telemetry-summary.json",
+      "size_bytes": 252026,
+      "sha256": "652c3b708419f3b3240729e1263127c12b25ea51f47b256bf6cc84f6fbd40a69"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/manifest.json",
+      "size_bytes": 4764,
+      "sha256": "c89ab5f48fd8d76303fbd54352ea53e5fe3adaa94d2ee1a8e53e799e23edd0bc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/summary.json",
+      "size_bytes": 984,
+      "sha256": "79cf1dbbd1cadcf9fc17e4b4492ea8152c093316af6aa2472d2a3a7299b9987e"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/telemetry-summary.json",
+      "size_bytes": 39206,
+      "sha256": "e5a1c1c3688140d1da9580757c8baa4c37d4de59288a921ad490f4121806ac39"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-batches/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "c510c16356766a6517b6929efcad5c1e254badeab47a699fa107936dfd6bb328"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/manifest.json",
+      "size_bytes": 4707,
+      "sha256": "1c7b1441da5d3b2cb9628d3a38b4f091d149451c5a4994866334eb3a3a5ded4f"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/summary.json",
+      "size_bytes": 979,
+      "sha256": "1bd35a4bc3a2aa0b53764556910523766a77220bbb83a04c9416eba8e815fbb5"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-off/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "a2b676b1497baef745bc847907b3c906da19f1db39d37e73830e040a2256fb10"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/manifest.json",
+      "size_bytes": 4762,
+      "sha256": "032c3f0cdde996e156ac5212dadd9bdfd64fa91c9cdef5a3d6b082338bec1c03"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/prefill_first-0-telemetry.jsonl",
+      "size_bytes": 380517,
+      "sha256": "f436aa75c23c8c8672643b4666650c9df6c234f69ddfa9ea5e1b62228496b2a8"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/prefill_first-0.json",
+      "size_bytes": 96906,
+      "sha256": "5c4892cc465efbfa4a6145d576cd07af8b112ef0e97101d29d215939d7f98f13"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/summary.json",
+      "size_bytes": 982,
+      "sha256": "0b98066c3e94703674689c0e6bb8a5a831a9f3f84a0022d34c65ad41b252b402"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/telemetry-summary.json",
+      "size_bytes": 40630,
+      "sha256": "31747f7e7256b13cd92c11902e3b4ba2bf607ea924715127c4bf8638429bf568"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-0-stages/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "ef6f797b95a32517aa3ff60bff754f50a06fa55990c95bb7837fb094a929b4b2"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/manifest.json",
+      "size_bytes": 4764,
+      "sha256": "7b788e1bd3324982f92914aaf1c3dba7322b5be2d93f3f2029ec78b83d0b5563"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/summary.json",
+      "size_bytes": 973,
+      "sha256": "9cf40739d1a12dd9cd098cf93f739e058f0210bc71c9ea8c5e5e8f030866d2ae"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/telemetry-summary.json",
+      "size_bytes": 39195,
+      "sha256": "9a1f64bf02ccf1b53c5543c6d5fa0999f61b5fea17ffe208ae9016d5a7b86a0a"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-batches/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "9363eb9dc4ec0b22703a13c0dd82b2e3b79c6ec8822945c0e6bb972ff8d6e289"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/manifest.json",
+      "size_bytes": 4707,
+      "sha256": "a35d1e12e82dc6feb2525e664927388bb486e18160de822ff56083749e65678d"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/summary.json",
+      "size_bytes": 981,
+      "sha256": "0fde669917e35d5cfba33e048a1a572179f76167f69f7bcb35b3935b396478b4"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-off/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "bdf76299af8edbd41fa5ac3caac483546c8e613f0ecaedf5974dd6e70b18092c"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/manifest.json",
+      "size_bytes": 4762,
+      "sha256": "fb00829ba9a168127f22e66f393457aa512f2753ac4a815e143c5ade651dbd5e"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/summary.json",
+      "size_bytes": 975,
+      "sha256": "8487a5237af23ce635fd6439f4492330f170e2a1cb9fb39504fb70f1fd527846"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/telemetry-summary.json",
+      "size_bytes": 40580,
+      "sha256": "0651ec1de63222167f557e7a67a818cab9989864b4cc732241222d6899d41c41"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-1-stages/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "f47f68a1096c8e1e09b503ad9d2acee67339600ee7e58017d888431ee279ce12"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/manifest.json",
+      "size_bytes": 4764,
+      "sha256": "ea6f2d71058437f0ad780338c9949352479e6dff347e67c7e57233af355bf587"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/summary.json",
+      "size_bytes": 980,
+      "sha256": "5742e79a15ecfede381c971c6e2ca294141d3e27a653122dc9e9471b4de04993"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/telemetry-summary.json",
+      "size_bytes": 39218,
+      "sha256": "5a7d341b3833180216e21d90b31f2d26c0266d43a90638a030c9e9e1200f08f8"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-batches/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "2ac458b0e59b832b67277f86f922414643fd848b49b1eb53c600db2e6f640a20"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/manifest.json",
+      "size_bytes": 4707,
+      "sha256": "2796a24bf5cf034a116a11bd7132b5d3943fb72090cf42adeeca96770828c9bf"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/summary.json",
+      "size_bytes": 976,
+      "sha256": "dec6efe8e3ff981c59b263482826817ef9bfdfeceac98c157d9040df80ab07bc"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-off/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "278961fbbf43c22912af85585a0dc7a87c61164964f4e156db84c27720906d51"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/manifest.json",
+      "size_bytes": 4762,
+      "sha256": "3c0fadbeb150c1f0385a156d72b2531f0e97e8bb11919aab20e82e5b11158b96"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/source-state.json",
+      "size_bytes": 11709,
+      "sha256": "4330c019937be02fc09ca3e34435df5bc7d2ae6d186e0ad760d7a92919e29acd"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/summary.json",
+      "size_bytes": 975,
+      "sha256": "2f3c5ae2df1a17cd6f10f512cc5f52f246f08ba5c92e5afc9a9b5e541a635668"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/telemetry-summary.json",
+      "size_bytes": 40674,
+      "sha256": "d70cbf27b72a47021edc8d33a60a29876d7bc6bd7fac1055b5b65b388907f716"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/trace.jsonl",
+      "size_bytes": 9986,
+      "sha256": "497e52547ede44fe9e23b362e98e31a68107815c232c872061347a6c334905f7"
+    },
+    {
+      "path": "benchmarks/results/wsl-batch-telemetry/mixed/trial-2-stages/validation-summary.json",
+      "size_bytes": 562,
+      "sha256": "0f71077913bd077e15dd9ae000216ff50d78089dfc4dc0259d81612831ea1402"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/collection-status.json",
+      "size_bytes": 94,
+      "sha256": "b8dda13339f09ab3c9b8a88244c9d6311894ee43e1e1f8d9335e0ffc2556eac0"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/forward-stages.json",
+      "size_bytes": 44833,
+      "sha256": "bd9f6d6a2801c57018955ea13adf9773342dbd488536ac893e06545fa0c15d0a"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/input.json",
+      "size_bytes": 917,
+      "sha256": "8ae0a052ae7d18004c5806ad1ddcf48e2a52cb9ed51621caee37e861470efbb0"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/manifest.json",
+      "size_bytes": 4155,
+      "sha256": "e3d456442ced255f5fb7c41d17d705a23b451e53cf393b8e47832adcfd0263c7"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/profiler-overhead.json",
+      "size_bytes": 4802,
+      "sha256": "e53ed065b6a487a29f09543753acbc6a6925ba58e6c87e3dad811f020dc724f4"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/runtime-decode.json",
+      "size_bytes": 1786,
+      "sha256": "0d7b0264d6c33af88d56dbe32b36a9e7fd279fb5c3fcf235f5df44589befc90d"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/runtime-mixed.json",
+      "size_bytes": 748,
+      "sha256": "f0580174e05fc4250bb7f7c04bc657f7caf1c7eae45a31c7037ff4de9c8b820a"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/runtime-prefill.json",
+      "size_bytes": 1302,
+      "sha256": "fda00ede9a201eecb93f78ea77c9593e0d52a65493c35a8a9b81bae8b821cb45"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/source-state.json",
+      "size_bytes": 11257,
+      "sha256": "e3985ebd39e3670c5ccfed1defb94cff12f3d317b53be4784d55b589ce26b8dc"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/threads-8-none-0.json",
+      "size_bytes": 30017,
+      "sha256": "53ebbd760098a31bc9bdccd1f524e330840686a1d28c70b6be605b5e82e4f866"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/context/validation-summary.json",
+      "size_bytes": 1146,
+      "sha256": "b59920c84da0993bd5f134ff158cefc64eb9a1bb5d10698fec7cbb825e61d7e6"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/collection-status.json",
+      "size_bytes": 95,
+      "sha256": "d868e10ee21478d903a57316aec18a96f93407d23a5994094693fefaeff222d0"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/forward-stages.json",
+      "size_bytes": 185327,
+      "sha256": "06e08ac2a911637cd0b8a8070da2f6677cccb2283cdf09576137765b8cda0fa1"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/input.json",
+      "size_bytes": 807,
+      "sha256": "d259d7b0d8de13e80113a262e4e7057e4c5f976596f4c68c4c9e3c8d81384761"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/manifest.json",
+      "size_bytes": 7468,
+      "sha256": "b4cf52d1f16bb69cdd2d453a19420cb2265ee1b7b3f2c063a838bc9d864327e9"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/profiler-overhead.json",
+      "size_bytes": 19246,
+      "sha256": "5deb9f63f50476482be95f2d03d5fa3c3ad08cace44b60d3af83c3c9a594abf2"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/runtime-decode.json",
+      "size_bytes": 5486,
+      "sha256": "c242cb8f5bd4849189965043775402ae25eecb550f858c40eaf28dba4d96360b"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/runtime-mixed.json",
+      "size_bytes": 2914,
+      "sha256": "e7258335034f194c81a1534b49b34a7cc166cfa59467a338ae0538b606e716f2"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/runtime-prefill.json",
+      "size_bytes": 5691,
+      "sha256": "7c34deb94a4c2d03c812cccb47cf84903782f7eed4adaff0930787a5ff2ee80b"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/source-state.json",
+      "size_bytes": 11257,
+      "sha256": "e3985ebd39e3670c5ccfed1defb94cff12f3d317b53be4784d55b589ce26b8dc"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/threads-8-none-0.json",
+      "size_bytes": 22100,
+      "sha256": "b55310e642949bd3f8cbbd84869f538155896c1abf10ff1a61d6d6a1d85d1d36"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/scaling/validation-summary.json",
+      "size_bytes": 4418,
+      "sha256": "51de909657db075f98574a36a9ad95b0e7802563c07f35dc446cdbcb79a504a2"
+    },
+    {
+      "path": "benchmarks/results/wsl-runtime-profile/stage-groups.json",
+      "size_bytes": 1428,
+      "sha256": "4b9d5926813c0d440ecc9800ec8d952bdddc6c7962a08960b75a2e8083646776"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 # Windows/Linux 兼容性验收
 
+完整原始报告、失败诊断与源码快照见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 本目录验证 C++ 产品构建、测试进程编码和现有 CPU 产品，关联源码提交 `a0a62146ec0cb26ef8c548ad7104884892adbed6`。
 
 ## 结果

@@ -82,7 +82,7 @@ build/wsl-cpu/bin/llmserve-bench --port 8000 \
 bash scripts/dev.sh benchmark \
   -Trace benchmarks/traces/cpu-mixed-s0.jsonl \
   -Trials 3 -TraceSeed 0 -Port 8031 \
-  -OutputDirectory benchmarks/results/policy-run
+  -OutputDirectory .run/policy-run
 ```
 
 该入口使用原生 PowerShell，核对源码和二进制身份，按轮次重启服务、交替策略并严格验收。输出目录必须为空；manifest、原始 trace、源码快照、全部请求结果和验收报告保存在同一目录。协议、压力实验终态和统计口径见 [策略回放与验收](BENCHMARKS.md)。

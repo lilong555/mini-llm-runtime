@@ -1,5 +1,8 @@
 # WSL 正确性验证
 
+完整原始报告见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 2026-09-22，Qwen3-0.6B Q8_0 与固定的解量化 F32 参照。模型大小、SHA-256、当前源码快照、执行二进制及每份原始产物摘要见 [evidence.json](evidence.json)。模型、HTTP、sanitizer 和正式性能回放分开验收。
 
 | 检查 | 结果 | 证据 |

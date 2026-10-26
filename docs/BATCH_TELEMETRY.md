@@ -83,6 +83,10 @@ CPU MiniLLM 的阶段按固定枚举在各层求和，保留调用次数、矩�
 
 ## 验收与分析
 
+既有五组在线基线的完整报告、JSONL 和源码快照通过
+[历史证据归档](../benchmarks/results/historical-evidence/README.md)获取。
+仓库内对应目录保留汇总和代表性样本，离线复核使用完整解包目录。
+
 `Benchmark-Policies.ps1 -Telemetry ...` 自动运行在线验收。目录迁移后可重新验收并跨模式比较：
 
 ```bash
