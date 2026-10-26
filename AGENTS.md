@@ -1,5 +1,11 @@
 # Project Rules
 
+- Feature Freeze：只允许文档、清理、发布准备和有最小复现的必要修复。
+  当前支持范围与交付状态见 `docs/EXECUTION_STATUS.md`，
+  发布门禁见 `docs/VERSION_CONTROL.md`；
+  不新增主要功能，不修改 Runtime 数学、调度或 CUDA 完成契约，不追加性能 trial。
+  新版本公开发布及分支删除仍需用户明确授权。
+
 - This is a C++20 Mini LLM Runtime and serving project. Keep the runtime,
   serving code, and upstream llama.cpp ownership boundaries explicit.
 - Deliverables describe the current usable system. Do not add patch notes,

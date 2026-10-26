@@ -272,7 +272,7 @@ cuBLAS 可以保留为正式 matrix implementation；不以“所有 GEMM 必须
 
 ## 9. 立即行动与终态证据
 
-V2-M0 与 `NEXT_SPEC.md` 的 V2-M1 已验收；完整 CUDA 模型、真实 token CLI、模型 A/A/异构基线、Profiler 和可独立复核的证据包均已提供，入口为 [项目执行状态](EXECUTION_STATUS.md)。下一阶段为 V2-M2：将同步完成的自有 CUDA Runtime 接入现有 Serving，验证 HTTP/SSE、取消、超时与资源回收。V2-M2 尚未实施，GPU paging 与自有 PagedAttention 继续按依赖进入；模型基线的测量不确定项不改称已取得加速。
+V2-M0 与 `NEXT_SPEC.md` 的 V2-M1 已验收；完整 CUDA 模型、真实 token CLI、模型 A/A/异构基线、Profiler 和可独立复核的证据包均已提供，入口为 [项目执行状态](../../EXECUTION_STATUS.md)。下一阶段为 V2-M2：将同步完成的自有 CUDA Runtime 接入现有 Serving，验证 HTTP/SSE、取消、超时与资源回收。V2-M2 尚未实施，GPU paging 与自有 PagedAttention 继续按依赖进入；模型基线的测量不确定项不改称已取得加速。
 
 最终只保留六个能被证据证明的卖点：
 1. 自有 CPU/GPU 模型执行与 matched-weight numerical validation。

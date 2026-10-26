@@ -918,6 +918,21 @@
   11 个前置产物、计划六进程、实际采样零进程；
   原始数值 16 case、173 行逐位比较不受此元数据格式错误影响。
 
+## ENG-079：公开文档否认已有 CUDA Serving 与分页研究完成状态
+
+- 状态：已解决，限定于当前事实一致性。
+- 影响：`THIRD_PARTY.md` 写有“当前没有自有 GPU Serving 或 PagedAttention”，
+  `GPU_KV_STUDY.md` 开头仍待采用／待合并，`CUDA_SERVING.md` 仍写“尚未采集”；
+  与已合并的 main、真实代码及正式证据相冲突。
+- 复现或证据：`main@9a571a5` 的上述文档；`src/mini_cuda_runner.cpp`
+  直接调用 `runtime_.forward`，配置默认 F32/contiguous；
+  PR #2/#3 已合并，`GPU-KV-001` 的 30 个正式进程和最终 B 结果已公开。
+- 原因：后续研究和合并完成后，部分页首摘要仍保留早期阶段的状态。
+- 解决方法：当前能力置顶，旧 `e7e2ced` 基础 Serving 验证标明日期与身份；
+  原始性能数字、失败与 source snapshot 不改写。
+- 验证：与源码、合并记录及公开证据交叉核对；当前说明不再否认已有能力。
+  新一轮本机功能验证独立记录，不将旧采集标为新 main 重测。
+
 ## ENG-080：CUDA 冻结证据的重复存储扩大源码仓库
 
 - 状态：已解决，范围为 CUDA-VS-001 完整包及其五个组件。
@@ -958,3 +973,19 @@
   本机 CPU CTest 16/16；六种采集脚本的默认路径检查通过。
   75 份历史 XML 保持完整，既有检查为 `passed_with_unreported_case_counts`，
   三套旧报告保留原有用例计数缺项。
+
+## ENG-082：CPU HTTP 停服用例未形成所需的请求重叠状态
+
+- 状态：已记录；空闲环境复验通过，建场时序待独立定位。
+- 影响：默认 CPU HTTP 检查在一次并行编译期间通过前 11 项，
+  停服项的 `marker && active_and_queued && valid == count` 断言失败。
+- 复现或证据：2026-10-26 的 `0.2.0` 隔离候选，
+  `.run/delivery-finalization.gHbJwl/cpu-http-report.json` 保留原始报告。
+  计划建立 10 个请求，实际启动 9 个；停服前 8 个已正常生成 512 tokens，
+  剩余 1 个收到唯一 `cancelled` 终态，停服快照为 1 active、0 queued。
+- 原因：该用例要求停服前同时存在活动和排队请求；当次运行在建场期间已有请求完成，
+  `active_and_queued=false`。并行编译与该次失败同时发生，具体时序因素待独立定位。
+- 处理：候选功能核验串行执行，保留初次失败与复验记录；HTTP 实现、请求合同和测试门槛保持原样。
+- 验证：编译结束后，使用相同 CPU 二进制和默认参数复验，HTTP 12/12 通过；
+  停服快照为 1 active、9 queued，10 个请求均返回唯一 `cancelled` 终态与 `[DONE]`。
+  记录为 `.run/delivery-finalization.gHbJwl/cpu-http-idle-report.json`。

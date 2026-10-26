@@ -52,9 +52,12 @@ problem register, not a replacement for Git history.
 
 ## Version Tags
 
-The CMake project version follows `MAJOR.MINOR.PATCH`; the initial version is
-`0.1.0`. Use annotated tags such as `v0.1.0` only on an inspected, tested
-commit. Push tags explicitly. Never force-update a published tag.
+The CMake project version follows `MAJOR.MINOR.PATCH`.
+当前候选版本为 `0.2.0`，发布内容见[发布草稿](RELEASE_DRAFT.md)。
+正式发布前核对 `v0.2.0` 标签与 Release 的占用情况，确认最终候选自身的 CI
+成功，并核对本机功能验证的源码、依赖与模型身份。
+用户明确确认后，创建并推送 annotated tag，再公开发布 Release。
+已发布的版本与研究标签保持原提交。
 
 A release candidate must have:
 
@@ -66,3 +69,22 @@ A release candidate must have:
 
 上传前检查暂存文件的路径和大小，不得提交凭据或其他本地秘密。
 仓库创建或设置变更后，核验 GitHub 的 `visibility` 字段为 `PUBLIC`。
+
+## 历史分支快照（2026-09-30）
+
+2026-09-30 已获取的 origin refs 相对 `origin/main@9a571a5`：
+
+| 分支 | 落后 main | 独有提交 |
+| --- | ---: | ---: |
+| `build/wsl-native` | 42 | 0 |
+| `feat/cuda-paged-kv` | 2 | 0 |
+| `feat/own-cuda-serving` | 24 | 0 |
+| `feat/own-cuda-vertical-slice` | 30 | 0 |
+| `fix/http-shutdown-drain` | 23 | 0 |
+| `fix/v-value-simd` | 45 | 0 |
+| `fix/windows-ci` | 28 | 0 |
+| `perf/cuda-f16-matrix-path` | 17 | 0 |
+| `release/own-cuda-serving-public` | 16 | 0 |
+
+表中分支头在该次核对时均可从 `main@9a571a5` 到达。历史 refs 保留。
+实际删除前需用户确认，并重新核对远端、活跃 PR、本地独有提交与未提交修改。
