@@ -306,14 +306,15 @@ also require separate evidence. Local GPU validation is not remote GPU CI.
 ## Reproduce
 
 ```powershell
+New-Item -ItemType Directory -Path .run -Force | Out-Null
 .\scripts\Build-LLMServe.ps1
 ctest --test-dir build/cpu --output-on-failure --test-output-size-passed 65536 `
-    --output-junit ../../benchmarks/results/validation/windows-cpu-ctest.xml
+    --output-junit ../../.run/windows-cpu-ctest.xml
 .\scripts\Validate-Model.ps1 `
-    -Output benchmarks/results/validation/model-f32-cpu-only-reference.json
+    -Output .run/model-f32-cpu-only-reference.json
 $server = .\scripts\Start-LLMServe.ps1 -Backend mini
 .\build\cpu\bin\llmserve-http-tests.exe --port $server.Port `
-    --output benchmarks/results/validation/http-mini-cpu-only.json
+    --output .run/http-mini-cpu-only.json
 .\scripts\Stop-LLMServe.ps1 -Port $server.Port
 ```
 
