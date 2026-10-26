@@ -69,7 +69,7 @@ $revision = (& git -C $dependency rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the dependency revision.' }
 $runId = '{0}-{1}-{2}' -f (Get-Date).ToUniversalTime().ToString('yyyyMMddTHHmmssZ'),
     $gitSha.Substring(0, 12), ([guid]::NewGuid().ToString('N').Substring(0, 8))
-if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root "benchmarks/results/runtime-$runId" }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root ".run/runtime-$runId" }
 $OutputDirectory = [System.IO.Path]::GetFullPath($OutputDirectory)
 if ((Test-Path -LiteralPath $OutputDirectory) -and @(Get-ChildItem -LiteralPath $OutputDirectory -Force).Count) {
     throw 'The runtime benchmark output directory must be empty.'

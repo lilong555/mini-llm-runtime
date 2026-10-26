@@ -1,5 +1,8 @@
 # WSL 在线 batch 观测与归因
 
+完整原始报告、JSONL 与源码快照见[历史证据归档](../historical-evidence/README.md)。
+仓库保留汇总、输入、manifest 和代表性样本；下文原始文件路径以完整包内同名目录为根。
+
 2026-09-23，WSL2、Ryzen 7 7745HX、GCC 11.4、`RelWithDebInfo`，MiniLLM CPU 8 线程，Qwen3-0.6B Q8_0、F32 激活、F16 KV。MiniLLM 使用自有 forward；本组不运行 llama.cpp forward 或自研 CUDA。
 
 42 个独立服务进程、594 个请求、9810 个输出 token 全部通过 Serving 及在线关联验收。同一输入和配置在 `off / batches / stages`、两种策略和轮次间输出一致；有观测的 28 份 JSONL 均有完整 footer、无丢记录，batch、阶段时间、上下文及 SSE token 关联合法。
@@ -14,7 +17,7 @@
 | [context-256](context-256/experiment.json) | `kv-cpu-256.jsonl` | 1 | 1 | 6 | 6 |
 | [context-1536](context-1536/experiment.json) | `kv-cpu-1536.jsonl` | 1 | 1 | 6 | 6 |
 
-模式顺序和策略顺序逐轮反转。长上下文组关闭 prefix cache，其余使用 4 条、2048 token 缓存；全部采用 `context=8192`、`max_model_len=2048`、`max_active=8`、`batch_tokens=256`、`prefill_chunk=32`、16-token 页。各子目录保留独立 manifest、源码快照、原始 trace、模型/二进制身份、逐请求报告与 JSONL；源码和二进制在全部采集期间保持相同。
+模式顺序和策略顺序逐轮反转。长上下文组关闭 prefix cache，其余使用 4 条、2048 token 缓存；全部采用 `context=8192`、`max_model_len=2048`、`max_active=8`、`batch_tokens=256`、`prefill_chunk=32`、16-token 页。完整包的各子目录保留独立 manifest、源码快照、原始 trace、模型/二进制身份、逐请求报告与 JSONL；源码和二进制在全部采集期间保持相同。
 
 ## 结果
 

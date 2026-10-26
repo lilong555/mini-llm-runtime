@@ -20,7 +20,7 @@ if ((Get-Item -LiteralPath $reference).Length -ne $manifest.size_bytes -or
     throw 'F32 reference does not match the pinned conversion manifest.'
 }
 if (-not $Output) {
-    $Output = Join-Path $root "benchmarks\results\validation\model-reference-$ReferenceGpuLayers.json"
+    $Output = Join-Path $root ".run/model-reference-$ReferenceGpuLayers.json"
 }
 & (Join-Path $BinaryDirectory 'llmserve-model-tests.exe') --model $model --reference-model $reference `
     --gpu-layers $ReferenceGpuLayers --output $Output

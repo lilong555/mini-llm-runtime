@@ -54,11 +54,15 @@ exit 7'
     $runId = 'fixture'
     $GpuKvStudy = $false
     $PrecisionStudy = $false
+    $ReferenceGpuLayers = 0
     $localPrefix = [IO.Path]::GetFullPath((Join-Path $root '.run')) + [IO.Path]::DirectorySeparatorChar
     $targets = @{
         'Benchmark-CudaRuntime.ps1' = @('OutputDirectory', 'NumericalDirectory')
         'Benchmark-CudaMicro.ps1' = @('OutputDirectory')
         'Profile-CudaRuntime.ps1' = @('OutputDirectory', 'rawDirectory', 'BaselineDirectory')
+        'Benchmark-Runtime.ps1' = @('OutputDirectory')
+        'Benchmark-Policies.ps1' = @('OutputDirectory')
+        'Validate-Model.ps1' = @('Output')
     }
     $defaults = @{}
     foreach ($scriptName in $targets.Keys) {
@@ -78,9 +82,11 @@ exit 7'
                 $node.Right.PipelineElements[0].GetCommandName() -ceq 'Join-Path'
             }, $true))
             if ($assignments.Count -ne 1) { throw "默认产物路径定义不唯一：$scriptName/$variable" }
-            $value = [IO.Path]::GetFullPath((Invoke-Expression $assignments[0].Right.Extent.Text))
-            if (-not $value.StartsWith($localPrefix, [StringComparison]::Ordinal)) {
-                throw "默认产物应位于已忽略的 .run 目录：$scriptName/$variable"
+            foreach ($Backend in @('mini', 'mini-cuda', 'llama')) {
+                $value = [IO.Path]::GetFullPath((Invoke-Expression $assignments[0].Right.Extent.Text))
+                if (-not $value.StartsWith($localPrefix, [StringComparison]::Ordinal)) {
+                    throw "默认产物应位于已忽略的 .run 目录：$scriptName/$variable/$Backend"
+                }
             }
             $defaults[$scriptName][$variable] = $value
         }

@@ -10,15 +10,19 @@ WSL2 使用原生 PowerShell 和 `RelWithDebInfo` 产品：
 bash scripts/dev.sh build
 bash scripts/dev.sh runtime-benchmark \
   -Trials 3 -Repeats 3 \
-  -OutputDirectory benchmarks/results/runtime-run
+  -OutputDirectory .run/runtime-run
 
 pwsh -NoProfile -File scripts/Analyze-Runtime.ps1 \
-  -Directory benchmarks/results/runtime-run
+  -Directory .run/runtime-run
 ```
 
 默认比较 1、2、4、8、16 线程，16 线程包含 SMT。自定义数组在 PowerShell 中传入，例如 `-Threads @(1, 8)`；从 Bash 运行单线程配置可使用 `-Threads 8`。`Trials` 是独立进程轮数，`Repeats` 是每个进程中每种输入的测量次数，`Warmup` 是测量前的同输入预热次数。每轮反转线程顺序，并交替执行 `none / stages` 与 `stages / none`。频率、温度和后台负载没有被固定，环境字段明确记录这一限制。
 
 `InputFile`、`Model`、`ModelManifest` 和 `BinaryDirectory` 可指定输入、模型及构建目录。模型的文件名、大小和 SHA-256 必须与来源元数据一致；输出目录必须为空。采集前增量构建，并在每个进程前后校验源码、依赖、模型、二进制、输入和 manifest。
+
+默认输出目录为 `.run/runtime-<run-id>`。既有线程扩展与长上下文基线的完整报告通过
+[历史证据归档](../benchmarks/results/historical-evidence/README.md)获取，
+解包后保留原来的 `benchmarks/results/wsl-runtime-profile/` 目录结构。
 
 直接运行单个配置不构成完整的身份验收：
 

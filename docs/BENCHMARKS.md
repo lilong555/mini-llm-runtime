@@ -11,10 +11,10 @@ bash scripts/dev.sh build
 bash scripts/dev.sh benchmark \
   -Trace benchmarks/traces/cpu-mixed-s0.jsonl \
   -Trials 3 -TraceSeed 0 -Port 8031 \
-  -OutputDirectory benchmarks/results/policy-run
+  -OutputDirectory .run/policy-run
 
 pwsh -NoProfile -File scripts/Analyze-Benchmarks.ps1 \
-  -Directory benchmarks/results/policy-run
+  -Directory .run/policy-run
 ```
 
 Windows 使用相同的 PowerShell 入口：
@@ -33,7 +33,7 @@ own-CUDA 的默认配置为 S=4、Lmax=2048、credits=8192、B=128、chunk=32、
 按 [CUDA Serving](CUDA_SERVING.md) 解释。完整 raw 默认放在 `.run/`，按
 [产物政策](ARTIFACT_POLICY.md) 发布一个 canonical bundle，Git 只保留固定输入、小索引和摘要。
 
-输出目录必须为空；未指定时使用包含时间、源码提交和随机后缀的独立目录。采集前对当前 CMake 工程增量构建 `llmserve` 和 `llmserve-bench`，失败时不使用旧二进制继续测量。Windows 增量编译仍需要完整的 MSVC 开发环境。
+输出目录必须为空；未指定时在 `.run/` 下使用包含时间、源码提交和随机后缀的独立目录。采集前对当前 CMake 工程增量构建 `llmserve` 和 `llmserve-bench`，失败时不使用旧二进制继续测量。Windows 增量编译仍需要完整的 MSVC 开发环境。
 
 ## 实验身份
 

@@ -1,5 +1,8 @@
 # 在线观测正确性验证
 
+完整原始报告见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、数值金标准来源和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 2026-09-23，WSL2 原生 CPU/CUDA 参照产品与 ASan/UBSan 核心构建。MiniLLM 始终在 CPU 上执行；CUDA 仅用于 llama.cpp 数值参照及 HTTP 后端。
 
 [evidence.json](evidence.json) 固定采集源码快照、构建参数、各验证二进制、两份实际模型文件摘要和本目录原始报告 SHA-256；对应源码 manifest 位于在线基准的 `mixed/trial-0-off/`。完整归档检查为 14 次套件、463 次用例执行，没有数量缺失。

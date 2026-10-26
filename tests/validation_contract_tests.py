@@ -2,7 +2,8 @@
 
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,6 +37,37 @@ def golden_provenance():
         assert len(case["expected_token_ids"]) == source["generation_tokens"] == 8
         previous = history[case["text"]]
         assert case["expected_token_ids"] == previous["reference"] == previous["actual"]
+
+
+def historical_archive_and_retained_evidence():
+    directory = "benchmarks/results/historical-evidence"
+    index = read(f"{directory}/evidence.json")
+    assert index["schema_version"] == 1 and index["archive_id"] == "historical-evidence-20261024"
+    archive = index["canonical_bundle"]
+    checksum = (ROOT / directory / (archive["filename"] + ".sha256")).read_text(encoding="ascii").split()
+    assert checksum == [archive["sha256"], archive["filename"]]
+    assert archive["sha256"] == "3fb7e3aea8de34be470aff1f8abf92c3d29488bb1dadd5962a246ff7f3f2d5b5"
+    assert archive["size_bytes"] == 18428252 and archive["files"] == 1682
+    url = urlsplit(archive["url"])
+    assert (url.scheme, url.netloc, url.query, url.fragment) == ("https", "github.com", "", "")
+    assert url.path == f"/lilong555/mini-llm-runtime/releases/download/{index['archive_id']}/{archive['filename']}"
+    assert len(index["source_snapshots"]) == 22
+    assert index["verification"]["offline_checks_passed"] == 14
+    paths = set()
+    for item in index["repository_files"]:
+        path = PurePosixPath(item["path"])
+        assert not path.is_absolute() and ".." not in path.parts
+        assert item["path"] not in paths
+        assert any(item["path"].startswith(prefix + "/") for prefix in index["components"].values())
+        paths.add(item["path"])
+        data = (ROOT / path).read_bytes()
+        if item["path"] in index["git_lf_local_crlf"]:
+            data = data.replace(b"\r\n", b"\n")
+        assert len(data) == item["size_bytes"], item["path"]
+        assert hashlib.sha256(data).hexdigest() == item["sha256"], item["path"]
+    assert len(paths) == 385
+    assert len([path for path in paths if path.endswith(".xml")]) == 54
+    assert contract["golden_source"]["archive_origin"] in paths
 
 
 def corpus_boundaries():
@@ -128,7 +160,7 @@ def precision_experiment_boundaries():
 
 if __name__ == "__main__":
     tests = [pinned_weights, golden_provenance, corpus_boundaries, measurement_boundaries,
-             precision_experiment_boundaries]
+             precision_experiment_boundaries, historical_archive_and_retained_evidence]
     for test in tests:
         test()
         print(f"[PASS] {test.__name__}")

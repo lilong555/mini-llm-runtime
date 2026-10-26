@@ -936,3 +936,25 @@
   本机 CPU 构建的 CTest 为 16/16；新增检查覆盖公开索引、保留摘要和采集默认路径。
   376 个相对 Markdown 链接检查中，受影响入口全部有效。75 份历史 XML 通过既有检查，
   状态为 `passed_with_unreported_case_counts`，其中三套旧报告保留原有的用例计数缺项。
+
+## ENG-081：历史逐样本报告占据源码树且部分源码快照仅在本地
+
+- 状态：已解决，范围为 CPU 阶段基线、在线 batch 观测和早期 CPU/CUDA 验证。
+- 影响：`main@155dd980` 的文件总量为 110749679 字节；三个历史目录占约 95.84 MiB。
+  Runtime scaling 和在线观测的 22 份源码快照仅存于本地，公开目录的复核依赖不完整。
+- 复现或证据：主分支文件树 `038408ada37c07637922ccb91650da5471036e6e`；
+  `wsl-runtime-profile`、`wsl-batch-telemetry` 的 23 份 manifest 与本地源码 ZIP 摘要一致。
+  早期八份 Windows 报告的本地 CRLF 与 Git LF 仅有换行差异，归档固定主分支字节，本地原件保留。
+- 原因：历史原始报告、逐层阶段数据和诊断长期保存在源码树，早期忽略规则排除了部分源码 ZIP。
+- 解决方法：`historical-evidence-20261024` Release 提供 18428252 字节、1682 文件的完整包；
+  包内原清单固定采集身份和失败分类。仓库保留 385 份数据及 19 份文档；
+  `historical-evidence/evidence.json` 固定下载地址、SHA-256、源码快照和保留数据的摘要。
+  Runtime、策略回放及模型验证默认输出到 `.run/`，文档提供完整解包后的复核命令。
+- 验证：公开附件匿名下载 HTTP 200，SHA-256 为
+  `3fb7e3aea8de34be470aff1f8abf92c3d29488bb1dadd5962a246ff7f3f2d5b5`；
+  ZIP、逐文件摘要和字节回读通过。公开下载件的两组 Runtime、五组在线观测、
+  六个 CUDA 归档及 CTest 共 14 项离线复核通过，原始数据保持原样。
+  1246 个文件共 95464355 字节移出工作树，385 份保留数据逐项摘要检查通过。
+  本机 CPU CTest 16/16；六种采集脚本的默认路径检查通过。
+  75 份历史 XML 保持完整，既有检查为 `passed_with_unreported_case_counts`，
+  三套旧报告保留原有用例计数缺项。

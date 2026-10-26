@@ -1,5 +1,8 @@
 # CUDA 基础层验收
 
+完整原始报告与源码快照见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 2`，环境为 WSL2、RTX 4070 Laptop、CUDA 12.8、GCC 11.4。`evidence.json` 固定实际工作区源码快照、模型摘要和各项原始证据；`build-boundaries.json` 记录编译参数、构建选项、二进制摘要及动态依赖。源码为 `e2fcb6d` 上的未提交实现，不能标成基点的 clean build。
 
 ## 结果

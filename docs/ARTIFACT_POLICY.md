@@ -15,6 +15,12 @@
 记录下载地址、SHA-256、尺寸、五组件路径和匿名下载复核结果。
 仓库内对应目录保存摘要、配置、采集元数据及代表性验证记录；完整包解压到已忽略的 `.run/`。
 
+CPU Runtime 阶段基线、在线 batch 观测与早期 CPU/CUDA 验证使用
+[历史证据归档](../benchmarks/results/historical-evidence/README.md)。
+完整原始记录、失败诊断和源码快照保存在同一个公开包，385 份仓库保留数据由
+[逐文件索引](../benchmarks/results/historical-evidence/evidence.json)固定摘要；
+全部历史 CTest XML 继续参与 CI 检查。新的 Runtime、策略回放及模型验证默认输出到 `.run/`。
+
 | 位置 | 内容 |
 | --- | --- |
 | Git | 产品源码、测试、固定输入/seed/schema、复现命令、小型证据索引、主要结论与限制、必要代表性原始样本 |

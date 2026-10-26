@@ -1,5 +1,8 @@
 # 模型基准功能检查计时
 
+完整原始报告见[历史证据归档](../../historical-evidence/README.md)；
+下文原始文件路径以完整包内的 `benchmarks/results/validation/cuda-benchmark/` 为根。
+
 以下为四个功能检查进程各自 3 次测量的中位值，单位 ms；没有 A/A、平衡顺序或独立 trial 置信区间，不用于加速或退化结论。所有原始样本、较慢结果和 warmup 均保留。自然生成列为 prefill 与 31 次 decode 的 forward 计时之和。
 
 | 用例 | CPU8 | CPU16 | CUDA | CUDA manifest 检查 |

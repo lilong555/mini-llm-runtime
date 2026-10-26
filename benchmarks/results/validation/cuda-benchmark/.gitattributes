@@ -1,4 +1,0 @@
-*.json -text
-*.txt -text whitespace=-blank-at-eol,-blank-at-eof
-*.xml -text
-*.zip binary

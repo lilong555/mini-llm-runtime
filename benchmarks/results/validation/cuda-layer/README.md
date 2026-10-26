@@ -1,5 +1,8 @@
 # CUDA 连续 KV 与层执行验收
 
+完整原始报告、源码快照与复核器见[历史证据归档](../../historical-evidence/README.md)。
+仓库保留摘要、配置和 CTest XML；下文原始文件路径以完整包内同名目录为根。
+
 范围为 `CUDA-VS-001 / Step 6`。提供连续 FP16 KV、逐 query 因果 GQA、QK → softmax → PV 和完整 transformer 层。单层通过不代表完整 28 层、真实生成 token、GPU Serving 或性能已验收。
 
 ## 正确性
@@ -42,7 +45,7 @@ bash scripts/dev.sh own-cuda build
 bash scripts/dev.sh own-cuda test
 bash scripts/dev.sh own-cuda layer-check
 bash scripts/dev.sh own-cuda layer-memcheck
-pwsh -NoProfile -File benchmarks/results/validation/cuda-layer/verify.ps1
+pwsh -NoProfile -File .run/historical-evidence/benchmarks/results/validation/cuda-layer/verify.ps1
 ```
 
 `evidence.json` 固定实际源码、二进制、工具环境及产物摘要。归档复核使用源码 ZIP 内的工具，不依赖原工作区；缺 ZIP、篡改和已有目录覆盖的反例单独记录。模型、二进制、依赖 checkout 与工具链不在归档中。归档复核不执行模型，不等于在另一台 GPU 重跑。

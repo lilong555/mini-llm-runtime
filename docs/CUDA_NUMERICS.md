@@ -52,12 +52,15 @@ chunk 是整个 batch 的容量，不是每个序列的容量。1536-token 输�
 
 ## 参照诊断
 
+先按[历史证据归档](../benchmarks/results/historical-evidence/README.md)取得完整失败报告，
+解包到 `.run/historical-evidence`。
+
 ```bash
 build/wsl-own-cuda/bin/minillm-cuda-reference-diagnostic \
   --model models/Qwen3-0.6B-Q8_0.gguf \
   --reference-model models/Qwen3-0.6B-Q8_0-dequant-F32.gguf \
   --contract tests/data/qwen3_validation_cases.json \
-  --generation-report benchmarks/results/validation/cuda-full/diagnostics/fused-reference/real-model/generation/cuda-repeated-l1536-g32.json \
+  --generation-report .run/historical-evidence/benchmarks/results/validation/cuda-full/diagnostics/fused-reference/real-model/generation/cuda-repeated-l1536-g32.json \
   --output .run/cuda-reference-check
 ```
 
