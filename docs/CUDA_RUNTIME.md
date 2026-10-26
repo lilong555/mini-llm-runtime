@@ -6,6 +6,11 @@
 
 ## 构建与验收
 
+产品展示路径为 F32/contiguous；paged 为最终 B 的显式研究入口。
+F16 matrix 数值门禁失败，Serving 使用 F32 矩阵路径。debug logits、fault hooks
+与 profiler timing 仅供内部验证。Serving 的 stage 记录 host/Engine 观测，
+设备阶段时间由独立 profiler 采集。
+
 WSL2、CUDA Toolkit >= 12.8、C++20 工具链和固定版本 llama.cpp 为构建前提。本机 RTX 4070 Laptop 使用架构 `89`：
 
 ```bash

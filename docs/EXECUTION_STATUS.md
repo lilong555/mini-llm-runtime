@@ -1,15 +1,62 @@
 # 项目执行状态
 
-当前处于 Portfolio Freeze 收尾，唯一活跃合同为
-[GPU-KV-CLOSEOUT-001](GPU_KV_DECISION.md)。分页功能已完成，不新增 Major Feature。
-[PLAN-V4-KV-20260928](PROJECT_PLAN_V4_KV.md) 与 [GPU-KV-001](NEXT_SPEC_V3.md)
-保留为功能实施的历史计划和规范。[精度版 V4](PROJECT_PLAN_V4.md) 与
+项目处于功能冻结。CPU Runtime 与 F32/contiguous Own CUDA Serving 为默认
+使用入口；GPU paged 为 B 类容量研究模式，FP16 matrix 研究以
+`blocked_correctness` 收束。后续维护范围为文档、交付和有复现证据的必要修复。
+支持范围见[项目总览](../README.md)，发布门禁见[版本约定](VERSION_CONTROL.md)。
+
+[GPU-KV-CLOSEOUT-001](GPU_KV_DECISION.md) 为已完成的研究停止合同。
+[PLAN-V4-KV-20260928](history/plans/PROJECT_PLAN_V4_KV.md) 与 [GPU-KV-001](NEXT_SPEC_V3.md)
+保留为功能实施的历史计划和规范。[精度版 V4](history/plans/PROJECT_PLAN_V4.md) 与
 [CUDA-PREC-001](NEXT_OPT_SPEC.md) 保留为已停止研究的历史合同。
-[CUDA-SERVE-001](NEXT_SPEC_V2.md) 与
+[CUDA-SERVE-001](history/plans/NEXT_SPEC_V2.md) 与
 [CUDA-VS-001](NEXT_SPEC.md) 分别是冻结的 Serving 与 M1 模型规范；
 V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFACT_POLICY.md)。
 
-## 收尾与上游
+## 交付状态
+
+| 项目 | 状态与入口 |
+| --- | --- |
+| 文档 | 总览、能力说明、性能摘要与 CPU/CUDA 开发入口齐备 |
+| 历史材料 | 六份旧计划和三份收尾材料按历史基线存放于[历史索引](history/README.md) |
+| CUDA-VS-001 | 完整包及五组件原始文件由[公开归档](../benchmarks/results/cuda-vs-001/README.md)提供，匿名下载与离线复核通过 |
+| 早期实验 | [历史证据包](../benchmarks/results/historical-evidence/README.md)保留 1682 个文件，14 项离线复核通过 |
+| 版本 | `0.2.0` 候选，发布内容见[发布草稿](RELEASE_DRAFT.md) |
+| 分支与标签 | 历史分支和研究标签保留；正式版本发布与分支删除由用户确认 |
+
+当前交付包含 851 个文件，文件总量约 14.73 MiB。
+归档索引固定下载地址与 SHA-256，保留数据与归档原件摘要一致。
+Git 历史保留完整；生成输出位于 `.run/`。
+
+## 候选验证
+
+2026-10-26，`0.2.0` 候选在独立构建目录中完成下列功能验证。
+环境为 WSL2、RTX 4070 Laptop、CUDA Toolkit 12.8、架构 89，
+GPU 使用 `f32-pedantic` 矩阵与默认 contiguous KV。
+
+| 检查 | 结果 |
+| --- | --- |
+| CPU / Own CUDA 构建与 CTest | 构建成功，16/16 与 23/23 |
+| 两后端短生成 | 同一 prompt 的 8 个 token 与冻结金标准一致 |
+| CPU / Own CUDA HTTP | 各 12/12；停服时分别 10、6 个请求返回唯一终态 |
+| CUDA 短模型 | 128 次 logits 比较、6 个金标准通过 |
+| 真实模型 Serving | 3/3，通过 mixed batch、槽复用及故障检查 |
+| GPU 组件 memcheck | 五个进程，0 错误、0 泄漏 |
+| 开发入口 | 14 组前置工具检查及 Bash 语法检查通过 |
+
+CPU HTTP 首次在并行编译期间未形成停服测试要求的活动／排队请求重叠，
+空闲环境下使用同一二进制和默认参数复验通过；两次记录均保留，
+详见[工程记录](ENGINEERING_LOG.md)的 `ENG-082`。
+HTTP 复验观察到 CPU/CUDA 的 `mixed_batches=1/3`、
+`max_batch_sequences=8/4`。
+
+日志、源码清单和二进制摘要位于 `.run/delivery-finalization.gHbJwl/`，
+`verification.json` 绑定功能检查与交付候选的源码身份。
+发布前按[版本门禁](VERSION_CONTROL.md)确认目标提交自身的 CI。
+2026-09-30 的隔离验证与各阶段性能采集保留原始身份和日志，
+历史收尾材料见[历史索引](history/README.md)。
+
+## 上游移交
 
 - 研究结果、公开证据、架构与七个技术追问入口均已具备；不再新增功能或性能采样。
 - main 的两阶段整合入口为
@@ -23,7 +70,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   上游阶段以作者选定、理解并愿意维护的真实问题为入口；先查重与本地复现，
   不代发 issue、PR、评论或回复。
 
-## 当前门禁
+## GPU KV 历史验收（截至 2026-09-30）
 
 - 初始模型六进程完成，四项配对退化中位数为 17.25%、71.07%、96.75%、17.98%，
   均未通过冻结护栏；原始不利结果保留。
@@ -94,13 +141,13 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   F32 数学、P=16、S≤4、L≤2048、B≤128 和保守 admission。
   Fusion、prefix sharing、Graph、async 与新精度路线均不进入本轮。
 
-## 基点与依赖
+## 早期阶段基点与依赖（历史）
 
 - 审计基点：`68ac275913207975a88e2090c6617467e351301c`。
 - 本地原起点：`235c5c4`；与审计基点的 Git tree 相同，审计基点包含主分支合并记录。
 - 开发基点：`608daf148a17007f96387040fd66ce130fe8d640`，包含现成 Windows 修复；
   对应 CI run `36233429810` 的五个任务全部通过。
-- 当前审计 HEAD：`6ca7d2dfeccb38b11b7596a552046651afcb693e`；
+- 精度研究审计 HEAD：`6ca7d2dfeccb38b11b7596a552046651afcb693e`；
   与 `origin/main` 的 merge base 为 `68ac275913207975a88e2090c6617467e351301c`。
 - 精度研究分支：`perf/cuda-f16-matrix-path`。
 - 实施基点包含独立 HTTP 停服修复 `57268f9`，对应 `ENG-064`：
@@ -149,7 +196,7 @@ V1/V2/V3 计划保留为历史参考。证据存放遵循 [产物政策](ARTIFAC
   基准扩展的 own-CUDA/CPU CTest 共 37/37 通过。
 - M3-1 采集与验证已停止；精度研究未补跑 M1，已用 6/24 个正式性能进程，
   新增 NSys 与 NCU 均为 0；微基准不追加 trial。
-- GPU-KV-001 正式性能预算已用：micro 6/6、model 0/6、Serving 0/12，
+- GPU-KV-001 微基准阶段预算快照：micro 6/6、model 0/6、Serving 0/12，
   新增 NSys 0/1，NCU 0/1。与精度研究的预算分开记录。
 
 ## 阶段门禁
@@ -236,4 +283,4 @@ Git 保留固定输入、小摘要、验证结果和 [分析](../benchmarks/resu
 - `benchmarks/runtime-inputs/qwen3-gpu-kv-v1.json`：F32 连续/分页的六类 attention、
   四个模型 workload、两条 trace、三对 trial、288 MiB KV 预算与 10% 性能护栏。
   新容量 trace 为 `benchmarks/traces/gpu-kv-capacity-v1.jsonl`，24 个固定异长请求。
-- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 四组实现、入口预检和正式微基准完成，模型/Serving 正式采样及采用决定尚未完成。
+- 全量数值、微基准、完整模型 A/A/异构基线、完整模型 Profiler 和完整证据包均已有独立验收且冻结；测量不确定项保留。GPU-KV-001 实现、30 个正式性能进程与最终 B 决定均已完成；本轮仅验证交付候选，不重跑历史性能矩阵。

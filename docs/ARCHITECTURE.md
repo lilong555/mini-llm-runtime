@@ -71,6 +71,19 @@ Own CUDA 限定单 GPU、Qwen3-0.6B、S≤4、L≤2048、B≤128、greedy。
 分页最终为容量／研究模式，不承诺速度提升，见
 [性能](PERFORMANCE.md)、[GPU KV 研究](GPU_KV_STUDY.md)与[验证](VALIDATION.md)。
 
+## 支持分层
+
+- 默认可用：CPU 快速路径，F32 矩阵／contiguous KV 的 Own CUDA 展示路径。
+- 实验入口：GPU paged 容量研究；显式 opt-in，接受已披露的性能代价。
+- 已停止研究：FP16 matrix 候选，Serving 拒绝启用。
+- 内部验证：debug logits、fault hooks、profiler timing。
+  GPU `stages` 记录 host/Engine 观测，设备阶段时间由独立 profiler 采集。
+
+`BlockPool` 管理 Engine 容量信用，`CudaStorage` 管理 GPU 物理资源。
+`clear` 归还池内资源，device slab 保留供复用，并在 owner 析构时释放。
+preflight/commit/poison 合同覆盖 CUDA 执行；CPU Runtime 使用自身的完成语义。
+整批 sample 校验覆盖单批模型输出，HTTP/SSE 的发布与终态由请求生命周期管理。
+
 ## 技术追问
 
 | 问题 | 解释重点与代码入口 |
